@@ -54,7 +54,7 @@ import { vscode } from "@src/utils/vscode"
 
 import { Tab, TabContent, TabHeader, TabList, TabTrigger } from "../common/Tab"
 import { SectionHeader } from "./SectionHeader"
-// import { SetCachedStateField, SetExperimentEnabled } from "./types"
+import { SetCachedStateField } from "./types"
 // import ApiConfigManager from "./ApiConfigManager"
 import deepEqual from "fast-deep-equal" // kilocode_change
 import { GhostServiceSettingsView } from "../kilocode/settings/GhostServiceSettings" // kilocode_change
