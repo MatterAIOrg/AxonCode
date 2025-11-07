@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "4.114.0",
+	"version": "4.115.0",
 	"icon": "assets/icons/logo-outline-black.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -21,7 +21,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Kilo-Org/kilocode"
+		"url": "https://github.com/MatterAIOrg/AxonCode"
 	},
 	"homepage": "https://matterai.so",
 	"categories": [
@@ -111,8 +111,8 @@
 				{
 					"id": "kilo-code-ActivityBar",
 					"title": "%views.activitybar.title%",
-					"icon": "assets/icons/axon-code.png",
-					"darkIcon": "assets/icons/axon-code.png"
+					"icon": "assets/icons/matterai-ic.png",
+					"darkIcon": "assets/icons/matterai-ic.png"
 				}
 			]
 		},
@@ -122,8 +122,8 @@
 					"type": "webview",
 					"id": "axon-code.SidebarProvider",
 					"name": "%views.sidebar.name%",
-					"icon": "assets/icons/axon-code.png",
-					"darkIcon": "assets/icons/axon-code.png"
+					"icon": "assets/icons/matterai-ic.png",
+					"darkIcon": "assets/icons/matterai-ic.png"
 				}
 			]
 		},
