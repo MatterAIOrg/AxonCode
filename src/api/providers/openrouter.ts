@@ -146,9 +146,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		const baseURL = this.options.openRouterBaseUrl || "https://api.matterai.so/v1/web"
 		const apiKey = this.options.openRouterApiKey ?? "not-provided"
 
-		console.log("baseURL", baseURL)
-		console.log("apiKey", apiKey)
-
 		this.client = new OpenAI({ baseURL, apiKey, defaultHeaders: DEFAULT_HEADERS })
 	}
 
@@ -226,8 +223,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		// const transforms = (this.options.openRouterUseMiddleOutTransform ?? true) ? ["middle-out"] : undefined
 
-		console.log("convertedMessages", convertedMessages)
-
 		// https://openrouter.ai/docs/transforms
 		// const completionParams: OpenRouterChatCompletionParams = {
 		// 	model: modelId,
@@ -256,7 +251,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		let stream
 		try {
 			console.log("requestOptions", requestOptions)
-			// console.log("customRequestOptions", this.customRequestOptions(metadata))
 			stream = await this.client.chat.completions.create(
 				requestOptions,
 				this.customRequestOptions(metadata), // kilocode_change

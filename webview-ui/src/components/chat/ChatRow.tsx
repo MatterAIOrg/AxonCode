@@ -1150,10 +1150,10 @@ export const ChatRowContent = ({
 								<MessageCircle className="w-4 shrink-0" aria-label="Speech bubble icon" />
 								<span style={{}}>{t("chat:text.rooSaid")}</span>
 							</div> */}
-							<div className="">
+							<div className="mb-4">
 								<Markdown markdown={message.text} partial={message.partial} />
 								{message.images && message.images.length > 0 && (
-									<div style={{ marginTop: "10px" }}>
+									<div style={{ marginTop: "0px" }}>
 										{message.images.map((image, index) => (
 											<ImageBlock key={index} imageData={image} />
 										))}
@@ -1171,6 +1171,7 @@ export const ChatRowContent = ({
 							</div> */}
 							<div
 								className={cn(
+									"mb-2",
 									"border rounded-lg whitespace-pre-wrap",
 									isEditing ? "overflow-visible" : "overflow-hidden", // kilocode_change
 									isEditing ? "text-vscode-editor-foreground" : "cursor-text p-1",
