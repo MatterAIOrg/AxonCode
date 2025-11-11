@@ -265,7 +265,7 @@ export const ChatRowContent = ({
 					isCommandExecuting ? (
 						<ProgressIndicator />
 					) : (
-						<TerminalSquare className="size-4" aria-label="Terminal icon" />
+						<TerminalSquare className="size-3 -mr-1" aria-label="Terminal icon" />
 					),
 					<span style={{ color: normalColor }}>{t("chat:commandExecution.running")}</span>,
 				]
@@ -435,6 +435,44 @@ export const ChatRowContent = ({
 								isLoading={message.partial}
 								isExpanded={isExpanded}
 								onToggleExpand={handleToggleExpand}
+							/>
+							{
+								// kilocode_change start
+								tool.fastApplyResult && <FastApplyChatDisplay fastApplyResult={tool.fastApplyResult} />
+								// kilocode_change end
+							}
+						</div>
+					</>
+				)
+			case "fileEdit":
+				return (
+					<>
+						<div style={headerStyle}>
+							{tool.isProtected ? (
+								<span
+									className="codicon codicon-lock"
+									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
+								/>
+							) : (
+								toolIcon("edit")
+							)}
+							<span style={{}}>
+								{tool.isProtected
+									? t("chat:fileOperations.wantsToEditProtected")
+									: tool.isOutsideWorkspace
+										? t("chat:fileOperations.wantsToEditOutsideWorkspace")
+										: t("chat:fileOperations.wantsToEdit")}
+							</span>
+						</div>
+						<div className="">
+							<CodeAccordian
+								path={tool.path}
+								code={tool.content}
+								language={getLanguageFromPath(tool.path || "") || "log"}
+								isLoading={message.partial}
+								isExpanded={isExpanded}
+								onToggleExpand={handleToggleExpand}
+								onJumpToFile={() => vscode.postMessage({ type: "openFile", text: "./" + tool.path })}
 							/>
 							{
 								// kilocode_change start
