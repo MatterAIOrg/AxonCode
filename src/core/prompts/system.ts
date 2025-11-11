@@ -143,6 +143,17 @@ Before submitting, verify each diff has:
 - ✅ Ends with \`>>>>>>> REPLACE\`
 - ✅ SEARCH block matches original file exactly
 - ✅ Correct \`start_line\` number
+
+# execute_command
+
+The \`execute_command\` tool runs CLI commands on the user's system. It allows Axon Code to perform system operations, install dependencies, build projects, start servers, and execute other terminal-based tasks needed to accomplish user objectives.
+
+## Parameters
+
+The tool accepts these parameters:
+
+- \`command\` (required): The CLI command to execute. Must be valid for the user's operating system.
+- \`cwd\` (optional): The working directory to execute the command in. If not provided, the current working directory is used. Ensure this is always an absolute path, starting with \`/\`. If you are running the command in the root directly, skip this parameter. The command executor is defaulted to run in the root directory. You already have the Current Workspace Directory in <environment_details>.
 `
 
 async function generatePrompt(
