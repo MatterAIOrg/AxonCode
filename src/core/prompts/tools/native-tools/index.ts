@@ -33,7 +33,7 @@ export const nativeTools = [
 	executeCommand,
 	fetchInstructions,
 	// generateImage,
-	insertContent,
+	// insertContent,
 	listCodeDefinitionNames,
 	listFiles,
 	newTask,
@@ -42,5 +42,5 @@ export const nativeTools = [
 	// searchAndReplace,
 	searchFiles,
 	updateTodoList,
-	writeToFile,
+	// writeToFile,
 ] satisfies OpenAI.Chat.ChatCompletionTool[]
