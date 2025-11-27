@@ -39,6 +39,7 @@ export class CodeIndexServiceFactory {
 		const provider = config.embedderProvider as EmbedderProvider
 		if (provider === "matterai") {
 			// Use the same API key source as OpenRouter provider
+
 			const openRouterApiKey = config.openRouterApiKey
 			if (!openRouterApiKey) {
 				throw new Error(t("embeddings:serviceFactory.matteraiConfigMissing"))
