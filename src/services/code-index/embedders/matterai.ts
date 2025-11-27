@@ -12,7 +12,7 @@ import { OpenAICompatibleEmbedder } from "./openai-compatible"
  */
 export class MatterAiEmbedder implements IEmbedder {
 	private readonly openAICompatibleEmbedder: OpenAICompatibleEmbedder
-	private static readonly MATTERAI_BASE_URL = "https://api.matterai.so/v1/embed"
+	private static readonly MATTERAI_BASE_URL = "https://api.matterai.so/v1/embeddings"
 	private static readonly DEFAULT_MODEL = "matterai-embedding-large"
 	private readonly modelId: string
 
