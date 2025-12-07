@@ -26,7 +26,6 @@ export const BottomApiConfig = () => {
 			if (message.type === "profileDataResponse") {
 				const payload = message.payload as any
 				if (payload?.success && payload.data) {
-					console.log("payload.data", payload.data)
 					// Extract usage percentage from profile data
 					// This assumes the API response includes usage metrics as described in the task
 					const profileData = payload.data as any
