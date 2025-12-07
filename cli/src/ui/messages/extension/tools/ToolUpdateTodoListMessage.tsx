@@ -17,7 +17,7 @@ export const ToolUpdateTodoListMessage: React.FC<ToolMessageProps> = ({ toolData
 	const getStatusIcon = (status: string) => {
 		switch (status) {
 			case "completed":
-				return "✓"
+				return "●"
 			case "in_progress":
 				return "⋯"
 			case "pending":

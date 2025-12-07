@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { CheckCircle } from "lucide-react"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
 import MarkdownBlock from "../common/MarkdownBlock"
 
@@ -210,15 +211,12 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 								let icon
 								if (todo.status === "completed") {
 									icon = (
-										<span
+										<CheckCircle
+											size={10}
 											style={{
-												display: "inline-block",
-												width: 8,
-												height: 8,
-												borderRadius: "50%",
-												background: "var(--vscode-charts-green)",
+												color: "var(--matterai-color-green)",
 												marginRight: 6,
-												marginTop: 7,
+												marginTop: 6,
 												flexShrink: 0,
 											}}
 										/>
@@ -228,8 +226,8 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 										<span
 											style={{
 												display: "inline-block",
-												width: 8,
-												height: 8,
+												width: 10,
+												height: 10,
 												borderRadius: "50%",
 												background: "var(--vscode-charts-yellow)",
 												marginRight: 6,
