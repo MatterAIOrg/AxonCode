@@ -444,7 +444,6 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 					setInputValue(newValue)
 					const newCursorPosition = newValue.indexOf(" ", mentionIndex + insertValue.length) + 1
-					console.log("PPP2 newValue", newValue, newCursorPosition)
 					setCursorPosition(newCursorPosition)
 					setIntendedCursorPosition(newCursorPosition)
 
@@ -482,7 +481,6 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					const newCursorPosition = newValue.indexOf(" ", commandIndex + 1 + command.name.length) + 1
 
 					setInputValue(newValue)
-					console.log("PPP3 newValue", newValue)
 					setCursorPosition(newCursorPosition)
 					setIntendedCursorPosition(newCursorPosition)
 
@@ -652,11 +650,9 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						if (!charAfterIsWhitespace) {
 							event.preventDefault()
 							textAreaRef.current?.setSelectionRange(newCursorPosition, newCursorPosition)
-							console.log("PPP4 newValue")
 							setCursorPosition(newCursorPosition)
 						}
 
-						console.log("PPP4 newValue")
 						setCursorPosition(newCursorPosition)
 						setJustDeletedSpaceAfterMention(true)
 					} else if (justDeletedSpaceAfterMention) {
@@ -723,7 +719,6 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				resetOnInputChange()
 
 				const newCursorPosition = e.target.selectionStart + 200
-				console.log("PPP6 newValue")
 				setCursorPosition(newCursorPosition)
 
 				// kilocode_change start: pull slash commands from Cline
@@ -838,7 +833,6 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						inputValue.slice(0, cursorPosition) + trimmedUrl + " " + inputValue.slice(cursorPosition)
 					setInputValue(newValue)
 					const newCursorPosition = cursorPosition + trimmedUrl.length + 1
-					console.log("PPP7 newValue")
 					setCursorPosition(newCursorPosition)
 					setIntendedCursorPosition(newCursorPosition)
 					setShowContextMenu(false)
@@ -1127,9 +1121,6 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						// Add space after the last mention and append the rest of the input
 						newValue += " " + inputValue.slice(cursorPosition)
 						totalLength += 1
-
-						console.log("PPP1 newValue", newValue)
-						console.log("PPP1 totalLength", totalLength)
 
 						setInputValue(newValue)
 						const newCursorPosition = cursorPosition + totalLength + 1
