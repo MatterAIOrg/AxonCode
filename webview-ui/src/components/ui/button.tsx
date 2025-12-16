@@ -15,7 +15,7 @@ const buttonVariants = cva(
 					"border border-vscode-input-border bg-transparent hover:bg-accent hover:text-accent-foreground",
 				secondary:
 					"border border-vscode-input-border bg-secondary text-secondary-foreground hover:bg-secondary/80",
-				ghost: "hover:bg-accent hover:text-accent-foreground",
+				ghost: "hover:bg-accent hover:text-accent-foreground border-none",
 				link: "text-primary underline-offset-4 hover:underline",
 				combobox:
 					"border border-vscode-dropdown-border focus-visible:border-vscode-focusBorder bg-vscode-dropdown-background hover:bg-transparent text-vscode-dropdown-foreground font-normal",
@@ -24,7 +24,7 @@ const buttonVariants = cva(
 				default: "h-7 px-3",
 				sm: "h-6 px-2 text-sm",
 				lg: "h-8 px-4 text-lg",
-				icon: "h-7 w-7",
+				icon: "h-4 w-4",
 			},
 		},
 		defaultVariants: {

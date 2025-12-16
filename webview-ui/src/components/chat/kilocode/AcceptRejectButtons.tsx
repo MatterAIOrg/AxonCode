@@ -72,11 +72,9 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 
 	// Show nothing until we have data.
 	if (isLoading || files.length === 0) {
-		console.log("[AcceptRejectButtons] Not rendering - isLoading:", isLoading, "files.length:", files.length)
 		return null
 	}
 
-	console.log("[AcceptRejectButtons] Rendering with", files.length, "files")
 	return (
 		<div className="flex flex-col w-full mt-3 border border-vscode-editorWidget-border rounded-md overflow-hidden bg-vscode-editor-background">
 			{/* Header */}
