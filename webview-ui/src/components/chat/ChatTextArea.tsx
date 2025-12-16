@@ -102,20 +102,6 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			clineMessages,
 		} = useExtensionState()
 
-		const latestCommitRange = useMemo(() => {
-			// Find most recent completion_result that included a commit range.
-			for (let i = clineMessages.length - 1; i >= 0; i--) {
-				const msg: any = clineMessages[i]
-				if (msg?.type === "say" && msg?.say === "completion_result" && !msg?.partial) {
-					const commitRange = msg?.metadata?.kiloCode?.commitRange
-					if (commitRange?.from) return commitRange
-				}
-			}
-			return undefined
-		}, [clineMessages])
-
-		const [dismissedCommitFrom, setDismissedCommitFrom] = useState<string | undefined>(undefined)
-
 		// Find the ID and display text for the currently selected API configuration
 		const { currentConfigId, displayName } = useMemo(() => {
 			const currentConfig = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
@@ -1453,12 +1439,9 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					"box-border",
 				)}>
 				{/* Pinned file review actions (not a chat row) */}
-				{!isEditMode && latestCommitRange && latestCommitRange.from !== dismissedCommitFrom && (
+				{!isEditMode && (
 					<div className="px-0.5">
-						<AcceptRejectButtons
-							commitRange={latestCommitRange}
-							onDismiss={() => setDismissedCommitFrom(latestCommitRange.from)}
-						/>
+						<AcceptRejectButtons onDismiss={() => {}} />
 					</div>
 				)}
 				<div className="relative">
