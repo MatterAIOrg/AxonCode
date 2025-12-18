@@ -2,8 +2,8 @@
 const AXON_MODEL_CREDITS: Record<string, string> = {
 	"axon-mini": "(0.5x)",
 	"axon-code": "(1x)",
-	"gemini-3-flash-preview": "(1x)",
-	"gemini-3-pro-preview": "(2x)",
+	// "gemini-3-flash-preview": "(1x)",
+	// "gemini-3-pro-preview": "(2x)",
 }
 
 export const prettyModelName = (modelId: string): string => {
