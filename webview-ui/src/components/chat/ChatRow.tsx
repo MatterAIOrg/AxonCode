@@ -79,9 +79,10 @@ const headerStyle: React.CSSProperties = {
 	alignItems: "center",
 	gap: "0px",
 	fontWeight: "600",
+	fontSize: "12px",
 	marginBottom: "2px",
 	wordBreak: "break-word",
-	color: "var(--vscode-descriptionForeground)",
+	opacity: "0.75",
 	flexShrink: 0,
 }
 
@@ -482,7 +483,7 @@ export const ChatRowContent = ({
 				const diffStats = computeDiffStats(fileEditDiff)
 				return (
 					<div className={`flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start`}>
-						<div style={headerStyle} className="mt-0.5">
+						<div style={headerStyle} className="">
 							{tool.isProtected ? (
 								<span
 									className="codicon codicon-lock"
@@ -537,27 +538,15 @@ export const ChatRowContent = ({
 											</span>
 										) : null}
 										{diffStats ? (
-											<span className="text-xs text-vscode-descriptionForeground">
+											<span className="text-xs text-vscode-descriptionForeground flex gap-1">
 												<span style={{ color: "var(--vscode-charts-green)" }}>
 													+{diffStats.added}
-												</span>{" "}
+												</span>
 												<span style={{ color: "var(--vscode-charts-red)" }}>
 													-{diffStats.removed}
 												</span>
 											</span>
 										) : null}
-										<div className="flex-grow" />
-										{tool.path && (
-											<span
-												className="codicon codicon-link-external"
-												style={{ fontSize: 13.5 }}
-												onClick={(e) => {
-													e.stopPropagation()
-													vscode.postMessage({ type: "openFile", text: "./" + tool.path })
-												}}
-												aria-label={`Open file: ${tool.path}`}
-											/>
-										)}
 									</div>
 								}
 								isLoading={message.partial}
@@ -764,7 +753,7 @@ export const ChatRowContent = ({
 									className="group"
 									onClick={() => vscode.postMessage({ type: "openFile", text: tool.content })}>
 									{tool.path?.startsWith(".") && <span>.</span>}
-									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left mr-2 rtl">
+									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
 										{fileName}
 										{tool.reason
 											?.replace("lines", "#L")

@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react"
+import { memo, type ReactNode, useMemo } from "react"
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
 import { type ToolProgressStatus } from "@roo-code/types"
 import { getLanguageFromPath } from "@src/utils/getLanguageFromPath"
@@ -17,7 +17,7 @@ interface CodeAccordianProps {
 	isFeedback?: boolean
 	onToggleExpand: () => void
 	header?: string
-	headerContent?: React.ReactNode
+	headerContent?: ReactNode
 	onJumpToFile?: () => void
 }
 
@@ -60,23 +60,23 @@ const CodeAccordian = ({
 					) : (
 						<>
 							{path?.startsWith(".") && <span>.</span>}
-							<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left mr-2 rtl">
+							<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
 								{removeLeadingNonAlphanumeric(path ?? "") + "\u200E"}
 							</span>
 						</>
 					)}
+					<div className="flex-grow-1" />
 					{progressStatus && progressStatus.text && (
 						<>
-							<div className="flex-grow" />
 							{progressStatus.icon && <span className={`codicon codicon-${progressStatus.icon} mr-1`} />}
 							<span className="mr-1 ml-auto text-vscode-descriptionForeground">
 								{progressStatus.text}
 							</span>
 						</>
 					)}
-					{onJumpToFile && path && !headerContent && (
+					{onJumpToFile && path && (
 						<span
-							className="codicon codicon-link-external mr-1"
+							className="codicon codicon-link-external mr-0"
 							style={{ fontSize: 13.5 }}
 							onClick={(e) => {
 								e.stopPropagation()
@@ -85,9 +85,9 @@ const CodeAccordian = ({
 							aria-label={`Open file: ${path}`}
 						/>
 					)}
-					{!onJumpToFile && !headerContent && (
+					{!onJumpToFile && (
 						<span
-							className={`opacity-0 group-hover:opacity-100 codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
+							className={`ml-1 opacity-50 group-hover:opacity-100 codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
 					)}
 				</ToolUseBlockHeader>
 			)}
