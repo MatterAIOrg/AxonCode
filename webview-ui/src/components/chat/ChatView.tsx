@@ -1678,17 +1678,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							let tool: any = {}
 							try {
 								tool = JSON.parse(messageOrGroup.text || "{}")
-							} catch (_) {
-								if (messageOrGroup.text?.includes("updateTodoList")) {
-									tool = { tool: "updateTodoList" }
-								}
+							} catch (_e) {
+								tool = {}
 							}
-							if (tool.tool === "updateTodoList" && alwaysAllowUpdateTodoList) {
-								return false
-							}
-							return tool.tool === "updateTodoList" && enableButtons && !!primaryButtonText
+							return tool.name === "str_replace_editor" || tool.name === "insert_content"
 						})()
 					}
+					onPrimaryButtonClick={handlePrimaryButtonClick}
+					onSecondaryButtonClick={handleSecondaryButtonClick}
+					enableButtons={enableButtons}
+					primaryButtonText={primaryButtonText}
+					secondaryButtonText={secondaryButtonText}
 				/>
 			)
 		},
@@ -1705,9 +1705,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			enableCheckpoints, // kilocode_change
 			handleFollowUpUnmount,
 			currentFollowUpTs,
-			alwaysAllowUpdateTodoList,
 			enableButtons,
 			primaryButtonText,
+			handlePrimaryButtonClick,
+			handleSecondaryButtonClick,
+			secondaryButtonText,
 		],
 	)
 

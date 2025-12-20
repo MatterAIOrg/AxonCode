@@ -1,6 +1,6 @@
-import { useCallback, useState, memo, useMemo } from "react"
-import { useEvent } from "react-use"
 import { ChevronDown, OctagonX } from "lucide-react"
+import { memo, useCallback, useMemo, useState } from "react"
+import { useEvent } from "react-use"
 
 import { CommandExecutionStatus, commandExecutionStatusSchema } from "@roo-code/types"
 
@@ -9,15 +9,15 @@ import { safeJsonParse } from "@roo/safeJsonParse"
 
 import { COMMAND_OUTPUT_STRING } from "@roo/combineCommandSequences"
 
-import { vscode } from "@src/utils/vscode"
+import { Button, StandardTooltip } from "@src/components/ui"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { cn } from "@src/lib/utils"
-import { Button, StandardTooltip } from "@src/components/ui"
+import { vscode } from "@src/utils/vscode"
+import { t } from "i18next"
+import { extractPatternsFromCommand } from "../../utils/command-parser"
+import { parseCommand } from "../../utils/command-validation"
 import CodeBlock from "../kilocode/common/CodeBlock" // kilocode_change
 import { CommandPatternSelector } from "./CommandPatternSelector"
-import { parseCommand } from "../../utils/command-validation"
-import { extractPatternsFromCommand } from "../../utils/command-parser"
-import { t } from "i18next"
 
 interface CommandPattern {
 	pattern: string
@@ -29,9 +29,25 @@ interface CommandExecutionProps {
 	text?: string
 	icon?: JSX.Element | null
 	title?: JSX.Element | null
+	// Button props for command ask
+	onPrimaryButtonClick?: (text?: string, images?: string[]) => void
+	onSecondaryButtonClick?: (text?: string, images?: string[]) => void
+	enableButtons?: boolean
+	primaryButtonText?: string
+	secondaryButtonText?: string
 }
 
-export const CommandExecution = ({ executionId, text, icon, title }: CommandExecutionProps) => {
+export const CommandExecution = ({
+	executionId,
+	text,
+	icon,
+	title,
+	onPrimaryButtonClick,
+	onSecondaryButtonClick,
+	enableButtons,
+	primaryButtonText,
+	secondaryButtonText,
+}: CommandExecutionProps) => {
 	const {
 		terminalShellIntegrationDisabled = true, // kilocode_change: default
 		allowedCommands = [],
@@ -174,6 +190,28 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 											})
 										}>
 										<OctagonX className="size-4" />
+									</Button>
+								</StandardTooltip>
+							</div>
+						)}
+						{onPrimaryButtonClick && onSecondaryButtonClick && (
+							<div className="flex flex-row items-center gap-2">
+								<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
+									<Button
+										variant="default"
+										size="sm"
+										disabled={!enableButtons}
+										onClick={() => onPrimaryButtonClick && onPrimaryButtonClick()}>
+										{primaryButtonText || t("chat:runCommand.title")}
+									</Button>
+								</StandardTooltip>
+								<StandardTooltip content={secondaryButtonText || t("chat:reject.tooltip")}>
+									<Button
+										variant="secondary"
+										size="sm"
+										disabled={!enableButtons}
+										onClick={() => onSecondaryButtonClick && onSecondaryButtonClick()}>
+										{secondaryButtonText || t("chat:reject.title")}
 									</Button>
 								</StandardTooltip>
 							</div>
