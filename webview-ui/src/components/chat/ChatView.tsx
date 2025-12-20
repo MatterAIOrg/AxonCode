@@ -1,5 +1,4 @@
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import debounce from "debounce"
 import { LRUCache } from "lru-cache"
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react"
@@ -39,7 +38,6 @@ import {
 import { vscode } from "@src/utils/vscode"
 // import RooHero from "@src/components/welcome/RooHero" // kilocode_change: unused
 // import RooTips from "@src/components/welcome/RooTips" // kilocode_change: unused
-import { StandardTooltip } from "@src/components/ui"
 import { useAutoApprovalState } from "@src/hooks/useAutoApprovalState"
 import { useAutoApprovalToggles } from "@src/hooks/useAutoApprovalToggles"
 // import { CloudUpsellDialog } from "@src/components/cloud/CloudUpsellDialog" // kilocode_change: unused
@@ -195,13 +193,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [enableButtons, setEnableButtons] = useState<boolean>(false)
 	const [primaryButtonText, setPrimaryButtonText] = useState<string | undefined>(undefined)
 	const [secondaryButtonText, setSecondaryButtonText] = useState<string | undefined>(undefined)
-	const [didClickCancel, setDidClickCancel] = useState(false)
+	const [_didClickCancel, setDidClickCancel] = useState(false)
 	const virtuosoRef = useRef<VirtuosoHandle>(null)
 	const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({})
 	const prevExpandedRowsRef = useRef<Record<number, boolean>>()
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const disableAutoScrollRef = useRef(false)
-	const [showScrollToBottom, _setShowScrollToBottom] = useState(false)
+	const [showScrollToBottom, _setShowScrollToBottom] = useState(true)
 	const [isAtBottom, setIsAtBottom] = useState(false)
 	const lastTtsRef = useRef<string>("")
 	const [wasStreaming, setWasStreaming] = useState<boolean>(false)
@@ -1680,17 +1678,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							let tool: any = {}
 							try {
 								tool = JSON.parse(messageOrGroup.text || "{}")
-							} catch (_) {
-								if (messageOrGroup.text?.includes("updateTodoList")) {
-									tool = { tool: "updateTodoList" }
-								}
+							} catch (_e) {
+								tool = {}
 							}
-							if (tool.tool === "updateTodoList" && alwaysAllowUpdateTodoList) {
-								return false
-							}
-							return tool.tool === "updateTodoList" && enableButtons && !!primaryButtonText
+							return tool.name === "str_replace_editor" || tool.name === "insert_content"
 						})()
 					}
+					onPrimaryButtonClick={handlePrimaryButtonClick}
+					onSecondaryButtonClick={handleSecondaryButtonClick}
+					enableButtons={enableButtons}
+					primaryButtonText={primaryButtonText}
+					secondaryButtonText={secondaryButtonText}
 				/>
 			)
 		},
@@ -1707,9 +1705,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			enableCheckpoints, // kilocode_change
 			handleFollowUpUnmount,
 			currentFollowUpTs,
-			alwaysAllowUpdateTodoList,
 			enableButtons,
 			primaryButtonText,
+			handlePrimaryButtonClick,
+			handleSecondaryButtonClick,
+			secondaryButtonText,
 		],
 	)
 
@@ -1932,7 +1932,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		vscode.postMessage({ type: "condenseTaskContextRequest", text: taskId })
 	}
 
-	const areButtonsVisible = showScrollToBottom || primaryButtonText || secondaryButtonText || isStreaming
+	const areButtonsVisible = showScrollToBottom || primaryButtonText || secondaryButtonText
 
 	const showTelemetryBanner = telemetrySetting === "unset" // kilocode_change
 
@@ -2175,15 +2175,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						{/* kilocode_change: added settings toggle for this */}
 						{showAutoApproveMenu && <AutoApproveMenu />}
 					</div>
-					{areButtonsVisible && (
+					{/* {areButtonsVisible && (
 						<div
-							className={`flex h-9 items-center justify-end mb-1 px-[15px] ${
-								showScrollToBottom
+							className={`flex h-9 items-center justify-end mb-1 px-[15px] ${showScrollToBottom
 									? "opacity-100"
 									: enableButtons || (isStreaming && !didClickCancel)
 										? "opacity-100"
 										: "opacity-50"
-							}`}>
+								}`}>
 							{showScrollToBottom ? (
 								<StandardTooltip content={t("chat:scrollToBottom")}>
 									<VSCodeButton
@@ -2222,33 +2221,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 												className={`${secondaryButtonText ? "flex-1 mr-[6px]" : "flex-[2] mr-0"} rounded-lg border border-white/10 outline-none bg-vscode-input-background max-w-fit`}
 												onClick={() => handlePrimaryButtonClick(inputValue, selectedImages)}>
 												{primaryButtonText}
-											</VSCodeButton>
-										</StandardTooltip>
-									)}
-									{(secondaryButtonText || isStreaming) && (
-										<StandardTooltip
-											content={
-												isStreaming
-													? t("chat:cancel.tooltip")
-													: secondaryButtonText === t("chat:reject.title")
-														? t("chat:reject.tooltip")
-														: secondaryButtonText === t("chat:terminate.title")
-															? t("chat:terminate.tooltip")
-															: undefined
-											}>
-											<VSCodeButton
-												appearance="secondary"
-												disabled={!enableButtons && !(isStreaming && !didClickCancel)}
-												className={`${isStreaming ? "flex-[2] ml-0" : "flex-1 ml-[6px]"} rounded-lg border border-white/10 outline-none bg-vscode-input-background max-w-fit`}
-												onClick={() => handleSecondaryButtonClick(inputValue, selectedImages)}>
-												{isStreaming ? t("chat:cancel.title") : secondaryButtonText}
-											</VSCodeButton>
-										</StandardTooltip>
-									)}
-								</>
-							)}
-						</div>
-					)}
+										</VSCodeButton>
+									</StandardTooltip>
+								)}
+							</>
+						)}
+					</div>
+				)} */}
 				</>
 			)}
 
@@ -2288,6 +2267,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				setMode={setMode}
 				modeShortcutText={modeShortcutText}
 				sendMessageOnEnter={sendMessageOnEnter} // kilocode_change
+				isStreaming={isStreaming}
+				onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
 			/>
 			{/* kilocode_change: added settings toggle the profile and model selection */}
 			<BottomControls showApiConfig />

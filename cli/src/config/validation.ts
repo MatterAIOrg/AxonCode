@@ -86,9 +86,9 @@ function handleSpecialValidations(provider: ProviderConfig, errors: string[]): v
 			}
 
 			// These fields are always required for vertex
-			validateRequiredField(provider, "vertexProjectId", errors)
-			validateRequiredField(provider, "vertexRegion", errors)
-			validateRequiredField(provider, "apiModelId", errors)
+			// validateRequiredField(provider, "vertexProjectId", errors)
+			// validateRequiredField(provider, "vertexRegion", errors)
+			// validateRequiredField(provider, "apiModelId", errors)
 			break
 
 		case "vscode-lm":

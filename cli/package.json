@@ -1,12 +1,12 @@
 {
-	"name": "@kilocode/cli",
-	"version": "0.0.15",
+	"name": "@matterai/axoncode",
+	"version": "1.0.0",
 	"description": "Terminal User Interface for Axon Code",
 	"type": "module",
 	"main": "dist/index.js",
 	"bin": {
-		"kilocode": "dist/index.js",
-		"kilo": "dist/index.js"
+		"axoncode": "dist/index.js",
+		"axon": "dist/index.js"
 	},
 	"scripts": {
 		"build": "node esbuild.config.mjs",
@@ -20,10 +20,10 @@
 		"test:watch": "vitest",
 		"check-types": "tsc --noEmit",
 		"format": "prettier --write src",
-		"logs": "clear && tail -f ~/.kilocode/cli/logs/cli.txt",
-		"logs:clear": "rimraf ~/.kilocode/cli/logs/* && touch ~/.kilocode/cli/logs/cli.txt",
-		"clean:kilocode": "npx del-cli ./dist/kilocode --force && npx mkdirp ./dist/kilocode",
-		"copy:kilocode": "npx cpy '../bin-unpacked/extension/**' './dist/kilocode' --parents",
+		"logs": "clear && tail -f ~/.axoncode/cli/logs/cli.txt",
+		"logs:clear": "rimraf ~/.axoncode/cli/logs/* && touch ~/.axoncode/cli/logs/cli.txt",
+		"clean:axoncode": "npx del-cli ./dist/axoncode --force && npx mkdirp ./dist/axoncode",
+		"copy:axoncode": "npx cpy '../bin-unpacked/extension/**' './dist/axoncode' --parents",
 		"lint": "eslint .",
 		"changeset:version": "jq --arg version \"$(jq -r '.version' package.json)\" '.version = $version' package.dist.json > tmp.json && mv tmp.json package.dist.json && prettier --write package.dist.json"
 	},
@@ -171,7 +171,7 @@
 		"terminal",
 		"ai",
 		"assistant",
-		"kilo-code",
+		"axon-code",
 		"ink",
 		"react"
 	]

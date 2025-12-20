@@ -62,6 +62,9 @@ interface ChatTextAreaProps {
 	isEditMode?: boolean
 	onCancel?: () => void
 	sendMessageOnEnter?: boolean // kilocode_change
+	// Streaming state and cancel handler
+	isStreaming?: boolean
+	onCancelStreaming?: () => void
 }
 
 export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
@@ -83,6 +86,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			isEditMode = false,
 			onCancel,
 			sendMessageOnEnter = true,
+			isStreaming = false,
+			onCancelStreaming,
 		},
 		ref,
 	) => {
@@ -1651,11 +1656,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							</button>
 						</StandardTooltip>
 					)}
-					<StandardTooltip content={t("chat:sendMessage")}>
+					<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
 						<button
-							aria-label={t("chat:sendMessage")}
-							disabled={sendingDisabled}
-							onClick={!sendingDisabled ? handleSend : undefined}
+							aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}
+							disabled={sendingDisabled && !isStreaming}
+							onClick={isStreaming ? onCancelStreaming : !sendingDisabled ? handleSend : undefined}
 							className={cn(
 								"relative inline-flex items-center justify-center",
 								"bg-transparent border-none p-1.5",
@@ -1667,10 +1672,16 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								"active:bg-[rgba(255,255,255,0.1)]",
 								!sendingDisabled && "cursor-pointer",
 								sendingDisabled &&
+									!isStreaming &&
 									"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
+								isStreaming && "text-red-400 hover:text-red-300 hover:bg-red-500/10",
 							)}>
 							{/* kilocode_change: rtl */}
-							<SendHorizontal className="w-4 h-4 rtl:-scale-x-100" />
+							{isStreaming ? (
+								<div className="w-4 h-4 bg-current rounded-sm"></div>
+							) : (
+								<SendHorizontal className="w-4 h-4 rtl:-scale-x-100" />
+							)}
 						</button>
 					</StandardTooltip>
 					{/* kilocode_change end */}
@@ -1708,7 +1719,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					"ml-auto",
 					"mr-auto",
 					"box-border",
-				)}>
+				)}
+				style={{
+					boxShadow:
+						"0 -4px 6px -1px rgba(0, 0, 0, 80%), 0 -2px 4px -1px rgba(0, 0, 0, 0.06), 0 -10px 15px -3px rgba(0, 0, 0, 0.1), 0 -4px 6px -2px rgba(0, 0, 0, 0.05)",
+				}}>
 				{/* Pinned file review actions (not a chat row) */}
 				{!isEditMode && (
 					<div className="px-0.5">

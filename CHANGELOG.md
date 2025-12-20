@@ -1,5 +1,55 @@
 # Changelog
 
+## [v4.204.1] - 2025-12-20
+
+### Added
+
+- CLI authentication wizard with browser-based OAuth flow
+- Browser authentication utilities for secure token management
+- Welcome message utilities for CLI user onboarding
+
+### Changed
+
+- Refactored AcceptRejectButtons component for improved multi-edit handling
+- Enhanced ChatTextArea with better cancel button functionality
+- Updated ChatView component for improved message queue management
+- Improved Logo component with better styling and responsiveness
+- Enhanced AuthWizard with comprehensive authentication flow
+- Updated CLI package configuration and validation
+
+### Fixed
+
+- Fixed code paths return value issue in AuthWizard
+- Improved cancel button UI and functionality
+- Enhanced CLI authentication initialization process
+
+---
+
+## [v4.204.0] - 2025-12-20
+
+### Added
+
+- Support for axon-code-2-preview model in OpenRouter provider
+- Enhanced file edit review controller with better diff handling
+- Improved UI refactors across multiple components
+
+### Changed
+
+- Refactored kilocode-models configuration for better model management
+- Updated useOpenRouterModelProviders hook for enhanced provider integration
+- Enhanced FileEditReviewController for improved file edit reviews
+- Improved QueuedMessages component for better message handling
+- Updated CSS styling for consistent UI appearance
+- Enhanced slash commands utilities for better command processing
+
+### Fixed
+
+- Cleaned up AI code reviews card for better user experience
+- Fixed various UI inconsistencies across components
+- Improved error handling in webview message handler
+
+---
+
 ## [v4.203.0] - 2025-12-19
 
 ### Added

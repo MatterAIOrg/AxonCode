@@ -1,5 +1,4 @@
-import { VSCodeBadge } from "@vscode/webview-ui-toolkit/react"
-import deepEqual from "fast-deep-equal"
+import { VSCodeBadge, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useSize } from "react-use"
@@ -69,6 +68,12 @@ interface ChatRowProps {
 	onFollowUpUnmount?: () => void
 	isFollowUpAnswered?: boolean
 	editable?: boolean
+	// Button handlers for command execution
+	onPrimaryButtonClick?: (text?: string, images?: string[]) => void
+	onSecondaryButtonClick?: (text?: string, images?: string[]) => void
+	enableButtons?: boolean
+	primaryButtonText?: string
+	secondaryButtonText?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -122,48 +127,6 @@ const computeDiffStats = (diff?: string | null) => {
 	return { added, removed }
 }
 
-const ChatRow = memo(
-	(props: ChatRowProps) => {
-		const { highlighted } = props // kilocode_change: Add highlighted prop
-		// const { showTaskTimeline } = useExtensionState() // kilocode_change: Used by KiloChatRowGutterBar
-		const { isLast, onHeightChange, message } = props
-		// Store the previous height to compare with the current height
-		// This allows us to detect changes without causing re-renders
-		const prevHeightRef = useRef(0)
-
-		const [chatrow, { height }] = useSize(
-			<div
-				// kilocode_change: add highlighted className
-				className={cn(
-					`px-[15px] py-[2px] pr-[6px] relative ${highlighted ? "animate-message-highlight" : ""}`,
-				)}>
-				{/* {showTaskTimeline && <KiloChatRowGutterBar message={message} />} */}
-				<ChatRowContent {...props} />
-			</div>,
-		)
-
-		useEffect(() => {
-			// used for partials, command output, etc.
-			// NOTE: it's important we don't distinguish between partial or complete here since our scroll effects in chatview need to handle height change during partial -> complete
-			const isInitialRender = prevHeightRef.current === 0 // prevents scrolling when new element is added since we already scroll for that
-			// height starts off at Infinity
-			if (isLast && height !== 0 && height !== Infinity && height !== prevHeightRef.current) {
-				if (!isInitialRender) {
-					onHeightChange(height > prevHeightRef.current)
-				}
-				prevHeightRef.current = height
-			}
-		}, [height, isLast, onHeightChange, message])
-
-		// we cannot return null as virtuoso does not support it, so we use a separate visibleMessages array to filter out messages that should not be rendered
-		return chatrow
-	},
-	// memo does shallow comparison of props, so we need to do deep comparison of arrays/objects whose properties might change
-	deepEqual,
-)
-
-export default ChatRow
-
 export const ChatRowContent = ({
 	message,
 	lastModifiedMessage,
@@ -177,6 +140,11 @@ export const ChatRowContent = ({
 	// enableCheckpoints, // kilocode_change
 	isFollowUpAnswered,
 	editable,
+	onPrimaryButtonClick,
+	onSecondaryButtonClick,
+	enableButtons,
+	primaryButtonText,
+	secondaryButtonText,
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
 
@@ -1270,6 +1238,63 @@ export const ChatRowContent = ({
 				case "api_req_finished":
 					return null // we should never see this message type
 				case "text":
+					// Check if this is the "out of credits" message
+					const isOutOfCreditsMessage =
+						message.text?.includes("Your plan is out of credits") &&
+						message.text?.includes("https://app.matterai.so/usage")
+
+					if (isOutOfCreditsMessage) {
+						return (
+							<div className="bg-[var(--vscode-editor-background)] ml-0 my-2 mr-2 rounded-xl p-4 border border-[var(--color-matterai-red)]">
+								<div
+									style={{
+										display: "flex",
+										alignItems: "center",
+										gap: "8px",
+										marginBottom: "12px",
+									}}>
+									<span
+										className="codicon codicon-warning"
+										style={{
+											color: "var(--color-matterai-red)",
+											fontSize: "18px",
+										}}></span>
+									<div
+										style={{
+											fontWeight: "bold",
+											fontSize: "14px",
+											color: "var(--vscode-foreground)",
+										}}>
+										Your plan is out of credits
+									</div>
+								</div>
+								<div
+									style={{
+										marginBottom: "16px",
+										color: "var(--vscode-foreground)",
+										fontSize: "13px",
+									}}>
+									Purchase or upgrade your paid plan to continue using the service.
+								</div>
+								<VSCodeButton
+									appearance="primary"
+									onClick={(e) => {
+										e.preventDefault()
+										vscode.postMessage({
+											type: "openInBrowser",
+											url: "https://app.matterai.so/usage",
+										})
+									}}
+									style={{
+										width: "100%",
+										maxWidth: "200px",
+									}}>
+									Purchase / Upgrade Plan
+								</VSCodeButton>
+							</div>
+						)
+					}
+
 					return (
 						<div>
 							{/* <div style={headerStyle}>
@@ -1599,6 +1624,11 @@ export const ChatRowContent = ({
 							text={message.text}
 							icon={icon}
 							title={title}
+							onPrimaryButtonClick={onPrimaryButtonClick}
+							onSecondaryButtonClick={onSecondaryButtonClick}
+							enableButtons={enableButtons}
+							primaryButtonText={primaryButtonText}
+							secondaryButtonText={secondaryButtonText}
 						/>
 					)
 				case "use_mcp_server":
@@ -1759,3 +1789,41 @@ export const ChatRowContent = ({
 			}
 	}
 }
+
+const ChatRow = memo((props: ChatRowProps) => {
+	const { highlighted } = props // kilocode_change: Add highlighted prop
+	const {
+		isLast,
+		onHeightChange,
+		// message
+	} = props
+	// Store the previous height to compare with the current height
+	// This allows us to detect changes without causing re-renders
+	const prevHeightRef = useRef(0)
+
+	const [chatrow, { height }] = useSize(
+		<div
+			// kilocode_change: add highlighted className
+			className={cn(`px-[15px] py-[2px] pr-[6px] relative ${highlighted ? "animate-message-highlight" : ""}`)}>
+			{/* {showTaskTimeline && <KiloChatRowGutterBar message={message} />} */}
+			<ChatRowContent {...props} />
+		</div>,
+	)
+
+	useEffect(() => {
+		// used for partials, command output, etc.
+		// NOTE: it's important we don't distinguish between partial or complete here since our scroll effects in chatview need to handle height change during partial -> complete
+		const isInitialRender = prevHeightRef.current === 0 // prevents scrolling when new element is added since we already scroll for that
+		// height starts off at Infinity
+		if (isLast && height !== 0 && height !== Infinity && height !== prevHeightRef.current) {
+			if (!isInitialRender) {
+				onHeightChange(height > prevHeightRef.current)
+			}
+			prevHeightRef.current = height
+		}
+	}, [height, isLast, onHeightChange])
+
+	return chatrow
+})
+
+export default ChatRow
