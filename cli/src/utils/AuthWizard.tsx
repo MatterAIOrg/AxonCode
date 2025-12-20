@@ -22,6 +22,7 @@ const AuthWizardComponent: React.FC<AuthWizardProps> = ({ onComplete }) => {
 			}, 1000)
 			return () => clearTimeout(timer)
 		}
+		return undefined
 	}, [step])
 
 	useInput((input, key) => {
