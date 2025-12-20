@@ -92,7 +92,12 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 	}
 
 	return (
-		<div className="flex flex-col w-full mt-3 border border-vscode-editorWidget-border rounded-lg overflow-hidden bg-vscode-editor-background">
+		<div
+			className="flex flex-col w-full border border-vscode-editorWidget-border rounded-lg overflow-hidden bg-vscode-editor-background"
+			style={{
+				boxShadow:
+					"0 -4px 6px -1px rgba(0, 0, 0, 80%), 0 -2px 4px -1px rgba(0, 0, 0, 0.06), 0 -10px 15px -3px rgba(0, 0, 0, 0.1), 0 -4px 6px -2px rgba(0, 0, 0, 0.05)",
+			}}>
 			{/* File List - Only show when expanded */}
 			{isExpanded && (
 				<div className="flex flex-col">

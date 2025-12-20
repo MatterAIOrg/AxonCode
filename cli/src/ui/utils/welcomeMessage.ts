@@ -16,19 +16,18 @@ export function createConfigErrorInstructions(validation: ValidationResult): str
 	}
 
 	const configPath = getConfigPath()
-	const instructions: string[] = ["Configuration Error: config.json is incomplete or invalid.\n", "Errors found:"]
+	const instructions: string[] = []
 
 	// Add each validation error
-	if (validation.errors) {
-		validation.errors.forEach((error) => {
-			instructions.push(`  • ${error}`)
-		})
-	}
+	// if (validation.errors) {
+	// 	validation.errors.forEach((error) => {
+	// 		instructions.push(`  • ${error}`)
+	// 	})
+	// }
 
 	instructions.push(
 		"\nTo fix this issue:",
-		`  1. Run: kilocode config`,
-		`  2. Or edit: ${configPath}`,
+		`  Run: axoncode login`,
 		"\n",
 		"The CLI will exit now. Please configure your Axon Code and try again.",
 	)

@@ -11,8 +11,8 @@ import { DEFAULT_MODES } from "./constants/modes/defaults.js"
 import { getTelemetryService } from "./services/telemetry/index.js"
 import { Package } from "./constants/package.js"
 import openConfigFile from "./config/openConfig.js"
-import authWizard from "./utils/authWizard.js"
-import { configExists } from "./config/persistence.js"
+import authWizard from "./utils/AuthWizard.js"
+import { configExists, loadConfig } from "./config/persistence.js"
 import { getParallelModeParams } from "./parallel/parallel.js"
 
 const program = new Command()
@@ -22,7 +22,7 @@ let cli: CLI | null = null
 const validModes = DEFAULT_MODES.map((mode) => mode.slug)
 
 program
-	.name("kilocode")
+	.name("axoncode")
 	.description("Axon Code Terminal User Interface - AI-powered coding assistant")
 	.version(Package.version)
 	.option("-m, --mode <mode>", `Set the mode of operation (${validModes.join(", ")})`)
@@ -107,6 +107,19 @@ program
 			console.info("Welcome to the Axon Code CLI! 🎉\n")
 			console.info("To get you started, please fill out these following questions.")
 			await authWizard()
+		} else {
+			// Config exists, check if it's valid (has token)
+			const { validation } = await loadConfig()
+			if (!validation.valid) {
+				const hasTokenError = validation.errors?.some(
+					(err) => err.includes("kilocodeToken") || err.includes("API key"),
+				)
+				if (hasTokenError) {
+					console.info("\n⚠️  Authentication required")
+					console.info("Your configuration is missing a valid API token.\n")
+					await authWizard()
+				}
+			}
 		}
 
 		let finalWorkspace = options.workspace
