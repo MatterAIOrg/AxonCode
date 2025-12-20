@@ -2062,48 +2062,57 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							)}
 
 							{/* AI Code Reviews Setup Box */}
-							<div className="absolute bottom-2 min-w-0 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
+							<div className="w-full mt-auto min-w-0 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
 								<div className="flex flex-col gap-2">
 									{/* Top section: Title/Subtitle left, Icons right */}
 									<div className="flex justify-between gap-4 items-center min-w-0">
 										<div className="flex flex-col gap-1">
-											<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-												Setup AI Code Reviews
-											</p>
-											<p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
-												70% faster code reviews
-											</p>
-											<div className="self-start mt-1">
-												<VSCodeButtonLink
-													variant="secondary"
-													href="https://app.matterai.so/get-started">
-													Get Started for free
-												</VSCodeButtonLink>
-											</div>
-										</div>
-
-										<div className="flex items-center justify-center flex-col gap-2.5 pr-2">
-											<div className="flex items-center gap-1">
-												<img
-													src={iconsBaseUri + "/github-ic.png"}
-													alt="GitHub"
-													className="w-5.5 h-5.5"
-												/>
-											</div>
-											<div className="flex items-center gap-4">
-												<div className="flex items-center gap-1">
+											<div className="flex flex-row gap-2 items-start">
+												<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
+													Setup Axon AI Code Reviews for PRs
+												</p>
+												<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
+													<img
+														src={iconsBaseUri + "/github-ic.png"}
+														alt="GitHub"
+														className="w-4 h-4"
+													/>
 													<img
 														src={iconsBaseUri + "/gitlab-ic.png"}
 														alt="GitLab"
-														className="w-5.5 h-5.5"
+														className="w-4 h-4"
 													/>
-												</div>
-												<div className="flex items-center gap-1">
+
 													<img
 														src={iconsBaseUri + "/bitbucket-ic.png"}
 														alt="Bitbucket"
-														className="w-5.5 h-5.5"
+														className="w-4 h-4"
 													/>
+												</div>
+											</div>
+											{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
+												70% faster code reviews
+											</p> */}
+											<div className="flex flex-row gap-2">
+												<div className="self-start mt-1">
+													<VSCodeButtonLink
+														variant="secondary"
+														href="https://app.matterai.so/get-started"
+														style={{
+															background: "var(--color-matterai-chip-blue)",
+															border: "1px solid var(--color-matterai-blue)",
+															borderRadius: "6px",
+														}}>
+														Get Started for free
+													</VSCodeButtonLink>
+												</div>
+												<div className="self-start mt-1">
+													<VSCodeButtonLink
+														variant="secondary"
+														href="https://docs.matterai.so/quickstart-ai-code-review-agent"
+														style={{ borderRadius: "6px" }}>
+														Read Docs
+													</VSCodeButtonLink>
 												</div>
 											</div>
 										</div>
