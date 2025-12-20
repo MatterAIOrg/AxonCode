@@ -10,6 +10,11 @@ type PendingFileEdit = {
 	absolutePath: string
 	originalContent: string
 	diffAnchor: vscode.Range
+	edits: Array<{
+		originalContent: string
+		newContent: string
+		diffAnchor: vscode.Range
+	}>
 }
 
 const highlightDecorationType = vscode.window.createTextEditorDecorationType({
@@ -20,6 +25,7 @@ const highlightDecorationType = vscode.window.createTextEditorDecorationType({
 const ACCEPT_COMMAND = "axon-code.fileEdit.accept"
 const ACCEPT_ALL_COMMAND = "axon-code.fileEdit.acceptAll"
 const REJECT_COMMAND = "axon-code.fileEdit.reject"
+const REJECT_ALL_COMMAND = "axon-code.fileEdit.rejectAll"
 const NEXT_COMMAND = "axon-code.fileEdit.reviewNext"
 
 export class FileEditReviewController implements vscode.Disposable {
@@ -52,6 +58,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			vscode.commands.registerCommand(ACCEPT_COMMAND, (arg?: any) => this.handleAccept(arg)),
 			vscode.commands.registerCommand(ACCEPT_ALL_COMMAND, () => this.handleAcceptAll()),
 			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any) => this.handleReject(arg)),
+			vscode.commands.registerCommand(REJECT_ALL_COMMAND, () => this.handleRejectAll()),
 			vscode.commands.registerCommand(NEXT_COMMAND, () => this.handleReviewNext()),
 		)
 	}
@@ -83,18 +90,35 @@ export class FileEditReviewController implements vscode.Disposable {
 		// 	},
 		// ]
 
-		const pending: PendingFileEdit = {
-			relPath: params.relPath,
-			readablePath,
-			absolutePath: params.absolutePath,
+		const edit = {
 			originalContent: params.originalContent,
+			newContent: params.newContent,
 			diffAnchor,
 		}
 
-		this.pendingEdits.set(readablePath, pending)
-		// Ensure unique queue items
-		this.reviewQueue = this.reviewQueue.filter((path) => path !== readablePath)
-		this.reviewQueue.push(readablePath)
+		const existingEntry = this.pendingEdits.get(readablePath)
+		if (existingEntry) {
+			// Add to existing edits array
+			existingEntry.edits.push(edit)
+			// Update the main diff anchor to the first edit for consistency
+			if (existingEntry.edits.length === 1) {
+				existingEntry.diffAnchor = edit.diffAnchor
+			}
+		} else {
+			// Create new entry
+			const pending: PendingFileEdit = {
+				relPath: params.relPath,
+				readablePath,
+				absolutePath: params.absolutePath,
+				originalContent: params.originalContent,
+				diffAnchor,
+				edits: [edit],
+			}
+			this.pendingEdits.set(readablePath, pending)
+			// Ensure unique queue items
+			this.reviewQueue = this.reviewQueue.filter((path) => path !== readablePath)
+			this.reviewQueue.push(readablePath)
+		}
 
 		this.refreshDecorations()
 		this.codeLensEmitter.fire()
@@ -132,7 +156,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			return
 		}
 
-		// Accept means we keep the changes. Just clean up.
+		// Accept means we keep the changes. Just clean up all edits for this file.
 		this.clearEntry(entry)
 		this.refreshDecorations()
 
@@ -169,6 +193,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			return
 		}
 
+		// Reject means we restore the original content (first edit's original content)
 		await fs.writeFile(entry.absolutePath, entry.originalContent, "utf-8")
 		// Force reload/save not strictly needed as file watcher handles it,
 		// but ensures editor updates
@@ -183,6 +208,20 @@ export class FileEditReviewController implements vscode.Disposable {
 
 	async handleAcceptAll() {
 		if (this.pendingEdits.size === 0) return
+
+		this.pendingEdits.clear()
+		this.reviewQueue = []
+		this.refreshDecorations()
+		this.codeLensEmitter.fire()
+	}
+
+	async handleRejectAll() {
+		if (this.pendingEdits.size === 0) return
+
+		// Reject all edits by restoring original content for each file
+		for (const entry of this.pendingEdits.values()) {
+			await fs.writeFile(entry.absolutePath, entry.originalContent, "utf-8")
+		}
 
 		this.pendingEdits.clear()
 		this.reviewQueue = []
@@ -239,10 +278,13 @@ export class FileEditReviewController implements vscode.Disposable {
 
 			const highlightDecorations: vscode.DecorationOptions[] = []
 
-			if (entry) {
-				highlightDecorations.push({
-					range: entry.diffAnchor,
-				})
+			if (entry && entry.edits.length > 0) {
+				// Show decorations for all edits in this file
+				for (const edit of entry.edits) {
+					highlightDecorations.push({
+						range: edit.diffAnchor,
+					})
+				}
 			}
 
 			editor.setDecorations(highlightDecorationType, highlightDecorations)
@@ -294,14 +336,18 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 	provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
 		const readablePath = getReadablePath(this.cwd, path.relative(this.cwd, document.uri.fsPath))
 		const entry = this.getPendingEdits().get(readablePath)
-		if (!entry) return []
+		if (!entry || entry.edits.length === 0) return []
 
 		const line = Math.max(0, entry.diffAnchor.start.line)
 		const anchor = new vscode.Range(line, 0, line, 0)
 
+		// Show edit count in the title if there are multiple edits
+		const editCount = entry.edits.length
+		const titleSuffix = editCount > 1 ? ` (${editCount} edits)` : ""
+
 		return [
 			new vscode.CodeLens(anchor, {
-				title: "Accept",
+				title: `Accept${titleSuffix}`,
 				command: ACCEPT_COMMAND,
 				arguments: [entry.relPath],
 			}),

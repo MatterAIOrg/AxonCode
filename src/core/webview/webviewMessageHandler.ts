@@ -675,42 +675,35 @@ export const webviewMessageHandler = async (
 			const pendingEdits = currentTask.fileEditReviewController.getPendingEdits()
 
 			const files = Array.from(pendingEdits.values()).map((edit) => {
-				// Calculate additions and deletions from content differences
-				let additions = 0
-				let deletions = 0
+				// Calculate additions and deletions from all accumulated edits
+				let totalAdditions = 0
+				let totalDeletions = 0
 
-				const beforeLines = (edit.originalContent || "").split("\n")
+				// Process each edit to accumulate diff stats
+				for (const editEntry of edit.edits) {
+					const beforeLines = (editEntry.originalContent || "").split("\n")
+					const afterLines = (editEntry.newContent || "").split("\n")
 
-				// Read the current file content to get the "after" state
-				let afterLines: string[] = []
-				try {
-					// Use the absolute path to read the current file content
-					const currentContent = require("fs").readFileSync(edit.absolutePath, "utf-8")
-					afterLines = currentContent.split("\n")
-				} catch (error) {
-					// File might have been deleted or not yet created
-					afterLines = []
-				}
-
-				// Simple line-based diff calculation
-				if (beforeLines.length === 0 && afterLines.length > 0) {
-					// New file
-					additions = afterLines.length
-				} else if (beforeLines.length > 0 && afterLines.length === 0) {
-					// Deleted file
-					deletions = beforeLines.length
-				} else {
-					// Modified file - use simple line count difference
-					const lineDiff = afterLines.length - beforeLines.length
-					if (lineDiff > 0) {
-						additions = lineDiff
+					// Simple line-based diff calculation for each edit
+					if (beforeLines.length === 0 && afterLines.length > 0) {
+						// New content added
+						totalAdditions += afterLines.length
+					} else if (beforeLines.length > 0 && afterLines.length === 0) {
+						// Content deleted
+						totalDeletions += beforeLines.length
 					} else {
-						deletions = Math.abs(lineDiff)
-					}
-					// If same line count, assume at least some lines changed
-					if (lineDiff === 0 && beforeLines.some((line, i) => line !== afterLines[i])) {
-						additions = 1
-						deletions = 1
+						// Modified content - use simple line count difference
+						const lineDiff = afterLines.length - beforeLines.length
+						if (lineDiff > 0) {
+							totalAdditions += lineDiff
+						} else {
+							totalDeletions += Math.abs(lineDiff)
+						}
+						// If same line count, assume at least some lines changed
+						if (lineDiff === 0 && beforeLines.some((line, i) => line !== afterLines[i])) {
+							totalAdditions += 1
+							totalDeletions += 1
+						}
 					}
 				}
 
@@ -718,8 +711,8 @@ export const webviewMessageHandler = async (
 					relPath: edit.relPath,
 					absolutePath: edit.absolutePath,
 					stat: {
-						additions,
-						deletions,
+						additions: totalAdditions,
+						deletions: totalDeletions,
 					},
 				}
 			})
@@ -1081,6 +1074,9 @@ export const webviewMessageHandler = async (
 			break
 		case "fileEditReviewAcceptAll":
 			await vscode.commands.executeCommand("axon-code.fileEdit.acceptAll")
+			break
+		case "fileEditReviewRejectAll":
+			await vscode.commands.executeCommand("axon-code.fileEdit.rejectAll")
 			break
 		case "tasksByIdRequest": {
 			const request = message.payload as TasksByIdRequestPayload

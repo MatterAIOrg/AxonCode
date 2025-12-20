@@ -64,8 +64,7 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 
 	const rejectCallback = useCallback(() => {
 		// Reject all edits - this will restore original content for all files
-		// Note: This currently uses the accept path since we need to add a proper reject handler
-		vscode.postMessage({ type: "fileEditReviewAcceptAll" })
+		vscode.postMessage({ type: "fileEditReviewRejectAll" })
 		onDismiss?.()
 		setFiles([])
 	}, [onDismiss])
