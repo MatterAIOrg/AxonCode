@@ -1,4 +1,4 @@
-import { VSCodeBadge } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeBadge, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useSize } from "react-use"
@@ -1238,6 +1238,63 @@ export const ChatRowContent = ({
 				case "api_req_finished":
 					return null // we should never see this message type
 				case "text":
+					// Check if this is the "out of credits" message
+					const isOutOfCreditsMessage =
+						message.text?.includes("Your plan is out of credits") &&
+						message.text?.includes("https://app.matterai.so/usage")
+
+					if (isOutOfCreditsMessage) {
+						return (
+							<div className="bg-[var(--vscode-editor-background)] ml-0 my-2 mr-2 rounded-xl p-4 border border-[var(--color-matterai-red)]">
+								<div
+									style={{
+										display: "flex",
+										alignItems: "center",
+										gap: "8px",
+										marginBottom: "12px",
+									}}>
+									<span
+										className="codicon codicon-warning"
+										style={{
+											color: "var(--color-matterai-red)",
+											fontSize: "18px",
+										}}></span>
+									<div
+										style={{
+											fontWeight: "bold",
+											fontSize: "14px",
+											color: "var(--vscode-foreground)",
+										}}>
+										Your plan is out of credits
+									</div>
+								</div>
+								<div
+									style={{
+										marginBottom: "16px",
+										color: "var(--vscode-foreground)",
+										fontSize: "13px",
+									}}>
+									Purchase or upgrade your paid plan to continue using the service.
+								</div>
+								<VSCodeButton
+									appearance="primary"
+									onClick={(e) => {
+										e.preventDefault()
+										vscode.postMessage({
+											type: "openInBrowser",
+											url: "https://app.matterai.so/usage",
+										})
+									}}
+									style={{
+										width: "100%",
+										maxWidth: "200px",
+									}}>
+									Purchase / Upgrade Plan
+								</VSCodeButton>
+							</div>
+						)
+					}
+
 					return (
 						<div>
 							{/* <div style={headerStyle}>
