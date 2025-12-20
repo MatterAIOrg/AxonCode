@@ -6,5 +6,5 @@ export const DEFAULT_HEADERS = {
 	"HTTP-Referer": getAppUrl(),
 	"X-Title": "Axon Code",
 	[X_KILOCODE_VERSION]: Package.version,
-	"User-Agent": `Kilo-Code/${Package.version}`,
+	"User-Agent": `Axon-Code/${Package.version}`,
 }

@@ -50,7 +50,7 @@ export const QueuedMessages = ({ queue, onRemove, onUpdate }: QueuedMessagesProp
 						<div
 							key={message.id}
 							className="bg-vscode-editor-background border rounded-xs p-1 overflow-hidden whitespace-pre-wrap flex-shrink-0">
-							<div className="flex justify-between">
+							<div className="flex justify-between items-center">
 								<div className="flex-grow px-2 py-1 wrap-anywhere">
 									{editState.isEditing ? (
 										<textarea
@@ -89,7 +89,7 @@ export const QueuedMessages = ({ queue, onRemove, onUpdate }: QueuedMessagesProp
 										</div>
 									)}
 								</div>
-								<div className="flex">
+								<div className="flex items-center justify-center">
 									<Button
 										variant="ghost"
 										size="icon"

@@ -147,6 +147,7 @@
 	--color-matterai-green: #3affa3;
 	--color-matterai-border: #81838e33;
 	--color-matterai-blue: #1c4b6b;
+	--color-matterai-chip-blue: #265b8d49;
 }
 
 @layer base {
@@ -444,7 +445,7 @@ vscode-text-field::part(input) {
 	padding: 1px 4px;
 	border-radius: 4px;
 	font-size: 10px;
-	background-color: #265b8d49;
+	background-color: var(--color-matterai-chip-blue);
 	color: var(--vscode-foreground);
 	font-size: inherit;
 	font-weight: 400;
