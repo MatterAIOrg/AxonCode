@@ -3198,7 +3198,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					errorMsg = "Unknown error"
 				}
 
-				const baseDelay = requestDelaySeconds || 5
+				await this.ask("api_req_failed", errorMsg)
+
+				// Wait for the delay before retrying
+				const baseDelay = requestDelaySeconds || 0
 				let exponentialDelay = Math.min(
 					Math.ceil(baseDelay * Math.pow(2, retryAttempt)),
 					MAX_EXPONENTIAL_BACKOFF_SECONDS,
@@ -3212,21 +3215,16 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					if (geminiRetryDetails) {
 						const match = geminiRetryDetails?.retryDelay?.match(/^(\d+)s$/)
 						if (match) {
-							exponentialDelay = Number(match[1]) + 1
+							exponentialDelay = parseInt(match[1], 10)
 						}
 					}
 				}
 
-				// Wait for the greater of the exponential delay or the rate limit delay
-				const finalDelay = Math.max(exponentialDelay, rateLimitDelay)
-
-				// Show countdown timer with exponential backoff
-				for (let i = finalDelay; i > 0; i--) {
+				for (let i = exponentialDelay; i > 0; i--) {
 					await this.say(
 						"api_req_retry_delayed",
 						`${errorMsg}\n\nRetry attempt ${retryAttempt + 1}\nRetrying in ${i} seconds...`,
 						undefined,
-						true,
 					)
 					await delay(1000)
 				}
@@ -3235,7 +3233,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					"api_req_retry_delayed",
 					`${errorMsg}\n\nRetry attempt ${retryAttempt + 1}\nRetrying now...`,
 					undefined,
-					false,
 				)
 
 				// Delegate generator output from the recursive call with
@@ -3263,15 +3260,65 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 		}
 
-		// No error, so we can continue to yield all remaining chunks.
-		// (Needs to be placed outside of try/catch since it we want caller to
-		// handle errors not with api_req_failed as that is reserved for first
-		// chunk failures only.)
-		// This delegates to another generator or iterable object. In this case,
-		// it's saying "yield all remaining values from this iterator". This
-		// effectively passes along all subsequent chunks from the original
-		// stream.
-		yield* iterator
+		// No error on first chunk, so we can continue to yield all remaining chunks.
+		// Wrap in try/catch to handle mid-stream errors and allow retry.
+		try {
+			yield* iterator
+		} catch (error) {
+			// Reset streaming state since we encountered an error
+			this.isStreaming = false
+
+			// kilocode_change start
+			if (apiConfiguration?.apiProvider === "kilocode" && isAnyRecognizedKiloCodeError(error)) {
+				const { response } = await (isPaymentRequiredError(error)
+					? this.ask(
+							"payment_required_prompt",
+							JSON.stringify({
+								title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
+								message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
+								balance: error.error?.balance ?? "0.00",
+								buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
+							}),
+						)
+					: this.ask(
+							"invalid_model",
+							JSON.stringify({
+								modelId: apiConfiguration.kilocodeModel,
+								error: {
+									status: error.status,
+									message: error.message,
+								},
+							}),
+						))
+
+				if (response === "retry_clicked") {
+					yield* this.attemptApiRequest(retryAttempt + 1)
+				} else {
+					// Handle other responses or cancellations if necessary
+					throw error // Rethrow to signal failure upwards
+				}
+				return
+			}
+			// kilocode_change end
+
+			// For mid-stream failures, show the retry dialog to allow user to retry
+			const { response } = await this.ask(
+				"api_req_failed",
+				error.message ?? JSON.stringify(serializeError(error), null, 2),
+			)
+
+			if (response !== "yesButtonClicked") {
+				// This will never happen since if noButtonClicked, we will
+				// clear current task, aborting this instance.
+				throw new Error("API request failed")
+			}
+
+			await this.say("api_req_retried")
+
+			// Delegate generator output from the recursive call.
+			yield* this.attemptApiRequest()
+			return
+		}
 	}
 
 	// Checkpoints
