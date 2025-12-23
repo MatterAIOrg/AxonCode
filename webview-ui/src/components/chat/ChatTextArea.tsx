@@ -213,6 +213,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const [imageWarning, setImageWarning] = useState<string | null>(null) // kilocode_change
 		const [materialIconsBaseUri, setMaterialIconsBaseUri] = useState("")
 
+		// const [isUserInput, setIsUserInput] = useState(false)
+		const isUserInputRef = useRef(false) // Use ref to avoid re-renders
+
 		// get the icons base uri on mount
 		useEffect(() => {
 			const w = window as any
@@ -823,17 +826,26 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							if (!parent) return null
 							const siblings = Array.from(parent.childNodes)
 							const index = siblings.indexOf(elNode)
-							const targetIndex = remaining === 0 ? index : index + 1
-							remaining = Math.max(remaining - 1, 0)
-							return createRangeAt(parent, targetIndex)
+
+							if (remaining === 0) {
+								return createRangeAt(parent, index)
+							} else if (remaining === 1) {
+								return createRangeAt(parent, index + 1)
+							} else {
+								remaining -= 1
+								return null // Continue to next sibling
+							}
 						}
 
 						for (const child of Array.from(elNode.childNodes)) {
 							const childLength = getNodeTextLength(child)
 							if (remaining <= childLength) {
-								return walk(child)
+								const result = walk(child)
+								if (result) return result
+								// If walk returns null, continue to next child
+							} else {
+								remaining -= childLength
 							}
-							remaining -= childLength
 						}
 					}
 
@@ -853,6 +865,14 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		useLayoutEffect(() => {
 			if (!textAreaRef.current) return
+
+			// Only update innerHTML if the change is not from user input
+			// This prevents destroying the selection when user is typing or pressing Enter
+			if (isUserInputRef.current) {
+				isUserInputRef.current = false // Reset flag
+				return // Skip innerHTML update to preserve selection
+			}
+
 			const html = valueToHtml(inputValue)
 			if (textAreaRef.current.innerHTML !== html) {
 				textAreaRef.current.innerHTML = html
@@ -990,6 +1010,15 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 					resetHistoryNavigation()
 					handleSend()
+					return
+				}
+
+				if (handleHistoryNavigation(event, showContextMenu, isComposing)) {
+					return
+				}
+
+				if (handleHistoryNavigation(event, showContextMenu, isComposing)) {
+					return
 				}
 
 				if (handleHistoryNavigation(event, showContextMenu, isComposing)) {
@@ -1065,8 +1094,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		useLayoutEffect(() => {
 			if (intendedCursorPosition !== null) {
-				setCaretPosition(intendedCursorPosition)
-				setIntendedCursorPosition(null)
+				// Use setTimeout to ensure this runs after the DOM is fully updated
+				setTimeout(() => {
+					setCaretPosition(intendedCursorPosition)
+					setIntendedCursorPosition(null)
+				}, 0)
 			}
 		}, [inputValue, intendedCursorPosition, setCaretPosition])
 
@@ -1075,6 +1107,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const handleInputChange = useCallback(() => {
 			const newValue = getPlainTextFromInput()
 			setInputValue(newValue)
+			isUserInputRef.current = true // Mark this as user input using ref
 			resetOnInputChange()
 
 			const newCursorPosition = getCaretPosition()
