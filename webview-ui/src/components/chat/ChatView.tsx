@@ -1686,7 +1686,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					}
 					onPrimaryButtonClick={handlePrimaryButtonClick}
 					onSecondaryButtonClick={handleSecondaryButtonClick}
-					enableButtons={enableButtons}
+					enableButtons={enableButtons && index === groupedMessages.length - 1}
 					primaryButtonText={primaryButtonText}
 					secondaryButtonText={secondaryButtonText}
 				/>

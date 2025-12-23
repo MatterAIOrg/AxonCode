@@ -194,7 +194,7 @@ export const CommandExecution = ({
 								</StandardTooltip>
 							</div>
 						)}
-						{onPrimaryButtonClick && onSecondaryButtonClick && (
+						{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && (
 							<div className="flex flex-row items-center gap-2">
 								<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
 									<Button
