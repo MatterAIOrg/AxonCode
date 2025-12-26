@@ -1686,7 +1686,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					}
 					onPrimaryButtonClick={handlePrimaryButtonClick}
 					onSecondaryButtonClick={handleSecondaryButtonClick}
-					enableButtons={enableButtons}
+					enableButtons={enableButtons && index === groupedMessages.length - 1}
 					primaryButtonText={primaryButtonText}
 					secondaryButtonText={secondaryButtonText}
 				/>
@@ -2062,7 +2062,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							)}
 
 							{/* AI Code Reviews Setup Box */}
-							<div className="w-full mt-auto min-w-0 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
+							<div className="w-full mt-auto min-w-0 mb-1 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
 								<div className="flex flex-col gap-2">
 									{/* Top section: Title/Subtitle left, Icons right */}
 									<div className="flex justify-between gap-4 items-center min-w-0">
