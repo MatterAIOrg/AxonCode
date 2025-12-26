@@ -1,5 +1,28 @@
 # Changelog
 
+## [v4.205.0] - 2025-12-26
+
+### Added
+
+- New chat renderer utility for improved message rendering
+- Retry button functionality for API streaming failures
+- Enhanced checkpoint handling system
+
+### Changed
+
+- Migrated KiloTaskHeader and TaskItem components to use ReadOnlyChatText
+- Refactored ChatTextArea component with code cleanup
+- Improved ChatRow component with better checkpoint integration
+
+### Fixed
+
+- Fixed duplicate code removal in ChatTextArea
+- Resolved race condition with isUserInput flag
+- Fixed previous commands still showing run/reject buttons
+- Improved UI consistency and functionality
+
+---
+
 ## [v4.204.1] - 2025-12-20
 
 ### Added
