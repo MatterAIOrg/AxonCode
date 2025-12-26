@@ -931,14 +931,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return
 				}
 
-				if (handleHistoryNavigation(event, showContextMenu, isComposing)) {
-					return
-				}
-
-				if (handleHistoryNavigation(event, showContextMenu, isComposing)) {
-					return
-				}
-
 				if (event.key === "Backspace" && !isComposing) {
 					const charBeforeCursor = inputValue[cursorPosition - 1]
 					const charAfterCursor = inputValue[cursorPosition + 1]
