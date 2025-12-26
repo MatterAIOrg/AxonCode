@@ -6,15 +6,12 @@ import { StandardTooltip } from "@/components/ui/standard-tooltip"
 import { cn } from "@/lib/utils"
 import { formatTimeAgo } from "@/utils/format"
 import { vscode } from "@/utils/vscode"
+import { ReadOnlyChatText } from "@/components/chat/ReadOnlyChatText"
 import { CopyButton } from "./CopyButton"
 import { DeleteButton } from "./DeleteButton"
 
-interface DisplayHistoryItem extends HistoryItem {
-	highlight?: string
-}
-
 interface TaskItemProps {
-	item: DisplayHistoryItem
+	item: HistoryItem
 	variant: "compact" | "full"
 	showWorkspace?: boolean
 	isSelectionMode?: boolean
@@ -77,17 +74,15 @@ const TaskItem = ({
 				)}
 
 				{/* Task text */}
-				<div
+				<ReadOnlyChatText
+					value={item.task || ""}
 					className={cn(
 						"flex-1 overflow-hidden whitespace-pre-wrap text-vscode-foreground text-ellipsis line-clamp-1",
 						{
 							"text-base": !isCompact,
 						},
 					)}
-					data-testid="task-content"
-					{...(item.highlight ? { dangerouslySetInnerHTML: { __html: item.highlight } } : {})}>
-					{item.highlight ? undefined : item.task}
-				</div>
+				/>
 
 				{/* Time and buttons container */}
 				<div className="flex items-center gap-2 shrink-0">

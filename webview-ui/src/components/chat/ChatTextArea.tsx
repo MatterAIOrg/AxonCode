@@ -5,7 +5,6 @@ import { ExtensionMessage } from "@roo/ExtensionMessage"
 import { WebviewMessage } from "@roo/WebviewMessage"
 import { mentionRegex, mentionRegexGlobal, unescapeSpaces } from "@roo/context-mentions"
 import { Mode, getAllModes } from "@roo/modes"
-import { getIconForFilePath, getIconUrlByName } from "vscode-material-icons"
 
 import { Button, StandardTooltip } from "@/components/ui" // kilocode_change
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -32,6 +31,7 @@ import { ImageWarningBanner } from "./ImageWarningBanner" // kilocode_change
 import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
+import { renderMentionChip } from "@/utils/chat-render"
 
 // kilocode_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
@@ -569,97 +569,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				return map[char] || char
 			})
 
-		const formatMentionChipParts = useCallback((rawMention: string) => {
-			const mention = unescapeSpaces(rawMention)
-
-			if (/^\w+:\/\/\S+/.test(mention)) {
-				try {
-					const url = new URL(mention)
-					const meta = url.pathname.replace(/^\/+/, "")
-					return {
-						primary: url.hostname || mention,
-						meta: meta ? [meta] : [],
-					}
-				} catch {
-					return { primary: mention, meta: [] }
-				}
-			}
-
-			if (mention === "problems" || mention === "terminal") {
-				return { primary: mention, meta: [] }
-			}
-
-			if (/^[a-f0-9]{7,40}$/i.test(mention)) {
-				return { primary: mention.slice(0, 7), meta: ["commit"] }
-			}
-
-			if (!mention.startsWith("/")) {
-				return { primary: mention, meta: [] }
-			}
-
-			let pathPart = mention
-			let lineInfo: string | undefined
-
-			const hashMatch = mention.match(/^(.*)#L(\d+(?:-\d+)?)/)
-			if (hashMatch) {
-				pathPart = hashMatch[1]
-				lineInfo = `L${hashMatch[2]}`
-			} else {
-				const lastColonIndex = mention.lastIndexOf(":")
-				if (lastColonIndex > mention.lastIndexOf("/")) {
-					const maybeRange = mention.slice(lastColonIndex + 1)
-					if (/^\d+(?:-\d+)?$/.test(maybeRange)) {
-						pathPart = mention.slice(0, lastColonIndex)
-						lineInfo = `L${maybeRange}`
-					}
-				}
-			}
-
-			const segments = pathPart.split("/").filter(Boolean)
-			const primary = segments.pop() || "/"
-			const parent = segments.length ? segments[segments.length - 1] : ""
-
-			const metaParts = []
-			if (parent) metaParts.push(parent)
-			if (lineInfo) metaParts.push(lineInfo)
-
-			return { primary, meta: metaParts }
-		}, [])
-
-		const getFileIconForMention = useCallback(
-			(rawMention: string): string => {
-				// Only show icons for file mentions (those with extensions)
-				const mention = unescapeSpaces(rawMention)
-				const filename = mention.split("/").pop() || ""
-
-				// Check if it's a file with an extension
-				if (filename.includes(".")) {
-					const iconName = getIconForFilePath(filename)
-					return getIconUrlByName(iconName, materialIconsBaseUri)
-				}
-
-				// For folders or other mentions, return empty string
-				return ""
+		const renderMentionChipLocal = useCallback(
+			(rawMention: string, isCompactFile: boolean = false) => {
+				return renderMentionChip(rawMention, materialIconsBaseUri, isCompactFile)
 			},
 			[materialIconsBaseUri],
-		)
-
-		const renderMentionChip = useCallback(
-			(rawMention: string, isCompactFile: boolean = false) => {
-				const displayText = isCompactFile
-					? rawMention
-					: formatMentionChipParts(rawMention).primary || rawMention
-				const escapedPrimary = escapeHtml(displayText)
-				const label = escapeHtml(`${isCompactFile ? rawMention : unescapeSpaces(rawMention)}`)
-				const mentionValue = escapeHtml(`@${isCompactFile ? rawMention : unescapeSpaces(rawMention)}`)
-
-				// Get file icon for file mentions
-				const fileIconUrl = getFileIconForMention(rawMention)
-				const iconHtml = fileIconUrl ? `<img src="${fileIconUrl}" class="mention-chip__icon" alt="" />` : ""
-
-				return `<span class="mention-chip" data-mention-value="${mentionValue}" aria-label="${label}">${iconHtml}<span class="mention-chip__primary">${escapedPrimary}</span></span>`
-			},
-			[formatMentionChipParts, getFileIconForMention],
 		)
 
 		const valueToHtml = useCallback(
@@ -670,11 +584,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					.replace(/\n/g, '<br data-plain-break="true">')
 					.replace(/@([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)(?=\s|$)/g, (_match, filename) => {
 						if (mentionMapRef.current.has(filename)) {
-							return renderMentionChip(filename, true)
+							return renderMentionChipLocal(filename, true)
 						}
 						return _match
 					})
-					.replace(mentionRegexGlobal, (_match, mention) => renderMentionChip(mention, false))
+					.replace(mentionRegexGlobal, (_match, mention) => renderMentionChipLocal(mention, false))
 
 				if (/^\s*\//.test(processedText)) {
 					const slashIndex = processedText.indexOf("/")
@@ -693,7 +607,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 				return processedText || '<br data-plain-break="true">'
 			},
-			[customModes, renderMentionChip],
+			[customModes, renderMentionChipLocal],
 		)
 
 		const getNodeTextLength = useCallback((node: Node): number => {

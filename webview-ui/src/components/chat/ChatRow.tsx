@@ -35,9 +35,9 @@ import { CommandExecution } from "./CommandExecution"
 import { CommandExecutionError } from "./CommandExecutionError"
 import { FollowUpSuggest } from "./FollowUpSuggest"
 import { Markdown } from "./Markdown"
-import { Mention } from "./Mention"
 import { ProgressIndicator } from "./ProgressIndicator"
 import ReportBugPreview from "./ReportBugPreview"
+import { ReadOnlyChatText } from "./ReadOnlyChatText"
 
 import { cn } from "@/lib/utils"
 import { appendImages } from "@src/utils/imageUtils"
@@ -1351,16 +1351,17 @@ export const ChatRowContent = ({
 									</div>
 								) : (
 									<div className="flex justify-between items-end">
-										<div
-											className="flex-grow px-2 py-1 wrap-anywhere rounded-lg transition-colors"
-											onClick={(e) => {
-												e.stopPropagation()
-												if (!isStreaming) {
-													handleEditClick()
-												}
-											}}
-											title={t("chat:queuedMessages.clickToEdit")}>
-											<Mention text={message.text} withShadow />
+										<div className="flex-grow">
+											<ReadOnlyChatText
+												value={message.text || ""}
+												className="px-2 py-1 wrap-anywhere rounded-lg transition-colors hover:bg-vscode-editor-hover-highlight"
+												onClick={() => {
+													if (!isStreaming) {
+														handleEditClick()
+													}
+												}}
+												title={t("chat:queuedMessages.clickToEdit")}
+											/>
 										</div>
 
 										<StandardTooltip content={t("chat:checkpoint.menu.restore")}>
