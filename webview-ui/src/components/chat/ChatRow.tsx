@@ -2,6 +2,7 @@ import { VSCodeBadge, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useSize } from "react-use"
+import { Undo2 } from "lucide-react"
 
 import type { ClineMessage, FollowUpData, SuggestionItem } from "@roo-code/types"
 import { Mode } from "@roo/modes"
@@ -1323,7 +1324,9 @@ export const ChatRowContent = ({
 							<div
 								className={cn(
 									"mb-2",
-									"border rounded-lg whitespace-pre-wrap",
+									"mr-2",
+									"rounded-lg whitespace-pre-wrap",
+									"bg-vscode-editor-background",
 									isEditing ? "overflow-visible" : "overflow-hidden", // kilocode_change
 									isEditing ? "text-vscode-editor-foreground" : "cursor-text p-1",
 								)}>
@@ -1347,7 +1350,7 @@ export const ChatRowContent = ({
 										/>
 									</div>
 								) : (
-									<div className="flex justify-between">
+									<div className="flex justify-between items-end">
 										<div
 											className="flex-grow px-2 py-1 wrap-anywhere rounded-lg transition-colors"
 											onClick={(e) => {
@@ -1359,6 +1362,19 @@ export const ChatRowContent = ({
 											title={t("chat:queuedMessages.clickToEdit")}>
 											<Mention text={message.text} withShadow />
 										</div>
+
+										<StandardTooltip content={t("chat:checkpoint.menu.restore")}>
+											<div
+												className="cursor-pointer shrink-0 mb-1.5 opacity-20 hover:opacity-100 transition-opacity"
+												style={{ visibility: isStreaming ? "hidden" : "visible" }}
+												onClick={(e) => {
+													e.stopPropagation()
+													handleEditClick()
+												}}
+												title={t("chat:checkpoint.restore")}>
+												<Undo2 className="w-3.5 h-3.5" />
+											</div>
+										</StandardTooltip>
 										<div className="flex gap-2 pr-1">
 											<div
 												className="cursor-pointer shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
