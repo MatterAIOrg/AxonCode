@@ -36,10 +36,12 @@ export class PlanMemoryManager {
 		try {
 			const entries = await fs.readdir(this.planMemoryDir, { withFileTypes: true })
 			for (const entry of entries) {
-				if (entry.isFile() && entry.name.endsWith(".md")) {
+				if (entry.isFile()) {
 					const filePath = path.join(this.planMemoryDir, entry.name)
 					const content = await fs.readFile(filePath, "utf-8")
-					this.files.set(entry.name, content)
+					if (!this.files.has(entry.name)) {
+						this.files.set(entry.name, content)
+					}
 				}
 			}
 		} catch (error) {
@@ -52,12 +54,13 @@ export class PlanMemoryManager {
 	 * Create or update a plan file
 	 */
 	async writeFile(filename: string, content: string): Promise<void> {
+		const safeFilename = path.basename(filename)
 		// Store in memory
-		this.files.set(filename, content)
+		this.files.set(safeFilename, content)
 
 		// Persist to disk
 		if (this.planMemoryDir) {
-			const filePath = path.join(this.planMemoryDir, filename)
+			const filePath = path.join(this.planMemoryDir, safeFilename)
 			await fs.writeFile(filePath, content, "utf-8")
 		}
 	}
@@ -66,14 +69,16 @@ export class PlanMemoryManager {
 	 * Read a plan file
 	 */
 	readFile(filename: string): string | undefined {
-		return this.files.get(filename)
+		const safeFilename = path.basename(filename)
+		return this.files.get(safeFilename)
 	}
 
 	/**
 	 * Check if a file exists
 	 */
 	hasFile(filename: string): boolean {
-		return this.files.has(filename)
+		const safeFilename = path.basename(filename)
+		return this.files.has(safeFilename)
 	}
 
 	/**
@@ -87,14 +92,15 @@ export class PlanMemoryManager {
 	 * Delete a plan file
 	 */
 	async deleteFile(filename: string): Promise<void> {
-		this.files.delete(filename)
+		const safeFilename = path.basename(filename)
+		this.files.delete(safeFilename)
 
 		if (this.planMemoryDir) {
-			const filePath = path.join(this.planMemoryDir, filename)
+			const filePath = path.join(this.planMemoryDir, safeFilename)
 			try {
 				await fs.unlink(filePath)
 			} catch (error) {
-				console.warn(`Failed to delete plan file ${filename}:`, error)
+				console.warn(`Failed to delete plan file ${safeFilename}:`, error)
 			}
 		}
 	}
