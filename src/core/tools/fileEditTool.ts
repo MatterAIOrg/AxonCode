@@ -247,7 +247,14 @@ function performReplacement(
 	}
 
 	if (!foundMatch) {
-		throw new Error("old_string not found in file content.")
+		// Provide helpful debug info
+		const preview = oldString.length > 100 ? oldString.slice(0, 100) + "..." : oldString
+		const contentPreview = content.length > 200 ? content.slice(0, 200) + "..." : content
+		throw new Error(
+			`old_string not found in file content.\n` +
+				`Searched for (${oldString.length} chars): ${JSON.stringify(preview)}\n` +
+				`File starts with: ${JSON.stringify(contentPreview)}`,
+		)
 	}
 
 	if (sawAmbiguousMatch && !replaceAll) {
@@ -513,6 +520,156 @@ function* escapeNormalizedReplacer(content: string, find: string): Generator<str
 	}
 }
 
+/**
+ * Handles the case where old_string contains actual newlines/tabs/quotes but the file
+ * contains their escape sequence representations (e.g., source code with string literals).
+ * This is common when editing string literals in source files.
+ *
+ * Strategy: Find string quote positions and convert actual special characters
+ * within quoted portions to their escape sequence representations.
+ */
+function* sourceCodeEscapeReplacer(content: string, find: string): Generator<string, void, undefined> {
+	// Find the first quote character (", ', or `) that starts string content
+	const quoteMatch = find.match(/["'`]/)
+	if (!quoteMatch || quoteMatch.index === undefined) {
+		// No quotes found, try simple full escape as fallback
+		const withEscapedNewlines = find.replace(/\n/g, "\\n")
+		if (withEscapedNewlines !== find && content.includes(withEscapedNewlines)) {
+			yield withEscapedNewlines
+		}
+		return
+	}
+
+	const quoteIndex = quoteMatch.index
+	const quoteChar = quoteMatch[0]
+
+	// Split into structural part (before quote) and content part (from quote onwards)
+	const structuralPart = find.substring(0, quoteIndex + 1) // Include the opening quote
+	const contentPart = find.substring(quoteIndex + 1)
+
+	// Escape special characters in the content part for string literals
+	// Order matters: escape backslashes first, then other characters
+	const escapeForStringLiteral = (str: string): string => {
+		return str
+			.replace(/\\/g, "\\\\") // Backslashes first
+			.replace(/\n/g, "\\n") // Newlines
+			.replace(/\t/g, "\\t") // Tabs
+			.replace(/\r/g, "\\r") // Carriage returns
+			.replace(/"/g, '\\"') // Double quotes (common in JSON/JS strings)
+	}
+
+	// Try full escape (all special chars)
+	const fullyEscaped = escapeForStringLiteral(contentPart)
+	if (fullyEscaped !== contentPart) {
+		const hybrid = structuralPart + fullyEscaped
+		if (content.includes(hybrid)) {
+			yield hybrid
+		}
+	}
+
+	// Try escaping just newlines and quotes (most common case for string literals)
+	const escapedNewlinesAndQuotes = contentPart.replace(/\n/g, "\\n").replace(/"/g, '\\"')
+	if (escapedNewlinesAndQuotes !== contentPart && escapedNewlinesAndQuotes !== fullyEscaped) {
+		const hybrid = structuralPart + escapedNewlinesAndQuotes
+		if (content.includes(hybrid)) {
+			yield hybrid
+		}
+	}
+
+	// Try escaping just newlines (simpler case)
+	const escapedNewlinesOnly = contentPart.replace(/\n/g, "\\n")
+	if (
+		escapedNewlinesOnly !== contentPart &&
+		escapedNewlinesOnly !== fullyEscaped &&
+		escapedNewlinesOnly !== escapedNewlinesAndQuotes
+	) {
+		const hybrid = structuralPart + escapedNewlinesOnly
+		if (content.includes(hybrid)) {
+			yield hybrid
+		}
+	}
+}
+
+/**
+ * Flexible substring replacer that handles cases where old_string is a true substring
+ * of the content (e.g., missing trailing characters like quotes or commas).
+ * This normalizes line endings and tries multiple matching strategies.
+ */
+function* flexibleSubstringReplacer(content: string, find: string): Generator<string, void, undefined> {
+	if (find.length === 0) return
+
+	// Normalize line endings for comparison
+	const normalizeLineEndings = (str: string) => str.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+
+	const normalizedContent = normalizeLineEndings(content)
+	const normalizedFind = normalizeLineEndings(find)
+
+	// Direct substring match with normalized line endings
+	if (normalizedContent.includes(normalizedFind)) {
+		// Find the position in normalized content and extract from original
+		const normalizedIndex = normalizedContent.indexOf(normalizedFind)
+		if (normalizedIndex !== -1) {
+			// Map back to original content position
+			let originalIndex = 0
+			let normalizedPos = 0
+			while (normalizedPos < normalizedIndex && originalIndex < content.length) {
+				if (content[originalIndex] === "\r" && content[originalIndex + 1] === "\n") {
+					originalIndex += 2
+					normalizedPos += 1
+				} else {
+					originalIndex += 1
+					normalizedPos += 1
+				}
+			}
+			// Calculate the length in original content
+			let endOriginalIndex = originalIndex
+			let endNormalizedPos = normalizedPos
+			while (endNormalizedPos < normalizedIndex + normalizedFind.length && endOriginalIndex < content.length) {
+				if (content[endOriginalIndex] === "\r" && content[endOriginalIndex + 1] === "\n") {
+					endOriginalIndex += 2
+					endNormalizedPos += 1
+				} else {
+					endOriginalIndex += 1
+					endNormalizedPos += 1
+				}
+			}
+			yield content.substring(originalIndex, endOriginalIndex)
+		}
+	}
+
+	// Try with trimmed find (handles trailing/leading whitespace differences)
+	const trimmedFind = normalizedFind.trim()
+	if (trimmedFind !== normalizedFind && trimmedFind.length > 0) {
+		const trimmedIndex = normalizedContent.indexOf(trimmedFind)
+		if (trimmedIndex !== -1) {
+			// Find original position and extract
+			let originalIndex = 0
+			let normalizedPos = 0
+			while (normalizedPos < trimmedIndex && originalIndex < content.length) {
+				if (content[originalIndex] === "\r" && content[originalIndex + 1] === "\n") {
+					originalIndex += 2
+					normalizedPos += 1
+				} else {
+					originalIndex += 1
+					normalizedPos += 1
+				}
+			}
+			let endOriginalIndex = originalIndex
+			let endNormalizedPos = normalizedPos
+			while (endNormalizedPos < trimmedIndex + trimmedFind.length && endOriginalIndex < content.length) {
+				if (content[endOriginalIndex] === "\r" && content[endOriginalIndex + 1] === "\n") {
+					endOriginalIndex += 2
+					endNormalizedPos += 1
+				} else {
+					endOriginalIndex += 1
+					endNormalizedPos += 1
+				}
+			}
+			yield content.substring(originalIndex, endOriginalIndex)
+		}
+	}
+}
+
 function* multiOccurrenceReplacer(content: string, find: string): Generator<string, void, undefined> {
 	if (find.length === 0) return
 	let startIndex = 0
@@ -635,6 +792,8 @@ const MULTIPLE_CANDIDATES_SIMILARITY_THRESHOLD = 0.3
 
 const REPLACERS: Replacer[] = [
 	simpleReplacer,
+	sourceCodeEscapeReplacer,
+	flexibleSubstringReplacer,
 	lineTrimmedReplacer,
 	blockAnchorReplacer,
 	whitespaceNormalizedReplacer,
