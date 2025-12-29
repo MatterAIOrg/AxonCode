@@ -240,9 +240,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	private static lastGlobalApiRequestTime?: number
 	private autoApprovalHandler: AutoApprovalHandler
 
-	// Virtual file storage for plan mode
-	private virtualFiles: Map<string, string> = new Map()
-
 	/**
 	 * Reset the global API request timestamp. This should only be used for testing.
 	 * @internal
@@ -3360,37 +3357,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		if (!this.toolUsage[toolName]) {
 			this.toolUsage[toolName] = { attempts: 0, failures: 0 }
 		}
+
 		this.toolUsage[toolName].failures++
 
 		if (error) {
 			this.emit(RooCodeEventName.TaskToolFailed, this.taskId, toolName, error)
 		}
 		TelemetryService.instance.captureEvent(TelemetryEventName.TOOL_ERROR, { toolName, error }) // kilocode_change
-	}
-
-	// Virtual file management methods
-	public createVirtualFile(path: string, content: string): void {
-		this.virtualFiles.set(path, content)
-	}
-
-	public updateVirtualFile(path: string, content: string): void {
-		this.virtualFiles.set(path, content)
-	}
-
-	public getVirtualFile(path: string): string | undefined {
-		return this.virtualFiles.get(path)
-	}
-
-	public hasVirtualFile(path: string): boolean {
-		return this.virtualFiles.has(path)
-	}
-
-	public deleteVirtualFile(path: string): void {
-		this.virtualFiles.delete(path)
-	}
-
-	public getAllVirtualFiles(): Map<string, string> {
-		return new Map(this.virtualFiles)
 	}
 
 	/**
