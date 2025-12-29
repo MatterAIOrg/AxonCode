@@ -64,6 +64,7 @@ import { BrowserSession } from "../../services/browser/BrowserSession"
 import { McpHub } from "../../services/mcp/McpHub"
 import { McpServerManager } from "../../services/mcp/McpServerManager"
 import { RepoPerTaskCheckpointService } from "../../services/checkpoints"
+import { PlanMemoryManager } from "../kilocode/PlanMemoryManager"
 
 // integrations
 import { DiffViewProvider } from "../../integrations/editor/DiffViewProvider"
@@ -293,6 +294,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	// Task Bridge
 	enableBridge: boolean
 
+	// Plan Memory
+	planMemoryManager?: PlanMemoryManager
+
 	// Message Queue Service
 	public readonly messageQueueService: MessageQueueService
 	private messageQueueStateChangedHandler: (() => void) | undefined
@@ -440,6 +444,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 
 		this.toolRepetitionDetector = new ToolRepetitionDetector(this.consecutiveMistakeLimit)
+
+		// Initialize plan memory manager
+		this.planMemoryManager = new PlanMemoryManager(this.taskId, this.globalStoragePath)
+		this.planMemoryManager.initialize().catch((error) => {
+			console.error("Failed to initialize PlanMemoryManager:", error)
+		})
 
 		// Initialize todo list if provided
 		if (initialTodos && initialTodos.length > 0) {

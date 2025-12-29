@@ -32,6 +32,7 @@ import { newTaskTool } from "../tools/newTaskTool"
 import { updateTodoListTool } from "../tools/updateTodoListTool"
 import { runSlashCommandTool } from "../tools/runSlashCommandTool"
 import { generateImageTool } from "../tools/generateImageTool"
+import { planFileEditTool } from "../tools/planFileEditTool"
 
 import { formatResponse } from "../prompts/responses"
 import { validateToolUse } from "../tools/validateToolUse"
@@ -248,6 +249,8 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.command}'${block.params.args ? ` with args: ${block.params.args}` : ""}]`
 					case "generate_image":
 						return `[${block.name} for '${block.params.path}']`
+					case "plan_file_edit":
+						return `[${block.name} for '${block.params.filename}']`
 				}
 			}
 
@@ -620,6 +623,9 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				case "generate_image":
 					await generateImageTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+					break
+				case "plan_file_edit":
+					await planFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
 					break
 			}
 

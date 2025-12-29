@@ -17,6 +17,7 @@ import {
 } from "@roo-code/types"
 
 import { Mode } from "./modes"
+import { ImplementPlanPayload } from "./ExtensionMessage"
 
 export type ClineAskResponse =
 	| "yesButtonClicked"
@@ -298,6 +299,7 @@ export interface WebviewMessage {
 		| "createCommand"
 		| "insertTextIntoTextarea"
 		| "showMdmAuthRequiredNotification"
+		| "implementPlan" // kilocode_change: Plan mode implementation
 		| "imageGenerationSettings"
 		| "openRouterImageApiKey"
 		| "kiloCodeImageApiKey"
@@ -538,6 +540,7 @@ export type WebViewMessagePayload =
 	| GetCommitChangesPayload
 	| CommitChangesPayload
 	| PendingFileEditsPayload
+	| ImplementPlanPayload
 	// kilocode_change end
 	| CheckpointDiffPayload
 	| CheckpointRestorePayload

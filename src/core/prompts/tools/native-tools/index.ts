@@ -14,6 +14,7 @@ import searchFiles from "./search_files"
 import fileEdit from "./file_edit"
 import updateTodoList from "./update_todo_list"
 import codebaseSearch from "./codebase_search"
+import planFileEdit from "./plan_file_edit"
 
 export const nativeTools = [
 	// apply_diff_single_file,
@@ -30,7 +31,8 @@ export const nativeTools = [
 	// insertContent,
 	listCodeDefinitionNames,
 	listFiles,
-	newTask,
+	// newTask,
+	planFileEdit,
 	read_file_multi,
 	runSlashCommand,
 	// searchAndReplace,

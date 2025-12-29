@@ -38,6 +38,7 @@ import { Markdown } from "./Markdown"
 import { ProgressIndicator } from "./ProgressIndicator"
 import ReportBugPreview from "./ReportBugPreview"
 import { ReadOnlyChatText } from "./ReadOnlyChatText"
+import { PlanFileIndicator } from "./PlanFileIndicator"
 
 import { cn } from "@/lib/utils"
 import { appendImages } from "@src/utils/imageUtils"
@@ -527,6 +528,41 @@ export const ChatRowContent = ({
 								tool.fastApplyResult && <FastApplyChatDisplay fastApplyResult={tool.fastApplyResult} />
 								// kilocode_change end
 							}
+						</div>
+					</div>
+				)
+			case "planFileEdit":
+				return (
+					<div className={`flex ${isExpanded ? "flex-col" : "flex-col"} gap-1 items-start pb-2`}>
+						<div style={headerStyle} className="">
+							<span style={{}}>Plan file edited</span>
+						</div>
+						<div className="">
+							<PlanFileIndicator filename={tool.filename || "plan.md"} isActive={true} />
+							<CodeAccordian
+								path={undefined}
+								code={tool.content ?? ""}
+								language="markdown"
+								isLoading={message.partial}
+								isExpanded={isExpanded}
+								onToggleExpand={handleToggleExpand}
+							/>
+							{!message.partial && (
+								<VSCodeButton
+									onClick={() => {
+										vscode.postMessage({
+											type: "implementPlan",
+											payload: {
+												planFile: tool.filename || "plan.md",
+												planContent: tool.content || "",
+											},
+										})
+									}}
+									className="mt-2">
+									<span className="codicon codicon-play mr-1" />
+									Implement
+								</VSCodeButton>
+							)}
 						</div>
 					</div>
 				)

@@ -16,7 +16,7 @@ export async function getStorageBasePath(defaultPath: string): Promise<string> {
 	let customStoragePath = ""
 
 	try {
-		// This is the line causing the error in tests
+		// This is the line causing error in tests
 		const config = vscode.workspace.getConfiguration(Package.name)
 		customStoragePath = config.get<string>("customStoragePath", "")
 	} catch (error) {
@@ -78,6 +78,16 @@ export async function getCacheDirectoryPath(globalStoragePath: string): Promise<
 }
 
 /**
+ * Gets the plan memory directory path for storing virtual plan files
+ */
+export async function getPlanMemoryDirectoryPath(globalStoragePath: string, taskId: string): Promise<string> {
+	const basePath = await getStorageBasePath(globalStoragePath)
+	const planDir = path.join(basePath, "plan-memory", taskId)
+	await fs.mkdir(planDir, { recursive: true })
+	return planDir
+}
+
+/**
  * Prompts the user to set a custom storage path
  * Displays an input box allowing the user to enter a custom path
  */
@@ -98,54 +108,36 @@ export async function promptForCustomStoragePath(): Promise<void> {
 
 	const result = await vscode.window.showInputBox({
 		value: currentPath,
-		placeHolder: t("common:storage.path_placeholder"),
-		prompt: t("common:storage.prompt_custom_path"),
-		validateInput: (input) => {
-			if (!input) {
-				return null // Allow empty value (use default path)
+		prompt: t("common:settings.custom_storage_path_prompt"),
+		placeHolder: t("common:settings.custom_storage_path_placeholder"),
+		validateInput: (value) => {
+			if (!value || value.trim() === "") {
+				return t("common:settings.custom_storage_path_empty")
 			}
-
-			try {
-				// Validate path format
-				path.parse(input)
-
-				// Check if path is absolute
-				if (!path.isAbsolute(input)) {
-					return t("common:storage.enter_absolute_path")
-				}
-
-				return null // Path format is valid
-			} catch (e) {
-				return t("common:storage.enter_valid_path")
-			}
+			return null
 		},
 	})
 
-	// If user canceled the operation, result will be undefined
 	if (result !== undefined) {
-		try {
-			const currentConfig = vscode.workspace.getConfiguration(Package.name)
-			await currentConfig.update("customStoragePath", result, vscode.ConfigurationTarget.Global)
+		const config = vscode.workspace.getConfiguration(Package.name)
+		await config.update("customStoragePath", result, vscode.ConfigurationTarget.Global)
 
-			if (result) {
-				try {
-					// Test if path is accessible
-					await fs.mkdir(result, { recursive: true })
-					await fs.access(result, fsConstants.R_OK | fsConstants.W_OK | fsConstants.X_OK)
-					vscode.window.showInformationMessage(t("common:info.custom_storage_path_set", { path: result }))
-				} catch (error) {
-					vscode.window.showErrorMessage(
-						t("common:errors.cannot_access_path", {
-							path: result,
-							error: error instanceof Error ? error.message : String(error),
-						}),
-					)
-				}
-			} else {
-				vscode.window.showInformationMessage(t("common:info.default_storage_path"))
+		if (result) {
+			try {
+				// Test if path is accessible
+				await fs.mkdir(result, { recursive: true })
+				await fs.access(result, fsConstants.R_OK | fsConstants.W_OK | fsConstants.X_OK)
+				vscode.window.showInformationMessage(t("common:info.custom_storage_path_set", { path: result }))
+			} catch (error) {
+				vscode.window.showErrorMessage(
+					t("common:errors.cannot_access_path", {
+						path: result,
+						error: error instanceof Error ? error.message : String(error),
+					}),
+				)
 			}
-		} catch (error) {
-			console.error("Failed to update configuration", error)
+		} else {
+			vscode.window.showInformationMessage(t("common:info.default_storage_path"))
 		}
 	}
 }
