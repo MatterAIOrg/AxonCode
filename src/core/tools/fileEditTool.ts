@@ -608,10 +608,15 @@ function* flexibleSubstringReplacer(content: string, find: string): Generator<st
 	/**
 	 * Maps a position in normalized content back to the original content position.
 	 * Accounts for CRLF sequences that were normalized to LF.
+	 * Accepts optional start parameters to resume scanning from a known position.
 	 */
-	const mapNormalizedIndexToOriginal = (normalizedTargetPos: number): number => {
-		let originalIndex = 0
-		let normalizedPos = 0
+	const mapNormalizedIndexToOriginal = (
+		normalizedTargetPos: number,
+		startOriginalIndex = 0,
+		startNormalizedPos = 0,
+	): number => {
+		let originalIndex = startOriginalIndex
+		let normalizedPos = startNormalizedPos
 		while (normalizedPos < normalizedTargetPos && originalIndex < content.length) {
 			if (content[originalIndex] === "\r" && content[originalIndex + 1] === "\n") {
 				originalIndex += 2
@@ -632,7 +637,12 @@ function* flexibleSubstringReplacer(content: string, find: string): Generator<st
 		const normalizedIndex = normalizedContent.indexOf(normalizedFind)
 		if (normalizedIndex !== -1) {
 			const originalStart = mapNormalizedIndexToOriginal(normalizedIndex)
-			const originalEnd = mapNormalizedIndexToOriginal(normalizedIndex + normalizedFind.length)
+			// Resume scanning from originalStart to avoid redundant iteration
+			const originalEnd = mapNormalizedIndexToOriginal(
+				normalizedIndex + normalizedFind.length,
+				originalStart,
+				normalizedIndex,
+			)
 			yield content.substring(originalStart, originalEnd)
 		}
 	}
@@ -643,7 +653,12 @@ function* flexibleSubstringReplacer(content: string, find: string): Generator<st
 		const trimmedIndex = normalizedContent.indexOf(trimmedFind)
 		if (trimmedIndex !== -1) {
 			const originalStart = mapNormalizedIndexToOriginal(trimmedIndex)
-			const originalEnd = mapNormalizedIndexToOriginal(trimmedIndex + trimmedFind.length)
+			// Resume scanning from originalStart to avoid redundant iteration
+			const originalEnd = mapNormalizedIndexToOriginal(
+				trimmedIndex + trimmedFind.length,
+				originalStart,
+				trimmedIndex,
+			)
 			yield content.substring(originalStart, originalEnd)
 		}
 	}
