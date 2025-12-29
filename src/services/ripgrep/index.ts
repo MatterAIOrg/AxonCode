@@ -15,10 +15,10 @@ Key components:
 2. execRipgrep: Executes the ripgrep command and returns the output.
 3. regexSearchFiles: The main function that performs regex searches on files.
    - Parameters:
-     * cwd: The current working directory (for relative path calculation)
-     * directoryPath: The directory to search in
-     * regex: The regular expression to search for (Rust regex syntax)
-     * filePattern: Optional glob pattern to filter files (default: '*')
+	 * cwd: The current working directory (for relative path calculation)
+	 * directoryPath: The directory to search in
+	 * regex: The regular expression to search for (Rust regex syntax)
+	 * filePattern: Optional glob pattern to filter files (default: '*')
    - Returns: A formatted string containing search results with context
 
 The search results include:
@@ -227,6 +227,8 @@ function formatResults(fileResults: SearchFileResult[], cwd: string): string {
 	let output = ""
 	if (totalResults >= MAX_RESULTS) {
 		output += `Showing first ${MAX_RESULTS} of ${MAX_RESULTS}+ results. Use a more specific search if necessary.\n\n`
+	} else if (totalResults === 0) {
+		output += `Found ${totalResults.toLocaleString()} results.\n\nNOTE: If you need to search again, try different search terms or file patterns. Repeating the same search will yield the same results.`
 	} else {
 		output += `Found ${totalResults === 1 ? "1 result" : `${totalResults.toLocaleString()} results`}.\n\n`
 	}

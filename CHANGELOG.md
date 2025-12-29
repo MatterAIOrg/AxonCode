@@ -1,5 +1,21 @@
 # Changelog
 
+## [v4.206.0] - 2025-12-29
+
+### Added
+
+- Enhanced file edit tool with substring replacer for inline edit file tool calls
+- Improved task handling with better file edit integration
+- Enhanced ripgrep service for better file search capabilities
+
+### Changed
+
+- Updated file edit tool implementation for more robust inline editing
+- Improved task processing with enhanced file edit capabilities
+- Enhanced package version management
+
+---
+
 ## [v4.205.0] - 2025-12-26
 
 ### Added
