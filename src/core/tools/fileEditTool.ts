@@ -547,6 +547,10 @@ function* sourceCodeEscapeReplacer(content: string, find: string): Generator<str
 	const structuralPart = find.substring(0, quoteIndex + 1) // Include the opening quote
 	const contentPart = find.substring(quoteIndex + 1)
 
+	// Create a regex to match the detected quote character
+	const quoteRegex = new RegExp(escapeRegExp(quoteChar), "g")
+	const escapedQuote = "\\" + quoteChar
+
 	// Escape special characters in the content part for string literals
 	// Order matters: escape backslashes first, then other characters
 	const escapeForStringLiteral = (str: string): string => {
@@ -555,7 +559,7 @@ function* sourceCodeEscapeReplacer(content: string, find: string): Generator<str
 			.replace(/\n/g, "\\n") // Newlines
 			.replace(/\t/g, "\\t") // Tabs
 			.replace(/\r/g, "\\r") // Carriage returns
-			.replace(/"/g, '\\"') // Double quotes (common in JSON/JS strings)
+			.replace(quoteRegex, escapedQuote) // Escape the detected quote type
 	}
 
 	// Try full escape (all special chars)
@@ -568,7 +572,7 @@ function* sourceCodeEscapeReplacer(content: string, find: string): Generator<str
 	}
 
 	// Try escaping just newlines and quotes (most common case for string literals)
-	const escapedNewlinesAndQuotes = contentPart.replace(/\n/g, "\\n").replace(/"/g, '\\"')
+	const escapedNewlinesAndQuotes = contentPart.replace(/\n/g, "\\n").replace(quoteRegex, escapedQuote)
 	if (escapedNewlinesAndQuotes !== contentPart && escapedNewlinesAndQuotes !== fullyEscaped) {
 		const hybrid = structuralPart + escapedNewlinesAndQuotes
 		if (content.includes(hybrid)) {
@@ -601,39 +605,35 @@ function* flexibleSubstringReplacer(content: string, find: string): Generator<st
 	// Normalize line endings for comparison
 	const normalizeLineEndings = (str: string) => str.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
 
+	/**
+	 * Maps a position in normalized content back to the original content position.
+	 * Accounts for CRLF sequences that were normalized to LF.
+	 */
+	const mapNormalizedIndexToOriginal = (normalizedTargetPos: number): number => {
+		let originalIndex = 0
+		let normalizedPos = 0
+		while (normalizedPos < normalizedTargetPos && originalIndex < content.length) {
+			if (content[originalIndex] === "\r" && content[originalIndex + 1] === "\n") {
+				originalIndex += 2
+				normalizedPos += 1
+			} else {
+				originalIndex += 1
+				normalizedPos += 1
+			}
+		}
+		return originalIndex
+	}
+
 	const normalizedContent = normalizeLineEndings(content)
 	const normalizedFind = normalizeLineEndings(find)
 
 	// Direct substring match with normalized line endings
 	if (normalizedContent.includes(normalizedFind)) {
-		// Find the position in normalized content and extract from original
 		const normalizedIndex = normalizedContent.indexOf(normalizedFind)
 		if (normalizedIndex !== -1) {
-			// Map back to original content position
-			let originalIndex = 0
-			let normalizedPos = 0
-			while (normalizedPos < normalizedIndex && originalIndex < content.length) {
-				if (content[originalIndex] === "\r" && content[originalIndex + 1] === "\n") {
-					originalIndex += 2
-					normalizedPos += 1
-				} else {
-					originalIndex += 1
-					normalizedPos += 1
-				}
-			}
-			// Calculate the length in original content
-			let endOriginalIndex = originalIndex
-			let endNormalizedPos = normalizedPos
-			while (endNormalizedPos < normalizedIndex + normalizedFind.length && endOriginalIndex < content.length) {
-				if (content[endOriginalIndex] === "\r" && content[endOriginalIndex + 1] === "\n") {
-					endOriginalIndex += 2
-					endNormalizedPos += 1
-				} else {
-					endOriginalIndex += 1
-					endNormalizedPos += 1
-				}
-			}
-			yield content.substring(originalIndex, endOriginalIndex)
+			const originalStart = mapNormalizedIndexToOriginal(normalizedIndex)
+			const originalEnd = mapNormalizedIndexToOriginal(normalizedIndex + normalizedFind.length)
+			yield content.substring(originalStart, originalEnd)
 		}
 	}
 
@@ -642,30 +642,9 @@ function* flexibleSubstringReplacer(content: string, find: string): Generator<st
 	if (trimmedFind !== normalizedFind && trimmedFind.length > 0) {
 		const trimmedIndex = normalizedContent.indexOf(trimmedFind)
 		if (trimmedIndex !== -1) {
-			// Find original position and extract
-			let originalIndex = 0
-			let normalizedPos = 0
-			while (normalizedPos < trimmedIndex && originalIndex < content.length) {
-				if (content[originalIndex] === "\r" && content[originalIndex + 1] === "\n") {
-					originalIndex += 2
-					normalizedPos += 1
-				} else {
-					originalIndex += 1
-					normalizedPos += 1
-				}
-			}
-			let endOriginalIndex = originalIndex
-			let endNormalizedPos = normalizedPos
-			while (endNormalizedPos < trimmedIndex + trimmedFind.length && endOriginalIndex < content.length) {
-				if (content[endOriginalIndex] === "\r" && content[endOriginalIndex + 1] === "\n") {
-					endOriginalIndex += 2
-					endNormalizedPos += 1
-				} else {
-					endOriginalIndex += 1
-					endNormalizedPos += 1
-				}
-			}
-			yield content.substring(originalIndex, endOriginalIndex)
+			const originalStart = mapNormalizedIndexToOriginal(trimmedIndex)
+			const originalEnd = mapNormalizedIndexToOriginal(trimmedIndex + trimmedFind.length)
+			yield content.substring(originalStart, originalEnd)
 		}
 	}
 }
