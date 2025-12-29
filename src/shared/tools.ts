@@ -69,6 +69,7 @@ export const toolParamNames = [
 	"instructions",
 	"code_edit",
 	"files",
+	"filename",
 	// kilocode_change end
 	"args",
 	"start_line",
@@ -234,11 +235,12 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	search_and_replace: "search and replace",
 	new_rule: "create new rule",
 	report_bug: "report bug", // kilocode_change
-	condense: "condense the current context window", // kilocode_change
+	condense: "condense the current context window", // kilicode_change
 	codebase_search: "codebase search",
 	update_todo_list: "update todo list",
 	run_slash_command: "run slash command",
 	generate_image: "generate images",
+	plan_file_edit: "edit plan files", // kilocode_change: Plan mode file editing
 } as const
 
 // Define available tool groups.
@@ -263,6 +265,11 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 			"search_and_replace",
 			"new_rule", // kilocode_change
 			"generate_image",
+		],
+	},
+	plan: {
+		tools: [
+			"plan_file_edit", // kilocode_change: Plan mode file editing
 		],
 	},
 	browser: {

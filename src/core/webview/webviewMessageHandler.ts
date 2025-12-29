@@ -3,6 +3,7 @@ import * as path from "path"
 import * as os from "os"
 import * as fs from "fs/promises"
 import pWaitFor from "p-wait-for"
+import delay from "delay"
 import * as vscode from "vscode"
 // kilocode_change start
 import axios from "axios"
@@ -86,6 +87,7 @@ import { seeNewChanges } from "../checkpoints/kilocode/seeNewChanges" // kilocod
 import { getTaskHistory } from "../../shared/kilocode/getTaskHistory" // kilocode_change
 import { getCheckpointService } from "../checkpoints" // kilocode_change
 import { fetchAndRefreshOrganizationModesOnStartup, refreshOrganizationModes } from "./kiloWebviewMessgeHandlerHelpers"
+import { ImplementPlanPayload } from "../../shared/ExtensionMessage"
 
 export const webviewMessageHandler = async (
 	provider: ClineProvider,
@@ -3801,5 +3803,23 @@ export const webviewMessageHandler = async (
 			})
 			break
 		}
+		// kilocode_change start: Plan mode implementation
+		case "implementPlan": {
+			if (message.payload) {
+				const { planFile, planContent } = message.payload as ImplementPlanPayload
+				// Switch to agent mode first
+				await provider.handleModeSwitch("agent")
+				// Small delay to ensure mode switch has propagated
+				await delay(100)
+				// Send the plan content as a user message to start implementation
+				await provider.postMessageToWebview({
+					type: "invoke",
+					invoke: "sendMessage",
+					text: `Please implement the following plan:\n\n${planContent}`,
+				})
+			}
+			break
+		}
+		// kilocode_change end
 	}
 }

@@ -155,6 +155,7 @@ export interface ExtensionMessage {
 		| "dismissedUpsells"
 		| "showTimestamps" // kilocode_change
 		| "organizationSwitchResult"
+		| "implementPlan" // kilocode_change: Plan mode implementation
 	text?: string
 	// kilocode_change start
 	payload?:
@@ -162,6 +163,7 @@ export interface ExtensionMessage {
 		| BalanceDataResponsePayload
 		| TasksByIdResponsePayload
 		| TaskHistoryResponsePayload
+		| ImplementPlanPayload
 	// kilocode_change end
 	action?:
 		| "chatButtonClicked"
@@ -445,6 +447,12 @@ export type ExtensionState = Pick<
 	showTimestamps?: boolean // kilocode_change: Show timestamps in chat messages
 }
 
+// kilocode_change: Plan mode implementation
+export interface ImplementPlanPayload {
+	planFile: string
+	planContent: string
+}
+
 export interface ClineSayTool {
 	tool:
 		| "editedExistingFile"
@@ -466,6 +474,7 @@ export interface ClineSayTool {
 		| "generateImage"
 		| "imageGenerated"
 		| "runSlashCommand"
+		| "planFileEdit" // kilocode_change: Plan mode file editing
 	path?: string
 	diff?: string
 	content?: string
@@ -475,7 +484,7 @@ export interface ClineSayTool {
 	reason?: string
 	isOutsideWorkspace?: boolean
 	isProtected?: boolean
-	additionalFileCount?: number // Number of additional files in the same read_file request
+	additionalFileCount?: number // Number of additional files in same read_file request
 	search?: string
 	replace?: string
 	useRegex?: boolean
@@ -517,6 +526,8 @@ export interface ClineSayTool {
 	args?: string
 	source?: string
 	description?: string
+	// kilocode_change: Properties for planFileEdit tool
+	filename?: string
 }
 
 // Must keep in sync with system prompt.
