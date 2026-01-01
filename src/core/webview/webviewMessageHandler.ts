@@ -89,6 +89,255 @@ import { getCheckpointService } from "../checkpoints" // kilocode_change
 import { fetchAndRefreshOrganizationModesOnStartup, refreshOrganizationModes } from "./kiloWebviewMessgeHandlerHelpers"
 import { ImplementPlanPayload } from "../../shared/ExtensionMessage"
 
+// kilocode_change start: Helper functions for AI Code Review using Git API
+async function getGitChanges(cwd: string): Promise<{ files: any[]; gitDiff: string }> {
+	try {
+		const { exec } = await import("child_process")
+		const { promisify } = await import("util")
+		const execAsync = promisify(exec)
+
+		// Check if git is available
+		try {
+			await execAsync("git --version")
+		} catch {
+			console.log("Git not found")
+			return { files: [], gitDiff: "" }
+		}
+
+		// Check if inside a git repo
+		try {
+			await execAsync("git rev-parse --is-inside-work-tree", { cwd })
+		} catch {
+			console.log("Not inside a git work tree")
+			return { files: [], gitDiff: "" }
+		}
+
+		const filesMap = new Map<
+			string,
+			{ relPath: string; absolutePath: string; status: string; stat: { additions: number; deletions: number } }
+		>()
+
+		// 1. Get stats using git diff --numstat HEAD
+		// This covers staged and unstaged changes for tracked files
+		try {
+			const { stdout: numstatOut } = await execAsync("git diff --numstat HEAD", { cwd })
+			if (numstatOut.trim()) {
+				const lines = numstatOut.trim().split("\n")
+				for (const line of lines) {
+					const parts = line.split(/\s+/)
+					// Format: additions deletions filename
+					// Renames might look different, but usually git diff HEAD shows the new name
+					if (parts.length >= 3) {
+						let additions = parseInt(parts[0])
+						let deletions = parseInt(parts[1])
+						// Handle binary files which output - -
+						if (isNaN(additions)) additions = 0
+						if (isNaN(deletions)) deletions = 0
+
+						// The path is the last part, but might contain spaces if not handled,
+						// but numstat separates by tab usually.
+						// Actually numstat separates by tab. The split(/\s+/) might be risky if whitespace in filename.
+						// Safer to split by tab.
+					}
+				}
+				// Let's re-parse properly with tabs
+				const numstatLines = numstatOut.trim().split("\n")
+				for (const line of numstatLines) {
+					const [adds, dels, filePath] = line.split("\t")
+					if (filePath) {
+						let additions = parseInt(adds)
+						let deletions = parseInt(dels)
+						if (isNaN(additions)) additions = 0
+						if (isNaN(deletions)) deletions = 0
+
+						filesMap.set(filePath, {
+							relPath: filePath,
+							absolutePath: path.join(cwd, filePath),
+							status: "M", // Default, will update with name-status
+							stat: { additions, deletions },
+						})
+					}
+				}
+			}
+		} catch (e) {
+			console.warn("Error getting numstat:", e)
+		}
+
+		// 2. Get status using git diff --name-status HEAD
+		try {
+			const { stdout: nameStatusOut } = await execAsync("git diff --name-status HEAD", { cwd })
+			if (nameStatusOut.trim()) {
+				const lines = nameStatusOut.trim().split("\n")
+				for (const line of lines) {
+					const [status, filePath] = line.split("\t")
+					if (filePath && filesMap.has(filePath)) {
+						const entry = filesMap.get(filePath)!
+						// Status is like 'M', 'A', 'D', 'R100'
+						entry.status = status.charAt(0).toUpperCase()
+					}
+				}
+			}
+		} catch (e) {
+			console.warn("Error getting name-status:", e)
+		}
+
+		// 3. Handle Untracked files (newly created, not yet added)
+		// git diff HEAD does NOT show them. git ls-files --others --exclude-standard does.
+		try {
+			const { stdout: untrackedOut } = await execAsync("git ls-files --others --exclude-standard", { cwd })
+			if (untrackedOut.trim()) {
+				const untrackedFiles = untrackedOut.trim().split("\n")
+				for (const filePath of untrackedFiles) {
+					if (!filePath) continue
+
+					// For untracked files, we need to count lines manually or treat as all additions
+					// git diff --no-index /dev/null file could work, or just read file
+					let additions = 0
+					try {
+						const absPath = path.join(cwd, filePath)
+						const content = await fs.readFile(absPath, "utf8")
+						additions = content.split("\n").filter((l) => l.trim().length > 0).length // Heuristic from before, or just line count
+					} catch (err) {
+						console.log("Failed to read untracked file:", filePath)
+					}
+
+					filesMap.set(filePath, {
+						relPath: filePath,
+						absolutePath: path.join(cwd, filePath),
+						status: "A", // Untracked is effectively Added
+						stat: { additions, deletions: 0 },
+					})
+				}
+			}
+		} catch (e) {
+			console.warn("Error getting untracked files:", e)
+		}
+
+		// 4. Get full unified diff
+		let gitDiff = ""
+		try {
+			// git diff HEAD covers staged and unstaged.
+			// Untracked files are not in git diff HEAD. We might want to append them?
+			const { stdout } = await execAsync("git diff HEAD", { cwd })
+			gitDiff = stdout
+
+			// If there are untracked files, we need to generate diffs for them too if we want them in the review
+			// Ideally we construct "fake" diffs for them
+			// The original implementation generated diffs for "A" status files from scratch
+			const untrackedFilter = Array.from(filesMap.values()).filter(
+				(f) => f.status === "A" && !gitDiff.includes(f.relPath),
+			)
+			for (const file of untrackedFilter) {
+				try {
+					const content = await fs.readFile(file.absolutePath, "utf8")
+					const lineCount = content.split("\n").length
+					const newDiff = `
+--- /dev/null
++++ b/${file.relPath}
+@@ -0,0 +1,${lineCount} @@
+${content
+	.split("\n")
+	.map((l) => "+" + l)
+	.join("\n")}
+`
+					gitDiff += newDiff
+				} catch (e) {
+					// ignore
+				}
+			}
+		} catch (e) {
+			console.warn("Error getting git diff:", e)
+		}
+
+		const files = Array.from(filesMap.values())
+
+		return { files, gitDiff }
+	} catch (error) {
+		console.warn("Failed to get git changes:", error)
+		return { files: [], gitDiff: "" }
+	}
+}
+
+async function getGitMetadata(
+	cwd: string,
+): Promise<{ gitOwner: string; gitRepo: string; gitBranch: string; gitUser: string }> {
+	try {
+		const { exec } = await import("child_process")
+		const { promisify } = await import("util")
+		const execAsync = promisify(exec)
+
+		const runGit = async (command: string) => {
+			try {
+				const { stdout } = await execAsync(command, { cwd })
+				return stdout.trim()
+			} catch (e) {
+				console.error(`[getGitMetadata] Command failed: "${command}" in cwd: "${cwd}"`, e)
+				return ""
+			}
+		}
+
+		// Get current branch
+		const gitBranch = (await runGit("git rev-parse --abbrev-ref HEAD")) || "unknown"
+
+		// Get remote URL to extract owner/repo
+		const remoteUrl = await runGit("git config --get remote.origin.url")
+		let gitOwner = "unknown"
+		let gitRepo = "unknown"
+
+		if (remoteUrl) {
+			// Parse common Git URL formats
+			// Matches: https://github.com/owner/repo.git or git@github.com:owner/repo.git
+			// And also handles non-github URLs loosely if they follow standard format
+			const match = remoteUrl.match(/[:/](.+?)\/(.+?)(?:\.git)?$/)
+			if (match) {
+				// Clean up owner if it contains 'git@github.com' or 'https://github.com' leftovers from loose matching
+				// But let's stick to the previous robust regexes if possible, or a cleaner one.
+
+				// Previous regexes:
+				const httpsMatch = remoteUrl.match(/github\.com[:/](.+?)\/(.+?)(?:\.git)?$/i)
+				const gitMatch = remoteUrl.match(/git@github\.com:(.+?)\/(.+?)\.git$/i)
+
+				// Let's try to be generic for any host, but prioritizing the structure owner/repo
+				// If we just take the last two parts of the path?
+
+				if (httpsMatch) {
+					gitOwner = httpsMatch[1]
+					gitRepo = httpsMatch[2]
+				} else if (gitMatch) {
+					gitOwner = gitMatch[1]
+					gitRepo = gitMatch[2]
+				} else {
+					// Fallback for other providers (gitlab, bitbucket, or custom)
+					// Try to extract last two path components
+					const parts = remoteUrl.split("/")
+					if (parts.length >= 2) {
+						gitRepo = parts[parts.length - 1].replace(/\.git$/, "")
+						gitOwner = parts[parts.length - 2]
+						// Clean owner if it has domain info (e.g. domain.com:owner)
+						if (gitOwner.includes(":")) {
+							gitOwner = gitOwner.split(":").pop()!
+						}
+					}
+				}
+			}
+		}
+
+		// Get git user from repository config
+		const gitUser = (await runGit("git config user.name")) || "unknown"
+
+		return { gitOwner, gitRepo, gitBranch, gitUser }
+	} catch (error) {
+		// Return defaults if git operations fail
+		return {
+			gitOwner: "unknown",
+			gitRepo: "unknown",
+			gitBranch: "unknown",
+			gitUser: "unknown",
+		}
+	}
+}
+// kilocode_change end
+
 export const webviewMessageHandler = async (
 	provider: ClineProvider,
 	message: MaybeTypedWebviewMessage, // kilocode_change switch to MaybeTypedWebviewMessage for better type-safety
@@ -727,6 +976,129 @@ export const webviewMessageHandler = async (
 			} as any)
 			break
 		}
+		// kilocode_change start: Get Git changes for AI Code Review (separate from pending file edits)
+		case "getGitChangesForReview": {
+			try {
+				// Get git changes using VS Code Git API
+				const { files } = await getGitChanges(provider.cwd)
+
+				await provider.postMessageToWebview({
+					type: "gitChangesForReview",
+					payload: {
+						files,
+					},
+				} as any)
+			} catch (error) {
+				provider.log(
+					`Failed to get git changes for review: ${error instanceof Error ? error.message : "Unknown error"}`,
+				)
+				await provider.postMessageToWebview({
+					type: "gitChangesForReview",
+					payload: {
+						files: [],
+					},
+				} as any)
+			}
+			break
+		}
+		// kilocode_change end
+		// kilocode_change start: AI Code Review handlers using Git API
+		case "requestCodeReview": {
+			try {
+				// Get git changes using VS Code Git API
+				const { files, gitDiff } = await getGitChanges(provider.cwd)
+
+				if (files.length === 0) {
+					await provider.postMessageToWebview({
+						type: "codeReviewResults",
+						payload: {
+							reviewBody: "No uncommitted changes found to review.",
+							reviewComments: [],
+						},
+					} as any)
+					break
+				}
+
+				// Get git metadata
+				const gitMetadata = await getGitMetadata(provider.cwd)
+
+				// Call the code review API
+				const { CodeReviewService } = await import("../kilocode/api/codeReviewService")
+				const state = await provider.getState()
+				const codeReviewService = new CodeReviewService(state.apiConfiguration?.kilocodeToken || "")
+				const results = await codeReviewService.requestCodeReview({
+					git_diff: gitDiff,
+					git_owner: gitMetadata.gitOwner,
+					git_repo: gitMetadata.gitRepo,
+					git_branch: gitMetadata.gitBranch,
+					git_user: gitMetadata.gitUser,
+				})
+
+				await provider.postMessageToWebview({
+					type: "codeReviewResults",
+					payload: results,
+				} as any)
+			} catch (error) {
+				provider.log(`Code review request failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+				await provider.postMessageToWebview({
+					type: "codeReviewResults",
+					payload: {
+						reviewBody: `Code review failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+						reviewComments: [],
+					},
+				} as any)
+			}
+			break
+		}
+		case "applyCodeReviewFix": {
+			const { comment } = (message as any).payload
+			if (!comment) {
+				break
+			}
+
+			const prompt = `Please apply the following code review fix for ${comment.path}:
+
+Issue: ${comment.body}
+
+Suggestion:
+\`\`\`
+${comment.suggestion}
+\`\`\`
+`
+			try {
+				await provider.createTask(prompt, [])
+				await provider.postMessageToWebview({ type: "invoke", invoke: "newChat" })
+			} catch (error) {
+				provider.log(
+					`Failed to create task for code review fix: ${error instanceof Error ? error.message : "Unknown error"}`,
+				)
+			}
+			break
+		}
+		case "applyAllCodeReviewFixes": {
+			const { comments } = (message as any).payload
+			if (!comments || comments.length === 0) {
+				break
+			}
+
+			let prompt = "Please apply the following code review fixes:\n\n"
+			comments.forEach((c: any, i: number) => {
+				prompt += `Fix ${i + 1} in ${c.path}:\n`
+				prompt += `Issue: ${c.body}\n`
+				prompt += `Suggestion:\n\`\`\`\n${c.suggestion}\n\`\`\`\n\n`
+			})
+
+			try {
+				await provider.createTask(prompt, [])
+				await provider.postMessageToWebview({ type: "invoke", invoke: "newChat" })
+			} catch (error) {
+				provider.log(
+					`Failed to create task for all code review fixes: ${error instanceof Error ? error.message : "Unknown error"}`,
+				)
+			}
+			break
+		}
+		// kilocode_change end
 		case "alwaysAllowExecute":
 			await updateGlobalState("alwaysAllowExecute", message.bool ?? undefined)
 			await provider.postStateToWebview()

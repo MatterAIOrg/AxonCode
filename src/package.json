@@ -16,6 +16,9 @@
 	"extensionKind": [
 		"workspace"
 	],
+	"extensionDependencies": [
+		"vscode.git"
+	],
 	"author": {
 		"name": "MatterAI"
 	},

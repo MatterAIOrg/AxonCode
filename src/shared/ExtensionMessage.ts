@@ -1,31 +1,31 @@
 import type {
-	GlobalSettings,
-	ProviderSettingsEntry,
-	ProviderSettings,
-	HistoryItem,
-	ModeConfig,
-	TelemetrySetting,
-	Experiments,
 	ClineMessage,
-	MarketplaceItem,
-	TodoItem,
-	CloudUserInfo,
 	CloudOrganizationMembership,
+	CloudUserInfo,
+	Experiments,
+	GlobalSettings,
+	HistoryItem,
+	MarketplaceItem,
+	ModeConfig,
 	OrganizationAllowList,
-	ShareVisibility,
+	ProviderSettings,
+	ProviderSettingsEntry,
 	QueuedMessage,
+	ShareVisibility,
+	TelemetrySetting,
+	TodoItem,
 } from "@roo-code/types"
 
 import { GitCommit } from "../utils/git"
 
-import { McpServer } from "./mcp"
-import { McpMarketplaceCatalog, McpDownloadResponse } from "./kilocode/mcp"
-import { Mode } from "./modes"
 import { ModelRecord, RouterModels } from "./api"
+import { McpDownloadResponse, McpMarketplaceCatalog } from "./kilocode/mcp"
+import { McpServer } from "./mcp"
+import { Mode } from "./modes"
 // kilocode_change start
 import {
-	ProfileDataResponsePayload,
 	BalanceDataResponsePayload,
+	ProfileDataResponsePayload,
 	TaskHistoryResponsePayload,
 	TasksByIdResponsePayload,
 } from "./WebviewMessage"
@@ -475,6 +475,7 @@ export interface ClineSayTool {
 		| "imageGenerated"
 		| "runSlashCommand"
 		| "planFileEdit" // kilocode_change: Plan mode file editing
+		| "codeReview" // kilocode_change: AI Code Review
 	path?: string
 	diff?: string
 	content?: string
