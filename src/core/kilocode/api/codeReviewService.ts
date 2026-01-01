@@ -23,7 +23,10 @@ export class CodeReviewService {
 
 			const url = getKiloUrlFromToken("https://api.matterai.so/codereview", this.kilocodeToken)
 
-			const response = await axios.post<any>(url, request, { headers })
+			const response = await axios.post<any>(url, request, {
+				headers,
+				timeout: 5 * 60 * 1000, // 5 minutes in milliseconds
+			})
 
 			const data = response.data
 			if (data.codeChangeGeneration) {

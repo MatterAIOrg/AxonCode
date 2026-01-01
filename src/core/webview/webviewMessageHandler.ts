@@ -1043,7 +1043,7 @@ export const webviewMessageHandler = async (
 				await provider.postMessageToWebview({
 					type: "codeReviewResults",
 					payload: {
-						reviewBody: `Code review failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+						reviewBody: `${error instanceof Error ? error.message : "Unknown error"}`,
 						reviewComments: [],
 					},
 				} as any)
