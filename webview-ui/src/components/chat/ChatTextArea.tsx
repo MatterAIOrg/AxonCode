@@ -21,6 +21,7 @@ import {
 } from "@src/utils/context-mentions"
 
 import { cn } from "@/lib/utils"
+import { renderMentionChip } from "@/utils/chat-render"
 import { MessageSquareX, Paperclip, SendHorizontal, VolumeX } from "lucide-react"
 import Thumbnails from "../common/Thumbnails"
 import KiloModeSelector from "../kilocode/KiloModeSelector"
@@ -31,7 +32,6 @@ import { ImageWarningBanner } from "./ImageWarningBanner" // kilocode_change
 import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
-import { renderMentionChip } from "@/utils/chat-render"
 
 // kilocode_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"

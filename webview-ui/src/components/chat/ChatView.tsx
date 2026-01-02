@@ -14,10 +14,20 @@ import { useDebounceEffect } from "@src/utils/useDebounceEffect"
 import type { ClineAsk, ClineMessage, McpServerUse } from "@roo-code/types"
 
 import { FollowUpData, SuggestionItem } from "@roo-code/types"
+
+// kilocode_change start: Local type definitions for Source Control Panel
+interface CodeReviewComment {
+	path: string
+	body: string
+	suggestion: string
+	startLine: number
+	endLine: number
+}
+// kilocode_change end
 import { findLast } from "@roo/array"
 import { combineApiRequests } from "@roo/combineApiRequests"
 import { combineCommandSequences } from "@roo/combineCommandSequences"
-import { ClineApiReqInfo, ClineSayBrowserAction, ClineSayTool, ExtensionMessage } from "@roo/ExtensionMessage"
+import { ClineApiReqInfo, ClineSayBrowserAction, ClineSayTool } from "@roo/ExtensionMessage"
 import { getApiMetrics } from "@roo/getApiMetrics"
 import { McpServer, McpTool } from "@roo/mcp"
 import { getAllModes } from "@roo/modes"
@@ -58,9 +68,11 @@ import KiloTaskHeader from "../kilocode/KiloTaskHeader" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 // import ProfileViolationWarning from "./ProfileViolationWarning" kilocode_change: unused
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
+import { SourceControlPanel } from "./SourceControlPanel" // kilocode_change
 // import DismissibleUpsell from "../common/DismissibleUpsell" // kilocode_change: unused
 // import { useCloudUpsell } from "@src/hooks/useCloudUpsell" // kilocode_change: unused
 // import { Cloud } from "lucide-react" // kilocode_change: unused
@@ -149,7 +161,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		historyPreviewCollapsed === undefined ? true : !historyPreviewCollapsed,
 	)
 
-	const toggleExpanded = useCallback(() => {
+	const _toggleExpanded = useCallback(() => {
 		const newState = !isExpanded
 		setIsExpanded(newState)
 		// Send message to extension to persist the new collapsed state
@@ -206,6 +218,22 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [showCheckpointWarning, setShowCheckpointWarning] = useState<boolean>(false)
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
 	const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
+	// kilocode_change start: AI Code Review state
+	const [showSourceControl, setShowSourceControl] = useState(false)
+	const [codeReviewResults, setCodeReviewResults] = useState<{
+		reviewBody: string
+		reviewComments: CodeReviewComment[]
+	} | null>(null)
+	const [_pendingFileEdits, setPendingFileEdits] = useState<any[]>([])
+	const [_gitChangesForReview, setGitChangesForReview] = useState<any[]>([]) // Git changes for code review
+	const [isCodeReviewLoading, setIsCodeReviewLoading] = useState(false)
+	const [_hasUnreviewedChanges, setHasUnreviewedChanges] = useState(false)
+	// Store code review results in memory for later access
+	const [_storedCodeReviewResults, setStoredCodeReviewResults] = useState<{
+		reviewBody: string
+		reviewComments: CodeReviewComment[]
+	} | null>(null)
+	// kilocode_change end
 	const everVisibleMessagesTsRef = useRef<LRUCache<number, boolean>>(
 		new LRUCache({
 			max: 100,
@@ -828,9 +856,61 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const shouldDisableImages = !model?.supportsImages || selectedImages.length >= MAX_IMAGES_PER_MESSAGE
 
+	// kilocode_change start: AI Code Review handlers
+	const _handleRequestCodeReview = useCallback(() => {
+		setIsCodeReviewLoading(true)
+		vscode.postMessage({ type: "requestCodeReview" })
+	}, [])
+
+	const _handleRefreshPendingEdits = useCallback(() => {
+		vscode.postMessage({ type: "getPendingFileEdits" })
+	}, [])
+
+	const handleRunCodeReview = useCallback(() => {
+		setIsCodeReviewLoading(true)
+		vscode.postMessage({ type: "requestCodeReview" })
+	}, [])
+
+	const _handleApplyCodeReviewFix = useCallback(
+		(fixIndex: number) => {
+			if (!codeReviewResults || !codeReviewResults.reviewComments[fixIndex]) return
+			const comment = codeReviewResults.reviewComments[fixIndex]
+			vscode.postMessage({
+				type: "applyCodeReviewFix",
+				payload: { fixIndex, comment },
+			})
+			// Refresh pending edits to get updated state after applying fix
+			setTimeout(() => {
+				vscode.postMessage({ type: "getPendingFileEdits" })
+			}, 500)
+		},
+		[codeReviewResults],
+	)
+
+	const _handleApplyAllCodeReviewFixes = useCallback(() => {
+		if (!codeReviewResults) return
+		vscode.postMessage({
+			type: "applyAllCodeReviewFixes",
+			payload: {
+				fixIndices: codeReviewResults.reviewComments.map((_, i) => i),
+				comments: codeReviewResults.reviewComments,
+			},
+		})
+		setShowSourceControl(false)
+		setCodeReviewResults(null)
+		// Clear unreviewed changes flag since all fixes were applied
+		setHasUnreviewedChanges(false)
+	}, [codeReviewResults])
+
+	const _handleCloseSourceControl = useCallback(() => {
+		setShowSourceControl(false)
+		// Don't clear code review results - keep them in memory for later access
+	}, [])
+	// kilocode_change end
+
 	const handleMessage = useCallback(
 		(e: MessageEvent) => {
-			const message: ExtensionMessage = e.data
+			const message = e.data as any // kilocode_change: Type assertion for new message types
 
 			switch (message.type) {
 				case "action":
@@ -881,6 +961,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						setIsCondensing(false)
 					}
 					break
+				// kilocode_change start: AI Code Review message handling
+				case "codeReviewResults":
+					setIsCodeReviewLoading(false)
+					if (message.payload) {
+						setCodeReviewResults(message.payload)
+						setStoredCodeReviewResults(message.payload) // Store in memory
+						setShowSourceControl(true)
+					}
+					break
+				case "pendingFileEdits":
+					if (message.payload) {
+						const files = message.payload.files || []
+						setPendingFileEdits(files)
+					}
+					break
+				case "gitChangesForReview":
+					if (message.payload) {
+						const files = message.payload.files || []
+						setGitChangesForReview(files)
+						// Set unreviewed changes flag if there are git changes
+						setHasUnreviewedChanges(files.length > 0)
+					}
+					break
+				// kilocode_change end
+				case "workspaceUpdated":
+					// kilocode_change: Refresh git changes for review when workspace changes
+					vscode.postMessage({ type: "getGitChangesForReview" })
+					break
 			}
 			// textAreaRef.current is not explicitly required here since React
 			// guarantees that ref will be stable across re-renders, and we're
@@ -901,6 +1009,38 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	)
 
 	useEvent("message", handleMessage)
+
+	// kilocode_change start: Check for git changes on mount and periodically
+	useEffect(() => {
+		// Check for git changes when component mounts
+		vscode.postMessage({ type: "getGitChangesForReview" })
+
+		// Set up periodic checking for changes (every 5 seconds)
+		const interval = setInterval(() => {
+			vscode.postMessage({ type: "getGitChangesForReview" })
+		}, 5000)
+
+		return () => clearInterval(interval)
+	}, [])
+
+	// Listen for focus events to refresh git changes
+	useEffect(() => {
+		const handleFocus = () => {
+			vscode.postMessage({ type: "getGitChangesForReview" })
+		}
+
+		window.addEventListener("focus", handleFocus)
+		document.addEventListener("visibilitychange", () => {
+			if (!document.hidden) {
+				handleFocus()
+			}
+		})
+
+		return () => {
+			window.removeEventListener("focus", handleFocus)
+		}
+	}, [])
+	// kilocode_change end
 
 	// NOTE: the VSCode window needs to be focused for this to work.
 	useMount(() => textAreaRef.current?.focus())
@@ -1998,19 +2138,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				</>
 			) : (
 				<div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 relative">
-					{/* Moved Task Bar Header Here */}
-					{taskHistoryFullLength !== 0 && (
-						<div className="flex text-vscode-descriptionForeground w-full mx-auto px-5 pt-3">
-							<div className="flex items-center gap-1 cursor-pointer" onClick={toggleExpanded}>
-								{taskHistoryFullLength < 10 && (
-									<span className={`font-medium text-xs `}>{t("history:recentTasks")}</span>
-								)}
-								<span
-									className={`codicon  ${isExpanded ? "codicon-eye" : "codicon-eye-closed"} scale-90`}
-								/>
-							</div>
-						</div>
-					)}
 					{!showTelemetryBanner && (
 						<div>
 							<OrganizationSelector className="absolute top-2 right-3" />
@@ -2057,19 +2184,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								{cloudIsAuthenticated || taskHistory.length < 4 ? <RooTips /> : <RooCloudCTA />}
 							</div> kilocode_change: do not show */}
 							{/* Show the task history preview if expanded and tasks exist */}
-							{taskHistoryFullLength > 0 && isExpanded && (
-								<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
-							)}
-
 							{/* AI Code Reviews Setup Box */}
-							<div className="w-full mt-auto min-w-0 mb-1 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
+							<div className="w-full min-w-0 mb-1 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
 								<div className="flex flex-col gap-2">
 									{/* Top section: Title/Subtitle left, Icons right */}
 									<div className="flex justify-between gap-4 items-center min-w-0">
 										<div className="flex flex-col gap-1">
 											<div className="flex flex-row gap-2 items-start">
 												<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-													Setup Axon AI Code Reviews for PRs
+													Setup Automated PR Reviews
 												</p>
 												<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
 													<img
@@ -2119,8 +2242,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									</div>
 								</div>
 							</div>
-
-							{/* kilocode_change start: KilocodeNotifications + Layout fixes */}
+							{taskHistoryFullLength > 0 && isExpanded && (
+								<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
+							)}
 						</div>
 						{/* kilocode_change end */}
 					</div>
@@ -2172,62 +2296,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						/>
 					</div>
 					<div className={`flex-initial min-h-0 ${!areButtonsVisible ? "mb-1" : ""}`}>
-						{/* kilocode_change: added settings toggle for this */}
 						{showAutoApproveMenu && <AutoApproveMenu />}
 					</div>
-					{/* {areButtonsVisible && (
-						<div
-							className={`flex h-9 items-center justify-end mb-1 px-[15px] ${showScrollToBottom
-									? "opacity-100"
-									: enableButtons || (isStreaming && !didClickCancel)
-										? "opacity-100"
-										: "opacity-50"
-								}`}>
-							{showScrollToBottom ? (
-								<StandardTooltip content={t("chat:scrollToBottom")}>
-									<VSCodeButton
-										appearance="secondary"
-										className="flex-[2] rounded-lg border border-white/10 outline-none bg-vscode-input-background max-w-fit"
-										onClick={() => {
-											scrollToBottomSmooth()
-											disableAutoScrollRef.current = false
-										}}>
-										<span className="codicon codicon-chevron-down"></span>
-									</VSCodeButton>
-								</StandardTooltip>
-							) : (
-								<>
-									{primaryButtonText && !isStreaming && (
-										<StandardTooltip
-											content={
-												primaryButtonText === t("chat:retry.title")
-													? t("chat:retry.tooltip")
-													: primaryButtonText === t("chat:save.title")
-														? t("chat:save.tooltip")
-														: primaryButtonText === t("chat:approve.title")
-															? t("chat:approve.tooltip")
-															: primaryButtonText === t("chat:runCommand.title")
-																? t("chat:runCommand.tooltip")
-																: primaryButtonText === t("chat:proceedAnyways.title")
-												// ? t("chat:proceedAnyways.tooltip")
-												// : primaryButtonText ===
-												// 	t("chat:proceedWhileRunning.title")
-												// 	? t("chat:proceedWhileRunning.tooltip")
-												// 	: undefined
-											}>
-											<VSCodeButton
-												appearance="primary"
-												disabled={!enableButtons}
-												className={`${secondaryButtonText ? "flex-1 mr-[6px]" : "flex-[2] mr-0"} rounded-lg border border-white/10 outline-none bg-vscode-input-background max-w-fit`}
-												onClick={() => handlePrimaryButtonClick(inputValue, selectedImages)}>
-												{primaryButtonText}
-										</VSCodeButton>
-									</StandardTooltip>
-								)}
-							</>
-						)}
-					</div>
-				)} */}
 				</>
 			)}
 
@@ -2247,6 +2317,30 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					}
 				}}
 			/>
+			{!task && showSourceControl && (
+				<div className="z-[1000] w-full min-w-0 px-4 mb-0.5">
+					<SourceControlPanel
+						fileChanges={_gitChangesForReview}
+						codeReviewResult={codeReviewResults}
+						isLoading={isCodeReviewLoading}
+						onRunCodeReview={handleRunCodeReview}
+						onClose={() => setShowSourceControl(false)}
+					/>
+				</div>
+			)}
+
+			{!task && (
+				<div className="w-full min-w-0 px-4 mb-1">
+					<VSCodeButton
+						appearance="secondary"
+						className="flex w-full min-w-full rounded-md border border-white/10 outline-none bg-[var(--color-matterai-green)]"
+						onClick={() => setShowSourceControl(true)}
+						disabled={isCodeReviewLoading}>
+						Run AI Code Review ({_gitChangesForReview.length}{" "}
+						{_gitChangesForReview.length === 1 ? "change" : "changes"})
+					</VSCodeButton>
+				</div>
+			)}
 			<ChatTextArea
 				ref={textAreaRef}
 				inputValue={inputValue}

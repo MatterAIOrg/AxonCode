@@ -1,5 +1,23 @@
 # Changelog
 
+## [v4.210.0] - 2026-01-02
+
+### Added
+
+#### AI Code Reviews
+
+- 1-click AI code reviews for all your agentic and manual changes
+- Get all the review comments, suggestions and 1-click Apply all
+
+![Demo](https://github.com/MatterAIOrg/public-assets/blob/a5bf692ecb15f62a8148b5bf998917b6566991ea/axon-ide-code-reviews.gif)
+
+### Changed
+
+- Improved ripgrep with file extension normalising
+- UI improvments
+
+---
+
 ## [v4.206.0] - 2025-12-29
 
 ### Added

@@ -150,7 +150,25 @@ export async function regexSearchFiles(
 		throw new Error("Could not find ripgrep binary")
 	}
 
-	const args = ["--json", "-e", regex, "--glob", filePattern || "*", "--context", "1", "--no-messages", directoryPath]
+	// Normalize file pattern to proper glob format
+	// Convert .ext to *.ext, but preserve existing globs like *.ts or **/*.ts
+	const normalizedFilePattern = filePattern
+		? filePattern.startsWith(".") && !filePattern.includes("*")
+			? `*${filePattern}`
+			: filePattern
+		: "*"
+
+	const args = [
+		"--json",
+		"-e",
+		regex,
+		"--glob",
+		normalizedFilePattern,
+		"--context",
+		"1",
+		"--no-messages",
+		directoryPath,
+	]
 
 	let output: string
 	try {

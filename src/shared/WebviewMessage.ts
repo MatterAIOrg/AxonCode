@@ -314,6 +314,12 @@ export interface WebviewMessage {
 		| "commitChanges"
 		| "getPendingFileEdits"
 		| "pendingFileEdits"
+		| "requestCodeReview"
+		| "codeReviewResults"
+		| "applyCodeReviewFix"
+		| "applyAllCodeReviewFixes"
+		| "getGitChangesForReview"
+		| "gitChangesForReview"
 	// kilocode_change end
 	text?: string
 	editedMessageContent?: string
@@ -528,6 +534,29 @@ export interface PendingFileEditsPayload {
 	// The response message type - list of all pending file edits
 	files: { relPath: string; absolutePath: string; stat: { additions: number; deletions: number } }[]
 }
+
+export interface CodeReviewComment {
+	path: string
+	body: string
+	suggestion: string
+	startLine: number
+	endLine: number
+}
+
+export interface CodeReviewResultsPayload {
+	reviewBody: string
+	reviewComments: CodeReviewComment[]
+}
+
+export interface ApplyCodeReviewFixPayload {
+	fixIndex: number
+	comment: CodeReviewComment
+}
+
+export interface ApplyAllCodeReviewFixesPayload {
+	fixIndices: number[]
+	comments: CodeReviewComment[]
+}
 // kilocode_change end
 
 export type WebViewMessagePayload =
@@ -541,6 +570,9 @@ export type WebViewMessagePayload =
 	| CommitChangesPayload
 	| PendingFileEditsPayload
 	| ImplementPlanPayload
+	| CodeReviewResultsPayload
+	| ApplyCodeReviewFixPayload
+	| ApplyAllCodeReviewFixesPayload
 	// kilocode_change end
 	| CheckpointDiffPayload
 	| CheckpointRestorePayload

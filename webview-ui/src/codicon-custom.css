@@ -17,3 +17,13 @@
 	-webkit-mask-repeat: no-repeat;
 	mask-repeat: no-repeat;
 }
+
+@keyframes codicon-spin {
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.codicon-spin {
+	animation: codicon-spin 1.5s linear infinite;
+}
