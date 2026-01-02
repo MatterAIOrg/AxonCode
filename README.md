@@ -20,7 +20,7 @@
 
 Axon Code delivers frontier model performance directly into your development environment, providing intelligent workflows, autonomous task execution, and deep codebase understanding. Built for enterprise-grade productivity with cutting-edge AI capabilities.
 
-![Demo](https://res.cloudinary.com/dxvbskvxm/image/upload/v1763355416/axon-code_pe7tmc.gif)
+![Demo](https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHc0bjN0NndrNjliaHZpdnp6OHozeDBxZGthdmlhZ3JzNTZqd21nNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/07eUcY19bspsfJdbjI/giphy.gif)
 
 ## ✨ Key Features
 
