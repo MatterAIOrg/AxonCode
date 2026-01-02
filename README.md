@@ -24,14 +24,19 @@ Axon Code delivers frontier model performance directly into your development env
 
 ## ✨ Key Features
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| **Agent Mode** | ✅ | Autonomous task execution with intelligent planning |
-| **Plan Mode** | ✅ | Structured approach to complex coding challenges |
-| **Agentic Tool Calling** | ✅ | Advanced tool integration for comprehensive workflows |
-| **Advanced Reasoning** | ✅ | Deep code understanding and problem-solving |
-| **Codebase Indexing** | ✅ | Intelligent code navigation and search |
-| **Tab Auto-Complete** | 🔄 | Smart code completion (Coming Soon) |
+| Feature                  | Status | Description                                            |
+| ------------------------ | ------ | ------------------------------------------------------ |
+| **Agent Mode**           | ✅     | Autonomous task execution with intelligent planning    |
+| **Plan Mode**            | ✅     | Structured approach to complex coding challenges       |
+| \*\*AI Code Reviews      | ✅     | Detailed code reviews with suggestions and 1-click fix |
+| **Agentic Tool Calling** | ✅     | Advanced tool integration for comprehensive workflows  |
+| **Advanced Reasoning**   | ✅     | Deep code understanding and problem-solving            |
+| **Codebase Indexing**    | ✅     | Intelligent code navigation and search                 |
+| **Tab Auto-Complete**    | 🔄     | Smart code completion (Coming Soon)                    |
+
+## AI Code Reviews Demo
+
+![Demo](https://github.com/MatterAIOrg/public-assets/blob/a5bf692ecb15f62a8148b5bf998917b6566991ea/axon-ide-code-reviews.gif)
 
 ## 🛠️ Supported Platforms
 
@@ -44,6 +49,7 @@ Axon Code delivers frontier model performance directly into your development env
 Axon Code provides a comprehensive suite of intelligent tools:
 
 ### Core Development Tools
+
 - **`fileEdit`** - Advanced diff-patch application system
 - **`executeCommand`** - Secure CLI command execution
 - **`read_multi_file`** - Multi-file reading and analysis
@@ -51,19 +57,23 @@ Axon Code provides a comprehensive suite of intelligent tools:
 - **`searchFiles`** - Advanced file search capabilities
 
 ### Web Integration
+
 - **`web_search`** - Comprehensive web search
 - **`web_fetch`** - Targeted link data extraction
 
 ### Task Management
+
 - **`newTask`** - Create and manage complex tasks
 - **`updateTodoList`** - Dynamic todo list management
 - **`runSlashCommand`** - Execute custom slash commands
 
 ### Code Intelligence
+
 - **`listCodeDefinitionNames`** - Code structure analysis
 - **`listFiles`** - Intelligent file system navigation
 
 ### Communication
+
 - **`askFollowupQuestion`** - Interactive user engagement
 - **`attemptCompletion`** - Task completion verification
 - **`fetchInstructions`** - Dynamic instruction retrieval
@@ -72,21 +82,23 @@ Axon Code provides a comprehensive suite of intelligent tools:
 
 Choose the right model for your workflow:
 
-| Model | Use Case | Capabilities |
-|-------|----------|--------------|
-| **`axon-code`** | Daily coding tasks | High intelligence, balanced performance |
+| Model                     | Use Case              | Capabilities                                 |
+| ------------------------- | --------------------- | -------------------------------------------- |
+| **`axon-code`**           | Daily coding tasks    | High intelligence, balanced performance      |
 | **`axon-code-2-preview`** | Complex agentic tasks | Maximum intelligence, long-running workflows |
-| **`axon-mini`** | Quick tasks | Lightweight, low-effort operations |
+| **`axon-mini`**           | Quick tasks           | Lightweight, low-effort operations           |
 
 ## 📦 Installation
 
 ### VS Code Extension
+
 1. Open VS Code
 2. Navigate to Extensions (`Ctrl+Shift+X`)
 3. Search for "Axon Code"
 4. Click Install
 
 ### JetBrains Plugin
+
 1. Open JetBrains IDE
 2. Go to Settings/Preferences
 3. Navigate to Plugins
@@ -94,6 +106,7 @@ Choose the right model for your workflow:
 5. Install and restart IDE
 
 ### CLI Installation
+
 ```bash
 npm install -g @matterai/axon-code
 ```
@@ -121,6 +134,7 @@ Visit our [pricing page](https://www.matterai.so/pricing) for detailed plans and
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ### Development Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/matterai/axon-code.git
