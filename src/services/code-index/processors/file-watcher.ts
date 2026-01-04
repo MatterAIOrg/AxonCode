@@ -80,26 +80,13 @@ export class FileWatcher implements IFileWatcher {
 		private vectorStore?: IVectorStore,
 		ignoreInstance?: Ignore,
 		ignoreController?: RooIgnoreController,
-		batchSegmentThreshold?: number,
+		_batchSegmentThreshold?: number,
 	) {
 		this.ignoreController = ignoreController || new RooIgnoreController(workspacePath)
 		if (ignoreInstance) {
 			this.ignoreInstance = ignoreInstance
 		}
-		// Get the configurable batch size from VSCode settings, fallback to default
-		// If not provided in constructor, try to get from VSCode settings
-		if (batchSegmentThreshold !== undefined) {
-			this.batchSegmentThreshold = batchSegmentThreshold
-		} else {
-			try {
-				this.batchSegmentThreshold = vscode.workspace
-					.getConfiguration(Package.name)
-					.get<number>("codeIndex.embeddingBatchSize", BATCH_SEGMENT_THRESHOLD)
-			} catch {
-				// In test environment, vscode.workspace might not be available
-				this.batchSegmentThreshold = BATCH_SEGMENT_THRESHOLD
-			}
-		}
+		this.batchSegmentThreshold = BATCH_SEGMENT_THRESHOLD
 	}
 
 	/**

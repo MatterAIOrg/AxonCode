@@ -5,7 +5,7 @@ export default {
 	function: {
 		name: "edit_file",
 		description:
-			"Use this tool to make an edit to a file. A less intelligent apply model will read your request, so be clear about the change while minimizing unchanged code. Specify each edit sequentially and replace omitted sections with // ... existing code ... placeholders. Provide enough surrounding context to avoid ambiguity, always use the placeholder when skipping existing content, show before-and-after context when deleting, and gather all edits for the file in a single request.",
+			"Use this tool to make an edit to a file. A less intelligent apply model will read your request, so be clear about the change while minimizing unchanged code. Specify each edit sequentially and replace omitted sections with // ... existing code ... placeholders. Provide enough surrounding context to avoid ambiguity, always use the placeholder when skipping existing content, show before-and-after context when deleting, and gather all edits for the file in a single request. Before calling file_edit, always use read_file to fetch and confirm the exact old_string matches the current file content. If it doesn't, adjust and retry. Do not proceed with file_edit until verified.",
 		strict: true,
 		parameters: {
 			type: "object",
