@@ -17,15 +17,23 @@ const KiloCodeAuth: React.FC<KiloCodeAuthProps> = ({ onManualConfigClick, classN
 	const { t } = useAppTranslation()
 
 	return (
-		<div className={`flex flex-col items-center ${className}`}>
+		<div className={`flex flex-col items-start ${className}`}>
 			<Logo />
 
-			<h2 className="m-0 p-0 mb-4">{t("kilocode:welcome.greeting")}</h2>
-			<p className="text-center mb-2">{t("kilocode:welcome.introText1")}</p>
-			<p className="text-center mb-2">{t("kilocode:welcome.introText2")}</p>
-			<p className="text-center mb-5">{t("kilocode:welcome.introText3")}</p>
+			<h2 className="m-0 p-0 mb-1" style={{ color: "#c4fdff" }}>
+				{t("kilocode:welcome.greeting")}
+			</h2>
+			<h3 className="m-0 p-0 mb-4" style={{ color: "#c4fdff" }}>
+				{t("kilocode:welcome.tagline")}
+			</h3>
+			<p className="text-left mb-2" style={{ color: "#8bf4f7" }}>
+				{t("kilocode:welcome.introText1")}
+			</p>
+			<p className="text-left mb-5" style={{ color: "#8bf4f7" }}>
+				{t("kilocode:welcome.introText2")}
+			</p>
 
-			<div className="w-full flex flex-col gap-5">
+			<div className="w-full flex flex-col gap-4">
 				<ButtonLink
 					href={getKiloCodeBackendSignUpUrl(uriScheme, uiKind, kiloCodeWrapperProperties)}
 					onClick={() => {
@@ -35,6 +43,8 @@ const KiloCodeAuth: React.FC<KiloCodeAuthProps> = ({ onManualConfigClick, classN
 					}}>
 					{t("kilocode:welcome.ctaButton")}
 				</ButtonLink>
+
+				<ButtonLink href="https://matterai.so">{t("kilocode:welcome.exploreMatterAI")}</ButtonLink>
 
 				{/* {!!onManualConfigClick && (
 					<ButtonSecondary onClick={() => onManualConfigClick && onManualConfigClick()}>
