@@ -115,6 +115,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		taskHistoryVersion, // kilocode_change
 		apiConfiguration,
 		organizationAllowList,
+		codeReviewSettings, // kilocode_change
 		mcpServers,
 		alwaysAllowBrowser,
 		alwaysAllowReadOnly,
@@ -147,6 +148,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		messageQueue = [],
 		sendMessageOnEnter, // kilocode_change
 	} = useExtensionState()
+
+	const isReviewOnlyMode = codeReviewSettings?.reviewOnlyMode || false
 
 	const messagesRef = useRef(messages)
 
@@ -2184,65 +2187,68 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								{cloudIsAuthenticated || taskHistory.length < 4 ? <RooTips /> : <RooCloudCTA />}
 							</div> kilocode_change: do not show */}
 							{/* Show the task history preview if expanded and tasks exist */}
-							{/* AI Code Reviews Setup Box */}
-							<div className="w-full min-w-0 mb-1 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
-								<div className="flex flex-col gap-2">
-									{/* Top section: Title/Subtitle left, Icons right */}
-									<div className="flex justify-between gap-4 items-center min-w-0">
-										<div className="flex flex-col gap-1">
-											<div className="flex flex-row gap-2 items-start">
-												<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-													Setup Automated PR Reviews
-												</p>
-												<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
-													<img
-														src={iconsBaseUri + "/github-ic.png"}
-														alt="GitHub"
-														className="w-4 h-4"
-													/>
-													<img
-														src={iconsBaseUri + "/gitlab-ic.png"}
-														alt="GitLab"
-														className="w-4 h-4"
-													/>
+							{/* AI Code Reviews Setup Box - Hidden in review only mode */}
+							{!isReviewOnlyMode && (
+								<div className="w-full min-w-0 mb-1 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
+									<div className="flex flex-col gap-2">
+										{/* Top section: Title/Subtitle left, Icons right */}
+										<div className="flex justify-between gap-4 items-center min-w-0">
+											<div className="flex flex-col gap-1">
+												<div className="flex flex-row gap-2 items-start">
+													<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
+														Setup Automated PR Reviews
+													</p>
+													<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
+														<img
+															src={iconsBaseUri + "/github-ic.png"}
+															alt="GitHub"
+															className="w-4 h-4"
+														/>
+														<img
+															src={iconsBaseUri + "/gitlab-ic.png"}
+															alt="GitLab"
+															className="w-4 h-4"
+														/>
 
-													<img
-														src={iconsBaseUri + "/bitbucket-ic.png"}
-														alt="Bitbucket"
-														className="w-4 h-4"
-													/>
+														<img
+															src={iconsBaseUri + "/bitbucket-ic.png"}
+															alt="Bitbucket"
+															className="w-4 h-4"
+														/>
+													</div>
 												</div>
-											</div>
-											{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
+												{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
 												70% faster code reviews
 											</p> */}
-											<div className="flex flex-row gap-2">
-												<div className="self-start mt-1">
-													<VSCodeButtonLink
-														variant="secondary"
-														href="https://app.matterai.so/get-started"
-														style={{
-															background: "var(--color-matterai-chip-blue)",
-															border: "1px solid var(--color-matterai-blue)",
-															borderRadius: "6px",
-														}}>
-														Get Started for free
-													</VSCodeButtonLink>
-												</div>
-												<div className="self-start mt-1">
-													<VSCodeButtonLink
-														variant="secondary"
-														href="https://docs.matterai.so/quickstart-ai-code-review-agent"
-														style={{ borderRadius: "6px" }}>
-														Read Docs
-													</VSCodeButtonLink>
+												<div className="flex flex-row gap-2">
+													<div className="self-start mt-1">
+														<VSCodeButtonLink
+															variant="secondary"
+															href="https://app.matterai.so/get-started"
+															style={{
+																background: "var(--color-matterai-chip-blue)",
+																border: "1px solid var(--color-matterai-blue)",
+																borderRadius: "6px",
+															}}>
+															Get Started for free
+														</VSCodeButtonLink>
+													</div>
+													<div className="self-start mt-1">
+														<VSCodeButtonLink
+															variant="secondary"
+															href="https://docs.matterai.so/quickstart-ai-code-review-agent"
+															style={{ borderRadius: "6px" }}>
+															Read Docs
+														</VSCodeButtonLink>
+													</div>
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
-							</div>
-							{taskHistoryFullLength > 0 && isExpanded && (
+							)}
+							{/* History preview - Hidden in review only mode */}
+							{!isReviewOnlyMode && taskHistoryFullLength > 0 && isExpanded && (
 								<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
 							)}
 						</div>
@@ -2330,7 +2336,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			)}
 
 			{!task && (
-				<div className="w-full min-w-0 px-4 mb-1">
+				<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1"}`}>
 					<VSCodeButton
 						appearance="secondary"
 						className="flex w-full min-w-full rounded-md border border-white/10 outline-none bg-[var(--color-matterai-green)]"
@@ -2341,31 +2347,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					</VSCodeButton>
 				</div>
 			)}
-			<ChatTextArea
-				ref={textAreaRef}
-				inputValue={inputValue}
-				setInputValue={setInputValue}
-				sendingDisabled={sendingDisabled || isProfileDisabled}
-				selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
-				selectedImages={selectedImages}
-				setSelectedImages={setSelectedImages}
-				onSend={() => handleSendMessage(inputValue, selectedImages)}
-				onSelectImages={selectImages}
-				shouldDisableImages={shouldDisableImages}
-				onHeightChange={() => {
-					if (isAtBottom) {
-						scrollToBottomAuto()
-					}
-				}}
-				mode={mode}
-				setMode={setMode}
-				modeShortcutText={modeShortcutText}
-				sendMessageOnEnter={sendMessageOnEnter} // kilocode_change
-				isStreaming={isStreaming}
-				onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
-			/>
+			{/* Chat input area - Hidden in review only mode */}
+			{!isReviewOnlyMode && (
+				<ChatTextArea
+					ref={textAreaRef}
+					inputValue={inputValue}
+					setInputValue={setInputValue}
+					sendingDisabled={sendingDisabled || isProfileDisabled}
+					selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+					selectedImages={selectedImages}
+					setSelectedImages={setSelectedImages}
+					onSend={() => handleSendMessage(inputValue, selectedImages)}
+					onSelectImages={selectImages}
+					shouldDisableImages={shouldDisableImages}
+					onHeightChange={() => {
+						if (isAtBottom) {
+							scrollToBottomAuto()
+						}
+					}}
+					mode={mode}
+					setMode={setMode}
+					modeShortcutText={modeShortcutText}
+					sendMessageOnEnter={sendMessageOnEnter} // kilocode_change
+					isStreaming={isStreaming}
+					onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
+				/>
+			)}
 			{/* kilocode_change: added settings toggle the profile and model selection */}
-			<BottomControls showApiConfig />
+			{!isReviewOnlyMode && <BottomControls showApiConfig />}
 			{/* kilocode_change: end */}
 
 			{/* kilocode_change: disable {isProfileDisabled && (

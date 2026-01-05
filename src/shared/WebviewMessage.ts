@@ -320,6 +320,7 @@ export interface WebviewMessage {
 		| "applyAllCodeReviewFixes"
 		| "getGitChangesForReview"
 		| "gitChangesForReview"
+		| "codeReviewSettings" // kilocode_change
 	// kilocode_change end
 	text?: string
 	editedMessageContent?: string

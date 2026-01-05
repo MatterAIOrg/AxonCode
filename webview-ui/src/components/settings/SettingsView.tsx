@@ -64,6 +64,7 @@ import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
 import { BrowserSettings } from "./BrowserSettings"
 import { CheckpointSettings } from "./CheckpointSettings"
+import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewSettings"
 import { ContextManagementSettings } from "./ContextManagementSettings"
 import { DisplaySettings } from "./DisplaySettings" // kilocode_change
 import { LanguageSettings } from "./LanguageSettings"
@@ -100,6 +101,7 @@ const sectionNames = [
 	"experimental",
 	"language",
 	"mcp",
+	"codeReview", // kilocode_change
 	"about",
 ] as const
 
@@ -231,6 +233,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		kiloCodeImageApiKey,
 		openRouterImageGenerationSelectedModel,
 		reasoningBlockCollapsed,
+		codeReviewSettings,
 	} = cachedState
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
@@ -478,6 +481,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 				type: "openRouterImageGenerationSelectedModel",
 				text: openRouterImageGenerationSelectedModel,
 			})
+			vscode.postMessage({ type: "codeReviewSettings", values: codeReviewSettings })
 			// Update cachedState to match the current state to prevent isChangeDetected from being set back to true
 			setCachedState((prevState) => ({ ...prevState, ...extensionState }))
 			setChangeDetected(false)
@@ -592,6 +596,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Globe },
 			{ id: "mcp", icon: Server },
+			{ id: "codeReview", icon: GitBranch }, // kilocode_change
 			{ id: "about", icon: Info },
 		],
 		[kiloCodeWrapperProperties?.kiloCodeWrapped], // kilocode_change
@@ -964,6 +969,25 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					{/* kilocode_change */}
 					{/* MCP Section */}
 					{activeTab === "mcp" && <McpView />}
+
+					{/* Code Review Section */}
+					{activeTab === "codeReview" && (
+						<CodeReviewSettingsComponent
+							codeReviewSettings={
+								codeReviewSettings || {
+									enterpriseHost: "",
+									enterpriseApiKey: "",
+									reviewOnlyMode: false,
+								}
+							}
+							setCachedStateField={setCachedStateField}
+						/>
+					)}
+
+					{/* About Section */}
+					{activeTab === "about" && (
+						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
+					)}
 
 					{/* About Section */}
 					{activeTab === "about" && (

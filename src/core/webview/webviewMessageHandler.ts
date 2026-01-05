@@ -7,7 +7,7 @@ import delay from "delay"
 import * as vscode from "vscode"
 // kilocode_change start
 import axios from "axios"
-import { getKiloUrlFromToken, isGlobalStateKey } from "@roo-code/types"
+import { codeReviewSettingsSchema, CodeReviewSettings, getKiloUrlFromToken, isGlobalStateKey } from "@roo-code/types"
 import { getAppUrl } from "@roo-code/types"
 import {
 	MaybeTypedWebviewMessage,
@@ -1025,7 +1025,13 @@ export const webviewMessageHandler = async (
 				// Call the code review API
 				const { CodeReviewService } = await import("../kilocode/api/codeReviewService")
 				const state = await provider.getState()
-				const codeReviewService = new CodeReviewService(state.apiConfiguration?.kilocodeToken || "")
+
+				// Use enterprise settings if available, otherwise fall back to default
+				const enterpriseHost = state.codeReviewSettings?.enterpriseHost
+				const enterpriseApiKey = state.codeReviewSettings?.enterpriseApiKey
+				const apiToken = state.apiConfiguration?.kilocodeToken || ""
+
+				const codeReviewService = new CodeReviewService(apiToken, enterpriseHost, enterpriseApiKey)
 				const results = await codeReviewService.requestCodeReview({
 					git_diff: gitDiff,
 					git_owner: gitMetadata.gitOwner,
@@ -2227,6 +2233,16 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			vscode.commands.executeCommand("axon-code.ghost.reload")
 			break
+		// kilocode_change end
+		case "codeReviewSettings": {
+			const values = message.values as CodeReviewSettings
+			console.log("codeReviewSettings", values)
+			const validated = codeReviewSettingsSchema.parse(values)
+			console.log("validated", validated)
+			await updateGlobalState("codeReviewSettings", validated)
+			provider.postMessageToWebview({ type: "state", state: await provider.getStateToPostToWebview() })
+			break
+		}
 		// kilocode_change end
 		case "includeTaskHistoryInEnhance":
 			await updateGlobalState("includeTaskHistoryInEnhance", message.bool ?? true)
