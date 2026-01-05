@@ -49,15 +49,15 @@ function calculateFastApplyCost(inputTokens: number, outputTokens: number, model
 
 async function validateParams(
 	cline: Task,
-	targetFile: string | undefined,
+	filePath: string | undefined,
 	instructions: string | undefined,
 	codeEdit: string | undefined,
 	pushToolResult: PushToolResult,
 ): Promise<boolean> {
-	if (!targetFile) {
+	if (!filePath) {
 		cline.consecutiveMistakeCount++
 		cline.recordToolError("edit_file")
-		pushToolResult(await cline.sayAndCreateMissingParamError("edit_file", "target_file"))
+		pushToolResult(await cline.sayAndCreateMissingParamError("edit_file", "file_path"))
 		return false
 	}
 
@@ -86,23 +86,26 @@ export async function editFileTool(
 	pushToolResult: PushToolResult,
 	removeClosingTag: RemoveClosingTag,
 ): Promise<void> {
-	const target_file: string | undefined = block.params.target_file
+	// Support both file_path (new) and target_file (legacy)
+	const file_path: string | undefined = (block.params as any).file_path || block.params.target_file
 	const instructions: string | undefined = block.params.instructions
 	const code_edit: string | undefined = block.params.code_edit
 
 	let fileExists = true
 	try {
-		if (block.partial && (!target_file || instructions === undefined)) {
+		if (block.partial && (!file_path || instructions === undefined)) {
 			// wait so we can determine if it's a new file or editing an existing file
 			return
 		}
-		fileExists = await fileExistsAtPath(path.resolve(cline.cwd, target_file ?? ""))
+		// Support absolute paths using cross-platform check
+		const resolvedPath = path.isAbsolute(file_path ?? "") ? file_path! : path.resolve(cline.cwd, file_path ?? "")
+		fileExists = await fileExistsAtPath(resolvedPath)
 
 		// Handle partial tool use
 		if (block.partial) {
 			const partialMessageProps = {
 				tool: fileExists ? "editedExistingFile" : "newFileCreated",
-				path: getReadablePath(cline.cwd, removeClosingTag("target_file", target_file)),
+				path: getReadablePath(cline.cwd, removeClosingTag("file_path", file_path)),
 				content: removeClosingTag("code_edit", code_edit),
 			} satisfies ClineSayTool
 			await cline.ask("tool", JSON.stringify(partialMessageProps), block.partial).catch(() => {
@@ -112,17 +115,17 @@ export async function editFileTool(
 		}
 
 		// Validate required parameters
-		if (!(await validateParams(cline, target_file, instructions, code_edit, pushToolResult))) {
+		if (!(await validateParams(cline, file_path, instructions, code_edit, pushToolResult))) {
 			return
 		}
 
 		// At this point we know all parameters are defined, so we can safely cast them
-		const targetFile = target_file as string
+		const targetFile = file_path as string
 		const editInstructions = instructions as string
 		const editCode = code_edit as string
 
-		// Validate and resolve the file path
-		const absolutePath = path.resolve(cline.cwd, targetFile)
+		// Validate and resolve the file path - support absolute paths
+		const absolutePath = path.isAbsolute(targetFile) ? targetFile : path.resolve(cline.cwd, targetFile)
 		const relPath = getReadablePath(cline.cwd, absolutePath)
 
 		// Check if file access is allowed

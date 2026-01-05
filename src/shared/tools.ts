@@ -63,6 +63,7 @@ export const toolParamNames = [
 	"title",
 	"description",
 	"target_file",
+	"file_path",
 	"old_string",
 	"new_string",
 	"replace_all",
@@ -191,14 +192,15 @@ export interface SearchAndReplaceToolUse extends ToolUse {
 
 export interface FileEditToolUse extends ToolUse {
 	name: "file_edit"
-	params: Required<Pick<Record<ToolParamName, string>, "target_file" | "old_string" | "new_string">> &
-		Partial<Pick<Record<ToolParamName, string>, "replace_all">>
+	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "old_string" | "new_string">> &
+		Partial<Pick<Record<ToolParamName, string>, "replace_all" | "target_file">>
 }
 
 // kilocode_change start: Morph fast apply
 export interface EditFileToolUse extends ToolUse {
 	name: "edit_file"
-	params: Required<Pick<Record<ToolParamName, string>, "target_file" | "instructions" | "code_edit">>
+	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "instructions" | "code_edit">> &
+		Partial<Pick<Record<ToolParamName, string>, "target_file">>
 }
 // kilocode_change end
 

@@ -204,12 +204,12 @@ export async function presentAssistantMessage(cline: Task) {
 					case "insert_content":
 						return `[${block.name} for '${block.params.path}']`
 					case "file_edit":
-						return `[${block.name} for '${block.params.target_file}']`
+						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
 					case "search_and_replace":
 						return `[${block.name} for '${block.params.path}']`
 					// kilocode_change start: Morph fast apply
 					case "edit_file":
-						return `[${block.name} for '${block.params.target_file}']`
+						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
 					// kilocode_change end
 					case "list_files":
 						return `[${block.name} for '${block.params.path}']`

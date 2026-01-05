@@ -45,7 +45,7 @@ Common tool calls and explanations
 - You need to delete or rewrite a block of code but don't want to craft search/replace diff markers manually.
 
 **Parameters**:
-1. \`target_file\` — Relative path to the file you want to modify.
+1. \`file_path\` — Absolute path to the file you want to modify (e.g., /Users/username/project/src/file.ts).
 2. \`old_string\` — The current text you expect to replace. Provide enough context for a unique match; this can be empty to replace the entire file.
 3. \`new_string\` — The text that should replace the match. Use an empty string to delete the matched content.
 4. \`replace_all\` (optional, default false) — Set to true to replace every occurrence of the matched text. Leave false to replace only a single uniquely identified match.
@@ -57,117 +57,80 @@ Common tool calls and explanations
 
 ## read_file Tool Usage
 
-The \`read_file\` tool reads specific line ranges from one or more files. This is used to examine code before making changes or to discuss specific sections.
+The \`read_file\` tool reads file contents with optional offset and limit. Use it to examine code before making changes or to discuss specific sections.
 
-### CRITICAL: Line Ranges Are Always Required
+### Parameters
 
-**You MUST always specify line ranges. You cannot read entire files.**
-
-- \`line_ranges\` is a required array of strings
-- Each string must follow the format: \`"start-end"\` (e.g., \`"1-50"\`, \`"25-75"\`)
-- Maximum 100 lines per request across all files
-- Use search_files first if you don't know which lines to read
+- \`file_path\` (required): Absolute path to the file (e.g., /Users/username/project/src/file.ts)
+- \`offset\` (optional): Starting line number (1-indexed). Defaults to 1.
+- \`limit\` (optional): Maximum number of lines to read. If not specified, reads the complete file.
 
 ### Parameters Schema
 \`\`\`typescript
 {
   files: [
     {
-      path: string,           // File path (always quoted)
-      line_ranges: string[]   // Array of "start-end" strings (always quoted)
+      file_path: string,    // Absolute path to file
+      offset?: number,      // Starting line (1-indexed), defaults to 1
+      limit?: number        // Max lines to read, omit to read entire file
     }
   ]
 }
 \`\`\`
 
-### JSON String Rules for line_ranges
+### Examples
 
-**Each line range MUST be a quoted string in "number-number" format:**
-
-✅ **CORRECT** - Valid JSON:
-\`\`\`json
-{"path": "src/App.js", "line_ranges": ["1-50"]}
-{"path": "src/App.js", "line_ranges": ["1-30", "45-60"]}
-\`\`\`
-
-❌ **INCORRECT** - Invalid JSON:
-\`\`\`json
-{"path": "src/App.js", "line_ranges": [1-50]}
-{"path": "src/App.js", "line_ranges": ["1"-"50"]}
-{"path": "src/App.js", "line_ranges": [1, 50]}
-\`\`\`
-
-### Complete Examples
-
-**Read first 50 lines of a single file:**
+**Read entire file:**
 \`\`\`json
 {
   "files": [
     {
-      "path": "src/components/Header.jsx",
-      "line_ranges": ["1-50"]
+      "file_path": "/Users/username/project/src/App.tsx"
     }
   ]
 }
 \`\`\`
 
-**Read multiple ranges from one file:**
+**Read first 50 lines:**
 \`\`\`json
 {
   "files": [
     {
-      "path": "src/App.js",
-      "line_ranges": ["1-20", "50-75", "100-120"]
+      "file_path": "/Users/username/project/src/App.tsx",
+      "limit": 50
     }
   ]
 }
 \`\`\`
 
-**Read from multiple files (batch related files):**
+**Read lines 100-150 (50 lines starting at line 100):**
 \`\`\`json
 {
   "files": [
     {
-      "path": "src/services/api.js",
-      "line_ranges": ["1-40"]
+      "file_path": "/Users/username/project/src/App.tsx",
+      "offset": 100,
+      "limit": 50
+    }
+  ]
+}
+\`\`\`
+
+**Read multiple files:**
+\`\`\`json
+{
+  "files": [
+    {
+      "file_path": "/Users/username/project/src/api.ts"
     },
     {
-      "path": "src/services/auth.js",
-      "line_ranges": ["1-30"]
+      "file_path": "/Users/username/project/src/auth.ts",
+      "offset": 50,
+      "limit": 30
     }
   ]
 }
 \`\`\`
-
-**Read specific function after searching:**
-\`\`\`json
-{
-  "files": [
-    {
-      "path": "src/utils/helpers.js",
-      "line_ranges": ["45-68"]
-    }
-  ]
-}
-\`\`\`
-
-### Line Range Format Rules
-
-1. **Must be a string**: \`"10-20"\` not \`10-20\`
-2. **Use hyphen separator**: \`"1-50"\` not \`"1:50"\` or \`"1,50"\`
-3. **Start before end**: \`"1-50"\` not \`"50-1"\`
-4. **Both numbers required**: \`"1-50"\` not \`"1-"\` or \`"-50"\`
-5. **No spaces**: \`"1-50"\` not \`"1 - 50"\`
-
-### Common Line Range Patterns
-
-| Use Case | line_ranges Example |
-|----------|-------------------|
-| Read from start | \`["1-50"]\` |
-| Read middle section | \`["100-150"]\` |
-| Read end of file | \`["450-500"]\` |
-| Multiple sections | \`["1-30", "60-90"]\` |
-| Single function | \`["45-68"]\` |
 
 ### Workflow: When You Don't Know Line Numbers
 
@@ -176,7 +139,7 @@ The \`read_file\` tool reads specific line ranges from one or more files. This i
 {
   "path": "src",
   "regex": "function handleSubmit",
-  "file_pattern": "*.js"
+  "file_pattern": "*.ts"
 }
 \`\`\`
 
@@ -187,134 +150,30 @@ The \`read_file\` tool reads specific line ranges from one or more files. This i
 {
   "files": [
     {
-      "path": "src/components/Form.js",
-      "line_ranges": ["40-80"]
+      "file_path": "/Users/username/project/src/Form.tsx",
+      "offset": 40,
+      "limit": 50
     }
   ]
 }
 \`\`\`
 
-### 100 Line Limit
+### Parameter Rules
 
-**You can read up to 100 lines total per request.**
+1. \`file_path\` must be an absolute path
+2. \`offset\` must be >= 1 if specified
+3. \`limit\` must be >= 1 if specified
+4. If \`limit\` is omitted, the entire file is read from \`offset\`
 
-Valid (90 lines total):
-\`\`\`json
-{
-  "files": [
-    {
-      "path": "file1.js",
-      "line_ranges": ["1-50"]
-    },
-    {
-      "path": "file2.js",
-      "line_ranges": ["1-40"]
-    }
-  ]
-}
-\`\`\`
+### Common Patterns
 
-Invalid (150 lines total):
-\`\`\`json
-{
-  "files": [
-    {
-      "path": "file1.js",
-      "line_ranges": ["1-100"]
-    },
-    {
-      "path": "file2.js",
-      "line_ranges": ["1-50"]
-    }
-  ]
-}
-\`\`\`
+| Use Case | Parameters |
+|----------|-----------|
+| Read entire file | \`file_path\` only |
+| Read from start | \`limit: 50\` |
+| Read middle section | \`offset: 100, limit: 50\` |
+| Read from a specific line to end | \`offset: 200\` |
 
-### Batch Related Files
-
-When examining related code, read multiple files in one request:
-\`\`\`json
-{
-  "files": [
-    {
-      "path": "src/components/Button.jsx",
-      "line_ranges": ["1-40"]
-    },
-    {
-      "path": "src/styles/Button.css",
-      "line_ranges": ["1-30"]
-    },
-    {
-      "path": "src/components/Button.test.js",
-      "line_ranges": ["1-30"]
-    }
-  ]
-}
-\`\`\`
-
-### Error Prevention Checklist
-
-Before generating the tool call, verify:
-- ✅ \`line_ranges\` is an array: \`["1-50"]\` not \`"1-50"\`
-- ✅ Each range is a quoted string: \`"1-50"\` not \`1-50\`
-- ✅ Format is \`"number-number"\`: \`"1-50"\` not \`"1:50"\`
-- ✅ Total lines ≤ 100 across all files
-- ✅ \`line_ranges\` array is not empty
-- ✅ Start line ≤ end line in each range
-
-### Common Mistakes to Avoid
-
-❌ **Unquoted ranges** (Invalid JSON):
-\`\`\`json
-{"path": "file.js", "line_ranges": [1-50]}
-\`\`\`
-
-❌ **Wrong format**:
-\`\`\`json
-{"path": "file.js", "line_ranges": ["1:50"]}
-{"path": "file.js", "line_ranges": ["1,50"]}
-\`\`\`
-
-❌ **Array of numbers instead of strings**:
-\`\`\`json
-{"path": "file.js", "line_ranges": [1, 50]}
-\`\`\`
-
-❌ **Missing line_ranges**:
-\`\`\`json
-{"path": "file.js"}
-\`\`\`
-
-❌ **Empty line_ranges**:
-\`\`\`json
-{"path": "file.js", "line_ranges": []}
-\`\`\`
-
-### Remember
-
-**Line ranges are strings in "start-end" format. Always quote them: \`"1-50"\`, never \`1-50\`**
-
-### Examples of Common Errors
-
-❌ **WRONG** (unquoted range):
-\`\`\`json
-{"files": [{"path": "src/App.js", "line_ranges": [1-50]}]}
-\`\`\`
-
-✅ **CORRECT** (quoted range):
-\`\`\`json
-{"files": [{"path": "src/App.js", "line_ranges": ["1-50"]}]}
-\`\`\`
-
-❌ **WRONG** (wrong separator):
-\`\`\`json
-{"files": [{"path": "src/App.js", "line_ranges": ["1:50"]}]}
-\`\`\`
-
-✅ **CORRECT** (hyphen separator):
-\`\`\`json
-{"files": [{"path": "src/App.js", "line_ranges": ["1-50"]}]}
-\`\`\`
 
 # execute_command
 

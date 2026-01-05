@@ -9,7 +9,7 @@ export function getFileEditDescription(): string {
 - You need to delete or rewrite a block of code but don't want to craft search/replace diff markers manually.
 
 **Parameters**:
-1. \`target_file\` — Relative path to the file you want to modify.
+1. \`file_path\` — Absolute path to the file you want to modify (e.g., /Users/username/project/src/file.ts).
 2. \`old_string\` — The current text you expect to replace. Provide enough context for a unique match; this can be empty to replace the entire file.
 3. \`new_string\` — The text that should replace the match. Use an empty string to delete the matched content.
 4. \`replace_all\` (optional, default false) — Set to true to replace every occurrence of the matched text. Leave false to replace only a single uniquely identified match.
