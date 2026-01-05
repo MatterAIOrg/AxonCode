@@ -2236,9 +2236,7 @@ ${comment.suggestion}
 		// kilocode_change end
 		case "codeReviewSettings": {
 			const values = message.values as CodeReviewSettings
-			console.log("codeReviewSettings", values)
 			const validated = codeReviewSettingsSchema.parse(values)
-			console.log("validated", validated)
 			await updateGlobalState("codeReviewSettings", validated)
 
 			// If both host and key are provided, ping the server
