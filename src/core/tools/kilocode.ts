@@ -39,47 +39,51 @@ export async function blockFileReadWhenTooLarge(task: Task, relPath: string, con
 	if (tokenEstimate < tokenLimit) {
 		return undefined
 	}
-	const linesRangesAreAllowed = ((await task.providerRef.deref()?.getState())?.maxReadFileLine ?? 0) >= 0
 	const errorMsg =
 		`File content exceeds token limit (${tokenEstimate} estimated tokens, limit is ${tokenLimit} tokens).` +
-		(linesRangesAreAllowed ? ` Please use line_range to read smaller sections.` : ``)
+		` Please use offset and limit to read smaller sections.`
 	return {
 		status: "blocked" as const,
 		error: errorMsg,
-		xmlContent: `<file><path>${relPath}</path><error>${errorMsg}</error></file>`,
+		xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
 	}
 }
 
 type FileEntry = {
 	path?: string
-	lineRanges?: {
-		start: number
-		end: number
-	}[]
+	offset?: number
+	limit?: number
 }
 
-export function parseNativeFiles(nativeFiles: { path?: string; line_ranges?: string[] }[]) {
+export function parseNativeFiles(
+	nativeFiles: { file_path?: string; path?: string; offset?: number; limit?: number; line_ranges?: string[] }[],
+) {
 	const fileEntries = new Array<FileEntry>()
 	for (const file of nativeFiles) {
-		if (!file.path) continue
+		// Support both file_path (new) and path (legacy)
+		const filePath = file.file_path || file.path
+		if (!filePath) continue
 
 		const fileEntry: FileEntry = {
-			path: file.path,
-			lineRanges: [],
+			path: filePath,
+			offset: file.offset ?? 1,
+			limit: file.limit, // undefined means read complete file
 		}
 
-		// Handle line_ranges array from native format
-		if (file.line_ranges && Array.isArray(file.line_ranges)) {
-			for (const range of file.line_ranges) {
-				const match = String(range).match(/(\d+)-(\d+)/)
-				if (match) {
-					const [, start, end] = match.map(Number)
-					if (!isNaN(start) && !isNaN(end)) {
-						fileEntry.lineRanges?.push({ start, end })
-					}
+		// Legacy support: convert line_ranges to offset+limit if provided
+		// Note: Only the first range is used since the new format only supports single offset+limit per file
+		if (file.line_ranges && Array.isArray(file.line_ranges) && file.line_ranges.length > 0) {
+			const range = file.line_ranges[0]
+			const match = String(range).match(/(\d+)-(\d+)/)
+			if (match) {
+				const [, start, end] = match.map(Number)
+				if (!isNaN(start) && !isNaN(end)) {
+					fileEntry.offset = start
+					fileEntry.limit = end - start + 1
 				}
 			}
 		}
+
 		fileEntries.push(fileEntry)
 	}
 	return fileEntries
@@ -90,12 +94,11 @@ export function getNativeReadFileToolDescription(blockName: string, files: FileE
 	if (paths.length === 0) {
 		return `[${blockName} with no valid paths]`
 	} else if (paths.length === 1) {
-		// Modified part for single file
-		return `[${blockName} for '${paths[0]}'. Reading multiple files at once is more efficient for the LLM. If other files are relevant to your current task, please read them simultaneously.]`
+		return `[${blockName} '${paths[0]}']`
 	} else if (paths.length <= 3) {
 		const pathList = paths.map((p) => `'${p}'`).join(", ")
-		return `[${blockName} for ${pathList}]`
+		return `[${blockName} ${pathList}]`
 	} else {
-		return `[${blockName} for ${paths.length} files]`
+		return `[${blockName} ${paths.length} files]`
 	}
 }
