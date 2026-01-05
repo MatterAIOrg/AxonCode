@@ -320,6 +320,8 @@ export interface WebviewMessage {
 		| "applyAllCodeReviewFixes"
 		| "getGitChangesForReview"
 		| "gitChangesForReview"
+		| "codeReviewSettings" // kilocode_change
+		| "showToast" // kilocode_change
 	// kilocode_change end
 	text?: string
 	editedMessageContent?: string
@@ -340,6 +342,8 @@ export interface WebviewMessage {
 		subtitle?: string
 		message: string
 	}
+	toastType?: "success" | "error" | "info" | "warning" // kilocode_change
+	toastMessage?: string // kilocode_change
 	mcpId?: string
 	toolNames?: string[]
 	autoApprove?: boolean

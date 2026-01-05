@@ -30,7 +30,11 @@ export class CodeReviewService {
 	private readonly MAX_POLLING_DURATION = 5 * 60 * 1000 // 5 minutes
 	private readonly REQUEST_TIMEOUT = 30 * 1000 // 30 seconds
 
-	constructor(private kilocodeToken: string) {}
+	constructor(
+		private kilocodeToken: string,
+		private enterpriseHost?: string,
+		private enterpriseApiKey?: string,
+	) {}
 
 	async requestCodeReview(request: CodeReviewRequest): Promise<CodeReviewResultsPayload> {
 		return this.requestCodeReviewWithRetry(request, 3) // Max 3 retries for initial request
@@ -72,7 +76,17 @@ export class CodeReviewService {
 		request: CodeReviewRequest,
 		headers: Record<string, string>,
 	): Promise<CodeReviewStartResponse> {
-		const url = getKiloUrlFromToken("https://api.matterai.so/codereview", this.kilocodeToken)
+		let url: string
+
+		if (this.enterpriseHost && this.enterpriseApiKey) {
+			console.log("this.enterpriseApiKey", this.enterpriseApiKey)
+			// Use enterprise host and API key
+			url = `${this.enterpriseHost.replace(/\/$/, "")}/codereview`
+			headers["Authorization"] = `Bearer ${this.enterpriseApiKey}`
+		} else {
+			// Use default MatterAI service
+			url = getKiloUrlFromToken("https://api.matterai.so/codereview", this.kilocodeToken)
+		}
 
 		const response = await axios.post<CodeReviewStartResponse>(url, request, {
 			headers,
@@ -139,7 +153,15 @@ export class CodeReviewService {
 		requestId: string,
 		headers: Record<string, string>,
 	): Promise<CodeReviewStatusResponse> {
-		const url = getKiloUrlFromToken(`https://api.matterai.so/codereview/${requestId}`, this.kilocodeToken)
+		let url: string
+
+		if (this.enterpriseHost && this.enterpriseApiKey) {
+			// Use enterprise host and API key
+			url = `${this.enterpriseHost.replace(/\/$/, "")}/codereview/${requestId}`
+		} else {
+			// Use default MatterAI service
+			url = getKiloUrlFromToken(`https://api.matterai.so/codereview/${requestId}`, this.kilocodeToken)
+		}
 
 		const response = await axios.get<CodeReviewStatusResponse>(url, {
 			headers,

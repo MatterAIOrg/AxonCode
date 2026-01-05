@@ -30,6 +30,14 @@ export const DEFAULT_WRITE_DELAY_MS = 1000
  */
 export const DEFAULT_TERMINAL_OUTPUT_CHARACTER_LIMIT = 50_000
 
+export const codeReviewSettingsSchema = z.object({
+	enterpriseHost: z.string().optional(),
+	enterpriseApiKey: z.string().optional(),
+	reviewOnlyMode: z.boolean().optional(),
+})
+
+export type CodeReviewSettings = z.infer<typeof codeReviewSettingsSchema>
+
 /**
  * GlobalSettings
  */
@@ -177,6 +185,9 @@ export const globalSettingsSchema = z.object({
 	hasOpenedModeSelector: z.boolean().optional(),
 	lastModeExportPath: z.string().optional(),
 	lastModeImportPath: z.string().optional(),
+
+	// Code Review Settings
+	codeReviewSettings: codeReviewSettingsSchema.optional(),
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>

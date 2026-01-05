@@ -191,6 +191,16 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setMaxDiagnosticMessages: (value: number) => void
 	includeTaskHistoryInEnhance?: boolean
 	setIncludeTaskHistoryInEnhance: (value: boolean) => void
+	codeReviewSettings?: {
+		enterpriseHost?: string
+		enterpriseApiKey?: string
+		reviewOnlyMode?: boolean
+	}
+	setCodeReviewSettings: (value?: {
+		enterpriseHost?: string
+		enterpriseApiKey?: string
+		reviewOnlyMode?: boolean
+	}) => void
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -660,6 +670,8 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		},
 		includeTaskHistoryInEnhance,
 		setIncludeTaskHistoryInEnhance,
+		codeReviewSettings: state.codeReviewSettings,
+		setCodeReviewSettings: (value) => setState((prevState) => ({ ...prevState, codeReviewSettings: value })),
 	}
 
 	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>

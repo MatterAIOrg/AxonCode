@@ -1936,6 +1936,7 @@ ${prompt}
 			maxConcurrentFileReads,
 			allowVeryLargeReads, // kilocode_change
 			ghostServiceSettings, // kilocode_changes
+			codeReviewSettings,
 			condensingApiConfigId,
 			customCondensingPrompt,
 			codebaseIndexConfig,
@@ -2138,6 +2139,7 @@ ${prompt}
 			openRouterImageGenerationSelectedModel,
 			openRouterUseMiddleOutTransform,
 			featureRoomoteControlEnabled,
+			codeReviewSettings,
 		}
 	}
 
@@ -2385,6 +2387,7 @@ ${prompt}
 			openRouterImageApiKey: stateValues.openRouterImageApiKey,
 			kiloCodeImageApiKey: stateValues.kiloCodeImageApiKey,
 			openRouterImageGenerationSelectedModel: stateValues.openRouterImageGenerationSelectedModel,
+			codeReviewSettings: stateValues.codeReviewSettings, // kilocode_change
 			featureRoomoteControlEnabled: (() => {
 				try {
 					const userSettings = CloudService.instance.getUserSettings()

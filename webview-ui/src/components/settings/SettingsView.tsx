@@ -3,11 +3,13 @@ import {
 	Bell, // kilocode_change
 	Bot,
 	CheckCheck,
+	CircleUserRound,
 	Database,
-	GitBranch,
-	Globe,
+	GitPullRequest,
 	Info,
+	Languages,
 	LucideIcon,
+	MapPinCheck,
 	Monitor,
 	Server,
 	SquareMousePointer,
@@ -64,6 +66,7 @@ import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
 import { BrowserSettings } from "./BrowserSettings"
 import { CheckpointSettings } from "./CheckpointSettings"
+import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewSettings"
 import { ContextManagementSettings } from "./ContextManagementSettings"
 import { DisplaySettings } from "./DisplaySettings" // kilocode_change
 import { LanguageSettings } from "./LanguageSettings"
@@ -100,6 +103,7 @@ const sectionNames = [
 	"experimental",
 	"language",
 	"mcp",
+	"codeReview", // kilocode_change
 	"about",
 ] as const
 
@@ -231,6 +235,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		kiloCodeImageApiKey,
 		openRouterImageGenerationSelectedModel,
 		reasoningBlockCollapsed,
+		codeReviewSettings,
 	} = cachedState
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
@@ -478,6 +483,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 				type: "openRouterImageGenerationSelectedModel",
 				text: openRouterImageGenerationSelectedModel,
 			})
+			vscode.postMessage({ type: "codeReviewSettings", values: codeReviewSettings })
 			// Update cachedState to match the current state to prevent isChangeDetected from being set back to true
 			setCachedState((prevState) => ({ ...prevState, ...extensionState }))
 			setChangeDetected(false)
@@ -577,11 +583,12 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 	const sections: { id: SectionName; icon: LucideIcon }[] = useMemo(
 		() => [
-			{ id: "providers", icon: Webhook },
+			{ id: "providers", icon: CircleUserRound },
+			{ id: "codeReview", icon: GitPullRequest },
 			{ id: "autoApprove", icon: CheckCheck },
 			// { id: "slashCommands", icon: SquareSlash }, // kilocode_change: needs work to be re-introduced
 			{ id: "browser", icon: SquareMousePointer },
-			{ id: "checkpoints", icon: GitBranch },
+			{ id: "checkpoints", icon: MapPinCheck },
 			{ id: "display", icon: Monitor }, // kilocode_change
 			...(kiloCodeWrapperProperties?.kiloCodeWrapped ? [] : [{ id: "ghost" as const, icon: Bot }]), // kilocode_change
 			{ id: "notifications", icon: Bell },
@@ -590,7 +597,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "prompts", icon: MessageSquare },
 			// { id: "ui", icon: Glasses }, // kilocode_change: we have our own display section
 			// { id: "experimental", icon: FlaskConical },
-			{ id: "language", icon: Globe },
+			{ id: "language", icon: Languages },
 			{ id: "mcp", icon: Server },
 			{ id: "about", icon: Info },
 		],
@@ -964,6 +971,25 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					{/* kilocode_change */}
 					{/* MCP Section */}
 					{activeTab === "mcp" && <McpView />}
+
+					{/* Code Review Section */}
+					{activeTab === "codeReview" && (
+						<CodeReviewSettingsComponent
+							codeReviewSettings={
+								codeReviewSettings || {
+									enterpriseHost: "",
+									enterpriseApiKey: "",
+									reviewOnlyMode: false,
+								}
+							}
+							setCachedStateField={setCachedStateField}
+						/>
+					)}
+
+					{/* About Section */}
+					{activeTab === "about" && (
+						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
+					)}
 
 					{/* About Section */}
 					{activeTab === "about" && (

@@ -290,6 +290,25 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onDone }) => {
 						) : (
 							<div className="flex flex-col items-center pr-3">
 								<KiloCodeAuth className="w-full" />
+								<div className="w-full absolute bottom-0 p-8">
+									<VSCodeButton
+										appearance="secondary"
+										onClick={(e) => {
+											e.preventDefault()
+											window.postMessage(
+												{
+													type: "action",
+													action: "settingsButtonClicked",
+													values: { section: "codeReview" },
+												},
+												"*",
+											)
+										}}
+										className="w-full">
+										<span className="codicon codicon-settings-gear mr-2 text-sm"></span>
+										Configure Enterprise Settings
+									</VSCodeButton>
+								</div>
 							</div>
 						)}
 					</div>

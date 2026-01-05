@@ -52,9 +52,8 @@ import { useAutoApprovalState } from "@src/hooks/useAutoApprovalState"
 import { useAutoApprovalToggles } from "@src/hooks/useAutoApprovalToggles"
 // import { CloudUpsellDialog } from "@src/components/cloud/CloudUpsellDialog" // kilocode_change: unused
 
-import TelemetryBanner from "../common/TelemetryBanner" // kilocode_change: deactivated for now
+// import TelemetryBanner from "../common/TelemetryBanner" // kilocode_change: deactivated for now
 // import VersionIndicator from "../common/VersionIndicator" // kilocode_change: unused
-import { OrganizationSelector } from "../kilocode/common/OrganizationSelector"
 // import { useTaskSearch } from "../history/useTaskSearch" // kilocode_change: unused
 import HistoryPreview from "../history/HistoryPreview"
 import Announcement from "./Announcement"
@@ -115,6 +114,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		taskHistoryVersion, // kilocode_change
 		apiConfiguration,
 		organizationAllowList,
+		codeReviewSettings, // kilocode_change
 		mcpServers,
 		alwaysAllowBrowser,
 		alwaysAllowReadOnly,
@@ -138,7 +138,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		alwaysAllowFollowupQuestions,
 		alwaysAllowUpdateTodoList,
 		customModes,
-		telemetrySetting,
+		// telemetrySetting,
 		hasSystemPromptOverride,
 		historyPreviewCollapsed, // Added historyPreviewCollapsed
 		soundEnabled,
@@ -147,6 +147,19 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		messageQueue = [],
 		sendMessageOnEnter, // kilocode_change
 	} = useExtensionState()
+
+	const isReviewOnlyMode = useMemo(() => {
+		const hasEnterpriseHost = !!codeReviewSettings?.enterpriseHost
+		const hasEnterpriseApiKey = !!codeReviewSettings?.enterpriseApiKey
+		const hasKilocodeToken = !!apiConfiguration?.kilocodeToken
+
+		// Auto-enable review only mode when enterprise credentials are set but no kilocode token
+		if (hasEnterpriseHost && hasEnterpriseApiKey && !hasKilocodeToken) {
+			return true
+		}
+
+		return codeReviewSettings?.reviewOnlyMode || false
+	}, [codeReviewSettings, apiConfiguration])
 
 	const messagesRef = useRef(messages)
 
@@ -219,11 +232,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
 	const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
 	// kilocode_change start: AI Code Review state
-	const [showSourceControl, setShowSourceControl] = useState(false)
+	const [showSourceControl, setShowSourceControl] = useState(isReviewOnlyMode)
 	const [codeReviewResults, setCodeReviewResults] = useState<{
 		reviewBody: string
 		reviewComments: CodeReviewComment[]
 	} | null>(null)
+	const [codeReviewError, setCodeReviewError] = useState<string | null>(null)
 	const [_pendingFileEdits, setPendingFileEdits] = useState<any[]>([])
 	const [_gitChangesForReview, setGitChangesForReview] = useState<any[]>([]) // Git changes for code review
 	const [isCodeReviewLoading, setIsCodeReviewLoading] = useState(false)
@@ -322,6 +336,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	function playTts(text: string) {
 		vscode.postMessage({ type: "playTts", text })
 	}
+
+	useEffect(() => {
+		if (isReviewOnlyMode) {
+			setShowSourceControl(true)
+		}
+	}, [isReviewOnlyMode])
 
 	useDeepCompareEffect(() => {
 		// if last message is an ask, show user ask UI
@@ -868,6 +888,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const handleRunCodeReview = useCallback(() => {
 		setIsCodeReviewLoading(true)
+		setCodeReviewError(null) // Clear previous errors
 		vscode.postMessage({ type: "requestCodeReview" })
 	}, [])
 
@@ -965,8 +986,21 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "codeReviewResults":
 					setIsCodeReviewLoading(false)
 					if (message.payload) {
-						setCodeReviewResults(message.payload)
-						setStoredCodeReviewResults(message.payload) // Store in memory
+						// Check if the payload contains an error message
+						const errorMessage = message.payload.reviewBody?.startsWith("Code review failed:")
+							? message.payload.reviewBody
+							: null
+
+						if (errorMessage) {
+							// This is an error, not a successful result
+							setCodeReviewError(errorMessage)
+							setCodeReviewResults(null)
+						} else {
+							// This is a successful result
+							setCodeReviewResults(message.payload)
+							setStoredCodeReviewResults(message.payload) // Store in memory
+							setCodeReviewError(null) // Clear any previous errors
+						}
 						setShowSourceControl(true)
 					}
 					break
@@ -2074,8 +2108,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const areButtonsVisible = showScrollToBottom || primaryButtonText || secondaryButtonText
 
-	const showTelemetryBanner = telemetrySetting === "unset" // kilocode_change
-
 	return (
 		<div
 			data-testid="chat-view"
@@ -2138,11 +2170,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				</>
 			) : (
 				<div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 relative">
-					{!showTelemetryBanner && (
+					{/* {!showTelemetryBanner && (
 						<div>
 							<OrganizationSelector className="absolute top-2 right-3" />
 						</div>
-					)}
+					)} */}
 					{/* kilocode_change start: changed the classes to support notifications */}
 					<div className="w-full h-full flex flex-col gap-4 px-3.5 transition-all duration-300">
 						{/* kilocode_change end */}
@@ -2156,12 +2188,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						<RooHero /> */}
 
 						{/* kilocode_change start: KilocodeNotifications + Layout fixes */}
-						{showTelemetryBanner && <TelemetryBanner />}
-						{!showTelemetryBanner && (
-							<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
-								<KilocodeNotifications />
-							</div>
-						)}
+						{/* TelemetryBanner removed */}
+						<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
+							<KilocodeNotifications />
+						</div>
 						<div className="flex flex-grow flex-col justify-start gap-4">
 							{/* kilocode_change end */}
 							{/* <p className="text-vscode-editor-foreground leading-normal font-vscode-font-family text-center text-balance max-w-[380px] mx-auto my-0">
@@ -2184,65 +2214,68 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								{cloudIsAuthenticated || taskHistory.length < 4 ? <RooTips /> : <RooCloudCTA />}
 							</div> kilocode_change: do not show */}
 							{/* Show the task history preview if expanded and tasks exist */}
-							{/* AI Code Reviews Setup Box */}
-							<div className="w-full min-w-0 mb-1 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
-								<div className="flex flex-col gap-2">
-									{/* Top section: Title/Subtitle left, Icons right */}
-									<div className="flex justify-between gap-4 items-center min-w-0">
-										<div className="flex flex-col gap-1">
-											<div className="flex flex-row gap-2 items-start">
-												<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-													Setup Automated PR Reviews
-												</p>
-												<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
-													<img
-														src={iconsBaseUri + "/github-ic.png"}
-														alt="GitHub"
-														className="w-4 h-4"
-													/>
-													<img
-														src={iconsBaseUri + "/gitlab-ic.png"}
-														alt="GitLab"
-														className="w-4 h-4"
-													/>
+							{/* AI Code Reviews Setup Box - Hidden in review only mode */}
+							{!isReviewOnlyMode && (
+								<div className="w-full min-w-0 mb-1 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
+									<div className="flex flex-col gap-2">
+										{/* Top section: Title/Subtitle left, Icons right */}
+										<div className="flex justify-between gap-4 items-center min-w-0">
+											<div className="flex flex-col gap-1">
+												<div className="flex flex-row gap-2 items-start">
+													<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
+														Setup Automated PR Reviews
+													</p>
+													<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
+														<img
+															src={iconsBaseUri + "/github-ic.png"}
+															alt="GitHub"
+															className="w-4 h-4"
+														/>
+														<img
+															src={iconsBaseUri + "/gitlab-ic.png"}
+															alt="GitLab"
+															className="w-4 h-4"
+														/>
 
-													<img
-														src={iconsBaseUri + "/bitbucket-ic.png"}
-														alt="Bitbucket"
-														className="w-4 h-4"
-													/>
+														<img
+															src={iconsBaseUri + "/bitbucket-ic.png"}
+															alt="Bitbucket"
+															className="w-4 h-4"
+														/>
+													</div>
 												</div>
-											</div>
-											{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
+												{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
 												70% faster code reviews
 											</p> */}
-											<div className="flex flex-row gap-2">
-												<div className="self-start mt-1">
-													<VSCodeButtonLink
-														variant="secondary"
-														href="https://app.matterai.so/get-started"
-														style={{
-															background: "var(--color-matterai-chip-blue)",
-															border: "1px solid var(--color-matterai-blue)",
-															borderRadius: "6px",
-														}}>
-														Get Started for free
-													</VSCodeButtonLink>
-												</div>
-												<div className="self-start mt-1">
-													<VSCodeButtonLink
-														variant="secondary"
-														href="https://docs.matterai.so/quickstart-ai-code-review-agent"
-														style={{ borderRadius: "6px" }}>
-														Read Docs
-													</VSCodeButtonLink>
+												<div className="flex flex-row gap-2">
+													<div className="self-start mt-1">
+														<VSCodeButtonLink
+															variant="secondary"
+															href="https://app.matterai.so/get-started"
+															style={{
+																background: "var(--color-matterai-chip-blue)",
+																border: "1px solid var(--color-matterai-blue)",
+																borderRadius: "6px",
+															}}>
+															Get Started for free
+														</VSCodeButtonLink>
+													</div>
+													<div className="self-start mt-1">
+														<VSCodeButtonLink
+															variant="secondary"
+															href="https://docs.matterai.so/quickstart-ai-code-review-agent"
+															style={{ borderRadius: "6px" }}>
+															Read Docs
+														</VSCodeButtonLink>
+													</div>
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
-							</div>
-							{taskHistoryFullLength > 0 && isExpanded && (
+							)}
+							{/* History preview - Hidden in review only mode */}
+							{!isReviewOnlyMode && taskHistoryFullLength > 0 && isExpanded && (
 								<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
 							)}
 						</div>
@@ -2322,50 +2355,71 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					<SourceControlPanel
 						fileChanges={_gitChangesForReview}
 						codeReviewResult={codeReviewResults}
+						codeReviewError={codeReviewError}
 						isLoading={isCodeReviewLoading}
 						onRunCodeReview={handleRunCodeReview}
 						onClose={() => setShowSourceControl(false)}
+						hasKilocodeToken={!!apiConfiguration?.kilocodeToken}
 					/>
 				</div>
 			)}
 
 			{!task && (
-				<div className="w-full min-w-0 px-4 mb-1">
+				<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1"}`}>
 					<VSCodeButton
 						appearance="secondary"
 						className="flex w-full min-w-full rounded-md border border-white/10 outline-none bg-[var(--color-matterai-green)]"
-						onClick={() => setShowSourceControl(true)}
+						onClick={() => {
+							setShowSourceControl(true)
+							// If there's an error, automatically retry when opening
+							if (codeReviewError && !isCodeReviewLoading) {
+								handleRunCodeReview()
+							}
+						}}
 						disabled={isCodeReviewLoading}>
-						Run AI Code Review ({_gitChangesForReview.length}{" "}
-						{_gitChangesForReview.length === 1 ? "change" : "changes"})
+						{codeReviewError ? (
+							<>
+								<span className="codicon codicon-refresh mr-1" />
+								Retry AI Code Review ({_gitChangesForReview.length}{" "}
+								{_gitChangesForReview.length === 1 ? "change" : "changes"})
+							</>
+						) : (
+							<>
+								Run AI Code Review ({_gitChangesForReview.length}{" "}
+								{_gitChangesForReview.length === 1 ? "change" : "changes"})
+							</>
+						)}
 					</VSCodeButton>
 				</div>
 			)}
-			<ChatTextArea
-				ref={textAreaRef}
-				inputValue={inputValue}
-				setInputValue={setInputValue}
-				sendingDisabled={sendingDisabled || isProfileDisabled}
-				selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
-				selectedImages={selectedImages}
-				setSelectedImages={setSelectedImages}
-				onSend={() => handleSendMessage(inputValue, selectedImages)}
-				onSelectImages={selectImages}
-				shouldDisableImages={shouldDisableImages}
-				onHeightChange={() => {
-					if (isAtBottom) {
-						scrollToBottomAuto()
-					}
-				}}
-				mode={mode}
-				setMode={setMode}
-				modeShortcutText={modeShortcutText}
-				sendMessageOnEnter={sendMessageOnEnter} // kilocode_change
-				isStreaming={isStreaming}
-				onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
-			/>
+			{/* Chat input area - Hidden in review only mode */}
+			{!isReviewOnlyMode && (
+				<ChatTextArea
+					ref={textAreaRef}
+					inputValue={inputValue}
+					setInputValue={setInputValue}
+					sendingDisabled={sendingDisabled || isProfileDisabled}
+					selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+					selectedImages={selectedImages}
+					setSelectedImages={setSelectedImages}
+					onSend={() => handleSendMessage(inputValue, selectedImages)}
+					onSelectImages={selectImages}
+					shouldDisableImages={shouldDisableImages}
+					onHeightChange={() => {
+						if (isAtBottom) {
+							scrollToBottomAuto()
+						}
+					}}
+					mode={mode}
+					setMode={setMode}
+					modeShortcutText={modeShortcutText}
+					sendMessageOnEnter={sendMessageOnEnter} // kilocode_change
+					isStreaming={isStreaming}
+					onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
+				/>
+			)}
 			{/* kilocode_change: added settings toggle the profile and model selection */}
-			<BottomControls showApiConfig />
+			{!isReviewOnlyMode && <BottomControls showApiConfig />}
 			{/* kilocode_change: end */}
 
 			{/* kilocode_change: disable {isProfileDisabled && (

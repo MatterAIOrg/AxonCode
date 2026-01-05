@@ -7,7 +7,7 @@ import delay from "delay"
 import * as vscode from "vscode"
 // kilocode_change start
 import axios from "axios"
-import { getKiloUrlFromToken, isGlobalStateKey } from "@roo-code/types"
+import { codeReviewSettingsSchema, CodeReviewSettings, getKiloUrlFromToken, isGlobalStateKey } from "@roo-code/types"
 import { getAppUrl } from "@roo-code/types"
 import {
 	MaybeTypedWebviewMessage,
@@ -1025,7 +1025,13 @@ export const webviewMessageHandler = async (
 				// Call the code review API
 				const { CodeReviewService } = await import("../kilocode/api/codeReviewService")
 				const state = await provider.getState()
-				const codeReviewService = new CodeReviewService(state.apiConfiguration?.kilocodeToken || "")
+
+				// Use enterprise settings if available, otherwise fall back to default
+				const enterpriseHost = state.codeReviewSettings?.enterpriseHost
+				const enterpriseApiKey = state.codeReviewSettings?.enterpriseApiKey
+				const apiToken = state.apiConfiguration?.kilocodeToken || ""
+
+				const codeReviewService = new CodeReviewService(apiToken, enterpriseHost, enterpriseApiKey)
 				const results = await codeReviewService.requestCodeReview({
 					git_diff: gitDiff,
 					git_owner: gitMetadata.gitOwner,
@@ -2227,6 +2233,44 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			vscode.commands.executeCommand("axon-code.ghost.reload")
 			break
+		// kilocode_change end
+		case "codeReviewSettings": {
+			const values = message.values as CodeReviewSettings
+			const validated = codeReviewSettingsSchema.parse(values)
+			await updateGlobalState("codeReviewSettings", validated)
+
+			// If both host and key are provided, ping the server
+			if (validated.enterpriseHost && validated.enterpriseApiKey) {
+				try {
+					const pingUrl = `${validated.enterpriseHost?.replace(/\/$/, "")}/codereview/ping`
+					const response = await axios.get(pingUrl, {
+						headers: {
+							Authorization: `Bearer ${validated.enterpriseApiKey}`,
+						},
+					})
+
+					if (response.data?.valid === true) {
+						// Send toast message to webview
+						provider.postMessageToWebview({
+							type: "showToast",
+							toastType: "success",
+							toastMessage: "Enterprise server connected successfully",
+						})
+					}
+				} catch (error) {
+					console.error("Failed to ping enterprise server:", error)
+					// Send error toast message to webview
+					provider.postMessageToWebview({
+						type: "showToast",
+						toastType: "error",
+						toastMessage: "Failed to connect to enterprise server. Please check your host URL and API key.",
+					})
+				}
+			}
+
+			provider.postMessageToWebview({ type: "state", state: await provider.getStateToPostToWebview() })
+			break
+		}
 		// kilocode_change end
 		case "includeTaskHistoryInEnhance":
 			await updateGlobalState("includeTaskHistoryInEnhance", message.bool ?? true)
