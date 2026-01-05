@@ -79,6 +79,7 @@ export class CodeReviewService {
 		let url: string
 
 		if (this.enterpriseHost && this.enterpriseApiKey) {
+			console.log("this.enterpriseApiKey", this.enterpriseApiKey)
 			// Use enterprise host and API key
 			url = `${this.enterpriseHost.replace(/\/$/, "")}/codereview`
 			headers["Authorization"] = `Bearer ${this.enterpriseApiKey}`

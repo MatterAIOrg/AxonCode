@@ -29,6 +29,7 @@ interface CodeReviewResult {
 interface SourceControlPanelProps {
 	fileChanges: FileChange[]
 	codeReviewResult: CodeReviewResult | null
+	codeReviewError?: string | null
 	isLoading: boolean
 	onRunCodeReview: () => void
 	onClose: () => void
@@ -49,6 +50,7 @@ const getDirectory = (filePath: string): string => {
 export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 	fileChanges,
 	codeReviewResult,
+	codeReviewError,
 	isLoading,
 	onRunCodeReview,
 	onClose,
@@ -142,19 +144,22 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 					<span className="text-sm font-semibold text-vscode-foreground">AI Code Review</span>
 				</div>
 				<div className="flex items-center gap-2">
-					{fileChanges.length > 0 && !codeReviewResult && (
-						<VSCodeButton appearance="primary" onClick={onRunCodeReview} disabled={isLoading}>
-							{isLoading ? (
-								<div className="flex items-center gap-1">
-									<span className="codicon codicon-loading codicon-spin mr-1" />
-									<span className="text-xs">Analyzing...</span>
-								</div>
-							) : (
-								<div className="flex items-center gap-1">
-									<span className="codicon codicon-sparkle mr-1" />
-									<span className="text-xs">Run Review</span>
-								</div>
-							)}
+					{/* Always show the run/retry button when there are file changes */}
+					{fileChanges.length > 0 && !isLoading && (
+						<VSCodeButton appearance="primary" onClick={onRunCodeReview}>
+							<div className="flex items-center gap-1">
+								<span className="codicon codicon-sparkle mr-1" />
+								<span className="text-xs">{codeReviewError ? "Retry Review" : "Run Review"}</span>
+							</div>
+						</VSCodeButton>
+					)}
+					{/* Show loading state */}
+					{fileChanges.length > 0 && isLoading && (
+						<VSCodeButton appearance="primary" disabled={true}>
+							<div className="flex items-center gap-1">
+								<span className="codicon codicon-loading codicon-spin mr-1" />
+								<span className="text-xs">Analyzing...</span>
+							</div>
 						</VSCodeButton>
 					)}
 					<VSCodeButton appearance="icon" onClick={onClose} title="Close">
@@ -238,7 +243,7 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 			)}
 
 			{/* Empty State */}
-			{fileChanges.length === 0 && !codeReviewResult && (
+			{fileChanges.length === 0 && !codeReviewResult && !codeReviewError && (
 				<div className="flex flex-col items-center justify-center py-8 px-4">
 					<span
 						className="codicon codicon-check text-2xl mb-2"
@@ -246,6 +251,19 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 					/>
 					<span className="text-sm text-vscode-foreground font-medium">All changes reviewed</span>
 					<span className="text-xs text-vscode-foreground opacity-60">No uncommitted changes to review</span>
+				</div>
+			)}
+
+			{/* Error State */}
+			{codeReviewError && (
+				<div className="border-t border-vscode-editorWidget-border">
+					<div className="flex items-center gap-2 px-3 py-2 bg-vscode-editorWidget-background border-b border-vscode-editorWidget-border">
+						<span className="codicon codicon-error text-vscode-errorForeground" />
+						<span className="text-sm font-medium text-vscode-foreground">Review Failed</span>
+					</div>
+					<div className="px-3 py-2.5 text-sm text-vscode-errorForeground whitespace-pre-wrap bg-vscode-editor-background">
+						{codeReviewError}
+					</div>
 				</div>
 			)}
 

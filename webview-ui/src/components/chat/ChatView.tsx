@@ -237,6 +237,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		reviewBody: string
 		reviewComments: CodeReviewComment[]
 	} | null>(null)
+	const [codeReviewError, setCodeReviewError] = useState<string | null>(null)
 	const [_pendingFileEdits, setPendingFileEdits] = useState<any[]>([])
 	const [_gitChangesForReview, setGitChangesForReview] = useState<any[]>([]) // Git changes for code review
 	const [isCodeReviewLoading, setIsCodeReviewLoading] = useState(false)
@@ -887,6 +888,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const handleRunCodeReview = useCallback(() => {
 		setIsCodeReviewLoading(true)
+		setCodeReviewError(null) // Clear previous errors
 		vscode.postMessage({ type: "requestCodeReview" })
 	}, [])
 
@@ -984,8 +986,21 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "codeReviewResults":
 					setIsCodeReviewLoading(false)
 					if (message.payload) {
-						setCodeReviewResults(message.payload)
-						setStoredCodeReviewResults(message.payload) // Store in memory
+						// Check if the payload contains an error message
+						const errorMessage = message.payload.reviewBody?.startsWith("Code review failed:")
+							? message.payload.reviewBody
+							: null
+
+						if (errorMessage) {
+							// This is an error, not a successful result
+							setCodeReviewError(errorMessage)
+							setCodeReviewResults(null)
+						} else {
+							// This is a successful result
+							setCodeReviewResults(message.payload)
+							setStoredCodeReviewResults(message.payload) // Store in memory
+							setCodeReviewError(null) // Clear any previous errors
+						}
 						setShowSourceControl(true)
 					}
 					break
@@ -2340,6 +2355,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					<SourceControlPanel
 						fileChanges={_gitChangesForReview}
 						codeReviewResult={codeReviewResults}
+						codeReviewError={codeReviewError}
 						isLoading={isCodeReviewLoading}
 						onRunCodeReview={handleRunCodeReview}
 						onClose={() => setShowSourceControl(false)}
@@ -2352,10 +2368,26 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					<VSCodeButton
 						appearance="secondary"
 						className="flex w-full min-w-full rounded-md border border-white/10 outline-none bg-[var(--color-matterai-green)]"
-						onClick={() => setShowSourceControl(true)}
+						onClick={() => {
+							setShowSourceControl(true)
+							// If there's an error, automatically retry when opening
+							if (codeReviewError && !isCodeReviewLoading) {
+								handleRunCodeReview()
+							}
+						}}
 						disabled={isCodeReviewLoading}>
-						Run AI Code Review ({_gitChangesForReview.length}{" "}
-						{_gitChangesForReview.length === 1 ? "change" : "changes"})
+						{codeReviewError ? (
+							<>
+								<span className="codicon codicon-refresh mr-1" />
+								Retry AI Code Review ({_gitChangesForReview.length}{" "}
+								{_gitChangesForReview.length === 1 ? "change" : "changes"})
+							</>
+						) : (
+							<>
+								Run AI Code Review ({_gitChangesForReview.length}{" "}
+								{_gitChangesForReview.length === 1 ? "change" : "changes"})
+							</>
+						)}
 					</VSCodeButton>
 				</div>
 			)}
