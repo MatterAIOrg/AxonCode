@@ -48,13 +48,14 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP Servers"
+			"mcp": "MCP Servers",
+			"codeReview": "AI Code Reviews"
 		},
 		"provider": {
-			"account": "Axon Code Account",
+			"account": "MatterAI Account",
 			"apiKey": "Axon Code API Key",
-			"login": "Log in at Axon Code",
-			"logout": "Log out from Axon Code",
+			"login": "Log in at MatterAI",
+			"logout": "Log out from MatterAI",
 			"providerRouting": {
 				"title": "Provider Routing",
 				"managedByOrganization": "Manage Organization-level Provider Routing",

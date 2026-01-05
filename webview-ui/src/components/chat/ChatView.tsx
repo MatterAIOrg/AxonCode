@@ -222,7 +222,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
 	const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
 	// kilocode_change start: AI Code Review state
-	const [showSourceControl, setShowSourceControl] = useState(false)
+	const [showSourceControl, setShowSourceControl] = useState(isReviewOnlyMode)
 	const [codeReviewResults, setCodeReviewResults] = useState<{
 		reviewBody: string
 		reviewComments: CodeReviewComment[]
@@ -325,6 +325,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	function playTts(text: string) {
 		vscode.postMessage({ type: "playTts", text })
 	}
+
+	useEffect(() => {
+		if (isReviewOnlyMode) {
+			setShowSourceControl(true)
+		}
+	}, [isReviewOnlyMode])
 
 	useDeepCompareEffect(() => {
 		// if last message is an ask, show user ask UI

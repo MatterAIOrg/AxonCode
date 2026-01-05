@@ -3,11 +3,13 @@ import {
 	Bell, // kilocode_change
 	Bot,
 	CheckCheck,
+	CircleUserRound,
 	Database,
-	GitBranch,
-	Globe,
+	GitPullRequest,
 	Info,
+	Languages,
 	LucideIcon,
+	MapPinCheck,
 	Monitor,
 	Server,
 	SquareMousePointer,
@@ -581,11 +583,12 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 	const sections: { id: SectionName; icon: LucideIcon }[] = useMemo(
 		() => [
-			{ id: "providers", icon: Webhook },
+			{ id: "providers", icon: CircleUserRound },
+			{ id: "codeReview", icon: GitPullRequest },
 			{ id: "autoApprove", icon: CheckCheck },
 			// { id: "slashCommands", icon: SquareSlash }, // kilocode_change: needs work to be re-introduced
 			{ id: "browser", icon: SquareMousePointer },
-			{ id: "checkpoints", icon: GitBranch },
+			{ id: "checkpoints", icon: MapPinCheck },
 			{ id: "display", icon: Monitor }, // kilocode_change
 			...(kiloCodeWrapperProperties?.kiloCodeWrapped ? [] : [{ id: "ghost" as const, icon: Bot }]), // kilocode_change
 			{ id: "notifications", icon: Bell },
@@ -594,9 +597,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "prompts", icon: MessageSquare },
 			// { id: "ui", icon: Glasses }, // kilocode_change: we have our own display section
 			// { id: "experimental", icon: FlaskConical },
-			{ id: "language", icon: Globe },
+			{ id: "language", icon: Languages },
 			{ id: "mcp", icon: Server },
-			{ id: "codeReview", icon: GitBranch }, // kilocode_change
 			{ id: "about", icon: Info },
 		],
 		[kiloCodeWrapperProperties?.kiloCodeWrapped], // kilocode_change
