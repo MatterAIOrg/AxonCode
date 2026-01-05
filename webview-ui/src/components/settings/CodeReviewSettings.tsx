@@ -57,28 +57,31 @@ export const CodeReviewSettings: React.FC<CodeReviewSettingsProps> = ({ codeRevi
 				<div className="space-y-6">
 					<div>
 						<label className="block font-medium mb-2">Enterprise HOST</label>
-						<VSCodeTextField
-							value={enterpriseHost}
-							onInput={handleHostChange}
-							placeholder="https://api.matterai.so"
-							className="w-full">
-							<div className="flex justify-between items-center mb-1">
-								<span className="text-sm text-vscode-descriptionForeground">
-									Enter your enterprise API host URL
-								</span>
-							</div>
-						</VSCodeTextField>
+						<div className="flex items-center">
+							<VSCodeTextField
+								value={enterpriseHost}
+								onInput={handleHostChange}
+								placeholder="https://api.matterai.so"
+								className="flex-1">
+								<div className="flex justify-between items-center mb-1">
+									<span className="text-sm text-vscode-descriptionForeground">
+										Enter your enterprise API host URL
+									</span>
+								</div>
+							</VSCodeTextField>
+							<div className="w-5 h-5 ml-3"></div>
+						</div>
 					</div>
 
 					<div>
 						<label className="block font-medium mb-2">Enterprise API Key</label>
-						<div className="relative">
+						<div className="flex items-end">
 							<VSCodeTextField
 								value={enterpriseApiKey}
 								onInput={handleApiKeyChange}
 								type={showApiKey ? "text" : "password"}
 								placeholder="Enter your enterprise API key"
-								className="w-full pr-10">
+								className="flex-1">
 								<div className="flex justify-between items-center mb-1">
 									<span className="text-sm text-vscode-descriptionForeground">
 										Enter your enterprise API key
@@ -88,7 +91,7 @@ export const CodeReviewSettings: React.FC<CodeReviewSettingsProps> = ({ codeRevi
 							<button
 								type="button"
 								onClick={() => setShowApiKey(!showApiKey)}
-								className="absolute right-3 top-1/2 transform -translate-y-1/2 text-vscode-descriptionForeground hover:text-vscode-foreground">
+								className="ml-2 mb-1 text-vscode-descriptionForeground hover:text-vscode-foreground">
 								{showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
 							</button>
 						</div>

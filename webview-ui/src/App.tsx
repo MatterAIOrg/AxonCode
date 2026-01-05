@@ -89,6 +89,7 @@ const App = () => {
 		renderContext,
 		mdmCompliant,
 		apiConfiguration, // kilocode_change
+		codeReviewSettings, // kilocode_change
 	} = useExtensionState()
 
 	// Create a persistent state manager
@@ -276,7 +277,14 @@ const App = () => {
 
 	// Do not conditionally load ChatView, it's expensive and there's state we
 	// don't want to lose (user input, disableInput, askResponse promise, etc.)
-	return showWelcome ? (
+	// Allow settings access even when showWelcome is true
+
+	// Check if enterprise credentials are set (for review-only mode)
+	const hasEnterpriseHost = !!codeReviewSettings?.enterpriseHost
+	const hasEnterpriseApiKey = !!codeReviewSettings?.enterpriseApiKey
+	const hasEnterpriseCredentials = hasEnterpriseHost && hasEnterpriseApiKey
+
+	return showWelcome && tab !== "settings" && !hasEnterpriseCredentials ? (
 		<WelcomeView />
 	) : (
 		<>

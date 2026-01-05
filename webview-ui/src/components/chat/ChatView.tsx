@@ -52,9 +52,8 @@ import { useAutoApprovalState } from "@src/hooks/useAutoApprovalState"
 import { useAutoApprovalToggles } from "@src/hooks/useAutoApprovalToggles"
 // import { CloudUpsellDialog } from "@src/components/cloud/CloudUpsellDialog" // kilocode_change: unused
 
-import TelemetryBanner from "../common/TelemetryBanner" // kilocode_change: deactivated for now
+// import TelemetryBanner from "../common/TelemetryBanner" // kilocode_change: deactivated for now
 // import VersionIndicator from "../common/VersionIndicator" // kilocode_change: unused
-import { OrganizationSelector } from "../kilocode/common/OrganizationSelector"
 // import { useTaskSearch } from "../history/useTaskSearch" // kilocode_change: unused
 import HistoryPreview from "../history/HistoryPreview"
 import Announcement from "./Announcement"
@@ -139,7 +138,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		alwaysAllowFollowupQuestions,
 		alwaysAllowUpdateTodoList,
 		customModes,
-		telemetrySetting,
+		// telemetrySetting,
 		hasSystemPromptOverride,
 		historyPreviewCollapsed, // Added historyPreviewCollapsed
 		soundEnabled,
@@ -149,7 +148,18 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		sendMessageOnEnter, // kilocode_change
 	} = useExtensionState()
 
-	const isReviewOnlyMode = codeReviewSettings?.reviewOnlyMode || false
+	const isReviewOnlyMode = useMemo(() => {
+		const hasEnterpriseHost = !!codeReviewSettings?.enterpriseHost
+		const hasEnterpriseApiKey = !!codeReviewSettings?.enterpriseApiKey
+		const hasKilocodeToken = !!apiConfiguration?.kilocodeToken
+
+		// Auto-enable review only mode when enterprise credentials are set but no kilocode token
+		if (hasEnterpriseHost && hasEnterpriseApiKey && !hasKilocodeToken) {
+			return true
+		}
+
+		return codeReviewSettings?.reviewOnlyMode || false
+	}, [codeReviewSettings, apiConfiguration])
 
 	const messagesRef = useRef(messages)
 
@@ -2083,8 +2093,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const areButtonsVisible = showScrollToBottom || primaryButtonText || secondaryButtonText
 
-	const showTelemetryBanner = telemetrySetting === "unset" // kilocode_change
-
 	return (
 		<div
 			data-testid="chat-view"
@@ -2147,11 +2155,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				</>
 			) : (
 				<div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 relative">
-					{!showTelemetryBanner && (
+					{/* {!showTelemetryBanner && (
 						<div>
 							<OrganizationSelector className="absolute top-2 right-3" />
 						</div>
-					)}
+					)} */}
 					{/* kilocode_change start: changed the classes to support notifications */}
 					<div className="w-full h-full flex flex-col gap-4 px-3.5 transition-all duration-300">
 						{/* kilocode_change end */}
@@ -2165,12 +2173,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						<RooHero /> */}
 
 						{/* kilocode_change start: KilocodeNotifications + Layout fixes */}
-						{showTelemetryBanner && <TelemetryBanner />}
-						{!showTelemetryBanner && (
-							<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
-								<KilocodeNotifications />
-							</div>
-						)}
+						{/* TelemetryBanner removed */}
+						<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
+							<KilocodeNotifications />
+						</div>
 						<div className="flex flex-grow flex-col justify-start gap-4">
 							{/* kilocode_change end */}
 							{/* <p className="text-vscode-editor-foreground leading-normal font-vscode-font-family text-center text-balance max-w-[380px] mx-auto my-0">

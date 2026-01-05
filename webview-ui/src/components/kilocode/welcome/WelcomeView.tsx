@@ -9,6 +9,7 @@ import { ButtonLink } from "../common/ButtonLink"
 import ApiOptions from "../../settings/ApiOptions"
 import KiloCodeAuth from "../common/KiloCodeAuth"
 import { getKiloCodeBackendSignInUrl } from "../helpers"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 
 const WelcomeView = () => {
 	const {
@@ -63,10 +64,31 @@ const WelcomeView = () => {
 						)}
 					</>
 				) : (
-					<div className="bg-vscode-sideBar-background p-4">
+					<div className="flex flex-col items-center pr-3">
 						<KiloCodeAuth onManualConfigClick={() => setManualConfig(true)} />
 					</div>
 				)}
+
+				{/* Always show the Configure Enterprise Settings button */}
+				<div className="w-full mt-auto">
+					<VSCodeButton
+						appearance="secondary"
+						onClick={(e) => {
+							e.preventDefault()
+							window.postMessage(
+								{
+									type: "action",
+									action: "settingsButtonClicked",
+									values: { section: "codeReview" },
+								},
+								"*",
+							)
+						}}
+						className="w-full">
+						<span className="codicon codicon-settings-gear mr-2 text-sm"></span>
+						Configure Enterprise Settings
+					</VSCodeButton>
+				</div>
 			</TabContent>
 		</Tab>
 	)
