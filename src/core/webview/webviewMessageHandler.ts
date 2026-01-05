@@ -2240,6 +2240,36 @@ ${comment.suggestion}
 			const validated = codeReviewSettingsSchema.parse(values)
 			console.log("validated", validated)
 			await updateGlobalState("codeReviewSettings", validated)
+
+			// If both host and key are provided, ping the server
+			if (validated.enterpriseHost && validated.enterpriseApiKey) {
+				try {
+					const pingUrl = `${validated.enterpriseHost}/codereview/ping`
+					const response = await axios.get(pingUrl, {
+						headers: {
+							Authorization: `Bearer ${validated.enterpriseApiKey}`,
+						},
+					})
+
+					if (response.data?.valid === true) {
+						// Send toast message to webview
+						provider.postMessageToWebview({
+							type: "showToast",
+							toastType: "success",
+							toastMessage: "Enterprise server connected successfully",
+						})
+					}
+				} catch (error) {
+					console.error("Failed to ping enterprise server:", error)
+					// Send error toast message to webview
+					provider.postMessageToWebview({
+						type: "showToast",
+						toastType: "error",
+						toastMessage: "Failed to connect to enterprise server. Please check your host URL and API key.",
+					})
+				}
+			}
+
 			provider.postMessageToWebview({ type: "state", state: await provider.getStateToPostToWebview() })
 			break
 		}

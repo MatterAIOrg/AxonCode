@@ -33,6 +33,7 @@ interface SourceControlPanelProps {
 	isLoading: boolean
 	onRunCodeReview: () => void
 	onClose: () => void
+	hasKilocodeToken?: boolean
 }
 
 // Get file name from path
@@ -54,9 +55,11 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 	isLoading,
 	onRunCodeReview,
 	onClose,
+	hasKilocodeToken = true,
 }) => {
 	const [materialIconsBaseUri, setMaterialIconsBaseUri] = useState("")
 	const [isExpanded, setIsExpanded] = useState(true)
+	const [copyButtonText, setCopyButtonText] = useState<"Copy All" | "Copied!">("Copy All")
 
 	// Get the icons base uri on mount
 	useEffect(() => {
@@ -113,6 +116,34 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 		}, 500)
 	}
 
+	const handleCopyPrompt = async (comment: CodeReviewComment) => {
+		const promptText = `File: ${comment.path}
+Line: ${comment.startLine}${comment.endLine !== comment.startLine ? `-${comment.endLine}` : ""}
+
+Issue:
+${comment.body}
+
+Suggested Fix:
+${comment.suggestion}`
+
+		try {
+			await navigator.clipboard.writeText(promptText)
+		} catch (error) {
+			console.error("Failed to copy to clipboard:", error)
+			// Fallback for older browsers
+			const textArea = document.createElement("textarea")
+			textArea.value = promptText
+			document.body.appendChild(textArea)
+			textArea.select()
+			try {
+				document.execCommand("copy")
+			} catch (fallbackError) {
+				console.error("Fallback copy failed:", fallbackError)
+			}
+			document.body.removeChild(textArea)
+		}
+	}
+
 	const handleApplyAllFixes = () => {
 		if (!codeReviewResult) return
 		vscode.postMessage({
@@ -128,6 +159,52 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 		// If we want to close, we should call onClose(), but maybe user wants to see confirmation.
 		// Let's just apply for now.
 		onClose()
+	}
+
+	const handleCopyAllPrompts = async () => {
+		if (!codeReviewResult) return
+
+		// Build the prompts text
+		const promptsText = codeReviewResult.reviewComments
+			.map((comment, index) => {
+				return `Prompt ${index + 1}:
+File: ${comment.path}
+Line: ${comment.startLine}${comment.endLine !== comment.startLine ? `-${comment.endLine}` : ""}
+
+Issue:
+${comment.body}
+
+Suggested Fix:
+${comment.suggestion}
+`
+			})
+			.join("\n" + "=".repeat(80) + "\n\n")
+
+		try {
+			await navigator.clipboard.writeText(promptsText)
+			setCopyButtonText("Copied!")
+			// Reset back to "Copy All" after 2 seconds
+			setTimeout(() => {
+				setCopyButtonText("Copy All")
+			}, 2000)
+		} catch (error) {
+			console.error("Failed to copy to clipboard:", error)
+			// Fallback for older browsers
+			const textArea = document.createElement("textarea")
+			textArea.value = promptsText
+			document.body.appendChild(textArea)
+			textArea.select()
+			try {
+				document.execCommand("copy")
+				setCopyButtonText("Copied!")
+				setTimeout(() => {
+					setCopyButtonText("Copy All")
+				}, 2000)
+			} catch (fallbackError) {
+				console.error("Fallback copy failed:", fallbackError)
+			}
+			document.body.removeChild(textArea)
+		}
 	}
 
 	return (
@@ -282,9 +359,13 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 							)}
 						</div>
 						{codeReviewResult.reviewComments?.length > 0 && (
-							<VSCodeButton appearance="secondary" onClick={handleApplyAllFixes}>
-								<span className="codicon codicon-check-all mr-1" />
-								Apply All
+							<VSCodeButton
+								appearance="secondary"
+								onClick={hasKilocodeToken ? handleApplyAllFixes : handleCopyAllPrompts}>
+								<span
+									className={`codicon ${hasKilocodeToken ? "codicon-check-all" : "codicon-copy"} mr-1`}
+								/>
+								{hasKilocodeToken ? "Apply All" : copyButtonText}
 							</VSCodeButton>
 						)}
 					</div>
@@ -318,9 +399,15 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 												{getFileName(comment.path)}:{comment.startLine}
 												{comment.endLine !== comment.startLine && `-${comment.endLine}`}
 											</button>
-											<VSCodeButton appearance="primary" onClick={() => handleApplyFix(index)}>
-												<span className="codicon codicon-check mr-1" />
-												Apply
+											<VSCodeButton
+												appearance="primary"
+												onClick={() =>
+													hasKilocodeToken ? handleApplyFix(index) : handleCopyPrompt(comment)
+												}>
+												<span
+													className={`codicon ${hasKilocodeToken ? "codicon-check" : "codicon-copy"} mr-1`}
+												/>
+												{hasKilocodeToken ? "Apply" : "Copy"}
 											</VSCodeButton>
 										</div>
 										<div className="text-sm text-vscode-foreground mb-1.5">{comment.body}</div>

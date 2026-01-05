@@ -156,6 +156,7 @@ export interface ExtensionMessage {
 		| "showTimestamps" // kilocode_change
 		| "organizationSwitchResult"
 		| "implementPlan" // kilocode_change: Plan mode implementation
+		| "showToast" // kilocode_change
 	text?: string
 	// kilocode_change start
 	payload?:
@@ -230,6 +231,8 @@ export interface ExtensionMessage {
 		subtitle?: string
 		message: string
 	} // kilocode_change
+	toastType?: "success" | "error" | "info" | "warning" // kilocode_change
+	toastMessage?: string // kilocode_change
 	url?: string // kilocode_change
 	keybindings?: Record<string, string> // kilocode_change
 	setting?: string

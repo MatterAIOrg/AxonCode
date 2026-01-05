@@ -32,6 +32,7 @@ import { TooltipProvider } from "./components/ui/tooltip"
 import { STANDARD_TOOLTIP_DELAY } from "./components/ui/standard-tooltip"
 import { useKiloIdentity } from "./utils/kilocode/useKiloIdentity"
 import { MemoryWarningBanner } from "./kilocode/MemoryWarningBanner"
+import { ToastProvider, useToast } from "./components/ui/toast"
 
 type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account" | "cloud" | "profile" // kilocode_change: add "profile"
 
@@ -91,6 +92,7 @@ const App = () => {
 		apiConfiguration, // kilocode_change
 		codeReviewSettings, // kilocode_change
 	} = useExtensionState()
+	const { showToast } = useToast()
 
 	// Create a persistent state manager
 	const marketplaceStateManager = useMemo(() => new MarketplaceViewStateManager(), [])
@@ -209,9 +211,16 @@ const App = () => {
 			if (message.type === "acceptInput") {
 				chatViewRef.current?.acceptInput()
 			}
+
+			if (message.type === "showToast" && message.toastType && message.toastMessage) {
+				showToast({
+					type: message.toastType,
+					message: message.toastMessage,
+				})
+			}
 		},
-		// kilocode_change: add tab
-		[tab, switchTab],
+		// kilocode_change: add tab and showToast
+		[tab, switchTab, showToast],
 	)
 
 	useEvent("message", onMessage)
@@ -412,7 +421,9 @@ const AppWithProviders = () => (
 			<TranslationProvider>
 				<QueryClientProvider client={queryClient}>
 					<TooltipProvider delayDuration={STANDARD_TOOLTIP_DELAY}>
-						<App />
+						<ToastProvider>
+							<App />
+						</ToastProvider>
 					</TooltipProvider>
 				</QueryClientProvider>
 			</TranslationProvider>

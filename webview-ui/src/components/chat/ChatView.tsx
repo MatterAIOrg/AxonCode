@@ -2359,6 +2359,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						isLoading={isCodeReviewLoading}
 						onRunCodeReview={handleRunCodeReview}
 						onClose={() => setShowSourceControl(false)}
+						hasKilocodeToken={!!apiConfiguration?.kilocodeToken}
 					/>
 				</div>
 			)}
