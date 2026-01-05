@@ -2242,7 +2242,7 @@ ${comment.suggestion}
 			// If both host and key are provided, ping the server
 			if (validated.enterpriseHost && validated.enterpriseApiKey) {
 				try {
-					const pingUrl = `${validated.enterpriseHost}/codereview/ping`
+					const pingUrl = `${validated.enterpriseHost?.replace(/\/$/, "")}/codereview/ping`
 					const response = await axios.get(pingUrl, {
 						headers: {
 							Authorization: `Bearer ${validated.enterpriseApiKey}`,
