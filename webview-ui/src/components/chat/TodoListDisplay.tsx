@@ -93,7 +93,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 						width: 8,
 						height: 8,
 						borderRadius: "50%",
-						background: "var(--vscode-charts-yellow)",
+						background: "var(--color-matterai-yellow)",
 						marginRight: 8,
 						marginLeft: 2,
 						flexShrink: 0,
@@ -122,14 +122,14 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 
 	return (
 		<div
-			className="border border-t-0 rounded-b-xs relative"
+			className="border border-t-0 rounded-b-lg relative"
 			style={{
 				margin: "0px 0px 0px 8px",
 				padding: "6px 10px",
 				width: "96%",
 				borderRadius: "0px 0px 6px 6px",
 				background: "var(--vscode-editor-background,transparent)",
-				borderColor: "var(--vscode-panel-border)",
+				borderColor: "var(--color-matterai-border)",
 			}}>
 			<div
 				style={{
@@ -148,7 +148,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 						color: allCompleted
 							? "var(--color-matterai-green)"
 							: mostImportantTodo?.status === "in_progress"
-								? "var(--vscode-charts-yellow)"
+								? "var(--color-matterai-yellow)"
 								: "var(--vscode-foreground)",
 						flex: 1,
 						overflow: "hidden",
@@ -289,7 +289,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 												width: 8,
 												height: 8,
 												borderRadius: "50%",
-												background: "var(--vscode-charts-yellow)",
+												background: "var(--color-matterai-yellow)",
 												marginRight: 8,
 												marginTop: 7,
 												flexShrink: 0,
@@ -332,7 +332,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 													todo.status === "completed"
 														? "var(--vscode-foreground)"
 														: todo.status === "in_progress"
-															? "var(--vscode-charts-yellow)"
+															? "var(--color-matterai-yellow)"
 															: "var(--color-vscode-descriptionForeground)",
 												wordBreak: "break-word",
 											}}>

@@ -209,7 +209,7 @@ ${comment.suggestion}
 
 	return (
 		<div
-			className="flex flex-col w-full border border-vscode-editorWidget-border rounded-lg overflow-hidden bg-vscode-editor-background"
+			className="flex flex-col w-full border border-[var(--color-matterai-border)] rounded-lg overflow-hidden bg-vscode-editor-background"
 			style={{
 				width: "100%",
 				boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",

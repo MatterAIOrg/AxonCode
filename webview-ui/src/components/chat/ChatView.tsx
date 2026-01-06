@@ -2216,7 +2216,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							{/* Show the task history preview if expanded and tasks exist */}
 							{/* AI Code Reviews Setup Box - Hidden in review only mode */}
 							{!isReviewOnlyMode && (
-								<div className="w-full min-w-0 mb-1 p-3 border border-vscode-input-border rounded-xl bg-vscode-editor-background/50">
+								<div className="w-full min-w-0 mb-1 p-3 border border-[var(--color-matterai-border)] rounded-xl bg-vscode-editor-background/50">
 									<div className="flex flex-col gap-2">
 										{/* Top section: Title/Subtitle left, Icons right */}
 										<div className="flex justify-between gap-4 items-center min-w-0">
@@ -2244,6 +2244,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 														/>
 													</div>
 												</div>
+												<p className="text-xs p-0 m-0 font-regular text-vscode-foreground opacity-70">
+													Close PRs 50% faster with 80% less bugs
+												</p>
 												{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
 												70% faster code reviews
 											</p> */}
@@ -2265,7 +2268,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 															variant="secondary"
 															href="https://docs.matterai.so/quickstart-ai-code-review-agent"
 															style={{ borderRadius: "6px" }}>
-															Read Docs
+															View Demo
 														</VSCodeButtonLink>
 													</div>
 												</div>
@@ -2351,7 +2354,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}}
 			/>
 			{!task && showSourceControl && (
-				<div className="z-[1000] w-full min-w-0 px-4 mb-0.5">
+				<div className="z-[1000] w-full min-w-0 px-4 mb-1">
 					<SourceControlPanel
 						fileChanges={_gitChangesForReview}
 						codeReviewResult={codeReviewResults}
@@ -2368,7 +2371,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1"}`}>
 					<VSCodeButton
 						appearance="secondary"
-						className="flex w-full min-w-full rounded-md border border-white/10 outline-none bg-[var(--color-matterai-green)]"
+						style={{
+							border: "1px solid var(--color-matterai-border)",
+						}}
+						className="flex w-full min-w-full border border-[var(--color-matterai-border)] rounded-lg"
 						onClick={() => {
 							setShowSourceControl(true)
 							// If there's an error, automatically retry when opening

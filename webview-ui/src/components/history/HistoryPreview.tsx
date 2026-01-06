@@ -30,7 +30,7 @@ const HistoryPreview = ({ taskHistoryVersion }: { taskHistoryVersion: number } /
 		<div className="flex flex-col gap-1">
 			{tasks.length !== 0 && (
 				<>
-					{tasks.slice(0, 6).map((item) => (
+					{tasks.slice(0, 3).map((item) => (
 						<TaskItem key={item.id} item={item} variant="compact" />
 					))}
 					<div className="ml-3 mt-1">

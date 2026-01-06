@@ -32,8 +32,8 @@ const STATUS_OPTIONS = [
 	{
 		value: "in_progress",
 		label: "In Progress",
-		color: "var(--vscode-charts-yellow)",
-		border: "var(--vscode-charts-yellow)",
+		color: "var(--color-matterai-yellow)",
+		border: "var(--color-matterai-yellow)",
 		bg: "rgba(255, 221, 51, 0.15)",
 	},
 	{
@@ -152,7 +152,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 					<div className="flex items-center w-full" style={{ width: "100%" }}>
 						<span
 							className="codicon codicon-feedback mr-1.5"
-							style={{ color: "var(--vscode-charts-yellow)" }}
+							style={{ color: "var(--color-matterai-yellow)" }}
 						/>
 						<span className="font-bold mr-2" style={{ fontWeight: "bold" }}>
 							User Edit
@@ -229,7 +229,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 												width: 10,
 												height: 10,
 												borderRadius: "50%",
-												background: "var(--vscode-charts-yellow)",
+												background: "var(--color-matterai-yellow)",
 												marginRight: 6,
 												marginTop: 7,
 												flexShrink: 0,
@@ -298,7 +298,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 														todo.status === "completed"
 															? "var(--vscode-foreground)"
 															: todo.status === "in_progress"
-																? "var(--vscode-charts-yellow)"
+																? "var(--color-matterai-yellow)"
 																: "var(--color-vscode-descriptionForeground)",
 													fontSize: 13,
 													marginRight: 6,

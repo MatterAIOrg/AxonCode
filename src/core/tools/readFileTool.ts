@@ -238,11 +238,6 @@ export async function readFileTool(
 		}
 	}
 
-	// kilocode_change start: yolo mode
-	const state = await cline.providerRef.deref()?.getState()
-	const isYoloMode = state?.yoloMode ?? false
-	// kilocode_change end
-
 	try {
 		// First validate all files and prepare for batch approval
 		const filesToApprove: FileResult[] = []
@@ -292,37 +287,18 @@ export async function readFileTool(
 			}
 		}
 
-		// Handle batch approval if there are multiple files to approve
+		// Handle batch files - auto-approve all
 		if (filesToApprove.length > 1) {
-			const { maxReadFileLine = -1 } = (await cline.providerRef.deref()?.getState()) ?? {}
-
-			// Prepare batch file data
+			// Create batch message to show in UI
 			const batchFiles = filesToApprove.map((fileResult) => {
 				const relPath = fileResult.path
 				const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
-				const isOutsideWorkspace = isPathOutsideWorkspace(fullPath)
-
-				// Create line snippet for this file
-				let lineSnippet = ""
-				if (fileResult.limit !== undefined) {
-					const start = fileResult.offset ?? 1
-					const end = start + fileResult.limit - 1
-					lineSnippet = t("tools:readFile.linesRange", { start, end })
-				} else if (maxReadFileLine === 0) {
-					lineSnippet = t("tools:readFile.definitionsOnly")
-				} else if (maxReadFileLine > 0) {
-					lineSnippet = t("tools:readFile.maxLines", { max: maxReadFileLine })
-				}
-
-				const readablePath = getReadablePath(cline.cwd, relPath)
-				const key = `${readablePath}${lineSnippet ? ` (${lineSnippet})` : ""}`
-
 				return {
-					path: readablePath,
-					lineSnippet,
-					isOutsideWorkspace,
-					key,
-					content: fullPath, // Include full path for content
+					path: getReadablePath(cline.cwd, relPath),
+					lineSnippet: "",
+					isOutsideWorkspace: isPathOutsideWorkspace(fullPath),
+					key: relPath,
+					content: fullPath,
 				}
 			})
 
@@ -331,140 +307,43 @@ export async function readFileTool(
 				batchFiles,
 			} satisfies ClineSayTool)
 
-			// kilocode_change start: yolo mode
-			const { response, text, images } = isYoloMode
-				? { response: "yesButtonClicked" }
-				: await cline.ask("tool", completeMessage, false)
-			// kilocode_change end
+			// kilocode_change: Auto-approve - show in UI and immediately approve
+			// Use setImmediate to trigger approval AFTER ask starts waiting for response
+			setImmediate(() => {
+				cline.handleWebviewAskResponse("yesButtonClicked", undefined, undefined)
+			})
+			await cline.ask("tool", completeMessage, false)
 
-			// Process batch response
-			if (response === "yesButtonClicked") {
-				// Approve all files
-				if (text) {
-					await cline.say("user_feedback", text, images)
-				}
-				filesToApprove.forEach((fileResult) => {
-					updateFileResult(fileResult.path, {
-						status: "approved",
-						feedbackText: text,
-						feedbackImages: images,
-					})
+			// Auto-approve all files
+			filesToApprove.forEach((fileResult) => {
+				updateFileResult(fileResult.path, {
+					status: "approved",
 				})
-			} else if (response === "noButtonClicked") {
-				// Deny all files
-				if (text) {
-					await cline.say("user_feedback", text, images)
-				}
-				cline.didRejectTool = true
-				filesToApprove.forEach((fileResult) => {
-					updateFileResult(fileResult.path, {
-						status: "denied",
-						xmlContent: `<file><path>${fileResult.path}</path><status>Denied by user</status></file>`,
-						feedbackText: text,
-						feedbackImages: images,
-					})
-				})
-			} else {
-				// Handle individual permissions from objectResponse
-				// if (text) {
-				// 	await cline.say("user_feedback", text, images)
-				// }
-
-				try {
-					const individualPermissions = JSON.parse(text || "{}")
-					let hasAnyDenial = false
-
-					batchFiles.forEach((batchFile, index) => {
-						const fileResult = filesToApprove[index]
-						const approved = individualPermissions[batchFile.key] === true
-
-						if (approved) {
-							updateFileResult(fileResult.path, {
-								status: "approved",
-							})
-						} else {
-							hasAnyDenial = true
-							updateFileResult(fileResult.path, {
-								status: "denied",
-								xmlContent: `<file><path>${fileResult.path}</path><status>Denied by user</status></file>`,
-							})
-						}
-					})
-
-					if (hasAnyDenial) {
-						cline.didRejectTool = true
-					}
-				} catch (error) {
-					// Fallback: if JSON parsing fails, deny all files
-					console.error("Failed to parse individual permissions:", error)
-					cline.didRejectTool = true
-					filesToApprove.forEach((fileResult) => {
-						updateFileResult(fileResult.path, {
-							status: "denied",
-							xmlContent: `--- ${fileResult.path} ---\n[denied] Access denied by user`,
-						})
-					})
-				}
-			}
+			})
 		} else if (filesToApprove.length === 1) {
-			// Handle single file approval (existing logic)
+			// Single file - show in UI and auto-approve
 			const fileResult = filesToApprove[0]
 			const relPath = fileResult.path
 			const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
 			const isOutsideWorkspace = isPathOutsideWorkspace(fullPath)
-			const { maxReadFileLine = -1 } = (await cline.providerRef.deref()?.getState()) ?? {}
-
-			// Create line snippet for approval message
-			let lineSnippet = ""
-			if (fileResult.limit !== undefined) {
-				const start = fileResult.offset ?? 1
-				const end = start + fileResult.limit - 1
-				lineSnippet = t("tools:readFile.linesRange", { start, end })
-			} else if (maxReadFileLine === 0) {
-				lineSnippet = t("tools:readFile.definitionsOnly")
-			} else if (maxReadFileLine > 0) {
-				lineSnippet = t("tools:readFile.maxLines", { max: maxReadFileLine })
-			}
 
 			const completeMessage = JSON.stringify({
 				tool: "readFile",
 				path: getReadablePath(cline.cwd, relPath),
 				isOutsideWorkspace,
 				content: fullPath,
-				reason: lineSnippet,
 			} satisfies ClineSayTool)
 
-			// kilocode_change start: yolo mode
-			const { response, text, images } = isYoloMode
-				? { response: "yesButtonClicked" }
-				: await cline.ask("tool", completeMessage, false)
-			// kilocode_change end
+			// kilocode_change: Auto-approve - show in UI and immediately approve
+			// Use setImmediate to trigger approval AFTER ask starts waiting for response
+			setImmediate(() => {
+				cline.handleWebviewAskResponse("yesButtonClicked", undefined, undefined)
+			})
+			await cline.ask("tool", completeMessage, false)
 
-			if (response !== "yesButtonClicked") {
-				// Handle both messageResponse and noButtonClicked with text
-				if (text) {
-					await cline.say("user_feedback", text, images)
-				}
-				cline.didRejectTool = true
-
-				updateFileResult(relPath, {
-					status: "denied",
-					xmlContent: `<file><path>${relPath}</path><status>Denied by user</status></file>`,
-					feedbackText: text,
-					feedbackImages: images,
-				})
-			} else {
-				// Handle yesButtonClicked with text
-				if (text) {
-					await cline.say("user_feedback", text, images)
-				}
-
-				updateFileResult(relPath, {
-					status: "approved",
-					feedbackText: text,
-					feedbackImages: images,
-				})
-			}
+			updateFileResult(fileResult.path, {
+				status: "approved",
+			})
 		}
 
 		// Track total image memory usage across all files
@@ -568,7 +447,7 @@ export async function readFileTool(
 					const endLine = startLine + fileResult.limit - 1
 					const content = addLineNumbers(await readLines(fullPath, endLine - 1, startLine - 1), startLine)
 					updateFileResult(relPath, {
-						xmlContent: `--- ${relPath} ---\n${content}`,
+						xmlContent: content,
 					})
 					continue
 				}
@@ -578,8 +457,9 @@ export async function readFileTool(
 					try {
 						const defResult = await parseSourceCodeDefinitionsForFile(fullPath, cline.rooIgnoreController)
 						if (defResult) {
+							// kilocode_change: Return raw definitions without path header
 							updateFileResult(relPath, {
-								xmlContent: `--- ${relPath} (definitions only, ${totalLines} total lines) ---\n${defResult}`,
+								xmlContent: `[definitions only, ${totalLines} total lines]\n${defResult}`,
 							})
 						}
 					} catch (error) {
@@ -597,7 +477,8 @@ export async function readFileTool(
 				// Handle files exceeding line threshold
 				if (maxReadFileLine > 0 && totalLines > maxReadFileLine) {
 					const content = addLineNumbers(await readLines(fullPath, maxReadFileLine - 1, 0))
-					let fileOutput = `--- ${relPath} (showing ${maxReadFileLine} of ${totalLines} lines) ---\n${content}`
+					// kilocode_change: Return content without path header, just note truncation
+					let fileOutput = `[showing ${maxReadFileLine} of ${totalLines} lines]\n${content}`
 
 					try {
 						const defResult = await parseSourceCodeDefinitionsForFile(fullPath, cline.rooIgnoreController)
@@ -630,7 +511,8 @@ export async function readFileTool(
 				}
 				// kilocode_change end
 
-				let fileOutput = totalLines > 0 ? `--- ${relPath} ---\n${content}` : `--- ${relPath} (empty) ---`
+				// kilocode_change: Return raw content without path header
+				let fileOutput = totalLines > 0 ? content : `(empty file: ${relPath})`
 
 				// Track file read
 				await cline.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)

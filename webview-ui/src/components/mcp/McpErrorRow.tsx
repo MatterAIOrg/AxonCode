@@ -13,7 +13,7 @@ export const McpErrorRow = ({ error }: McpErrorRowProps) => {
 			case "error":
 				return "var(--vscode-testing-iconFailed)"
 			case "warn":
-				return "var(--vscode-charts-yellow)"
+				return "var(--color-matterai-yellow)"
 			case "info":
 				return "var(--vscode-testing-iconPassed)"
 		}

@@ -46,7 +46,7 @@ classes at build time based on the @theme */
 --sideBarSectionHeader-background: var(--vscode-sideBarSectionHeader-background);
 --sideBarSectionHeader-border: var(--vscode-sideBarSectionHeader-border);
 --charts-green: var(--vscode-charts-green);
---charts-yellow: var(--vscode-charts-yellow);
+--charts-yellow: var(--color-matterai-yellow);
 --charts-red: var(--vscode-charts-red);
 --charts-blue: var(--vscode-charts-blue);
 --charts-orange: var(--vscode-charts-orange);
@@ -85,7 +85,7 @@ classes at build time based on the @theme */
 --ring: var(--vscode-input-border);
 --chart-1: var(--vscode-charts-red);
 --chart-2: var(--vscode-charts-blue);
---chart-3: var(--vscode-charts-yellow);
+--chart-3: var(--color-matterai-yellow);
 --chart-4: var(--vscode-charts-orange);
 --chart-5: var(--vscode-charts-green);
 
@@ -201,7 +201,7 @@ classes at build time based on the @theme */
 --color-vscode-sideBarSectionHeader-background: var(--vscode-sideBarSectionHeader-background);
 --color-vscode-sideBarSectionHeader-border: var(--vscode-sideBarSectionHeader-border);
 --color-vscode-charts-green: var(--vscode-charts-green);
---color-vscode-charts-yellow: var(--vscode-charts-yellow);
+--color-vscode-charts-yellow: var(--color-matterai-yellow);
 --color-vscode-charts-red: var(--vscode-charts-red);
 --color-vscode-charts-blue: var(--vscode-charts-blue);
 --color-vscode-charts-orange: var(--vscode-charts-orange);

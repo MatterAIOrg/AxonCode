@@ -257,7 +257,8 @@ export async function presentAssistantMessage(cline: Task) {
 			const pushToolResult_withToolUseId_kilocode = (
 				...items: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[]
 			) => {
-				if (block.toolUseId) {
+				// Check for non-empty toolUseId - empty string should be treated as missing
+				if (block.toolUseId && block.toolUseId.length > 0) {
 					cline.userMessageContent.push({ type: "tool_result", tool_use_id: block.toolUseId, content: items })
 				} else {
 					cline.userMessageContent.push(...items)
@@ -295,7 +296,11 @@ export async function presentAssistantMessage(cline: Task) {
 			const pushToolResult = (content: ToolResponse) => {
 				// kilocode_change start
 				const items = new Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam>()
-				items.push({ type: "text", text: `${toolDescription()} Result:` })
+
+				// Skip the tool description prefix for read_file - just return raw content
+				if (block.name !== "read_file") {
+					items.push({ type: "text", text: `${toolDescription()} Result:` })
+				}
 
 				if (typeof content === "string") {
 					items.push({ type: "text", text: content || "(tool did not return anything)" })
