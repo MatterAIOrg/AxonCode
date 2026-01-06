@@ -335,22 +335,20 @@ export async function executeCommand(
 				}
 			} else if (exitDetails.exitCode === undefined) {
 				result += "<VSCE exit code is undefined: terminal output and command execution status is unknown.>"
-				exitStatus = `Exit code: <undefined, notify user>`
+				exitStatus = `Exit code → <undefined, notify user>`
 			} else {
 				if (exitDetails.exitCode !== 0) {
 					exitStatus += "Command execution was not successful, inspect the cause and adjust as needed.\n"
 				}
 
-				exitStatus += `Exit code: ${exitDetails.exitCode}`
+				exitStatus += `Exit code → ${exitDetails.exitCode}`
 			}
 		} else {
 			result += "<VSCE exitDetails == undefined: terminal output and command execution status is unknown.>"
-			exitStatus = `Exit code: <undefined, notify user>`
+			exitStatus = `Exit code → <undefined, notify user>`
 		}
 
-		let workingDirInfo = ` within working directory '${terminal.getCurrentWorkingDirectory().toPosix()}'`
-
-		return [false, `Command executed in terminal ${workingDirInfo}. ${exitStatus}\nOutput:\n${result}`]
+		return [false, `${exitStatus}\nOutput →\n${result}`]
 	} else {
 		return [
 			false,

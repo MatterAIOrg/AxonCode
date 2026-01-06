@@ -1,5 +1,5 @@
 {
-	"extension.displayName": "Axon Code AI Agent",
+	"extension.displayName": "Axon AI Coding Agent | Code Reviews",
 	"extension.description": "Open Source AI coding assistant for planning, building, and fixing code.",
 	"views.contextMenu.label": "Axon Code",
 	"views.terminalMenu.label": "Axon Code",
@@ -53,7 +53,6 @@
 	"ghost.commands.cancelSuggestions": "Cancel Suggested Edits",
 	"ghost.commands.applyCurrentSuggestion": "Apply Current Suggested Edit",
 	"ghost.commands.applyAllSuggestions": "Apply All Suggested Edits",
-
 	"ghost.commands.goToNextSuggestion": "Go To Next Suggestion",
 	"ghost.commands.goToPreviousSuggestion": "Go To Previous Suggestion"
 }

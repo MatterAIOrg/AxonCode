@@ -297,11 +297,7 @@ export async function presentAssistantMessage(cline: Task) {
 				// kilocode_change start
 				const items = new Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam>()
 
-				// Skip the tool description prefix for read_file - just return raw content
-				if (block.name !== "read_file") {
-					items.push({ type: "text", text: `${toolDescription()} Result:` })
-				}
-
+				// No prefix - just return raw tool output
 				if (typeof content === "string") {
 					items.push({ type: "text", text: content || "(tool did not return anything)" })
 				} else {

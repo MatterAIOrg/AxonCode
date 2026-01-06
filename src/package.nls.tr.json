@@ -1,5 +1,5 @@
 {
-	"extension.displayName": "Axon Code AI Agent",
+	"extension.displayName": "Axon AI Coding Agent | Code Reviews",
 	"extension.description": "Kod planlama, oluşturma ve düzeltme için açık kaynaklı yapay zeka kodlama asistanı.",
 	"command.newTask.title": "Yeni Görev",
 	"command.explainCode.title": "Kodu Açıkla",

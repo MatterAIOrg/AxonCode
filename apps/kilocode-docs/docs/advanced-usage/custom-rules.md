@@ -4,7 +4,7 @@
   url="https://youtu.be/GF0vjB8NxYg"
 />
 
-Custom rules provide a powerful way to define project-specific and global behaviors and constraints for the Axon Code AI agent. With custom rules, you can ensure consistent formatting, restrict access to sensitive files, enforce coding standards, and customize the AI's behavior for your specific project needs or across all projects.
+Custom rules provide a powerful way to define project-specific and global behaviors and constraints for the Axon AI Coding Agent | Code Reviews. With custom rules, you can ensure consistent formatting, restrict access to sensitive files, enforce coding standards, and customize the AI's behavior for your specific project needs or across all projects.
 
 ## Overview
 
