@@ -25,27 +25,29 @@ import {
 } from "./helpers/imageHelpers"
 
 export function getReadFileToolDescription(blockName: string, blockParams: any): string {
-	// Handle both single path and multiple files via args
+	// Handle both single file_path and multiple files via args
 	// kilocode_change start
 	if (blockParams.files && Array.isArray(blockParams.files)) {
 		return getNativeReadFileToolDescription(blockName, parseNativeFiles(blockParams.files))
 		// kilocode_change end
+	} else if (blockParams.file_path) {
+		// New single file format with file_path
+		return `[${blockName} '${blockParams.file_path}']`
 	} else if (blockParams.args) {
 		try {
 			const parsed = parseXml(blockParams.args) as any
 			const files = Array.isArray(parsed.file) ? parsed.file : [parsed.file].filter(Boolean)
-			const paths = files.map((f: any) => f?.path).filter(Boolean) as string[]
+			const paths = files.map((f: any) => f?.path || f?.file_path).filter(Boolean) as string[]
 
 			if (paths.length === 0) {
 				return `[${blockName} with no valid paths]`
 			} else if (paths.length === 1) {
-				// Modified part for single file
-				return `[${blockName} for '${paths[0]}'. Reading multiple files at once is more efficient for the LLM. If other files are relevant to your current task, please read them simultaneously.]`
+				return `[${blockName} '${paths[0]}']`
 			} else if (paths.length <= 3) {
 				const pathList = paths.map((p) => `'${p}'`).join(", ")
-				return `[${blockName} for ${pathList}]`
+				return `[${blockName} ${pathList}]`
 			} else {
-				return `[${blockName} for ${paths.length} files]`
+				return `[${blockName} ${paths.length} files]`
 			}
 		} catch (error) {
 			console.error("Failed to parse read_file args XML for description:", error)
@@ -53,32 +55,28 @@ export function getReadFileToolDescription(blockName: string, blockParams: any):
 		}
 	} else if (blockParams.path) {
 		// Fallback for legacy single-path usage
-		// Modified part for single file (legacy)
-		return `[${blockName} for '${blockParams.path}'. Reading multiple files at once is more efficient for the LLM. If other files are relevant to your current task, please read them simultaneously.]`
+		return `[${blockName} '${blockParams.path}']`
 	} else {
 		return `[${blockName} with missing path/args]`
 	}
 }
 // Types
-interface LineRange {
-	start: number
-	end: number
-}
-
 interface FileEntry {
 	path?: string
-	lineRanges?: LineRange[]
+	offset?: number
+	limit?: number
 }
 
-// New interface to track file processing state
+// Interface to track file processing state
 interface FileResult {
 	path: string
 	status: "approved" | "denied" | "blocked" | "error" | "pending"
 	content?: string
 	error?: string
 	notice?: string
-	lineRanges?: LineRange[]
-	xmlContent?: string // Final XML content for this file
+	offset?: number
+	limit?: number
+	xmlContent?: string // Final content for this file
 	imageDataUrl?: string // Image data URL for image files
 	feedbackText?: string // User feedback text from approval/denial
 	feedbackImages?: any[] // User feedback images from approval/denial
@@ -94,8 +92,11 @@ export async function readFileTool(
 ) {
 	const argsXmlTag: string | undefined = block.params.args
 	const legacyPath: string | undefined = block.params.path
+	const newFilePath: string | undefined = (block.params as any).file_path // New: support file_path directly
 	const legacyStartLineStr: string | undefined = block.params.start_line
 	const legacyEndLineStr: string | undefined = block.params.end_line
+	const offsetParam: number | undefined = (block.params as any).offset
+	const limitParam: number | undefined = (block.params as any).limit
 
 	const nativeFiles: any[] | undefined = (block.params as any).files // kilocode_change: Native JSON format from OpenAI-style tool calls
 
@@ -106,9 +107,11 @@ export async function readFileTool(
 	// Handle partial message first
 	if (block.partial) {
 		let filePath = ""
-		// Prioritize args for partial, then legacy path
-		if (argsXmlTag) {
-			const match = argsXmlTag.match(/<file>.*?<path>([^<]+)<\/path>/s)
+		// Prioritize file_path, then args, then legacy path
+		if (newFilePath) {
+			filePath = newFilePath
+		} else if (argsXmlTag) {
+			const match = argsXmlTag.match(/<file>.*?<(?:file_)?path>([^<]+)<\/(?:file_)?path>/s)
 			if (match) filePath = match[1]
 		}
 		if (!filePath && legacyPath) {
@@ -116,7 +119,8 @@ export async function readFileTool(
 			filePath = legacyPath
 		}
 
-		const fullPath = filePath ? path.resolve(cline.cwd, filePath) : ""
+		// Support absolute paths using cross-platform check
+		const fullPath = path.isAbsolute(filePath) ? filePath : filePath ? path.resolve(cline.cwd, filePath) : ""
 		const sharedMessageProps: ClineSayTool = {
 			tool: "readFile",
 			path: getReadablePath(cline.cwd, filePath),
@@ -137,28 +141,40 @@ export async function readFileTool(
 	if (nativeFiles && Array.isArray(nativeFiles)) {
 		fileEntries.push(...parseNativeFiles(nativeFiles))
 		// kilocode_change end
+	} else if (newFilePath) {
+		// Handle new single file_path format with optional offset/limit
+		const fileEntry: FileEntry = {
+			path: newFilePath,
+			offset: offsetParam ?? 1,
+			limit: limitParam, // undefined means read complete file
+		}
+		fileEntries.push(fileEntry)
 	} else if (argsXmlTag) {
-		// Parse file entries from XML (new multi-file format)
+		// Parse file entries from XML (legacy multi-file format)
 		try {
 			const parsed = parseXml(argsXmlTag) as any
 			const files = Array.isArray(parsed.file) ? parsed.file : [parsed.file].filter(Boolean)
 
 			for (const file of files) {
-				if (!file.path) continue // Skip if no path in a file entry
+				const filePath = file.file_path || file.path
+				if (!filePath) continue // Skip if no path in a file entry
 
 				const fileEntry: FileEntry = {
-					path: file.path,
-					lineRanges: [],
+					path: filePath,
+					offset: file.offset ?? 1,
+					limit: file.limit, // undefined means read complete file
 				}
 
+				// Legacy support: convert line_range to offset+limit
 				if (file.line_range) {
 					const ranges = Array.isArray(file.line_range) ? file.line_range : [file.line_range]
-					for (const range of ranges) {
-						const match = String(range).match(/(\d+)-(\d+)/) // Ensure range is treated as string
+					if (ranges.length > 0) {
+						const match = String(ranges[0]).match(/(\d+)-(\d+)/)
 						if (match) {
 							const [, start, end] = match.map(Number)
 							if (!isNaN(start) && !isNaN(end)) {
-								fileEntry.lineRanges?.push({ start, end })
+								fileEntry.offset = start
+								fileEntry.limit = end - start + 1
 							}
 						}
 					}
@@ -168,23 +184,26 @@ export async function readFileTool(
 		} catch (error) {
 			const errorMessage = `Failed to parse read_file XML args: ${error instanceof Error ? error.message : String(error)}`
 			await handleError("parsing read_file args", new Error(errorMessage))
-			pushToolResult(`<files><error>${errorMessage}</error></files>`)
+			pushToolResult(`[error] ${errorMessage}`)
 			return
 		}
 	} else if (legacyPath) {
 		// Handle legacy single file path as a fallback
-		console.warn("[readFileTool] Received legacy 'path' parameter. Consider updating to use 'args' structure.")
+		console.warn("[readFileTool] Received legacy 'path' parameter. Consider updating to use 'file_path'.")
 
 		const fileEntry: FileEntry = {
 			path: legacyPath,
-			lineRanges: [],
+			offset: 1,
+			limit: undefined, // Read complete file by default
 		}
 
+		// Legacy support: convert start_line/end_line to offset+limit
 		if (legacyStartLineStr && legacyEndLineStr) {
 			const start = parseInt(legacyStartLineStr, 10)
 			const end = parseInt(legacyEndLineStr, 10)
 			if (!isNaN(start) && !isNaN(end) && start > 0 && end > 0) {
-				fileEntry.lineRanges?.push({ start, end })
+				fileEntry.offset = start
+				fileEntry.limit = end - start + 1
 			} else {
 				console.warn(
 					`[readFileTool] Invalid legacy line range for ${legacyPath}: start='${legacyStartLineStr}', end='${legacyEndLineStr}'`,
@@ -194,12 +213,12 @@ export async function readFileTool(
 		fileEntries.push(fileEntry)
 	}
 
-	// If, after trying both new and legacy, no valid file entries are found.
+	// If, after trying all formats, no valid file entries are found.
 	if (fileEntries.length === 0) {
 		cline.consecutiveMistakeCount++
 		cline.recordToolError("read_file")
-		const errorMsg = await cline.sayAndCreateMissingParamError("read_file", "args (containing valid file paths)")
-		pushToolResult(`<files><error>${errorMsg}</error></files>`)
+		const errorMsg = await cline.sayAndCreateMissingParamError("read_file", "file_path (absolute path to file)")
+		pushToolResult(`[error] ${errorMsg}`)
 		return
 	}
 
@@ -207,7 +226,8 @@ export async function readFileTool(
 	const fileResults: FileResult[] = fileEntries.map((entry) => ({
 		path: entry.path || "",
 		status: "pending",
-		lineRanges: entry.lineRanges,
+		offset: entry.offset,
+		limit: entry.limit,
 	}))
 
 	// Function to update file result status
@@ -218,11 +238,6 @@ export async function readFileTool(
 		}
 	}
 
-	// kilocode_change start: yolo mode
-	const state = await cline.providerRef.deref()?.getState()
-	const isYoloMode = state?.yoloMode ?? false
-	// kilocode_change end
-
 	try {
 		// First validate all files and prepare for batch approval
 		const filesToApprove: FileResult[] = []
@@ -230,36 +245,27 @@ export async function readFileTool(
 		for (let i = 0; i < fileResults.length; i++) {
 			const fileResult = fileResults[i]
 			const relPath = fileResult.path
-			const fullPath = path.resolve(cline.cwd, relPath)
 
-			// Validate line ranges first
-			if (fileResult.lineRanges) {
-				let hasRangeError = false
-				for (const range of fileResult.lineRanges) {
-					if (range.start > range.end) {
-						const errorMsg = "Invalid line range: end line cannot be less than start line"
-						updateFileResult(relPath, {
-							status: "blocked",
-							error: errorMsg,
-							xmlContent: `<file><path>${relPath}</path><error>Error reading file: ${errorMsg}</error></file>`,
-						})
-						await handleError(`reading file ${relPath}`, new Error(errorMsg))
-						hasRangeError = true
-						break
-					}
-					if (isNaN(range.start) || isNaN(range.end)) {
-						const errorMsg = "Invalid line range values"
-						updateFileResult(relPath, {
-							status: "blocked",
-							error: errorMsg,
-							xmlContent: `<file><path>${relPath}</path><error>Error reading file: ${errorMsg}</error></file>`,
-						})
-						await handleError(`reading file ${relPath}`, new Error(errorMsg))
-						hasRangeError = true
-						break
-					}
-				}
-				if (hasRangeError) continue
+			// Validate offset/limit if provided
+			if (fileResult.offset !== undefined && fileResult.offset < 1) {
+				const errorMsg = "Invalid offset: must be >= 1"
+				updateFileResult(relPath, {
+					status: "blocked",
+					error: errorMsg,
+					xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
+				})
+				await handleError(`reading file ${relPath}`, new Error(errorMsg))
+				continue
+			}
+			if (fileResult.limit !== undefined && fileResult.limit < 1) {
+				const errorMsg = "Invalid limit: must be >= 1"
+				updateFileResult(relPath, {
+					status: "blocked",
+					error: errorMsg,
+					xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
+				})
+				await handleError(`reading file ${relPath}`, new Error(errorMsg))
+				continue
 			}
 
 			// Then check RooIgnore validation
@@ -271,7 +277,7 @@ export async function readFileTool(
 					updateFileResult(relPath, {
 						status: "blocked",
 						error: errorMsg,
-						xmlContent: `<file><path>${relPath}</path><error>${errorMsg}</error></file>`,
+						xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
 					})
 					continue
 				}
@@ -281,38 +287,18 @@ export async function readFileTool(
 			}
 		}
 
-		// Handle batch approval if there are multiple files to approve
+		// Handle batch files - auto-approve all
 		if (filesToApprove.length > 1) {
-			const { maxReadFileLine = -1 } = (await cline.providerRef.deref()?.getState()) ?? {}
-
-			// Prepare batch file data
+			// Create batch message to show in UI
 			const batchFiles = filesToApprove.map((fileResult) => {
 				const relPath = fileResult.path
-				const fullPath = path.resolve(cline.cwd, relPath)
-				const isOutsideWorkspace = isPathOutsideWorkspace(fullPath)
-
-				// Create line snippet for this file
-				let lineSnippet = ""
-				if (fileResult.lineRanges && fileResult.lineRanges.length > 0) {
-					const ranges = fileResult.lineRanges.map((range) =>
-						t("tools:readFile.linesRange", { start: range.start, end: range.end }),
-					)
-					lineSnippet = ranges.join(", ")
-				} else if (maxReadFileLine === 0) {
-					lineSnippet = t("tools:readFile.definitionsOnly")
-				} else if (maxReadFileLine > 0) {
-					lineSnippet = t("tools:readFile.maxLines", { max: maxReadFileLine })
-				}
-
-				const readablePath = getReadablePath(cline.cwd, relPath)
-				const key = `${readablePath}${lineSnippet ? ` (${lineSnippet})` : ""}`
-
+				const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
 				return {
-					path: readablePath,
-					lineSnippet,
-					isOutsideWorkspace,
-					key,
-					content: fullPath, // Include full path for content
+					path: getReadablePath(cline.cwd, relPath),
+					lineSnippet: "",
+					isOutsideWorkspace: isPathOutsideWorkspace(fullPath),
+					key: relPath,
+					content: fullPath,
 				}
 			})
 
@@ -321,141 +307,43 @@ export async function readFileTool(
 				batchFiles,
 			} satisfies ClineSayTool)
 
-			// kilocode_change start: yolo mode
-			const { response, text, images } = isYoloMode
-				? { response: "yesButtonClicked" }
-				: await cline.ask("tool", completeMessage, false)
-			// kilocode_change end
+			// kilocode_change: Auto-approve - show in UI and immediately approve
+			// Use setImmediate to trigger approval AFTER ask starts waiting for response
+			setImmediate(() => {
+				cline.handleWebviewAskResponse("yesButtonClicked", undefined, undefined)
+			})
+			await cline.ask("tool", completeMessage, false)
 
-			// Process batch response
-			if (response === "yesButtonClicked") {
-				// Approve all files
-				if (text) {
-					await cline.say("user_feedback", text, images)
-				}
-				filesToApprove.forEach((fileResult) => {
-					updateFileResult(fileResult.path, {
-						status: "approved",
-						feedbackText: text,
-						feedbackImages: images,
-					})
+			// Auto-approve all files
+			filesToApprove.forEach((fileResult) => {
+				updateFileResult(fileResult.path, {
+					status: "approved",
 				})
-			} else if (response === "noButtonClicked") {
-				// Deny all files
-				if (text) {
-					await cline.say("user_feedback", text, images)
-				}
-				cline.didRejectTool = true
-				filesToApprove.forEach((fileResult) => {
-					updateFileResult(fileResult.path, {
-						status: "denied",
-						xmlContent: `<file><path>${fileResult.path}</path><status>Denied by user</status></file>`,
-						feedbackText: text,
-						feedbackImages: images,
-					})
-				})
-			} else {
-				// Handle individual permissions from objectResponse
-				// if (text) {
-				// 	await cline.say("user_feedback", text, images)
-				// }
-
-				try {
-					const individualPermissions = JSON.parse(text || "{}")
-					let hasAnyDenial = false
-
-					batchFiles.forEach((batchFile, index) => {
-						const fileResult = filesToApprove[index]
-						const approved = individualPermissions[batchFile.key] === true
-
-						if (approved) {
-							updateFileResult(fileResult.path, {
-								status: "approved",
-							})
-						} else {
-							hasAnyDenial = true
-							updateFileResult(fileResult.path, {
-								status: "denied",
-								xmlContent: `<file><path>${fileResult.path}</path><status>Denied by user</status></file>`,
-							})
-						}
-					})
-
-					if (hasAnyDenial) {
-						cline.didRejectTool = true
-					}
-				} catch (error) {
-					// Fallback: if JSON parsing fails, deny all files
-					console.error("Failed to parse individual permissions:", error)
-					cline.didRejectTool = true
-					filesToApprove.forEach((fileResult) => {
-						updateFileResult(fileResult.path, {
-							status: "denied",
-							xmlContent: `<file><path>${fileResult.path}</path><status>Denied by user</status></file>`,
-						})
-					})
-				}
-			}
+			})
 		} else if (filesToApprove.length === 1) {
-			// Handle single file approval (existing logic)
+			// Single file - show in UI and auto-approve
 			const fileResult = filesToApprove[0]
 			const relPath = fileResult.path
-			const fullPath = path.resolve(cline.cwd, relPath)
+			const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
 			const isOutsideWorkspace = isPathOutsideWorkspace(fullPath)
-			const { maxReadFileLine = -1 } = (await cline.providerRef.deref()?.getState()) ?? {}
-
-			// Create line snippet for approval message
-			let lineSnippet = ""
-			if (fileResult.lineRanges && fileResult.lineRanges.length > 0) {
-				const ranges = fileResult.lineRanges.map((range) =>
-					t("tools:readFile.linesRange", { start: range.start, end: range.end }),
-				)
-				lineSnippet = ranges.join(", ")
-			} else if (maxReadFileLine === 0) {
-				lineSnippet = t("tools:readFile.definitionsOnly")
-			} else if (maxReadFileLine > 0) {
-				lineSnippet = t("tools:readFile.maxLines", { max: maxReadFileLine })
-			}
 
 			const completeMessage = JSON.stringify({
 				tool: "readFile",
 				path: getReadablePath(cline.cwd, relPath),
 				isOutsideWorkspace,
 				content: fullPath,
-				reason: lineSnippet,
 			} satisfies ClineSayTool)
 
-			// kilocode_change start: yolo mode
-			const { response, text, images } = isYoloMode
-				? { response: "yesButtonClicked" }
-				: await cline.ask("tool", completeMessage, false)
-			// kilocode_change end
+			// kilocode_change: Auto-approve - show in UI and immediately approve
+			// Use setImmediate to trigger approval AFTER ask starts waiting for response
+			setImmediate(() => {
+				cline.handleWebviewAskResponse("yesButtonClicked", undefined, undefined)
+			})
+			await cline.ask("tool", completeMessage, false)
 
-			if (response !== "yesButtonClicked") {
-				// Handle both messageResponse and noButtonClicked with text
-				if (text) {
-					await cline.say("user_feedback", text, images)
-				}
-				cline.didRejectTool = true
-
-				updateFileResult(relPath, {
-					status: "denied",
-					xmlContent: `<file><path>${relPath}</path><status>Denied by user</status></file>`,
-					feedbackText: text,
-					feedbackImages: images,
-				})
-			} else {
-				// Handle yesButtonClicked with text
-				if (text) {
-					await cline.say("user_feedback", text, images)
-				}
-
-				updateFileResult(relPath, {
-					status: "approved",
-					feedbackText: text,
-					feedbackImages: images,
-				})
-			}
+			updateFileResult(fileResult.path, {
+				status: "approved",
+			})
 		}
 
 		// Track total image memory usage across all files
@@ -475,7 +363,7 @@ export async function readFileTool(
 			}
 
 			const relPath = fileResult.path
-			const fullPath = path.resolve(cline.cwd, relPath)
+			const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
 
 			// Process approved files
 			try {
@@ -503,7 +391,7 @@ export async function readFileTool(
 								await cline.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
 
 								updateFileResult(relPath, {
-									xmlContent: `<file><path>${relPath}</path>\n<notice>${validationResult.notice}</notice>\n</file>`,
+									xmlContent: `--- ${relPath} ---\n[notice] ${validationResult.notice}`,
 								})
 								continue
 							}
@@ -517,9 +405,9 @@ export async function readFileTool(
 							// Track file read
 							await cline.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
 
-							// Store image data URL separately - NOT in XML
+							// Store image data URL separately
 							updateFileResult(relPath, {
-								xmlContent: `<file><path>${relPath}</path>\n<notice>${imageResult.notice}</notice>\n</file>`,
+								xmlContent: `--- ${relPath} ---\n[image] ${imageResult.notice}`,
 								imageDataUrl: imageResult.dataUrl,
 							})
 							continue
@@ -528,7 +416,7 @@ export async function readFileTool(
 							updateFileResult(relPath, {
 								status: "error",
 								error: `Error reading image file: ${errorMsg}`,
-								xmlContent: `<file><path>${relPath}</path><error>Error reading image file: ${errorMsg}</error></file>`,
+								xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
 							})
 							await handleError(
 								`reading image file ${relPath}`,
@@ -547,25 +435,19 @@ export async function readFileTool(
 						const fileFormat = fileExtension.slice(1) || "bin" // Remove the dot, fallback to "bin"
 						updateFileResult(relPath, {
 							notice: `Binary file format: ${fileFormat}`,
-							xmlContent: `<file><path>${relPath}</path>\n<binary_file format="${fileFormat}">Binary file - content not displayed</binary_file>\n</file>`,
+							xmlContent: `--- ${relPath} ---\n[binary ${fileFormat}] content not displayed`,
 						})
 						continue
 					}
 				}
 
-				// Handle range reads (bypass maxReadFileLine)
-				if (fileResult.lineRanges && fileResult.lineRanges.length > 0) {
-					const rangeResults: string[] = []
-					for (const range of fileResult.lineRanges) {
-						const content = addLineNumbers(
-							await readLines(fullPath, range.end - 1, range.start - 1),
-							range.start,
-						)
-						const lineRangeAttr = ` lines="${range.start}-${range.end}"`
-						rangeResults.push(`<content${lineRangeAttr}>\n${content}</content>`)
-					}
+				// Handle offset/limit reads (if limit is specified)
+				if (fileResult.limit !== undefined) {
+					const startLine = fileResult.offset ?? 1
+					const endLine = startLine + fileResult.limit - 1
+					const content = addLineNumbers(await readLines(fullPath, endLine - 1, startLine - 1), startLine)
 					updateFileResult(relPath, {
-						xmlContent: `<file><path>${relPath}</path>\n${rangeResults.join("\n")}\n</file>`,
+						xmlContent: content,
 					})
 					continue
 				}
@@ -575,9 +457,9 @@ export async function readFileTool(
 					try {
 						const defResult = await parseSourceCodeDefinitionsForFile(fullPath, cline.rooIgnoreController)
 						if (defResult) {
-							let xmlInfo = `<notice>Showing only ${maxReadFileLine} of ${totalLines} total lines. Use line_range if you need to read more lines</notice>\n`
+							// kilocode_change: Return raw definitions without path header
 							updateFileResult(relPath, {
-								xmlContent: `<file><path>${relPath}</path>\n<list_code_definition_names>${defResult}</list_code_definition_names>\n${xmlInfo}</file>`,
+								xmlContent: `[definitions only, ${totalLines} total lines]\n${defResult}`,
 							})
 						}
 					} catch (error) {
@@ -595,17 +477,16 @@ export async function readFileTool(
 				// Handle files exceeding line threshold
 				if (maxReadFileLine > 0 && totalLines > maxReadFileLine) {
 					const content = addLineNumbers(await readLines(fullPath, maxReadFileLine - 1, 0))
-					const lineRangeAttr = ` lines="1-${maxReadFileLine}"`
-					let xmlInfo = `<content${lineRangeAttr}>\n${content}</content>\n`
+					// kilocode_change: Return content without path header, just note truncation
+					let fileOutput = `[showing ${maxReadFileLine} of ${totalLines} lines]\n${content}`
 
 					try {
 						const defResult = await parseSourceCodeDefinitionsForFile(fullPath, cline.rooIgnoreController)
 						if (defResult) {
-							xmlInfo += `<list_code_definition_names>${defResult}</list_code_definition_names>\n`
+							fileOutput += `\n[definitions]\n${defResult}`
 						}
-						xmlInfo += `<notice>Showing only ${maxReadFileLine} of ${totalLines} total lines. Use line_range if you need to read more lines</notice>\n`
 						updateFileResult(relPath, {
-							xmlContent: `<file><path>${relPath}</path>\n${xmlInfo}</file>`,
+							xmlContent: fileOutput,
 						})
 					} catch (error) {
 						if (error instanceof Error && error.message.startsWith("Unsupported language:")) {
@@ -630,33 +511,29 @@ export async function readFileTool(
 				}
 				// kilocode_change end
 
-				const lineRangeAttr = ` lines="1-${totalLines}"`
-				let xmlInfo = totalLines > 0 ? `<content${lineRangeAttr}>\n${content}</content>\n` : `<content/>`
-
-				if (totalLines === 0) {
-					xmlInfo += `<notice>File is empty</notice>\n`
-				}
+				// kilocode_change: Return raw content without path header
+				let fileOutput = totalLines > 0 ? content : `(empty file: ${relPath})`
 
 				// Track file read
 				await cline.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
 
 				updateFileResult(relPath, {
-					xmlContent: `<file><path>${relPath}</path>\n${xmlInfo}</file>`,
+					xmlContent: fileOutput,
 				})
 			} catch (error) {
 				const errorMsg = error instanceof Error ? error.message : String(error)
 				updateFileResult(relPath, {
 					status: "error",
 					error: `Error reading file: ${errorMsg}`,
-					xmlContent: `<file><path>${relPath}</path><error>Error reading file: ${errorMsg}</error></file>`,
+					xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
 				})
 				await handleError(`reading file ${relPath}`, error instanceof Error ? error : new Error(errorMsg))
 			}
 		}
 
-		// Generate final XML result from all file results
-		const xmlResults = fileResults.filter((result) => result.xmlContent).map((result) => result.xmlContent)
-		const filesXml = `<files>\n${xmlResults.join("\n")}\n</files>`
+		// Generate final result from all file results
+		const fileContents = fileResults.filter((result) => result.xmlContent).map((result) => result.xmlContent)
+		const filesOutput = fileContents.join("\n\n")
 
 		// Collect all image data URLs from file results
 		const fileImageUrls = fileResults
@@ -701,29 +578,29 @@ export async function readFileTool(
 		if (statusMessage || imagesToInclude.length > 0) {
 			// Always use formatResponse.toolResult when we have a status message or images
 			const result = formatResponse.toolResult(
-				statusMessage || filesXml,
+				statusMessage || filesOutput,
 				imagesToInclude.length > 0 ? imagesToInclude : undefined,
 			)
 
 			// Handle different return types from toolResult
 			if (typeof result === "string") {
 				if (statusMessage) {
-					pushToolResult(`${result}\n${filesXml}`)
+					pushToolResult(`${result}\n${filesOutput}`)
 				} else {
 					pushToolResult(result)
 				}
 			} else {
-				// For block-based results, append the files XML as a text block if not already included
+				// For block-based results, append the files content as a text block if not already included
 				if (statusMessage) {
-					const textBlock = { type: "text" as const, text: filesXml }
+					const textBlock = { type: "text" as const, text: filesOutput }
 					pushToolResult([...result, textBlock])
 				} else {
 					pushToolResult(result)
 				}
 			}
 		} else {
-			// No images or status message, just push the files XML
-			pushToolResult(filesXml)
+			// No images or status message, just push the file contents
+			pushToolResult(filesOutput)
 		}
 	} catch (error) {
 		// Handle all errors using per-file format for consistency
@@ -735,15 +612,15 @@ export async function readFileTool(
 			updateFileResult(relPath, {
 				status: "error",
 				error: `Error reading file: ${errorMsg}`,
-				xmlContent: `<file><path>${relPath}</path><error>Error reading file: ${errorMsg}</error></file>`,
+				xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
 			})
 		}
 
 		await handleError(`reading file ${relPath}`, error instanceof Error ? error : new Error(errorMsg))
 
-		// Generate final XML result from all file results
-		const xmlResults = fileResults.filter((result) => result.xmlContent).map((result) => result.xmlContent)
+		// Generate final result from all file results
+		const fileContents = fileResults.filter((result) => result.xmlContent).map((result) => result.xmlContent)
 
-		pushToolResult(`<files>\n${xmlResults.join("\n")}\n</files>`)
+		pushToolResult(fileContents.join("\n\n"))
 	}
 }

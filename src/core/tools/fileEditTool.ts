@@ -28,7 +28,8 @@ export async function fileEditTool(
 	pushToolResult: PushToolResult,
 	removeClosingTag: RemoveClosingTag,
 ): Promise<void> {
-	const targetFile = block.params.target_file
+	// Support both file_path (new) and target_file (legacy)
+	const filePath = (block.params as any).file_path || block.params.target_file
 	const oldString = block.params.old_string
 	const newString = block.params.new_string
 	const replaceAllFlag = block.params.replace_all
@@ -38,7 +39,7 @@ export async function fileEditTool(
 		if (block.partial) {
 			const partialMessageProps: ClineSayTool = {
 				tool: "fileEdit",
-				path: getReadablePath(cline.cwd, removeClosingTag("target_file", targetFile)),
+				path: getReadablePath(cline.cwd, removeClosingTag("file_path", filePath)),
 				search: removeClosingTag("old_string", oldString),
 				replace: removeClosingTag("new_string", newString),
 				useRegex: false,
@@ -52,13 +53,14 @@ export async function fileEditTool(
 			return
 		}
 
-		if (!(await validateParams(cline, targetFile, oldString, newString, pushToolResult))) {
+		if (!(await validateParams(cline, filePath, oldString, newString, pushToolResult))) {
 			return
 		}
 
-		const relPath = targetFile as string
+		const relPath = filePath as string
 		const readablePath = getReadablePath(cline.cwd, relPath)
-		const absolutePath = path.resolve(cline.cwd, relPath)
+		// Support absolute paths using cross-platform check
+		const absolutePath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
 
 		const accessAllowed = cline.rooIgnoreController?.validateAccess(relPath)
 		if (!accessAllowed) {
@@ -171,7 +173,7 @@ async function validateParams(
 	if (!targetFile) {
 		cline.consecutiveMistakeCount++
 		cline.recordToolError("file_edit")
-		pushToolResult(await cline.sayAndCreateMissingParamError("file_edit", "target_file"))
+		pushToolResult(await cline.sayAndCreateMissingParamError("file_edit", "file_path"))
 		return false
 	}
 

@@ -5,7 +5,7 @@ export function getFastApplyEditingInstructions(modelType: "Morph" | "Relace"): 
 - **ONLY use the edit_file tool for file modifications.** Traditional editing tools (apply_diff, write_to_file, insert_content, search_and_replace) are disabled in ${modelType} mode.
 - **Focus on clear instructions and precise code edits** using the edit_file format with \`// ... existing code ...\` placeholders to represent unchanged sections.
 - **The edit_file tool requires three parameters:**
-  - \`target_file\`: Full path to the file to modify
+  - \`file_path\`: Absolute path to the file to modify (e.g., /Users/username/project/src/file.ts)
   - \`instructions\`: Single sentence describing what you're doing (use first person)
   - \`code_edit\`: Only the lines you want to change, using \`// ... existing code ...\` for unchanged sections
 - **Always make all edits to a file in a single edit_file call** rather than multiple calls to the same file.`
@@ -40,11 +40,11 @@ ALWAYS make all edits to a file in a single edit_file instead of multiple edit_f
 
 **REQUIRED Parameters**:
 
-1. **target_file** (string): The target file to modify. Always specify the full path to the file you want to edit.
+1. **file_path** (string): Absolute path to the file to modify (e.g., /Users/username/project/src/file.ts).
 
 2. **instructions** (string): A single sentence instruction describing what you are going to do for the sketched edit. This is used to assist the less intelligent model in applying the edit. Use the first person to describe what you are going to do. Use it to disambiguate uncertainty in the edit.
 
 3. **code_edit** (string): Specify ONLY the precise lines of code that you wish to edit. NEVER specify or write out unchanged code. Instead, represent all unchanged code using the comment of the language you're editing in - example: \`// ... existing code ...\`
 
-**ALL THREE PARAMETERS (target_file, instructions, code_edit) ARE MANDATORY**`
+**ALL THREE PARAMETERS (file_path, instructions, code_edit) ARE MANDATORY**`
 }

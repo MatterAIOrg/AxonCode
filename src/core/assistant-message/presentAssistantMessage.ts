@@ -204,12 +204,12 @@ export async function presentAssistantMessage(cline: Task) {
 					case "insert_content":
 						return `[${block.name} for '${block.params.path}']`
 					case "file_edit":
-						return `[${block.name} for '${block.params.target_file}']`
+						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
 					case "search_and_replace":
 						return `[${block.name} for '${block.params.path}']`
 					// kilocode_change start: Morph fast apply
 					case "edit_file":
-						return `[${block.name} for '${block.params.target_file}']`
+						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
 					// kilocode_change end
 					case "list_files":
 						return `[${block.name} for '${block.params.path}']`
@@ -257,7 +257,8 @@ export async function presentAssistantMessage(cline: Task) {
 			const pushToolResult_withToolUseId_kilocode = (
 				...items: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[]
 			) => {
-				if (block.toolUseId) {
+				// Check for non-empty toolUseId - empty string should be treated as missing
+				if (block.toolUseId && block.toolUseId.length > 0) {
 					cline.userMessageContent.push({ type: "tool_result", tool_use_id: block.toolUseId, content: items })
 				} else {
 					cline.userMessageContent.push(...items)
@@ -295,8 +296,8 @@ export async function presentAssistantMessage(cline: Task) {
 			const pushToolResult = (content: ToolResponse) => {
 				// kilocode_change start
 				const items = new Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam>()
-				items.push({ type: "text", text: `${toolDescription()} Result:` })
 
+				// No prefix - just return raw tool output
 				if (typeof content === "string") {
 					items.push({ type: "text", text: content || "(tool did not return anything)" })
 				} else {

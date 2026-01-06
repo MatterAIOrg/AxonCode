@@ -39,7 +39,8 @@ export async function simpleReadFileTool(
 	pushToolResult: PushToolResult,
 	_removeClosingTag: RemoveClosingTag,
 ) {
-	const filePath: string | undefined = block.params.path
+	// Support both file_path (new) and path (legacy)
+	const filePath: string | undefined = (block.params as any).file_path || block.params.path
 
 	// Check if the current model supports images
 	const modelInfo = cline.api.getModel().info
@@ -47,7 +48,8 @@ export async function simpleReadFileTool(
 
 	// Handle partial message
 	if (block.partial) {
-		const fullPath = filePath ? path.resolve(cline.cwd, filePath) : ""
+		// Support absolute paths using cross-platform check
+		const fullPath = filePath ? (path.isAbsolute(filePath) ? filePath : path.resolve(cline.cwd, filePath)) : ""
 		const sharedMessageProps: ClineSayTool = {
 			tool: "readFile",
 			path: getReadablePath(cline.cwd, filePath || ""),
@@ -65,18 +67,14 @@ export async function simpleReadFileTool(
 	if (!filePath) {
 		cline.consecutiveMistakeCount++
 		cline.recordToolError("read_file")
-		const errorMsg = await cline.sayAndCreateMissingParamError("read_file", "path")
-		pushToolResult(`<file><error>${errorMsg}</error></file>`)
+		const errorMsg = await cline.sayAndCreateMissingParamError("read_file", "file_path")
+		pushToolResult(`--- read_file ---\n[error] ${errorMsg}`)
 		return
 	}
 
 	const relPath = filePath
-	const fullPath = path.resolve(cline.cwd, relPath)
-
-	// kilocode_change start: yolo mode
-	const state = await cline.providerRef.deref()?.getState()
-	const isYoloMode = state?.yoloMode ?? false
-	// kilocode_change end
+	// Support absolute paths using cross-platform check
+	const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
 
 	try {
 		// Check RooIgnore validation
@@ -108,29 +106,12 @@ export async function simpleReadFileTool(
 			reason: lineSnippet,
 		} satisfies ClineSayTool)
 
-		// kilocode_change start: yolo mode
-		const { response, text, images } = isYoloMode
-			? { response: "yesButtonClicked" }
-			: await cline.ask("tool", completeMessage, false)
-		// kilocode_change end
-
-		if (response !== "yesButtonClicked") {
-			// Handle denial
-			if (text) {
-				await cline.say("user_feedback", text, images)
-			}
-			cline.didRejectTool = true
-
-			const statusMessage = text ? formatResponse.toolDeniedWithFeedback(text) : formatResponse.toolDenied()
-
-			pushToolResult(`${statusMessage}\n<file><path>${relPath}</path><status>Denied by user</status></file>`)
-			return
-		}
-
-		// Handle approval with feedback
-		if (text) {
-			await cline.say("user_feedback", text, images)
-		}
+		// kilocode_change: Auto-approve read_file - show in UI and immediately approve
+		// Use setImmediate to trigger approval AFTER ask starts waiting for response
+		setImmediate(() => {
+			cline.handleWebviewAskResponse("yesButtonClicked", undefined, undefined)
+		})
+		await cline.ask("tool", completeMessage, false)
 
 		// Process the file
 		const [totalLines, isBinary] = await Promise.all([countFileLines(fullPath), isBinaryFile(fullPath)])
@@ -213,10 +194,8 @@ export async function simpleReadFileTool(
 			try {
 				const defResult = await parseSourceCodeDefinitionsForFile(fullPath, cline.rooIgnoreController)
 				if (defResult) {
-					let xmlInfo = `<notice>Showing only definitions. Use standard read_file if you need to read actual content</notice>\n`
-					pushToolResult(
-						`<file><path>${relPath}</path>\n<list_code_definition_names>${defResult}</list_code_definition_names>\n${xmlInfo}</file>`,
-					)
+					// kilocode_change: Return raw definitions without XML
+					pushToolResult(`[definitions only]\n${defResult}`)
 				}
 			} catch (error) {
 				if (error instanceof Error && error.message.startsWith("Unsupported language:")) {
@@ -233,16 +212,15 @@ export async function simpleReadFileTool(
 		// Handle files exceeding line threshold
 		if (maxReadFileLine > 0 && totalLines > maxReadFileLine) {
 			const content = addLineNumbers(await readLines(fullPath, maxReadFileLine - 1, 0))
-			const lineRangeAttr = ` lines="1-${maxReadFileLine}"`
-			let xmlInfo = `<content${lineRangeAttr}>\n${content}</content>\n`
+			// kilocode_change: Return raw content without XML
+			let output = `[showing ${maxReadFileLine} of ${totalLines} lines]\n${content}`
 
 			try {
 				const defResult = await parseSourceCodeDefinitionsForFile(fullPath, cline.rooIgnoreController)
 				if (defResult) {
-					xmlInfo += `<list_code_definition_names>${defResult}</list_code_definition_names>\n`
+					output += `\n[definitions]\n${defResult}`
 				}
-				xmlInfo += `<notice>Showing only ${maxReadFileLine} of ${totalLines} total lines. File is too large for complete display</notice>\n`
-				pushToolResult(`<file><path>${relPath}</path>\n${xmlInfo}</file>`)
+				pushToolResult(output)
 			} catch (error) {
 				if (error instanceof Error && error.message.startsWith("Unsupported language:")) {
 					console.warn(`[simple_read_file] Warning: ${error.message}`)
@@ -257,26 +235,19 @@ export async function simpleReadFileTool(
 
 		// Handle normal file read
 		const content = await extractTextFromFile(fullPath)
-		const lineRangeAttr = ` lines="1-${totalLines}"`
-		let xmlInfo = totalLines > 0 ? `<content${lineRangeAttr}>\n${content}</content>\n` : `<content/>`
-
-		if (totalLines === 0) {
-			xmlInfo += `<notice>File is empty</notice>\n`
-		}
 
 		// Track file read
 		await cline.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
 
-		// Return the result
-		if (text) {
-			const statusMessage = formatResponse.toolApprovedWithFeedback(text)
-			pushToolResult(`${statusMessage}\n<file><path>${relPath}</path>\n${xmlInfo}</file>`)
+		// kilocode_change: Return raw content without XML wrapping
+		if (totalLines === 0) {
+			pushToolResult(`(empty file: ${relPath})`)
 		} else {
-			pushToolResult(`<file><path>${relPath}</path>\n${xmlInfo}</file>`)
+			pushToolResult(content)
 		}
 	} catch (error) {
 		const errorMsg = error instanceof Error ? error.message : String(error)
-		pushToolResult(`<file><path>${relPath}</path><error>Error reading file: ${errorMsg}</error></file>`)
+		pushToolResult(`[error] Error reading file ${relPath}: ${errorMsg}`)
 		await handleError(`reading file ${relPath}`, error instanceof Error ? error : new Error(errorMsg))
 	}
 }

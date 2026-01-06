@@ -124,7 +124,7 @@
 	--color-vscode-titleBar-inactiveForeground: var(--vscode-titleBar-inactiveForeground);
 
 	--color-vscode-charts-green: var(--vscode-charts-green);
-	--color-vscode-charts-yellow: var(--vscode-charts-yellow);
+	--color-vscode-charts-yellow: var(--color-matterai-yellow);
 
 	--color-vscode-inputValidation-infoForeground: var(--vscode-inputValidation-infoForeground);
 	--color-vscode-inputValidation-infoBackground: var(--vscode-inputValidation-infoBackground);
@@ -144,11 +144,12 @@
 	--color-vscode-banner-background: var(--vscode-banner-background);
 	--color-vscode-banner-foreground: var(--vscode-banner-foreground);
 
-	--color-matterai-green: #3affa3;
-	--color-matterai-border: #81838e33;
-	--color-matterai-blue: #1c4b6b;
+	--color-matterai-green: #8bf4f7;
+	--color-matterai-border: #8bf4f720;
+	--color-matterai-blue: #8bf4f750;
 	--color-matterai-red: #ac3e3e;
-	--color-matterai-chip-blue: #265b8d49;
+	--color-matterai-chip-blue: #8bf4f720;
+	--color-matterai-yellow: #fff0ac;
 }
 
 @layer base {
@@ -175,7 +176,7 @@
 		--ring: var(--vscode-input-border);
 		--chart-1: var(--vscode-charts-red);
 		--chart-2: var(--vscode-charts-blue);
-		--chart-3: var(--vscode-charts-yellow);
+		--chart-3: var(--color-matterai-yellow);
 		--chart-4: var(--vscode-charts-orange);
 		--chart-5: var(--vscode-charts-green);
 		--radius: 0.5rem;

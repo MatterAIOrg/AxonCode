@@ -3,7 +3,6 @@ import * as path from "path"
 import * as fs from "fs/promises"
 import * as diff from "diff"
 import stripBom from "strip-bom"
-import { XMLBuilder } from "fast-xml-parser"
 import delay from "delay"
 
 import { createDirectoriesForFile } from "../../utils/fs"
@@ -300,16 +299,19 @@ export class DiffViewProvider {
 	}
 
 	/**
-	 * Formats a standardized XML response for file write operations
+	 * Formats a standardized response for file write operations
+	 * Returns a human-readable message with a snippet showing the changed content with surrounding context
 	 *
 	 * @param cwd Current working directory for path resolution
 	 * @param isNewFile Whether this is a new file or an existing file being modified
-	 * @returns Formatted message and say object for UI feedback
+	 * @returns Formatted message for the tool result
 	 */
 	async pushToolWriteResult(task: Task, cwd: string, isNewFile: boolean): Promise<string> {
 		if (!this.relPath) {
 			throw new Error("No file path available in DiffViewProvider")
 		}
+
+		const absolutePath = path.resolve(cwd, this.relPath)
 
 		// Only send user_feedback_diff if userEdits exists
 		if (this.userEdits) {
@@ -324,49 +326,73 @@ export class DiffViewProvider {
 			await task.say("user_feedback_diff", JSON.stringify(say))
 		}
 
-		// Build XML response
-		const xmlObj = {
-			file_write_result: {
-				path: this.relPath,
-				operation: isNewFile ? "created" : "modified",
-				user_edits: this.userEdits ? this.userEdits : undefined,
-				problems: this.newProblemsMessage || undefined,
-				notice: {
-					i: [
-						"You do not need to re-read the file, as you have seen all changes",
-						"Proceed with the task using these changes as the new baseline.",
-						...(this.userEdits
-							? [
-									"If the user's edits have addressed part of the task or changed the requirements, adjust your approach accordingly.",
-								]
-							: []),
-					],
-				},
-			},
+		// Read the current file content to show the changed content with surrounding context
+		let snippet = ""
+		try {
+			const fileContent = await fs.readFile(absolutePath, "utf-8")
+			const lines = fileContent.split("\n")
+			const totalLines = lines.length
+			const contextLines = 10 // Lines of context before and after changes
+
+			let startLine = 0
+			let endLine = totalLines
+
+			if (this.originalContent && !isNewFile) {
+				// Use diff to find the range of changed lines
+				const diffs = diff.diffLines(this.originalContent, fileContent)
+				let currentLine = 0
+				let firstChangeLine = -1
+				let lastChangeLine = -1
+
+				for (const part of diffs) {
+					if (part.added || part.removed) {
+						if (firstChangeLine === -1) {
+							firstChangeLine = currentLine
+						}
+						lastChangeLine = currentLine + (part.count || 1)
+					}
+					if (!part.removed) {
+						currentLine += part.count || 0
+					}
+				}
+
+				if (firstChangeLine !== -1) {
+					// Show the changed lines with context before and after
+					startLine = Math.max(0, firstChangeLine - contextLines)
+					endLine = Math.min(totalLines, lastChangeLine + contextLines)
+				}
+			}
+
+			// Get the snippet showing the change area with context
+			const snippetLines = lines.slice(startLine, endLine)
+			const maxLineNumberWidth = Math.max(6, String(endLine).length)
+
+			snippet = snippetLines
+				.map((line, index) => {
+					const lineNumber = String(startLine + index + 1).padStart(maxLineNumberWidth, " ")
+					return `${lineNumber}→${line}`
+				})
+				.join("\n")
+		} catch (error) {
+			// If we can't read the file, just skip the snippet
+			snippet = "(unable to read file content)"
 		}
 
-		const builder = new XMLBuilder({
-			format: true,
-			indentBy: "",
-			suppressEmptyNode: true,
-			processEntities: false,
-			tagValueProcessor: (name, value) => {
-				if (typeof value === "string") {
-					// Only escape <, >, and & characters
-					return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-				}
-				return value
-			},
-			attributeValueProcessor: (name, value) => {
-				if (typeof value === "string") {
-					// Only escape <, >, and & characters
-					return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-				}
-				return value
-			},
-		})
+		// Build the response message
+		const operation = isNewFile ? "created" : "updated"
+		let message = `The file ${absolutePath} has been ${operation}. Here's the result of running \`cat -n\` on a snippet of the edited file:\n${snippet}`
 
-		return builder.build(xmlObj)
+		// Add user edits notice if applicable
+		if (this.userEdits) {
+			message += `\n\nThe user made additional edits to the file:\n${this.userEdits}`
+		}
+
+		// Add any new problems detected
+		if (this.newProblemsMessage) {
+			message += this.newProblemsMessage
+		}
+
+		return message
 	}
 
 	async revertChanges(): Promise<void> {

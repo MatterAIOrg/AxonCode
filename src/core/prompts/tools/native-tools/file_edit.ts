@@ -10,9 +10,9 @@ export default {
 		parameters: {
 			type: "object",
 			properties: {
-				target_file: {
+				file_path: {
 					type: "string",
-					description: "Path to the file to modify, relative to the workspace root.",
+					description: "Absolute path to the file to modify (e.g., /Users/username/project/src/file.ts)",
 				},
 				old_string: {
 					type: "string",
@@ -30,7 +30,7 @@ export default {
 						"Set to true to replace every occurrence of the matched text. Defaults to false (replace a single uniquely identified occurrence).",
 				},
 			},
-			required: ["target_file", "old_string", "new_string"],
+			required: ["file_path", "old_string", "new_string"],
 			additionalProperties: false,
 		},
 	},

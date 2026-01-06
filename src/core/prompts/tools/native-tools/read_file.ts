@@ -5,7 +5,7 @@ export const read_file_multi = {
 	function: {
 		name: "read_file",
 		description:
-			"Read one or more files and return their contents with line numbers for diffing or discussion. Use line ranges always to keep reads efficient and combine related files when possible. You will always read less thatn 100 lines at a time",
+			"Read one or more files and return their contents with line numbers. Use offset and limit to read specific portions of files efficiently. By default reads from the beginning with a reasonable limit.",
 		strict: true,
 		parameters: {
 			type: "object",
@@ -16,22 +16,22 @@ export const read_file_multi = {
 					items: {
 						type: "object",
 						properties: {
-							path: {
+							file_path: {
 								type: "string",
-								description: "Path to the file to read, relative to the workspace",
-							},
-							line_ranges: {
-								type: ["array"],
 								description:
-									"Always required line ranges to read (format: start-end). If you are unsure about about the what line numbers to query, you can perform a search on the file to determine line numbers. You will never read more than 100 lines at a time!",
-								items: {
-									type: "string",
-									pattern: "^\\d+-\\d+$",
-								},
-								minItems: 1,
+									"Absolute path to the file to read (e.g., /Users/username/project/src/file.ts)",
+							},
+							offset: {
+								type: ["number", "null"],
+								description: "Starting line number (1-indexed). Defaults to 1 if not specified.",
+							},
+							limit: {
+								type: ["number", "null"],
+								description:
+									"Maximum number of lines to read from offset. If not specified, reads the complete file from offset. Use smaller values for targeted reads.",
 							},
 						},
-						required: ["path", "line_ranges"],
+						required: ["file_path"],
 						additionalProperties: false,
 					},
 					minItems: 1,
@@ -48,17 +48,26 @@ export const read_file_single = {
 	function: {
 		name: "read_file",
 		description:
-			'Request to read the contents of a file. The tool outputs line-numbered content (e.g. "1 | const x = 1") for easy reference when discussing code.',
+			"Read a file and return its contents with line numbers. Use offset and limit to read specific portions efficiently.",
 		strict: true,
 		parameters: {
 			type: "object",
 			properties: {
-				path: {
+				file_path: {
 					type: "string",
-					description: "Path to the file to read, relative to the workspace",
+					description: "Absolute path to the file to read (e.g., /Users/username/project/src/file.ts)",
+				},
+				offset: {
+					type: ["number", "null"],
+					description: "Starting line number (1-indexed). Defaults to 1 if not specified.",
+				},
+				limit: {
+					type: ["number", "null"],
+					description:
+						"Maximum number of lines to read from offset. If not specified, reads the complete file from offset.",
 				},
 			},
-			required: ["path"],
+			required: ["file_path"],
 			additionalProperties: false,
 		},
 	},

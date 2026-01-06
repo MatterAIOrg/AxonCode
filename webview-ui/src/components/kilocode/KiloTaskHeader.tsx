@@ -75,7 +75,7 @@ const KiloTaskHeader = ({
 			<div
 				className={cn(
 					"p-2.5 flex flex-col relative z-1 border",
-					"rounded-xl",
+					"rounded-lg",
 					"border border-[var(--color-matterai-border)] outline-none",
 				)}
 				style={{

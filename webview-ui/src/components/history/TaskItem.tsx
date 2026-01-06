@@ -46,16 +46,15 @@ const TaskItem = ({
 			key={item.id}
 			data-testid={`task-item-${item.id}`}
 			className={cn(
-				"cursor-pointer group bg-vscode-editor-background rounded relative overflow-hidden border border border-vscode-input-border/50 rounded-lg hover:bg-vscode-list-hoverBackground transition-colors",
+				"cursor-pointer group rounded-md relative overflow-hidden hover:bg-vscode-list-hoverBackground transition-colors",
 				{
 					"bg-red-900 text-white": item.fileNotfound,
-					"bg-vscode-editor-background": !item.fileNotfound,
 				},
 				className,
 			)}
 			onClick={handleClick}>
 			<div
-				className={cn("flex items-center gap-3 px-3 py-2", {
+				className={cn("flex items-center gap-3 px-3 py-1", {
 					"pl-3": !isCompact && isSelectionMode,
 				})}>
 				{/* Selection checkbox - only in full variant */}
@@ -77,7 +76,7 @@ const TaskItem = ({
 				<ReadOnlyChatText
 					value={item.task || ""}
 					className={cn(
-						"flex-1 overflow-hidden whitespace-pre-wrap text-vscode-foreground text-ellipsis line-clamp-1",
+						"flex-1 overflow-hidden whitespace-pre-wrap text-vscode-foreground text-ellipsis line-clamp-1 opacity-70",
 						{
 							"text-base": !isCompact,
 						},
@@ -85,7 +84,7 @@ const TaskItem = ({
 				/>
 
 				{/* Time and buttons container */}
-				<div className="flex items-center gap-2 shrink-0">
+				<div className="flex items-center gap-1 shrink-0">
 					{/* Time - always visible */}
 					<StandardTooltip content={new Date(item.ts).toLocaleString()}>
 						<span className="text-xs text-vscode-descriptionForeground/60 first-letter:uppercase">

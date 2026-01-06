@@ -241,7 +241,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 			case "connected":
 				return "var(--vscode-testing-iconPassed)"
 			case "connecting":
-				return "var(--vscode-charts-yellow)"
+				return "var(--color-matterai-yellow)"
 			case "disconnected":
 				return "var(--vscode-testing-iconFailed)"
 		}

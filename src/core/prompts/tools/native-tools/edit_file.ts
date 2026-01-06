@@ -10,9 +10,9 @@ export default {
 		parameters: {
 			type: "object",
 			properties: {
-				target_file: {
+				file_path: {
 					type: "string",
-					description: "Full path of the file to modify",
+					description: "Absolute path to the file to modify (e.g., /Users/username/project/src/file.ts)",
 				},
 				instructions: {
 					type: "string",
@@ -24,7 +24,7 @@ export default {
 						"Only the edited lines using // ... existing code ... wherever unchanged content is omitted",
 				},
 			},
-			required: ["target_file", "instructions", "code_edit"],
+			required: ["file_path", "instructions", "code_edit"],
 			additionalProperties: false,
 		},
 	},
