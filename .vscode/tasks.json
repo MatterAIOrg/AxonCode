@@ -41,7 +41,9 @@
 				"reveal": "always"
 			},
 			"problemMatcher": {
-				"pattern": { "regexp": "^$" },
+				"pattern": {
+					"regexp": "^$"
+				},
 				"background": {
 					"activeOnStart": true,
 					"beginsPattern": "\\[nodemon\\] starting",
@@ -57,7 +59,9 @@
 			"group": "build",
 			"problemMatcher": {
 				"owner": "vite",
-				"pattern": { "regexp": "^$" },
+				"pattern": {
+					"regexp": "^$"
+				},
 				"background": {
 					"activeOnStart": true,
 					"beginsPattern": ".*VITE.*",
@@ -131,7 +135,7 @@
 		{
 			"label": "install-dev-extension",
 			"type": "shell",
-			"command": "pnpm i && npm run build && code --force --install-extension \"$(ls -1v bin/kilo-code-*.vsix | tail -n1)\"",
+			"command": "pnpm i && npm run build && code --force --install-extension \"$(ls -1v bin/axon-code-*.vsix | tail -n1)\"",
 			"group": "build",
 			"presentation": {
 				"echo": true,

@@ -5,7 +5,7 @@
 		"clean": {
 			"cache": false
 		},
-		"clean:resource-kilocode": {
+		"clean:resource-axoncode": {
 			"cache": false
 		},
 		"clean:resource-host": {
@@ -17,16 +17,16 @@
 		"clean:resource-nodemodules": {
 			"cache": false
 		},
-		"clean:kilocode": {
+		"clean:axoncode": {
 			"cache": false
 		},
-		"copy:kilocode": {
+		"copy:axoncode": {
 			"cache": false,
-			"dependsOn": ["clean:kilocode", "kilo-code#vsix:unpacked"]
+			"dependsOn": ["clean:axoncode", "axon-code#vsix:unpacked"]
 		},
-		"copy:resource-kilocode": {
+		"copy:resource-axoncode": {
 			"cache": false,
-			"dependsOn": ["clean:resource-kilocode", "kilo-code#vsix:unpacked"]
+			"dependsOn": ["clean:resource-axoncode", "axon-code#vsix:unpacked"]
 		},
 		"copy:resource-host": {
 			"cache": false,
@@ -61,11 +61,11 @@
 			"cache": false,
 			"outputs": ["./src/main/resources/META-INF/plugin.xml"],
 			"inputs": [
+				"../CHANGELOG.md",
 				"./gradle.properties",
-				"../../CHANGELOG.md",
+				"./scripts/update_change_notes.js",
 				"./src/main/resources/META-INF/plugin.xml.template"
-			],
-			"dependsOn": ["sync:version"]
+			]
 		},
 		"build": {
 			"outputs": ["build/**"],
@@ -73,8 +73,8 @@
 			"dependsOn": [
 				"sync:version",
 				"sync:changelog",
-				"copy:kilocode",
-				"copy:resource-kilocode",
+				"copy:axoncode",
+				"copy:resource-axoncode",
 				"copy:resource-host",
 				"copy:resource-logs",
 				"copy:resource-nodemodules",
@@ -88,8 +88,8 @@
 			"dependsOn": [
 				"sync:version",
 				"sync:changelog",
-				"copy:kilocode",
-				"copy:resource-kilocode",
+				"copy:axoncode",
+				"copy:resource-axoncode",
 				"copy:resource-host",
 				"copy:resource-logs",
 				"copy:resource-nodemodules",

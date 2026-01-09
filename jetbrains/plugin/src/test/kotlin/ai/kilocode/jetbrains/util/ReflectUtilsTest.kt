@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package ai.kilocode.jetbrains.util
+package so.matterai.jetbrains.util
 
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals

@@ -70,11 +70,24 @@ function runCommand(command, options = {}) {
 	try {
 		return execSync(command, {
 			encoding: "utf8",
-			stdio: "pipe",
+			stdio: ["pipe", "pipe", "pipe"],
 			...options,
 		}).trim()
 	} catch (error) {
-		return null
+		// For commands like 'java -version' that write to stderr, try to get stderr output
+		if (error.stderr) {
+			return error.stderr.toString().trim()
+		}
+		// For commands that might succeed but return non-zero, try with different stdio
+		try {
+			const result = execSync(command, {
+				encoding: "utf8",
+				stdio: "ignore",
+			})
+			return result ? result.toString().trim() : null
+		} catch {
+			return null
+		}
 	}
 }
 

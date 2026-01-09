@@ -26,23 +26,23 @@
 		},
 		"jetbrains:bundle": {
 			"cache": false,
-			"dependsOn": ["@kilo-code/jetbrains-plugin#bundle"]
+			"dependsOn": ["@axon-code/jetbrains-plugin#bundle"]
 		},
 		"jetbrains:run-bundle": {
 			"cache": false,
-			"dependsOn": ["@kilo-code/jetbrains-plugin#run:bundle"]
+			"dependsOn": ["@axon-code/jetbrains-plugin#run:bundle"]
 		},
 		"jetbrains:build": {
-			"dependsOn": ["@kilo-code/jetbrains-plugin#build"]
+			"dependsOn": ["@axon-code/jetbrains-plugin#build"]
 		},
 		"jetbrains:run": {
-			"dependsOn": ["@kilo-code/jetbrains-plugin#run"]
+			"dependsOn": ["@axon-code/jetbrains-plugin#run"]
 		},
 		"cli:build": {
-			"dependsOn": ["@kilocode/cli#build"]
+			"dependsOn": ["@axoncode/cli#build"]
 		},
 		"cli:bundle": {
-			"dependsOn": ["@kilocode/cli#build"]
+			"dependsOn": ["@axoncode/cli#build"]
 		},
 		"chromatic": {
 			"dependsOn": ["storybook:build"],

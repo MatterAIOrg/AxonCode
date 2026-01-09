@@ -1,4 +1,4 @@
-package ai.kilocode.jetbrains.i18n
+package so.matterai.jetbrains.i18n
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

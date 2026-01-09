@@ -2794,6 +2794,10 @@ ${prompt}
 		const rootTask = task.rootTask
 		const parentTask = task.parentTask
 
+		// Capture pending file edits before the task is disposed so they can be restored
+		// in the new task instance. This ensures AcceptRejectButtons remain visible.
+		const pendingFileEdits = task.fileEditReviewController.exportPendingEdits()
+
 		// Mark this as a user-initiated cancellation so provider-only rehydration can occur
 		task.abortReason = "user_cancelled"
 
@@ -2843,7 +2847,13 @@ ${prompt}
 		}
 
 		// Clears task again, so we need to abortTask manually above.
-		await this.createTaskWithHistoryItem({ ...historyItem, rootTask, parentTask })
+		const newTask = await this.createTaskWithHistoryItem({ ...historyItem, rootTask, parentTask })
+
+		// Restore pending file edits to the new task instance so AcceptRejectButtons remain visible
+		if (pendingFileEdits.length > 0 && newTask) {
+			newTask.fileEditReviewController.importPendingEdits(pendingFileEdits)
+			this.log(`[cancelTask] Restored ${pendingFileEdits.length} pending file edits to new task instance`)
+		}
 	}
 
 	// Clear the current task without treating it as a subtask.

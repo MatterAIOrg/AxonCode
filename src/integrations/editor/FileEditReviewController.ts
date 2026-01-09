@@ -129,6 +129,72 @@ export class FileEditReviewController implements vscode.Disposable {
 		return this.pendingEdits
 	}
 
+	/**
+	 * Export pending edits data for transfer to another task.
+	 * This is used when a task is cancelled and rehydrated to preserve pending edits.
+	 */
+	exportPendingEdits(): Array<{
+		relPath: string
+		absolutePath: string
+		originalContent: string
+		edits: Array<{
+			originalContent: string
+			newContent: string
+		}>
+	}> {
+		const exported: Array<{
+			relPath: string
+			absolutePath: string
+			originalContent: string
+			edits: Array<{
+				originalContent: string
+				newContent: string
+			}>
+		}> = []
+
+		for (const entry of this.pendingEdits.values()) {
+			exported.push({
+				relPath: entry.relPath,
+				absolutePath: entry.absolutePath,
+				originalContent: entry.originalContent,
+				edits: entry.edits.map((e) => ({
+					originalContent: e.originalContent,
+					newContent: e.newContent,
+				})),
+			})
+		}
+
+		return exported
+	}
+
+	/**
+	 * Import pending edits from another task.
+	 * This is used to restore pending edits after a task is rehydrated.
+	 */
+	importPendingEdits(
+		editsData: Array<{
+			relPath: string
+			absolutePath: string
+			originalContent: string
+			edits: Array<{
+				originalContent: string
+				newContent: string
+			}>
+		}>,
+	): void {
+		for (const data of editsData) {
+			// Re-add each edit using the addEdit method to properly set up decorations
+			for (const edit of data.edits) {
+				this.addEdit({
+					relPath: data.relPath,
+					absolutePath: data.absolutePath,
+					originalContent: edit.originalContent,
+					newContent: edit.newContent,
+				})
+			}
+		}
+	}
+
 	async handleAccept(arg?: any) {
 		// Arg can be a CommentThread if triggered from menu, or relPath if triggered programmatically
 		let entry: PendingFileEdit | undefined
