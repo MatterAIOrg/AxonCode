@@ -2,15 +2,25 @@
 
 ## [v5.0.1] - 2026-01-05
 
+### Changed
+
+- Minor improvements to file edit and code reviews
+- File changes list does not dissapear on task abortion
+
+---
+
+## [v5.0.0] - 2026-01-05
+
 ### Added
 
-#### Revamped Harness agents
-
-- Harness context agents and file edits are revamped to reduce error rates
+- Harness context agents and file edits are revamped to reduce error rates! Tools updates, read file, edit file, search and list.
+- Enterprise Code Review support for self-deployed platform
+- Improvments in AI code review system
 
 ### Changed
 
-- UI improvments
+- Major UI improvments
+- Improved auth flow + review only mode
 
 ---
 
