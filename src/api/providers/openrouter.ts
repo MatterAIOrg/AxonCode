@@ -106,9 +106,6 @@ type OpenRouterChatCompletionParams = OpenAI.Chat.ChatCompletionCreateParams & {
 	provider?: OpenRouterProviderParams // kilocode_change
 }
 
-// See `OpenAI.Chat.Completions.ChatCompletionChunk["usage"]`
-// `CompletionsAPI.CompletionUsage`
-// See also: https://openrouter.ai/docs/use-cases/usage-accounting
 export // kilocode_change
 interface CompletionUsage {
 	completion_tokens?: number

@@ -1,5 +1,19 @@
 # Changelog
 
+## [v5.0.1] - 2026-01-05
+
+### Added
+
+#### Revamped Harness agents
+
+- Harness context agents and file edits are revamped to reduce error rates
+
+### Changed
+
+- UI improvments
+
+---
+
 ## [v4.210.0] - 2026-01-02
 
 ### Added

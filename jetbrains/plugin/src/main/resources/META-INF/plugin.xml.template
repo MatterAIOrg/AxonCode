@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>ai.kilocode.jetbrains</id>
+    <id>so.matterai.jetbrains</id>
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
@@ -18,7 +18,7 @@ SPDX-License-Identifier: Apache-2.0
 
     <!-- Resource bundles for internationalization -->
     <resource-bundle>messages.JetbrainsBundle</resource-bundle>
-    <resource-bundle>messages.KilocodeBundle</resource-bundle>
+    <resource-bundle>messages.AxonCodeBundle</resource-bundle>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
@@ -41,87 +41,87 @@ SPDX-License-Identifier: Apache-2.0
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <projectService serviceImplementation="ai.kilocode.jetbrains.plugin.WecoderPluginService"/>
-        <jbProtocolCommand implementation="ai.kilocode.jetbrains.commands.KiloCodeAuthProtocolCommand" />
-        <postStartupActivity implementation="ai.kilocode.jetbrains.plugin.WecoderPlugin"/>
-        <editorFactoryListener implementation="ai.kilocode.jetbrains.editor.EditorListener"/>
-        <toolWindow factoryClass="ai.kilocode.jetbrains.ui.RooToolWindowFactory"
+        <projectService serviceImplementation="so.matterai.jetbrains.plugin.WecoderPluginService"/>
+        <jbProtocolCommand implementation="so.matterai.jetbrains.commands.AxonCodeAuthProtocolCommand" />
+        <postStartupActivity implementation="so.matterai.jetbrains.plugin.WecoderPlugin"/>
+        <editorFactoryListener implementation="so.matterai.jetbrains.editor.EditorListener"/>
+        <toolWindow factoryClass="so.matterai.jetbrains.ui.RooToolWindowFactory"
                     id="Axon Code"
                     secondary="true"
                     icon="/icons/kilo-dark.svg"
                     anchor="right" />
         <notificationGroup
-                    id="kilocode"
+                    id="axoncode"
                     displayType="BALLOON"
         />
-        <checkinHandlerFactory implementation="ai.kilocode.jetbrains.git.CommitMessageHandlerFactory"/>
-        <applicationService serviceImplementation="ai.kilocode.jetbrains.git.CommitMessageService"/>
+        <checkinHandlerFactory implementation="so.matterai.jetbrains.git.CommitMessageHandlerFactory"/>
+        <applicationService serviceImplementation="so.matterai.jetbrains.git.CommitMessageService"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.plugins.terminal">
-        <localTerminalCustomizer implementation="ai.kilocode.jetbrains.terminal.WeCoderTerminalCustomizer"/>
+        <localTerminalCustomizer implementation="so.matterai.jetbrains.terminal.WeCoderTerminalCustomizer"/>
     </extensions>
 
     <actions>
-        <action id="kilocode.plusButtonClicked"
+        <action id="axoncode.plusButtonClicked"
                 icon="AllIcons.General.Add"
-                class="ai.kilocode.jetbrains.actions.PlusButtonClickAction"
-                text="New Task"
-                description="New task">
-            <override-text place="GoToAction" text="New Task" />
+                class="so.matterai.jetbrains.actions.PlusButtonClickAction"
+                text="${action.newTask}"
+                description="${action.newTask.description}">
+            <override-text place="GoToAction" text="${action.newTask}" />
         </action>
 
-        <action id="kilocode.mcpButtonClicked"
+        <action id="axoncode.mcpButtonClicked"
                 icon="AllIcons.Webreferences.Server"
-                class="ai.kilocode.jetbrains.actions.MCPButtonClickAction"
-                text="MCP Server"
-                description="MCP server">
-            <override-text place="GoToAction" text="MCP Server" />
+                class="so.matterai.jetbrains.actions.MCPButtonClickAction"
+                text="${action.mcpServer}"
+                description="${action.mcpServer.description}">
+            <override-text place="GoToAction" text="${action.mcpServer}" />
         </action>
 
-        <action id="kilocode.historyButtonClicked"
+        <action id="axoncode.historyButtonClicked"
                 icon="AllIcons.Vcs.History"
-                class="ai.kilocode.jetbrains.actions.HistoryButtonClickAction"
-                text="History"
-                description="History">
-            <override-text place="GoToAction" text="History" />
+                class="so.matterai.jetbrains.actions.HistoryButtonClickAction"
+                text="${action.history}"
+                description="${action.history.description}">
+            <override-text place="GoToAction" text="${action.history}" />
         </action>
 
-        <action id="kilocode.profileButtonClicked"
+        <action id="axoncode.profileButtonClicked"
                 icon="AllIcons.General.User"
-                class="ai.kilocode.jetbrains.actions.ProfileButtonClickAction"
-                text="Profile"
-                description="Profile">
-            <override-text place="GoToAction" text="Profile" />
+                class="so.matterai.jetbrains.actions.ProfileButtonClickAction"
+                text="${action.profile}"
+                description="${action.profile.description}">
+            <override-text place="GoToAction" text="${action.profile}" />
         </action>
 
-        <action id="kilocode.settingsButtonClicked"
+        <action id="axoncode.settingsButtonClicked"
                 icon="AllIcons.General.Settings"
-                class="ai.kilocode.jetbrains.actions.SettingsButtonClickAction"
-                text="Settings"
-                description="Setting">
-            <override-text place="GoToAction" text="Setting" />
+                class="so.matterai.jetbrains.actions.SettingsButtonClickAction"
+                text="${action.settings}"
+                description="${action.settings.description}">
+            <override-text place="GoToAction" text="${action.settings}" />
         </action>
 
-        <action id="kilocode.generateCommitMessage"
+        <action id="axoncode.generateCommitMessage"
                 icon="/icons/matterai-ic.svg"
-                class="ai.kilocode.jetbrains.actions.GitCommitMessageAction"
-                text="Generate Commit Message"
-                description="Generate AI-powered commit message">
+                class="so.matterai.jetbrains.actions.GitCommitMessageAction"
+                text="${action.generateCommitMessage}"
+                description="${action.generateCommitMessage.description}">
             <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
         </action>
 
         <group id="WecoderToolbarGroup">
-            <reference ref="kilocode.plusButtonClicked" />
-            <reference ref="kilocode.mcpButtonClicked" />
-            <reference ref="kilocode.historyButtonClicked" />
-            <reference ref="kilocode.profileButtonClicked" />
-            <reference ref="kilocode.settingsButtonClicked" />
+            <reference ref="axoncode.plusButtonClicked" />
+            <reference ref="axoncode.mcpButtonClicked" />
+            <reference ref="axoncode.historyButtonClicked" />
+            <reference ref="axoncode.profileButtonClicked" />
+            <reference ref="axoncode.settingsButtonClicked" />
         </group>
 
-        <group id="kilocode.RightClickMenu" text="Axon Code" description="kilocode main menu"  icon="/icons/matterai-ic.svg" popup="true">
-            <group id="kilocode.RightClick.Chat" class="ai.kilocode.jetbrains.actions.RightClickChatActionGroup"
-                   text="Chat" description="kilocode chat tool"/>
+        <group id="axoncode.RightClickMenu" text="${menu.axonCode}" description="${menu.axoncodeMainMenu}"  icon="/icons/matterai-ic.svg" popup="true">
+            <group id="axoncode.RightClick.Chat" class="so.matterai.jetbrains.actions.RightClickChatActionGroup"
+                   text="${menu.chat}" description="${menu.axoncodeChatTool}"/>
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
         </group>
     </actions>

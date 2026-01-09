@@ -102,7 +102,7 @@ npm run build
 要安装你构建的扩展：
 
 ```bash
-code --install-extension "$(ls -1v bin/kilo-code-*.vsix | tail -n1)"
+code --install-extension "$(ls -1v bin/axon-code-*.vsix | tail -n1)"
 ```
 
 将 `[version]` 替换为当前版本号。
