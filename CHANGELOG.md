@@ -1,6 +1,15 @@
 # Changelog
 
-## [v5.0.1] - 2026-01-05
+## [v5.0.2] - 2026-01-09
+
+### Changed
+
+- Minor improvements to file read tool
+- Settings UI Cleanup
+
+---
+
+## [v5.0.1] - 2026-01-09
 
 ### Changed
 
