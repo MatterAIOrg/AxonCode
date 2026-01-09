@@ -56,7 +56,13 @@ type FileEntry = {
 }
 
 export function parseNativeFiles(
-	nativeFiles: { file_path?: string; path?: string; offset?: number; limit?: number; line_ranges?: string[] }[],
+	nativeFiles: {
+		file_path?: string
+		path?: string
+		offset?: number | string
+		limit?: number | string
+		line_ranges?: string[]
+	}[],
 ) {
 	const fileEntries = new Array<FileEntry>()
 	for (const file of nativeFiles) {
@@ -64,10 +70,14 @@ export function parseNativeFiles(
 		const filePath = file.file_path || file.path
 		if (!filePath) continue
 
+		// Parse offset and limit as integers - LLM may send them as strings
+		const parsedOffset = file.offset !== undefined ? parseInt(String(file.offset), 10) : undefined
+		const parsedLimit = file.limit !== undefined ? parseInt(String(file.limit), 10) : undefined
+
 		const fileEntry: FileEntry = {
 			path: filePath,
-			offset: file.offset ?? 1,
-			limit: file.limit, // undefined means read complete file
+			offset: !isNaN(parsedOffset as number) ? parsedOffset : 1,
+			limit: !isNaN(parsedLimit as number) ? parsedLimit : undefined, // undefined means read complete file
 		}
 
 		// Legacy support: convert line_ranges to offset+limit if provided

@@ -1,21 +1,18 @@
+import { CheckCheck, X } from "lucide-react"
 import { HTMLAttributes, useState } from "react"
-import { X, CheckCheck } from "lucide-react"
-import { Trans } from "react-i18next"
-import { Package } from "@roo/package"
 
+import { Button, Input } from "@/components/ui"
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { vscode } from "@/utils/vscode"
-import { Button, Input, Slider } from "@/components/ui"
+import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 
-import { SetCachedStateField } from "./types"
-import { SectionHeader } from "./SectionHeader"
-import { Section } from "./Section"
-import { AutoApproveToggle } from "./AutoApproveToggle"
-import { MaxLimitInputs } from "./MaxLimitInputs"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApprovalState } from "@/hooks/useAutoApprovalState"
 import { useAutoApprovalToggles } from "@/hooks/useAutoApprovalToggles"
+import { AutoApproveToggle } from "./AutoApproveToggle"
+import { Section } from "./Section"
+import { SectionHeader } from "./SectionHeader"
+import { SetCachedStateField } from "./types"
 
 type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	alwaysAllowReadOnly?: boolean
@@ -32,7 +29,7 @@ type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	alwaysAllowExecute?: boolean
 	alwaysAllowFollowupQuestions?: boolean
 	alwaysAllowUpdateTodoList?: boolean
-	followupAutoApproveTimeoutMs?: number
+	// followupAutoApproveTimeoutMs?: number
 	allowedCommands?: string[]
 	allowedMaxRequests?: number | undefined
 	allowedMaxCost?: number | undefined
@@ -78,7 +75,7 @@ export const AutoApproveSettings = ({
 	alwaysAllowSubtasks,
 	alwaysAllowExecute,
 	alwaysAllowFollowupQuestions,
-	followupAutoApproveTimeoutMs = 60000,
+	// followupAutoApproveTimeoutMs = 60000,
 	alwaysAllowUpdateTodoList,
 	allowedCommands,
 	allowedMaxRequests,
@@ -130,7 +127,7 @@ export const AutoApproveSettings = ({
 			</SectionHeader>
 
 			{/* kilocode_change start */}
-			<Section>
+			{/* <Section>
 				<div>
 					<VSCodeCheckbox
 						checked={showAutoApproveMenu}
@@ -142,10 +139,10 @@ export const AutoApproveSettings = ({
 						{t("settings:autoApprove.showMenu.description")}
 					</div>
 				</div>
-			</Section>
+			</Section> */}
 
 			{/* YOLO MODE SECTION */}
-			{process.env.NODE_ENV === "development" && (
+			{/* {process.env.NODE_ENV === "development" && (
 				<Section>
 					<div className="border-2 border-yellow-500 rounded-md p-4 bg-yellow-500/10">
 						<div className="flex items-center gap-2 mb-3">
@@ -170,9 +167,9 @@ export const AutoApproveSettings = ({
 						</div>
 					</div>
 				</Section>
-			)}
+			)} */}
 
-			{process.env.NODE_ENV === "development" && yoloMode && (
+			{/* {process.env.NODE_ENV === "development" && yoloMode && (
 				<Section>
 					<div className="bg-yellow-500/10 border border-yellow-500/30 rounded p-3 flex items-center gap-2">
 						<span className="text-lg">⚡</span>
@@ -181,7 +178,7 @@ export const AutoApproveSettings = ({
 						</span>
 					</div>
 				</Section>
-			)}
+			)} */}
 			{/* kilocode_change end */}
 
 			<Section>
@@ -196,7 +193,7 @@ export const AutoApproveSettings = ({
 						}}>
 						<span className="font-medium">{t("settings:autoApprove.enabled")}</span>
 					</VSCodeCheckbox>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
+					{/* <div className="text-vscode-descriptionForeground text-sm mt-1">
 						<p>{t("settings:autoApprove.description")}</p>
 						<p>
 							<Trans
@@ -219,7 +216,7 @@ export const AutoApproveSettings = ({
 								}}
 							/>
 						</p>
-					</div>
+					</div> */}
 
 					<AutoApproveToggle
 						alwaysAllowReadOnly={alwaysAllowReadOnly}
@@ -235,17 +232,17 @@ export const AutoApproveSettings = ({
 						onToggle={(key, value) => setCachedStateField(key, value)}
 					/>
 
-					<MaxLimitInputs
+					{/* <MaxLimitInputs
 						allowedMaxRequests={allowedMaxRequests}
 						allowedMaxCost={allowedMaxCost}
 						onMaxRequestsChange={(value) => setCachedStateField("allowedMaxRequests", value)}
 						onMaxCostChange={(value) => setCachedStateField("allowedMaxCost", value)}
-					/>
+					/> */}
 				</div>
 
 				{/* ADDITIONAL SETTINGS */}
 
-				{alwaysAllowReadOnly && (
+				{/* {alwaysAllowReadOnly && (
 					<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
 						<div className="flex items-center gap-4 font-bold">
 							<span className="codicon codicon-eye" />
@@ -356,10 +353,10 @@ export const AutoApproveSettings = ({
 							</div>
 						</div>
 					</div>
-				)}
+				)} */}
 
 				{alwaysAllowExecute && (
-					<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
+					<div className="flex flex-col gap-3 pl-3 border-vscode-button-background">
 						<div className="flex items-center gap-4 font-bold">
 							<span className="codicon codicon-terminal" />
 							<div>{t("settings:autoApprove.execute.label")}</div>

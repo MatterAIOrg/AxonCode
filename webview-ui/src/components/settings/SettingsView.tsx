@@ -4,13 +4,10 @@ import {
 	Bot,
 	CheckCheck,
 	CircleUserRound,
-	Database,
 	GitPullRequest,
 	Info,
 	Languages,
 	LucideIcon,
-	MapPinCheck,
-	Monitor,
 	Server,
 	SquareMousePointer,
 	SquareTerminal,
@@ -65,10 +62,10 @@ import { About } from "./About"
 import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
 import { BrowserSettings } from "./BrowserSettings"
-import { CheckpointSettings } from "./CheckpointSettings"
+// import { CheckpointSettings } from "./CheckpointSettings"
 import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewSettings"
-import { ContextManagementSettings } from "./ContextManagementSettings"
-import { DisplaySettings } from "./DisplaySettings" // kilocode_change
+// import { ContextManagementSettings } from "./ContextManagementSettings"
+// import { DisplaySettings } from "./DisplaySettings" // kilocode_change
 import { LanguageSettings } from "./LanguageSettings"
 import { NotificationSettings } from "./NotificationSettings"
 import { Section } from "./Section"
@@ -92,11 +89,11 @@ const sectionNames = [
 	"autoApprove",
 	"slashCommands",
 	"browser",
-	"checkpoints",
+	// "checkpoints",
 	"ghost", // kilocode_change
-	"display", // kilocode_change
+	// "display", // kilocode_change
 	"notifications",
-	"contextManagement",
+	// "contextManagement",
 	"terminal",
 	"prompts",
 	"ui",
@@ -120,7 +117,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const extensionState = useExtensionState()
 	const {
 		currentApiConfigName,
-		listApiConfigMeta,
+		// listApiConfigMeta,
 		uriScheme,
 		kiloCodeWrapperProperties, // kilocode_change
 		settingsImportedAt,
@@ -176,7 +173,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		autoCondenseContextPercent,
 		browserToolEnabled,
 		browserViewportSize,
-		enableCheckpoints,
+		// enableCheckpoints,
 		diffEnabled,
 		experiments,
 		morphApiKey, // kilocode_change
@@ -216,7 +213,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		maxImageFileSize,
 		maxTotalImageSize,
 		terminalCompressProgressBar,
-		maxConcurrentFileReads,
+		// maxConcurrentFileReads,
 		allowVeryLargeReads, // kilocode_change
 		terminalCommandApiConfigId, // kilocode_change
 		condensingApiConfigId,
@@ -420,7 +417,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			vscode.postMessage({ type: "ttsSpeed", value: ttsSpeed })
 			vscode.postMessage({ type: "soundVolume", value: soundVolume })
 			vscode.postMessage({ type: "diffEnabled", bool: diffEnabled })
-			vscode.postMessage({ type: "enableCheckpoints", bool: enableCheckpoints })
+			// vscode.postMessage({ type: "enableCheckpoints", bool: enableCheckpoints })
 			vscode.postMessage({ type: "browserViewportSize", text: browserViewportSize })
 			vscode.postMessage({ type: "remoteBrowserHost", text: remoteBrowserHost })
 			vscode.postMessage({ type: "remoteBrowserEnabled", bool: remoteBrowserEnabled })
@@ -450,7 +447,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			vscode.postMessage({ type: "maxReadFileLine", value: maxReadFileLine ?? -1 })
 			vscode.postMessage({ type: "maxImageFileSize", value: maxImageFileSize ?? 5 })
 			vscode.postMessage({ type: "maxTotalImageSize", value: maxTotalImageSize ?? 20 })
-			vscode.postMessage({ type: "maxConcurrentFileReads", value: cachedState.maxConcurrentFileReads ?? 5 })
+			// vscode.postMessage({ type: "maxConcurrentFileReads", value: cachedState.maxConcurrentFileReads ?? 5 })
 			vscode.postMessage({ type: "allowVeryLargeReads", bool: allowVeryLargeReads }) // kilocode_change
 			vscode.postMessage({ type: "includeDiagnosticMessages", bool: includeDiagnosticMessages })
 			vscode.postMessage({ type: "maxDiagnosticMessages", value: maxDiagnosticMessages ?? 50 })
@@ -588,11 +585,11 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "autoApprove", icon: CheckCheck },
 			// { id: "slashCommands", icon: SquareSlash }, // kilocode_change: needs work to be re-introduced
 			{ id: "browser", icon: SquareMousePointer },
-			{ id: "checkpoints", icon: MapPinCheck },
-			{ id: "display", icon: Monitor }, // kilocode_change
+			// { id: "checkpoints", icon: MapPinCheck },
+			// { id: "display", icon: Monitor }, // kilocode_change
 			...(kiloCodeWrapperProperties?.kiloCodeWrapped ? [] : [{ id: "ghost" as const, icon: Bot }]), // kilocode_change
 			{ id: "notifications", icon: Bell },
-			{ id: "contextManagement", icon: Database },
+			// { id: "contextManagement", icon: Database },
 			{ id: "terminal", icon: SquareTerminal },
 			// { id: "prompts", icon: MessageSquare },
 			// { id: "ui", icon: Glasses }, // kilocode_change: we have our own display section
@@ -816,7 +813,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							alwaysAllowExecute={alwaysAllowExecute}
 							alwaysAllowFollowupQuestions={alwaysAllowFollowupQuestions}
 							alwaysAllowUpdateTodoList={alwaysAllowUpdateTodoList}
-							followupAutoApproveTimeoutMs={followupAutoApproveTimeoutMs}
+							// followupAutoApproveTimeoutMs={followupAutoApproveTimeoutMs}
 							allowedCommands={allowedCommands}
 							allowedMaxRequests={allowedMaxRequests ?? undefined}
 							allowedMaxCost={allowedMaxCost ?? undefined}
@@ -841,22 +838,22 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					)}
 
 					{/* Checkpoints Section */}
-					{activeTab === "checkpoints" && (
+					{/* {activeTab === "checkpoints" && (
 						<CheckpointSettings
 							enableCheckpoints={enableCheckpoints}
 							setCachedStateField={setCachedStateField}
 						/>
-					)}
+					)} */}
 
 					{/* kilocode_change start display section */}
-					{activeTab === "display" && (
+					{/* {activeTab === "display" && (
 						<DisplaySettings
 							sendMessageOnEnter={sendMessageOnEnter}
 							showTimestamps={cachedState.showTimestamps} // kilocode_change
 							ghostServiceSettings={ghostServiceSettings}
 							setCachedStateField={setCachedStateField}
 						/>
-					)}
+					)} */}
 					{activeTab === "ghost" && (
 						<GhostServiceSettingsView
 							ghostServiceSettings={ghostServiceSettings}
@@ -879,7 +876,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					)}
 
 					{/* Context Management Section */}
-					{activeTab === "contextManagement" && (
+					{/* {activeTab === "contextManagement" && (
 						<ContextManagementSettings
 							autoCondenseContext={autoCondenseContext}
 							autoCondenseContextPercent={autoCondenseContextPercent}
@@ -891,14 +888,14 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							maxImageFileSize={maxImageFileSize}
 							maxTotalImageSize={maxTotalImageSize}
 							maxConcurrentFileReads={maxConcurrentFileReads}
-							allowVeryLargeReads={allowVeryLargeReads /* kilocode_change */}
+							allowVeryLargeReads={allowVeryLargeReads}
 							profileThresholds={profileThresholds}
 							includeDiagnosticMessages={includeDiagnosticMessages}
 							maxDiagnosticMessages={maxDiagnosticMessages}
 							writeDelayMs={writeDelayMs}
 							setCachedStateField={setCachedStateField}
 						/>
-					)}
+					)} */}
 
 					{/* Terminal Section */}
 					{activeTab === "terminal" && (

@@ -5,7 +5,7 @@ export const read_file_multi = {
 	function: {
 		name: "read_file",
 		description:
-			"Read one or more files and return their contents with line numbers. Use offset and limit to read specific portions of files efficiently. By default reads from the beginning with a reasonable limit.",
+			"Read one or more files and return their contents with line numbers. Use offset and limit to read specific portions of files efficiently. Default and maximum limit is 1000 lines to prevent context overflow.",
 		strict: true,
 		parameters: {
 			type: "object",
@@ -28,7 +28,7 @@ export const read_file_multi = {
 							limit: {
 								type: ["number", "null"],
 								description:
-									"Maximum number of lines to read from offset. If not specified, reads the complete file from offset. Use smaller values for targeted reads.",
+									"Maximum number of lines to read from offset. Default and maximum limit is 1000 lines. Use smaller values for targeted reads.",
 							},
 						},
 						required: ["file_path"],
@@ -48,7 +48,7 @@ export const read_file_single = {
 	function: {
 		name: "read_file",
 		description:
-			"Read a file and return its contents with line numbers. Use offset and limit to read specific portions efficiently.",
+			"Read a file and return its contents with line numbers. Use offset and limit to read specific portions efficiently. Default and maximum limit is 1000 lines to prevent context overflow.",
 		strict: true,
 		parameters: {
 			type: "object",
@@ -64,7 +64,7 @@ export const read_file_single = {
 				limit: {
 					type: ["number", "null"],
 					description:
-						"Maximum number of lines to read from offset. If not specified, reads the complete file from offset.",
+						"Maximum number of lines to read from offset. Default and maximum limit is 1000 lines.",
 				},
 			},
 			required: ["file_path"],
