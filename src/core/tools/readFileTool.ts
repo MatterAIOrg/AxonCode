@@ -24,6 +24,9 @@ import {
 	ImageMemoryTracker,
 } from "./helpers/imageHelpers"
 
+// Maximum number of lines to read when limit is not specified - prevents context window overflow
+const MAX_READ_FILE_LINES = 1000
+
 export function getReadFileToolDescription(blockName: string, blockParams: any): string {
 	// Handle both single file_path and multiple files via args
 	// kilocode_change start
@@ -95,8 +98,11 @@ export async function readFileTool(
 	const newFilePath: string | undefined = (block.params as any).file_path // New: support file_path directly
 	const legacyStartLineStr: string | undefined = block.params.start_line
 	const legacyEndLineStr: string | undefined = block.params.end_line
-	const offsetParam: number | undefined = (block.params as any).offset
-	const limitParam: number | undefined = (block.params as any).limit
+	// Parse offset and limit as integers - LLM may send them as strings causing string concatenation bugs
+	const rawOffset = (block.params as any).offset
+	const rawLimit = (block.params as any).limit
+	const offsetParam: number | undefined = rawOffset !== undefined ? parseInt(String(rawOffset), 10) : undefined
+	const limitParam: number | undefined = rawLimit !== undefined ? parseInt(String(rawLimit), 10) : undefined
 
 	const nativeFiles: any[] | undefined = (block.params as any).files // kilocode_change: Native JSON format from OpenAI-style tool calls
 
@@ -159,10 +165,14 @@ export async function readFileTool(
 				const filePath = file.file_path || file.path
 				if (!filePath) continue // Skip if no path in a file entry
 
+				// Parse offset and limit as integers - XML parsing may produce strings
+				const parsedOffset = file.offset !== undefined ? parseInt(String(file.offset), 10) : undefined
+				const parsedLimit = file.limit !== undefined ? parseInt(String(file.limit), 10) : undefined
+
 				const fileEntry: FileEntry = {
 					path: filePath,
-					offset: file.offset ?? 1,
-					limit: file.limit, // undefined means read complete file
+					offset: !isNaN(parsedOffset as number) ? parsedOffset : 1,
+					limit: !isNaN(parsedLimit as number) ? parsedLimit : undefined, // undefined means read complete file
 				}
 
 				// Legacy support: convert line_range to offset+limit
@@ -350,10 +360,11 @@ export async function readFileTool(
 		const imageMemoryTracker = new ImageMemoryTracker()
 		const state = await cline.providerRef.deref()?.getState()
 		const {
-			maxReadFileLine = -1,
 			maxImageFileSize = DEFAULT_MAX_IMAGE_FILE_SIZE_MB,
 			maxTotalImageSize = DEFAULT_MAX_TOTAL_IMAGE_SIZE_MB,
 		} = state ?? {}
+		// Always use MAX_READ_FILE_LINES - setting will be removed later
+		const maxReadFileLine = MAX_READ_FILE_LINES
 
 		// Then process only approved files
 		for (const fileResult of fileResults) {
@@ -444,33 +455,37 @@ export async function readFileTool(
 				// Handle offset/limit reads (if limit is specified)
 				if (fileResult.limit !== undefined) {
 					const startLine = fileResult.offset ?? 1
-					const endLine = startLine + fileResult.limit - 1
+					// Cap limit to MAX_READ_FILE_LINES to prevent context window overflow
+					const effectiveLimit = Math.min(fileResult.limit, MAX_READ_FILE_LINES)
+					const endLine = startLine + effectiveLimit - 1
 					const content = addLineNumbers(await readLines(fullPath, endLine - 1, startLine - 1), startLine)
+					let xmlContent = content
+					if (fileResult.limit > MAX_READ_FILE_LINES) {
+						xmlContent = `[showing ${effectiveLimit} lines, capped from requested ${fileResult.limit} lines to prevent context overflow]\n${content}`
+					}
 					updateFileResult(relPath, {
-						xmlContent: content,
+						xmlContent,
 					})
 					continue
 				}
 
-				// Handle definitions-only mode
-				if (maxReadFileLine === 0) {
-					try {
-						const defResult = await parseSourceCodeDefinitionsForFile(fullPath, cline.rooIgnoreController)
-						if (defResult) {
-							// kilocode_change: Return raw definitions without path header
-							updateFileResult(relPath, {
-								xmlContent: `[definitions only, ${totalLines} total lines]\n${defResult}`,
-							})
-						}
-					} catch (error) {
-						if (error instanceof Error && error.message.startsWith("Unsupported language:")) {
-							console.warn(`[read_file] Warning: ${error.message}`)
-						} else {
-							console.error(
-								`[read_file] Unhandled error: ${error instanceof Error ? error.message : String(error)}`,
-							)
-						}
+				// Handle offset-only reads (no limit specified) - cap to MAX_READ_FILE_LINES
+				if (fileResult.offset !== undefined && fileResult.offset > 1) {
+					const startLine = fileResult.offset
+					const endLine = startLine + MAX_READ_FILE_LINES - 1
+					const actualEndLine = Math.min(endLine, totalLines)
+					const linesRead = actualEndLine - startLine + 1
+					const content = addLineNumbers(
+						await readLines(fullPath, actualEndLine - 1, startLine - 1),
+						startLine,
+					)
+					let xmlContent = content
+					if (totalLines > actualEndLine) {
+						xmlContent = `[showing ${linesRead} lines from offset ${startLine}, capped at ${MAX_READ_FILE_LINES} lines. Total file length: ${totalLines} lines]\n${content}`
 					}
+					updateFileResult(relPath, {
+						xmlContent,
+					})
 					continue
 				}
 

@@ -70,7 +70,7 @@ classes at build time based on the @theme */
 --card-foreground: var(--vscode-editor-foreground);
 --popover: var(--vscode-menu-background, var(--vscode-editor-background));
 --popover-foreground: var(--vscode-menu-foreground, var(--vscode-editor-foreground));
---primary: var(--vscode-button-background);
+--primary: var(--color-matterai-green-dark);
 --primary-foreground: var(--vscode-button-foreground);
 --secondary: var(--vscode-button-secondaryBackground);
 --secondary-foreground: var(--vscode-button-secondaryForeground);
