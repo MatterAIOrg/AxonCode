@@ -5,7 +5,7 @@ export default {
 	function: {
 		name: "file_edit",
 		description:
-			"Replace existing text within a single file without constructing manual diff blocks. Provide the current text (`old_string`) and the desired text (`new_string`). By default only a single uniquely matched occurrence is replaced; set `replace_all` to true to update every matching occurrence.",
+			"Replace existing text within a single file without constructing manual diff blocks. Provide the current text (`old_string`) and the desired text (`new_string`). By default only a single uniquely matched occurrence is replaced; set `replace_all` to true to update every matching occurrence. Remember, old_string and new_string cannot be same.",
 		strict: true,
 		parameters: {
 			type: "object",

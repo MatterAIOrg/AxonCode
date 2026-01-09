@@ -1087,7 +1087,8 @@ ${comment.suggestion}
 				break
 			}
 
-			let prompt = "Please apply the following code review fixes:\n\n"
+			let prompt =
+				"Please find below the code review results on the current active changes. Think hard, do a deep analysis and cautiosly apply the following fixes, if needed. Ensure when appying the fix you are not breaking or changing any working code or business logic which is currently written:\n\n"
 			comments.forEach((c: any, i: number) => {
 				prompt += `Fix ${i + 1} in ${c.path}:\n`
 				prompt += `Issue: ${c.body}\n`
