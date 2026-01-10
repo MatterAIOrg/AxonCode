@@ -271,6 +271,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	apiConversationHistory: ApiMessage[] = []
 	clineMessages: ClineMessage[] = []
 
+	// Context Window Usage Tracking
+	contextWindowUsage?: {
+		currentTokens: number
+		maxTokens: number
+	} // kilocode_change: Track context window usage
+
 	// Ask
 	private askResponse?: ClineAskResponse
 	private askResponseText?: string
@@ -2354,6 +2360,16 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								cacheWriteTokens = tokens.cacheWrite
 								cacheReadTokens = tokens.cacheRead
 								totalCost = tokens.total
+
+								// kilocode_change: Update context window usage tracking
+								const modelInfo = this.api.getModel().info
+								const maxTokens = modelInfo.contextWindow || 256000
+								const currentTokens =
+									tokens.input + tokens.output + tokens.cacheWrite + tokens.cacheRead
+								this.contextWindowUsage = {
+									currentTokens,
+									maxTokens,
+								}
 
 								// Update the API request message with the latest usage data
 								updateApiReqMsg()

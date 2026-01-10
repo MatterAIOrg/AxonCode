@@ -32,6 +32,7 @@ import { ImageWarningBanner } from "./ImageWarningBanner" // kilocode_change
 import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
+import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
 
 // kilocode_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
@@ -1557,7 +1558,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				{/* kilocode_change: position tweaked, rtl support */}
 				<div className="absolute bottom-2 end-2 z-30">
 					{/* kilocode_change start */}
-					{!isEditMode && <IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />}
+					{!isEditMode && (
+						<>
+							<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
+							<IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />
+						</>
+					)}
 					<StandardTooltip content="Add Context (@)">
 						<button
 							aria-label="Add Context (@)"
@@ -1580,7 +1586,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								"rounded-md min-w-[28px] min-h-[28px]",
 								"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 								"transition-all duration-150",
-								"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
 								"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
 								"active:bg-[rgba(255,255,255,0.1)]",
 								!showContextMenu && "cursor-pointer",
@@ -1602,7 +1607,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"rounded-md min-w-[28px] min-h-[28px]",
 									"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 									"transition-all duration-150",
-									"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
 									"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
 									"cursor-pointer",
@@ -1622,7 +1626,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								"rounded-md min-w-[28px] min-h-[28px]",
 								"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 								"transition-all duration-150",
-								"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
 								"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
 								"active:bg-[rgba(255,255,255,0.1)]",
 								!sendingDisabled && "cursor-pointer",

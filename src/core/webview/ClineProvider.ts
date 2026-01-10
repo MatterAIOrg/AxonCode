@@ -2140,6 +2140,7 @@ ${prompt}
 			openRouterUseMiddleOutTransform,
 			featureRoomoteControlEnabled,
 			codeReviewSettings,
+			contextWindowUsage: this.getCurrentTask()?.contextWindowUsage, // kilocode_change: Track context window usage
 		}
 	}
 

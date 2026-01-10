@@ -392,6 +392,11 @@ export type ExtensionState = Pick<
 	writeDelayMs: number
 	requestDelaySeconds: number
 
+	contextWindowUsage?: {
+		currentTokens: number
+		maxTokens: number
+	} // kilocode_change: Track context window usage
+
 	enableCheckpoints: boolean
 	maxOpenTabsContext: number // Maximum number of VSCode open tabs to include in context (0-500)
 	maxWorkspaceFiles: number // Maximum number of files to include in current working directory details (0-500)

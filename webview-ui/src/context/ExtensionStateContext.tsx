@@ -201,6 +201,10 @@ export interface ExtensionStateContextType extends ExtensionState {
 		enterpriseApiKey?: string
 		reviewOnlyMode?: boolean
 	}) => void
+	contextWindowUsage?: {
+		currentTokens: number
+		maxTokens: number
+	} // kilocode_change: Track context window usage
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
