@@ -1,50 +1,50 @@
 import cloneDeep from "clone-deep"
 import { serializeError } from "serialize-error"
 
-import type { ToolName, ClineAsk, ToolProgressStatus } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
+import type { ClineAsk, ToolName, ToolProgressStatus } from "@roo-code/types"
 
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import type { ToolParamName, ToolResponse } from "../../shared/tools"
 
-import { fetchInstructionsTool } from "../tools/fetchInstructionsTool"
-import { listFilesTool } from "../tools/listFilesTool"
-import { getReadFileToolDescription, readFileTool } from "../tools/readFileTool"
-import { getSimpleReadFileToolDescription, simpleReadFileTool } from "../tools/simpleReadFileTool"
 import { shouldUseSingleFileRead } from "@roo-code/types"
-import { writeToFileTool } from "../tools/writeToFileTool"
-import { applyDiffTool } from "../tools/multiApplyDiffTool"
-import { insertContentTool } from "../tools/insertContentTool"
-import { searchAndReplaceTool } from "../tools/searchAndReplaceTool"
-import { fileEditTool } from "../tools/fileEditTool"
-import { editFileTool } from "../tools/editFileTool" // kilocode_change: Morph fast apply
-import { listCodeDefinitionNamesTool } from "../tools/listCodeDefinitionNamesTool"
-import { searchFilesTool } from "../tools/searchFilesTool"
-import { browserActionTool } from "../tools/browserActionTool"
-import { executeCommandTool } from "../tools/executeCommandTool"
-import { useMcpToolTool } from "../tools/useMcpToolTool"
 import { accessMcpResourceTool } from "../tools/accessMcpResourceTool"
 import { askFollowupQuestionTool } from "../tools/askFollowupQuestionTool"
-import { switchModeTool } from "../tools/switchModeTool"
 import { attemptCompletionTool } from "../tools/attemptCompletionTool"
+import { browserActionTool } from "../tools/browserActionTool"
+import { editFileTool } from "../tools/editFileTool" // kilocode_change: Morph fast apply
+import { executeCommandTool } from "../tools/executeCommandTool"
+import { fetchInstructionsTool } from "../tools/fetchInstructionsTool"
+import { fileEditTool } from "../tools/fileEditTool"
+import { insertContentTool } from "../tools/insertContentTool"
+import { listCodeDefinitionNamesTool } from "../tools/listCodeDefinitionNamesTool"
+import { listFilesTool } from "../tools/listFilesTool"
+import { applyDiffTool } from "../tools/multiApplyDiffTool"
 import { newTaskTool } from "../tools/newTaskTool"
+import { getReadFileToolDescription, readFileTool } from "../tools/readFileTool"
+import { searchAndReplaceTool } from "../tools/searchAndReplaceTool"
+import { searchFilesTool } from "../tools/searchFilesTool"
+import { getSimpleReadFileToolDescription, simpleReadFileTool } from "../tools/simpleReadFileTool"
+import { switchModeTool } from "../tools/switchModeTool"
+import { useMcpToolTool } from "../tools/useMcpToolTool"
+import { writeToFileTool } from "../tools/writeToFileTool"
 
-import { updateTodoListTool } from "../tools/updateTodoListTool"
-import { runSlashCommandTool } from "../tools/runSlashCommandTool"
 import { generateImageTool } from "../tools/generateImageTool"
 import { planFileEditTool } from "../tools/planFileEditTool"
+import { runSlashCommandTool } from "../tools/runSlashCommandTool"
+import { updateTodoListTool } from "../tools/updateTodoListTool"
 
+import Anthropic from "@anthropic-ai/sdk" // kilocode_change
+import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
+import { yieldPromise } from "../kilocode"
 import { formatResponse } from "../prompts/responses"
-import { validateToolUse } from "../tools/validateToolUse"
 import { Task } from "../task/Task"
+import { applyDiffToolLegacy } from "../tools/applyDiffTool"
+import { codebaseSearchTool } from "../tools/codebaseSearchTool"
+import { condenseTool } from "../tools/condenseTool" // kilocode_change
 import { newRuleTool } from "../tools/newRuleTool" // kilocode_change
 import { reportBugTool } from "../tools/reportBugTool" // kilocode_change
-import { condenseTool } from "../tools/condenseTool" // kilocode_change
-import { codebaseSearchTool } from "../tools/codebaseSearchTool"
-import { experiments, EXPERIMENT_IDS } from "../../shared/experiments"
-import { applyDiffToolLegacy } from "../tools/applyDiffTool"
-import { yieldPromise } from "../kilocode"
-import Anthropic from "@anthropic-ai/sdk" // kilocode_change
+import { validateToolUse } from "../tools/validateToolUse"
 
 /**
  * Processes and presents assistant message content to the user interface.
@@ -335,13 +335,7 @@ export async function presentAssistantMessage(cline: Task) {
 				)
 
 				if (response !== "yesButtonClicked") {
-					// Handle both messageResponse and noButtonClicked with text.
-					if (text) {
-						await cline.say("user_feedback", text, images)
-						pushToolResult(formatResponse.toolResult(formatResponse.toolDeniedWithFeedback(text), images))
-					} else {
-						pushToolResult(formatResponse.toolDenied())
-					}
+					// On reject, do nothing - just reject
 					cline.didRejectTool = true
 					return false
 				}
