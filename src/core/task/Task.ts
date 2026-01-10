@@ -2037,16 +2037,26 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 			// kilocode_change end
 
+			// Check for files that were modified by the user after the assistant's last edit
+			// and inject a notification to inform the LLM about these changes
+			const recentlyModifiedFiles = this.fileContextTracker.getAndClearRecentlyModifiedFiles()
+			let finalUserContent: Anthropic.Messages.ContentBlockParam[]
+			if (recentlyModifiedFiles.length > 0) {
+				// Build a notification message listing the modified files
+				const fileList = recentlyModifiedFiles.map((f) => `  - ${f}`).join("\n")
+				const notification = `The following file(s) have been modified by the user since your last edit:\n${fileList}\n\nPlease use read_file to get the latest content of these files before proceeding further to ensure you're working with the most up-to-date information.`
+				// Inject the notification as a separate text block before the user content
+				finalUserContent = [{ type: "text" as const, text: notification }, ...parsedUserContent]
+			} else {
+				finalUserContent = parsedUserContent
+			}
+
 			// Only add environment details on the first iteration (when includeFileDetails is true)
 			// For subsequent iterations with tool results, don't add environment details to avoid duplication
-			let finalUserContent: Anthropic.Messages.ContentBlockParam[]
 			if (currentIncludeFileDetails) {
 				const environmentDetails = await getEnvironmentDetails(this, currentIncludeFileDetails)
 				// Add environment details as its own text block, separate from tool results
-				finalUserContent = [...parsedUserContent, { type: "text" as const, text: environmentDetails }]
-			} else {
-				// For tool results, don't add environment details
-				finalUserContent = parsedUserContent
+				finalUserContent = [...finalUserContent, { type: "text" as const, text: environmentDetails }]
 			}
 
 			await this.addToApiConversationHistory({ role: "user", content: finalUserContent })
