@@ -87,6 +87,13 @@ export interface ApiHandlerCreateMessageMetadata {
 	 * @kilocode-only
 	 */
 	projectId?: string
+	/**
+	 * KiloCode-specific: The git repository URL or root folder name for the current workspace.
+	 * If a git repository, contains the git remote URL. Otherwise, contains the root folder name.
+	 * Used by KiloCodeOpenrouterHandler for backend tracking. Ignored by other providers.
+	 * @kilocode-only
+	 */
+	repo?: string
 	// kilocode_change end
 }
 

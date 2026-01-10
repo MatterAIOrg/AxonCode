@@ -76,6 +76,7 @@ import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 // utils
 import { calculateApiCostAnthropic } from "../../shared/cost"
 import { getWorkspacePath } from "../../utils/path"
+import { getGitRepositoryInfo } from "../../utils/git"
 
 // prompts
 import { formatResponse } from "../prompts/responses"
@@ -3102,6 +3103,21 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// kilocode_change start
 		// Fetch project properties for KiloCode provider tracking
 		const kiloConfig = this.providerRef.deref()?.getKiloConfig()
+
+		// Get git repository URL or root folder name for X-AXON-REPO header
+		let repo: string | undefined
+		try {
+			const gitInfo = await getGitRepositoryInfo(this.workspacePath)
+			if (gitInfo.repositoryUrl) {
+				repo = gitInfo.repositoryUrl
+			} else {
+				// Not a git repository, use root folder name
+				repo = path.basename(this.workspacePath)
+			}
+		} catch (error) {
+			// Fallback to root folder name if git info retrieval fails
+			repo = path.basename(this.workspacePath)
+		}
 		// kilocode_change end
 
 		// Check auto-approval limits
@@ -3153,6 +3169,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// kilocode_change start
 			// KiloCode-specific: pass projectId for backend tracking (ignored by other providers)
 			projectId: (await kiloConfig)?.project?.id,
+			// KiloCode-specific: pass git repository URL or root folder name for backend tracking
+			repo,
 			// kilocode_change end
 		}
 

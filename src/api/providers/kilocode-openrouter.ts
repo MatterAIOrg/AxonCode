@@ -12,6 +12,7 @@ import {
 	X_KILOCODE_TASKID,
 	X_KILOCODE_PROJECTID,
 	X_KILOCODE_TESTER,
+	X_AXON_REPO,
 } from "../../shared/kilocode/headers"
 
 /**
@@ -51,6 +52,11 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 			if (metadata?.projectId) {
 				headers[X_KILOCODE_PROJECTID] = metadata.projectId
 			}
+		}
+
+		// Add X-AXON-REPO header with git repository URL or root folder name
+		if (metadata?.repo) {
+			headers[X_AXON_REPO] = metadata.repo
 		}
 
 		// Add X-KILOCODE-TESTER: SUPPRESS header if the setting is enabled
