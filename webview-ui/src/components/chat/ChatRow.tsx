@@ -1278,7 +1278,7 @@ export const ChatRowContent = ({
 					// Check if this is the "out of credits" message
 					const isOutOfCreditsMessage =
 						message.text?.includes("Your plan is out of credits") &&
-						message.text?.includes("https://app.matterai.so/usage")
+						message.text?.includes("https://app.matterai.so/billing")
 
 					if (isOutOfCreditsMessage) {
 						return (
@@ -1319,7 +1319,7 @@ export const ChatRowContent = ({
 										e.preventDefault()
 										vscode.postMessage({
 											type: "openInBrowser",
-											url: "https://app.matterai.so/usage",
+											url: "https://app.matterai.so/billing",
 										})
 									}}
 									style={{
