@@ -275,7 +275,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	contextWindowUsage?: {
 		currentTokens: number
 		maxTokens: number
-	} // kilocode_change: Track context window usage
+	}
 
 	// Ask
 	private askResponse?: ClineAskResponse
@@ -411,6 +411,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		if (historyItem) {
 			this._taskMode = historyItem.mode || defaultModeSlug
 			this.taskModeReady = Promise.resolve()
+			// Restore context window usage from history
+			this.contextWindowUsage = historyItem.contextWindowUsage
 			TelemetryService.instance.captureTaskRestarted(this.taskId)
 		} else {
 			// For new tasks, don't set the mode yet - wait for async initialization.
@@ -731,6 +733,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				globalStoragePath: this.globalStoragePath,
 				workspace: this.cwd,
 				mode: this._taskMode || defaultModeSlug, // Use the task's own mode, not the current provider mode.
+				contextWindowUsage: this.contextWindowUsage, // Pass current context window usage
 			})
 
 			if (hasTokenUsageChanged(tokenUsage, this.tokenUsageSnapshot)) {
@@ -1729,6 +1732,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	public dispose(): void {
 		console.log(`[Task#dispose] disposing task ${this.taskId}.${this.instanceId}`)
 
+		// Reset context window usage
+		this.contextWindowUsage = undefined
+
 		// Dispose message queue and remove event listeners.
 		try {
 			if (this.messageQueueStateChangedHandler) {
@@ -2361,9 +2367,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								cacheReadTokens = tokens.cacheRead
 								totalCost = tokens.total
 
-								// kilocode_change: Update context window usage tracking
+								// Update context window usage tracking
 								const modelInfo = this.api.getModel().info
-								const maxTokens = modelInfo.contextWindow || 256000
+								const maxTokens = modelInfo.contextWindow || 200000
 								const currentTokens =
 									tokens.input + tokens.output + tokens.cacheWrite + tokens.cacheRead
 								this.contextWindowUsage = {

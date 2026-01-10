@@ -481,6 +481,9 @@ export class ClineProvider
 			// Make sure no reference kept, once promises end it will be
 			// garbage collected.
 			task = undefined
+
+			// Update state to reflect that the task has been removed
+			await this.postStateToWebview()
 		}
 	}
 
@@ -2706,6 +2709,12 @@ ${prompt}
 		options: CreateTaskOptions = {},
 		configuration: RooCodeSettings = {},
 	): Promise<Task> {
+		// Clear any existing task before creating a new one
+		if (this.clineStack.length > 0) {
+			console.log(`[createTask] Clearing existing task before creating new one`)
+			await this.removeClineFromStack()
+		}
+
 		if (configuration) {
 			await this.setValues(configuration)
 

@@ -21,6 +21,10 @@ export type TaskMetadataOptions = {
 	globalStoragePath: string
 	workspace: string
 	mode?: string
+	contextWindowUsage?: {
+		currentTokens: number
+		maxTokens: number
+	}
 }
 
 export async function taskMetadata({
@@ -32,6 +36,7 @@ export async function taskMetadata({
 	globalStoragePath,
 	workspace,
 	mode,
+	contextWindowUsage,
 }: TaskMetadataOptions) {
 	const taskDir = await getTaskDirectoryPath(globalStoragePath, id)
 
@@ -101,6 +106,15 @@ export async function taskMetadata({
 		size: taskDirSize,
 		workspace,
 		mode,
+		// Use provided contextWindowUsage if available, otherwise calculate from tokenUsage
+		contextWindowUsage: contextWindowUsage
+			? contextWindowUsage
+			: tokenUsage.contextTokens > 0
+				? {
+						currentTokens: tokenUsage.contextTokens,
+						maxTokens: 200000, // Default max tokens for KiloCode models
+					}
+				: undefined,
 	}
 
 	return { historyItem, tokenUsage }

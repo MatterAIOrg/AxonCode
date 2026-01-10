@@ -226,7 +226,15 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Extensi
 
 	// Note that we completely replace the previous apiConfiguration and customSupportPrompts objects
 	// with new ones since the state that is broadcast is the entire objects so merging is not necessary.
-	return { ...rest, apiConfiguration, customModePrompts, customSupportPrompts, experiments }
+	// Also replace contextWindowUsage when it changes or when currentTaskItem changes
+	const result = { ...rest, apiConfiguration, customModePrompts, customSupportPrompts, experiments }
+
+	// Explicitly handle contextWindowUsage - replace when new state has it or when task changes
+	if (newState.contextWindowUsage !== undefined || newState.currentTaskItem !== prevState.currentTaskItem) {
+		result.contextWindowUsage = newState.contextWindowUsage
+	}
+
+	return result
 }
 
 export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
