@@ -9,7 +9,12 @@ import OpenAI from "openai"
 
 import { KilocodeOpenrouterHandler } from "../kilocode-openrouter"
 import { ApiHandlerOptions } from "../../../shared/api"
-import { X_KILOCODE_TASKID, X_KILOCODE_ORGANIZATIONID, X_KILOCODE_PROJECTID } from "../../../shared/kilocode/headers"
+import {
+	X_KILOCODE_TASKID,
+	X_KILOCODE_ORGANIZATIONID,
+	X_KILOCODE_PROJECTID,
+	X_AXON_REPO,
+} from "../../../shared/kilocode/headers"
 
 // Mock dependencies
 vitest.mock("openai")
@@ -149,6 +154,60 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toBeUndefined()
 		})
+
+		it("includes repo header when provided in metadata", () => {
+			const handler = new KilocodeOpenrouterHandler(mockOptions)
+			const result = handler.customRequestOptions({
+				taskId: "test-task-id",
+				mode: "code",
+				repo: "https://github.com/user/repo.git",
+			})
+
+			expect(result).toEqual({
+				headers: {
+					[X_KILOCODE_TASKID]: "test-task-id",
+					[X_AXON_REPO]: "https://github.com/user/repo.git",
+				},
+			})
+		})
+
+		it("includes repo header with folder name when not a git repository", () => {
+			const handler = new KilocodeOpenrouterHandler(mockOptions)
+			const result = handler.customRequestOptions({
+				taskId: "test-task-id",
+				mode: "code",
+				repo: "my-project-folder",
+			})
+
+			expect(result).toEqual({
+				headers: {
+					[X_KILOCODE_TASKID]: "test-task-id",
+					[X_AXON_REPO]: "my-project-folder",
+				},
+			})
+		})
+
+		it("includes all headers including repo when all metadata is provided", () => {
+			const handler = new KilocodeOpenrouterHandler({
+				...mockOptions,
+				kilocodeOrganizationId: "test-org-id",
+			})
+			const result = handler.customRequestOptions({
+				taskId: "test-task-id",
+				mode: "code",
+				projectId: "https://github.com/user/repo.git",
+				repo: "https://github.com/user/repo.git",
+			})
+
+			expect(result).toEqual({
+				headers: {
+					[X_KILOCODE_TASKID]: "test-task-id",
+					[X_KILOCODE_ORGANIZATIONID]: "test-org-id",
+					[X_KILOCODE_PROJECTID]: "https://github.com/user/repo.git",
+					[X_AXON_REPO]: "https://github.com/user/repo.git",
+				},
+			})
+		})
 	})
 
 	describe("createMessage", () => {
@@ -178,6 +237,7 @@ describe("KilocodeOpenrouterHandler", () => {
 				taskId: "test-task-id",
 				mode: "code",
 				projectId: "https://github.com/user/repo.git",
+				repo: "https://github.com/user/repo.git",
 			}
 
 			const generator = handler.createMessage(systemPrompt, messages, metadata)
@@ -191,6 +251,7 @@ describe("KilocodeOpenrouterHandler", () => {
 						[X_KILOCODE_TASKID]: "test-task-id",
 						[X_KILOCODE_PROJECTID]: "https://github.com/user/repo.git",
 						[X_KILOCODE_ORGANIZATIONID]: "test-org-id",
+						[X_AXON_REPO]: "https://github.com/user/repo.git",
 					},
 				}),
 			)

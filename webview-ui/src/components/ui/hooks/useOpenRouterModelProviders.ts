@@ -43,7 +43,7 @@ const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		name: "Axon Code",
 		description: "Axon Code is super intelligent LLM model for coding tasks",
 		input_modalities: ["text"],
-		context_length: 256000,
+		context_length: 200000,
 		max_output_length: 32768,
 		output_modalities: ["text"],
 		supported_sampling_parameters: [
@@ -78,8 +78,8 @@ const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		description:
 			"Axon Code 2 is the next-generation of Axon Code for coding tasks, currently in experimental stage.",
 		input_modalities: ["text"],
-		context_length: 256000,
-		max_output_length: 32768,
+		context_length: 200000,
+		max_output_length: 64000,
 		output_modalities: ["text"],
 		supported_sampling_parameters: [
 			"temperature",
@@ -99,8 +99,8 @@ const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		created: 1750426201,
 		owned_by: "matterai",
 		pricing: {
-			prompt: "0.000001",
-			completion: "0.000004",
+			prompt: "0.0000012",
+			completion: "0.0000048",
 			image: "0",
 			request: "0",
 			input_cache_reads: "0",
@@ -113,7 +113,7 @@ const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		description:
 			"Axon Mini is an general purpose super intelligent LLM coding model for low-effort day-to-day tasks",
 		input_modalities: ["text"],
-		context_length: 256000,
+		context_length: 200000,
 		max_output_length: 16384,
 		output_modalities: ["text"],
 		supported_sampling_parameters: [

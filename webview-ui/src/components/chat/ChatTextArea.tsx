@@ -32,6 +32,7 @@ import { ImageWarningBanner } from "./ImageWarningBanner" // kilocode_change
 import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
+import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
 
 // kilocode_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
@@ -207,7 +208,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const [selectedMenuIndex, setSelectedMenuIndex] = useState(-1)
 		const [selectedType, setSelectedType] = useState<ContextMenuOptionType | null>(null)
 		const [justDeletedSpaceAfterMention, setJustDeletedSpaceAfterMention] = useState(false)
-		const [intendedCursorPosition, setIntendedCursorPosition] = useState<number | null>(null)
 		const contextMenuContainerRef = useRef<HTMLDivElement>(null)
 		const [isFocused, setIsFocused] = useState(false)
 		const [imageWarning, setImageWarning] = useState<string | null>(null) // kilocode_change
@@ -215,6 +215,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		// const [isUserInput, setIsUserInput] = useState(false)
 		const isUserInputRef = useRef(false) // Use ref to avoid re-renders
+		const intendedCursorPositionRef = useRef<number | null>(null) // Track intended cursor position for synchronous restoration
 
 		// get the icons base uri on mount
 		useEffect(() => {
@@ -222,13 +223,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			setMaterialIconsBaseUri(w.MATERIAL_ICONS_BASE_URI)
 		}, [])
 
-		const applyCursorPosition = useCallback(
-			(position: number) => {
-				setCursorPosition(position)
-				setIntendedCursorPosition(position)
-			},
-			[setCursorPosition, setIntendedCursorPosition],
-		)
+		const applyCursorPosition = useCallback((position: number) => {
+			setCursorPosition(position)
+			intendedCursorPositionRef.current = position
+		}, [])
 
 		// Use custom hook for prompt history navigation
 		const { handleHistoryNavigation, resetHistoryNavigation, resetOnInputChange } = usePromptHistory({
@@ -330,7 +328,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					if (lastAtIndex !== -1) {
 						const newValue = beforeCursor.slice(0, lastAtIndex) + afterCursor
 						setInputValue(newValue)
-						setIntendedCursorPosition(lastAtIndex)
+						intendedCursorPositionRef.current = lastAtIndex
 					}
 
 					onSelectImages()
@@ -398,14 +396,13 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				setInputValue(newValue)
 				const newCursorPosition = newValue.indexOf(" ", mentionIndex + insertValue.length) + 1
 				setCursorPosition(newCursorPosition)
-				setIntendedCursorPosition(newCursorPosition)
+				intendedCursorPositionRef.current = newCursorPosition
 
 				setTimeout(() => {
 					textAreaRef.current?.focus()
 				}, 0)
 			},
-			// eslint-disable-next-line react-hooks/exhaustive-deps
-			[setInputValue, cursorPosition],
+			[setInputValue, cursorPosition, inputValue, onSelectImages, setMode],
 		)
 
 		// kilocode_change start: pull slash commands from Cline
@@ -429,7 +426,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 				setInputValue(newValue)
 				setCursorPosition(newCursorPosition)
-				setIntendedCursorPosition(newCursorPosition)
+				intendedCursorPositionRef.current = newCursorPosition
 
 				setTimeout(() => {
 					textAreaRef.current?.focus()
@@ -455,11 +452,48 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			setIsFocused(false)
 		}, [isMouseDownOnMenu])
 
+		const toPlainText = useCallback((node: Node, isLastSibling: boolean): string => {
+			if (node.nodeType === Node.TEXT_NODE) {
+				return node.textContent || ""
+			}
+
+			if (node.nodeType === Node.ELEMENT_NODE) {
+				const el = node as HTMLElement
+
+				if (el.dataset?.mentionValue) {
+					return el.dataset.mentionValue
+				}
+
+				if (el.tagName === "BR") {
+					return "\n"
+				}
+
+				const children = Array.from(el.childNodes)
+				const text = children.map((child, idx) => toPlainText(child, idx === children.length - 1)).join("")
+
+				if ((el.tagName === "DIV" || el.tagName === "P") && !isLastSibling) {
+					return text + "\n"
+				}
+
+				return text
+			}
+
+			return ""
+		}, [])
+
+		const getPlainTextFromInput = useCallback(() => {
+			if (!textAreaRef.current) return ""
+			const children = Array.from(textAreaRef.current.childNodes)
+			return children.map((child, idx) => toPlainText(child, idx === children.length - 1)).join("")
+		}, [toPlainText])
+
 		const handlePaste = useCallback(
 			async (e: React.ClipboardEvent) => {
 				const items = e.clipboardData.items
 
 				const pastedText = e.clipboardData.getData("text")
+				const pastedHtml = e.clipboardData.getData("text/html")
+
 				// Check if the pasted content is a URL, add space after so user
 				// can easily delete if they don't want it.
 				const urlRegex = /^\S+:\/\/\S+$/
@@ -471,17 +505,40 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					setInputValue(newValue)
 					const newCursorPosition = cursorPosition + trimmedUrl.length + 1
 					setCursorPosition(newCursorPosition)
-					setIntendedCursorPosition(newCursorPosition)
+					intendedCursorPositionRef.current = newCursorPosition
 					setShowContextMenu(false)
 
-					// Scroll to new cursor position.
-					setTimeout(() => {
-						if (textAreaRef.current) {
-							textAreaRef.current.blur()
-							textAreaRef.current.focus()
-						}
-					}, 0)
+					return
+				}
 
+				// If there's HTML data, paste as plain text to clear formatting
+				if (pastedHtml && pastedText) {
+					e.preventDefault()
+					const plainText = pastedText
+
+					// Insert plain text directly into the DOM to preserve existing formatting
+					const selection = window.getSelection()
+					if (selection && selection.rangeCount > 0) {
+						const range = selection.getRangeAt(0)
+						const textNode = document.createTextNode(plainText)
+						range.deleteContents()
+						range.insertNode(textNode)
+
+						// Move cursor to end of inserted text
+						range.setStartAfter(textNode)
+						range.setEndAfter(textNode)
+						selection.removeAllRanges()
+						selection.addRange(range)
+
+						// Update state to match the new content
+						const newValue = getPlainTextFromInput()
+						setInputValue(newValue)
+						const newCursorPosition = cursorPosition + plainText.length
+						setCursorPosition(newCursorPosition)
+						intendedCursorPositionRef.current = newCursorPosition
+					}
+
+					setShowContextMenu(false)
 					return
 				}
 
@@ -550,6 +607,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				t,
 				selectedImages.length, // kilocode_change - added selectedImages.length
 				showImageWarning, // kilocode_change - added showImageWarning
+				getPlainTextFromInput,
 			],
 		)
 
@@ -630,41 +688,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 			return 0
 		}, [])
-
-		const toPlainText = useCallback((node: Node, isLastSibling: boolean): string => {
-			if (node.nodeType === Node.TEXT_NODE) {
-				return node.textContent || ""
-			}
-
-			if (node.nodeType === Node.ELEMENT_NODE) {
-				const el = node as HTMLElement
-
-				if (el.dataset?.mentionValue) {
-					return el.dataset.mentionValue
-				}
-
-				if (el.tagName === "BR") {
-					return "\n"
-				}
-
-				const children = Array.from(el.childNodes)
-				const text = children.map((child, idx) => toPlainText(child, idx === children.length - 1)).join("")
-
-				if ((el.tagName === "DIV" || el.tagName === "P") && !isLastSibling) {
-					return text + "\n"
-				}
-
-				return text
-			}
-
-			return ""
-		}, [])
-
-		const getPlainTextFromInput = useCallback(() => {
-			if (!textAreaRef.current) return ""
-			const children = Array.from(textAreaRef.current.childNodes)
-			return children.map((child, idx) => toPlainText(child, idx === children.length - 1)).join("")
-		}, [toPlainText])
 
 		const getCaretPosition = useCallback(() => {
 			if (!textAreaRef.current) return 0
@@ -783,15 +806,21 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			// Only update innerHTML if the change is not from user input
 			// This prevents destroying the selection when user is typing or pressing Enter
 			if (isUserInputRef.current) {
-				isUserInputRef.current = false // Reset flag
+				// Reset the flag after checking it
+				isUserInputRef.current = false
 				return // Skip innerHTML update to preserve selection
 			}
 
 			const html = valueToHtml(inputValue)
 			if (textAreaRef.current.innerHTML !== html) {
 				textAreaRef.current.innerHTML = html
+				// Restore cursor position synchronously after innerHTML update
+				if (intendedCursorPositionRef.current !== null) {
+					setCaretPosition(intendedCursorPositionRef.current)
+					intendedCursorPositionRef.current = null
+				}
 			}
-		}, [inputValue, valueToHtml])
+		}, [inputValue, valueToHtml, setCaretPosition])
 
 		const updateCursorPosition = useCallback(() => {
 			setCursorPosition(getCaretPosition())
@@ -960,7 +989,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						if (newText !== inputValue) {
 							event.preventDefault()
 							setInputValue(newText)
-							setIntendedCursorPosition(newPosition)
+							intendedCursorPositionRef.current = newPosition
 						}
 
 						setJustDeletedSpaceAfterMention(false)
@@ -998,16 +1027,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			],
 		)
 
-		useLayoutEffect(() => {
-			if (intendedCursorPosition !== null) {
-				// Use setTimeout to ensure this runs after the DOM is fully updated
-				setTimeout(() => {
-					setCaretPosition(intendedCursorPosition)
-					setIntendedCursorPosition(null)
-				}, 0)
-			}
-		}, [inputValue, intendedCursorPosition, setCaretPosition])
-
 		const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
 		const handleInputChange = useCallback(() => {
@@ -1018,7 +1037,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 			const newCursorPosition = getCaretPosition()
 			setCursorPosition(newCursorPosition)
-			setIntendedCursorPosition(newCursorPosition)
+			intendedCursorPositionRef.current = newCursorPosition
 
 			let showMenu = shouldShowContextMenu(newValue, newCursorPosition)
 			const slashMenuVisible = shouldShowSlashCommandsMenu(newValue, newCursorPosition)
@@ -1088,7 +1107,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			resetOnInputChange,
 			setInputValue,
 			setCursorPosition,
-			setIntendedCursorPosition,
 			setShowSlashCommandsMenu,
 			setShowContextMenu,
 			setSlashCommandsQuery,
@@ -1217,7 +1235,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						setInputValue(newValue)
 						const newCursorPosition = cursorPosition + totalLength + 1
 						setCursorPosition(newCursorPosition)
-						setIntendedCursorPosition(newCursorPosition)
+						intendedCursorPositionRef.current = newCursorPosition
 					}
 
 					return
@@ -1286,7 +1304,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				inputValue,
 				setInputValue,
 				setCursorPosition,
-				setIntendedCursorPosition,
 				shouldDisableImages,
 				setSelectedImages,
 				t,
@@ -1541,7 +1558,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				{/* kilocode_change: position tweaked, rtl support */}
 				<div className="absolute bottom-2 end-2 z-30">
 					{/* kilocode_change start */}
-					{!isEditMode && <IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />}
+					{!isEditMode && (
+						<>
+							<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
+							<IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />
+						</>
+					)}
 					<StandardTooltip content="Add Context (@)">
 						<button
 							aria-label="Add Context (@)"
@@ -1564,7 +1586,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								"rounded-md min-w-[28px] min-h-[28px]",
 								"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 								"transition-all duration-150",
-								"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
 								"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
 								"active:bg-[rgba(255,255,255,0.1)]",
 								!showContextMenu && "cursor-pointer",
@@ -1586,7 +1607,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"rounded-md min-w-[28px] min-h-[28px]",
 									"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 									"transition-all duration-150",
-									"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
 									"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
 									"cursor-pointer",
@@ -1606,7 +1626,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								"rounded-md min-w-[28px] min-h-[28px]",
 								"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 								"transition-all duration-150",
-								"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
 								"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
 								"active:bg-[rgba(255,255,255,0.1)]",
 								!sendingDisabled && "cursor-pointer",

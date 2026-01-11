@@ -74,7 +74,7 @@ const TaskItem = ({
 
 				{/* Task text */}
 				<ReadOnlyChatText
-					value={item.task || ""}
+					value={item.title || item.task || ""}
 					className={cn(
 						"flex-1 overflow-hidden whitespace-pre-wrap text-vscode-foreground text-ellipsis line-clamp-1 opacity-70",
 						{

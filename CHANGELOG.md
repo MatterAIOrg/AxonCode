@@ -1,5 +1,25 @@
 # Changelog
 
+## [v5.0.3] - 2026-01-11
+
+### Added
+
+- Context window usage tracking
+- Show credits usage on hover
+- Fetch and show chat title
+
+### Changed
+
+- UX improvements for chat
+- Headers for repo
+
+### Fixed
+
+- Notify LLM if files have been changed by the user post its own edits
+- On exec tool reject, do nothing
+
+---
+
 ## [v5.0.2] - 2026-01-09
 
 ### Changed

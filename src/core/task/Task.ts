@@ -76,6 +76,7 @@ import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 // utils
 import { calculateApiCostAnthropic } from "../../shared/cost"
 import { getWorkspacePath } from "../../utils/path"
+import { getGitRepositoryInfo } from "../../utils/git"
 
 // prompts
 import { formatResponse } from "../prompts/responses"
@@ -101,6 +102,7 @@ import {
 	readTaskMessages,
 	saveTaskMessages,
 	taskMetadata,
+	fetchTaskTitle, // kilocode_change
 } from "../task-persistence"
 import { getEnvironmentDetails } from "../environment/getEnvironmentDetails"
 import { checkContextWindowExceededError } from "../context/context-management/context-error-handling"
@@ -271,6 +273,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	apiConversationHistory: ApiMessage[] = []
 	clineMessages: ClineMessage[] = []
 
+	// Context Window Usage Tracking
+	contextWindowUsage?: {
+		currentTokens: number
+		maxTokens: number
+	}
+
 	// Ask
 	private askResponse?: ClineAskResponse
 	private askResponseText?: string
@@ -405,6 +413,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		if (historyItem) {
 			this._taskMode = historyItem.mode || defaultModeSlug
 			this.taskModeReady = Promise.resolve()
+			// Restore context window usage from history
+			this.contextWindowUsage = historyItem.contextWindowUsage
 			TelemetryService.instance.captureTaskRestarted(this.taskId)
 		} else {
 			// For new tasks, don't set the mode yet - wait for async initialization.
@@ -725,6 +735,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				globalStoragePath: this.globalStoragePath,
 				workspace: this.cwd,
 				mode: this._taskMode || defaultModeSlug, // Use the task's own mode, not the current provider mode.
+				contextWindowUsage: this.contextWindowUsage, // Pass current context window usage
 			})
 
 			if (hasTokenUsageChanged(tokenUsage, this.tokenUsageSnapshot)) {
@@ -1723,6 +1734,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	public dispose(): void {
 		console.log(`[Task#dispose] disposing task ${this.taskId}.${this.instanceId}`)
 
+		// Reset context window usage
+		this.contextWindowUsage = undefined
+
 		// Dispose message queue and remove event listeners.
 		try {
 			if (this.messageQueueStateChangedHandler) {
@@ -2037,16 +2051,26 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 			// kilocode_change end
 
+			// Check for files that were modified by the user after the assistant's last edit
+			// and inject a notification to inform the LLM about these changes
+			const recentlyModifiedFiles = this.fileContextTracker.getAndClearRecentlyModifiedFiles()
+			let finalUserContent: Anthropic.Messages.ContentBlockParam[]
+			if (recentlyModifiedFiles.length > 0) {
+				// Build a notification message listing the modified files
+				const fileList = recentlyModifiedFiles.map((f) => `  - ${f}`).join("\n")
+				const notification = `The following file(s) have been modified by the user since your last edit:\n${fileList}\n\nPlease use read_file to get the latest content of these files before proceeding further to ensure you're working with the most up-to-date information.`
+				// Inject the notification as a separate text block before the user content
+				finalUserContent = [{ type: "text" as const, text: notification }, ...parsedUserContent]
+			} else {
+				finalUserContent = parsedUserContent
+			}
+
 			// Only add environment details on the first iteration (when includeFileDetails is true)
 			// For subsequent iterations with tool results, don't add environment details to avoid duplication
-			let finalUserContent: Anthropic.Messages.ContentBlockParam[]
 			if (currentIncludeFileDetails) {
 				const environmentDetails = await getEnvironmentDetails(this, currentIncludeFileDetails)
 				// Add environment details as its own text block, separate from tool results
-				finalUserContent = [...parsedUserContent, { type: "text" as const, text: environmentDetails }]
-			} else {
-				// For tool results, don't add environment details
-				finalUserContent = parsedUserContent
+				finalUserContent = [...finalUserContent, { type: "text" as const, text: environmentDetails }]
 			}
 
 			await this.addToApiConversationHistory({ role: "user", content: finalUserContent })
@@ -2165,6 +2189,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				let pendingGroundingSources: GroundingSource[] = []
 				this.isStreaming = true
 
+				// kilocode_change: Track if we've started fetching the title
+				let hasStartedTitleFetch = false
+
 				try {
 					const iterator = stream[Symbol.asyncIterator]()
 					let item = await iterator.next()
@@ -2175,6 +2202,29 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 							// Sometimes chunk is undefined, no idea that can cause
 							// it, but this workaround seems to fix it.
 							continue
+						}
+
+						// kilocode_change: Fetch task title after first chunk is received
+						if (!hasStartedTitleFetch) {
+							hasStartedTitleFetch = true
+							// Start title fetching in background without blocking the stream
+							const state = await this.providerRef.deref()?.getState()
+							const kilocodeToken = state?.apiConfiguration?.kilocodeToken
+							if (kilocodeToken) {
+								fetchTaskTitle(this.taskId, kilocodeToken, 3, 2000)
+									.then(async (title: string | null) => {
+										if (title && this.clineMessages.length > 0) {
+											// Update the first message with the title
+											const firstMessage = this.clineMessages[0]
+											;(firstMessage as any).title = title
+											await this.saveClineMessages()
+										}
+									})
+									.catch((error: unknown) => {
+										// Silently fail - title fetching is optional
+										console.warn("Failed to fetch task title:", error)
+									})
+							}
 						}
 
 						switch (chunk.type) {
@@ -2344,6 +2394,16 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								cacheWriteTokens = tokens.cacheWrite
 								cacheReadTokens = tokens.cacheRead
 								totalCost = tokens.total
+
+								// Update context window usage tracking
+								const modelInfo = this.api.getModel().info
+								const maxTokens = modelInfo.contextWindow || 200000
+								const currentTokens =
+									tokens.input + tokens.output + tokens.cacheWrite + tokens.cacheRead
+								this.contextWindowUsage = {
+									currentTokens,
+									maxTokens,
+								}
 
 								// Update the API request message with the latest usage data
 								updateApiReqMsg()
@@ -3070,6 +3130,21 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// kilocode_change start
 		// Fetch project properties for KiloCode provider tracking
 		const kiloConfig = this.providerRef.deref()?.getKiloConfig()
+
+		// Get git repository URL or root folder name for X-AXON-REPO header
+		let repo: string | undefined
+		try {
+			const gitInfo = await getGitRepositoryInfo(this.workspacePath)
+			if (gitInfo.repositoryUrl) {
+				repo = gitInfo.repositoryUrl
+			} else {
+				// Not a git repository, use root folder name
+				repo = path.basename(this.workspacePath)
+			}
+		} catch (error) {
+			// Fallback to root folder name if git info retrieval fails
+			repo = path.basename(this.workspacePath)
+		}
 		// kilocode_change end
 
 		// Check auto-approval limits
@@ -3121,6 +3196,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// kilocode_change start
 			// KiloCode-specific: pass projectId for backend tracking (ignored by other providers)
 			projectId: (await kiloConfig)?.project?.id,
+			// KiloCode-specific: pass git repository URL or root folder name for backend tracking
+			repo,
 			// kilocode_change end
 		}
 
