@@ -27,6 +27,7 @@ export interface TaskHeaderProps {
 	onMessageClick?: (index: number) => void
 	isTaskActive?: boolean
 	todos?: any[]
+	title?: string // kilocode_change: Task title from backend
 }
 
 const KiloTaskHeader = ({
@@ -39,11 +40,12 @@ const KiloTaskHeader = ({
 	// contextTokens,
 	// buttonsDisabled,
 	// handleCondenseContext,
-	// onClose,
+	onClose,
 	// groupedMessages,
 	// onMessageClick,
 	// isTaskActive = false,
 	todos,
+	title,
 }: TaskHeaderProps) => {
 	// const { t } = useTranslation()
 	// const { showTaskTimeline } = useExtensionState()
@@ -85,6 +87,19 @@ const KiloTaskHeader = ({
 					position: "relative",
 					zIndex: 1,
 				}}>
+				{/* kilocode_change: Show title with X button at the top */}
+				{title && (
+					<div className="flex justify-between items-center gap-2 mb-2 pb-2 border-b border-[var(--color-matterai-border)]">
+						<div className="flex items-center gap-2 grow min-w-0">
+							<span className="font-semibold text-sm truncate">{title}</span>
+						</div>
+						<button
+							onClick={onClose}
+							className="shrink-0 w-5 h-5 flex items-center justify-center hover:bg-[var(--vscode-toolbar-hoverBackground)] rounded cursor-pointer">
+							<span className="codicon codicon-close text-xs" />
+						</button>
+					</div>
+				)}
 				<div className="flex justify-between items-center gap-2">
 					<div
 						className="flex items-center cursor-pointer -ml-0.5 select-none grow min-w-0"

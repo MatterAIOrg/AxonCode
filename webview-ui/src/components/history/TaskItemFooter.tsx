@@ -38,7 +38,7 @@ const TaskItemFooter: React.FC<TaskItemFooterProps> = ({
 			{/* Action Buttons for non-compact view */}
 			{!isSelectionMode && (
 				<div className="flex flex-row gap-1 items-center text-vscode-descriptionForeground/60 hover:text-vscode-descriptionForeground">
-					<CopyButton itemTask={item.task} />
+					<CopyButton itemTask={item.title || item.task} /> {/* kilocode_change: Use title if available */}
 					{/* <FavoriteButton isFavorited={item.isFavorited ?? false} id={item.id} /> */}
 					{/* {variant === "full" && <ExportButton itemId={item.id} />} */}
 					{onDelete && <DeleteButton itemId={item.id} onDelete={onDelete} />}

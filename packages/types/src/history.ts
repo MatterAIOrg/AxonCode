@@ -21,6 +21,7 @@ export const historyItemSchema = z.object({
 	isFavorited: z.boolean().optional(), // kilocode_change
 	fileNotfound: z.boolean().optional(), // kilocode_change
 	mode: z.string().optional(),
+	title: z.string().optional(), // kilocode_change: Task title from backend
 	contextWindowUsage: z
 		.object({
 			currentTokens: z.number(),

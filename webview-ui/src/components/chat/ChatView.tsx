@@ -2153,6 +2153,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						onMessageClick={handleMessageClick}
 						isTaskActive={sendingDisabled}
 						todos={latestTodos}
+						title={(task as any)?.title}
 					/>
 					{/* kilocode_change start */}
 

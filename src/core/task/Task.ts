@@ -102,6 +102,7 @@ import {
 	readTaskMessages,
 	saveTaskMessages,
 	taskMetadata,
+	fetchTaskTitle, // kilocode_change
 } from "../task-persistence"
 import { getEnvironmentDetails } from "../environment/getEnvironmentDetails"
 import { checkContextWindowExceededError } from "../context/context-management/context-error-handling"
@@ -2188,6 +2189,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				let pendingGroundingSources: GroundingSource[] = []
 				this.isStreaming = true
 
+				// kilocode_change: Track if we've started fetching the title
+				let hasStartedTitleFetch = false
+
 				try {
 					const iterator = stream[Symbol.asyncIterator]()
 					let item = await iterator.next()
@@ -2198,6 +2202,29 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 							// Sometimes chunk is undefined, no idea that can cause
 							// it, but this workaround seems to fix it.
 							continue
+						}
+
+						// kilocode_change: Fetch task title after first chunk is received
+						if (!hasStartedTitleFetch) {
+							hasStartedTitleFetch = true
+							// Start title fetching in background without blocking the stream
+							const state = await this.providerRef.deref()?.getState()
+							const kilocodeToken = state?.apiConfiguration?.kilocodeToken
+							if (kilocodeToken) {
+								fetchTaskTitle(this.taskId, kilocodeToken, 3, 2000)
+									.then(async (title: string | null) => {
+										if (title && this.clineMessages.length > 0) {
+											// Update the first message with the title
+											const firstMessage = this.clineMessages[0]
+											;(firstMessage as any).title = title
+											await this.saveClineMessages()
+										}
+									})
+									.catch((error: unknown) => {
+										// Silently fail - title fetching is optional
+										console.warn("Failed to fetch task title:", error)
+									})
+							}
 						}
 
 						switch (chunk.type) {
