@@ -3027,7 +3027,6 @@ ${prompt}
 		if (this._kiloConfig === null) {
 			const { repositoryUrl } = await this.getGitProperties()
 			this._kiloConfig = await getKilocodeConfig(this.cwd, repositoryUrl)
-			console.log("getKiloConfig", this._kiloConfig)
 		}
 		return this._kiloConfig
 	}

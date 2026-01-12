@@ -272,13 +272,53 @@ export class FileEditReviewController implements vscode.Disposable {
 		}
 	}
 
-	async handleAcceptAll() {
-		if (this.pendingEdits.size === 0) return
+	async handleAcceptAll(): Promise<{ linesAdded: number; linesUpdated: number; linesDeleted: number } | undefined> {
+		if (this.pendingEdits.size === 0) return undefined
+
+		// Calculate line counters before clearing
+		let linesAdded = 0
+		let linesUpdated = 0
+		let linesDeleted = 0
+
+		for (const edit of this.pendingEdits.values()) {
+			for (const editEntry of edit.edits) {
+				const beforeLines = editEntry.originalContent ? editEntry.originalContent.split("\n") : []
+				const afterLines = editEntry.newContent ? editEntry.newContent.split("\n") : []
+
+				if (beforeLines.length === 0) {
+					// New content added
+					linesAdded += afterLines.length
+				} else if (afterLines.length === 0) {
+					// Content deleted
+					linesDeleted += beforeLines.length
+				} else {
+					// Modified content - count changed lines
+					const commonLength = Math.min(beforeLines.length, afterLines.length)
+					let changedInCommon = 0
+					for (let i = 0; i < commonLength; i++) {
+						if (beforeLines[i] !== afterLines[i]) {
+							changedInCommon++
+						}
+					}
+					linesUpdated += changedInCommon
+
+					// Account for added/deleted lines beyond common length
+					const diff = afterLines.length - beforeLines.length
+					if (diff > 0) {
+						linesAdded += diff
+					} else if (diff < 0) {
+						linesDeleted += Math.abs(diff)
+					}
+				}
+			}
+		}
 
 		this.pendingEdits.clear()
 		this.reviewQueue = []
 		this.refreshDecorations()
 		this.codeLensEmitter.fire()
+
+		return { linesAdded, linesUpdated, linesDeleted }
 	}
 
 	async handleRejectAll() {
