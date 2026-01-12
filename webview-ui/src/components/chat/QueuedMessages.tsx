@@ -49,7 +49,7 @@ export const QueuedMessages = ({ queue, onRemove, onUpdate }: QueuedMessagesProp
 					return (
 						<div
 							key={message.id}
-							className="bg-vscode-editor-background border rounded-xs p-1 overflow-hidden whitespace-pre-wrap flex-shrink-0">
+							className="bg-vscode-editor-background border rounded-md p-1 overflow-hidden whitespace-pre-wrap flex-shrink-0">
 							<div className="flex justify-between items-center">
 								<div className="flex-grow px-2 py-1 wrap-anywhere">
 									{editState.isEditing ? (

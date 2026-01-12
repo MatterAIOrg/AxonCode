@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "Pensando",
+		"thought": "Pensamento",
 		"seconds": "{{count}}s"
 	},
 	"followUpSuggest": {

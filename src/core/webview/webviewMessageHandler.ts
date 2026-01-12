@@ -50,6 +50,7 @@ import {
 	checkoutDiffPayloadSchema,
 	checkoutRestorePayloadSchema,
 } from "../../shared/WebviewMessage"
+import type { WebviewMessage as WebviewMessageType } from "../../shared/WebviewMessage"
 import { checkExistKey } from "../../shared/checkExistApiConfig"
 import { experimentDefault } from "../../shared/experiments"
 import { Terminal } from "../../integrations/terminal/Terminal"
@@ -976,6 +977,48 @@ export const webviewMessageHandler = async (
 			} as any)
 			break
 		}
+		// kilocode_change start: View pending file diffs in VS Code diff view
+		case "viewPendingFileDiffs" as any: {
+			const currentTask = provider.getCurrentTask()
+
+			if (!currentTask) {
+				break
+			}
+
+			const pendingEdits = currentTask.fileEditReviewController.getPendingEdits()
+
+			if (pendingEdits.size === 0) {
+				break
+			}
+
+			// Open each file with pending edits in diff view
+			for (const [readablePath, edit] of pendingEdits.entries()) {
+				try {
+					const fileName = path.basename(edit.absolutePath)
+					const fileUri = vscode.Uri.file(edit.absolutePath)
+
+					// Create a URI for the original content using the diff view scheme
+					const originalUri = vscode.Uri.parse(`cline-diff:${fileName}`).with({
+						query: Buffer.from(edit.originalContent).toString("base64"),
+					})
+
+					// Open diff view between original and current content
+					await vscode.commands.executeCommand(
+						"vscode.diff",
+						originalUri,
+						fileUri,
+						`${fileName}: Original ↔ Axon Code's Changes`,
+						{ preserveFocus: true },
+					)
+				} catch (error) {
+					provider.log(
+						`Failed to open diff for ${readablePath}: ${error instanceof Error ? error.message : "Unknown error"}`,
+					)
+				}
+			}
+			break
+		}
+		// kilocode_change end
 		// kilocode_change start: Get Git changes for AI Code Review (separate from pending file edits)
 		case "getGitChangesForReview": {
 			try {
@@ -1453,9 +1496,94 @@ ${comment.suggestion}
 				await seeNewChanges(task, (message.payload as SeeNewChangesPayload).commitRange)
 			}
 			break
-		case "fileEditReviewAcceptAll":
-			await vscode.commands.executeCommand("axon-code.fileEdit.acceptAll")
+		case "fileEditReviewAcceptAll": {
+			const currentTask = provider.getCurrentTask()
+			if (!currentTask) {
+				break
+			}
+
+			// Execute the accept all command and get line counters
+			const lineCounters = await vscode.commands.executeCommand<
+				{ linesAdded: number; linesUpdated: number; linesDeleted: number } | undefined
+			>("axon-code.fileEdit.acceptAll")
+
+			// Send line counters to server if we have data
+			if (
+				lineCounters &&
+				(lineCounters.linesAdded > 0 || lineCounters.linesUpdated > 0 || lineCounters.linesDeleted > 0)
+			) {
+				try {
+					// Get state to retrieve kilocodeToken
+					const state = await provider.getState()
+					const kilocodeToken = state.apiConfiguration?.kilocodeToken
+
+					if (!kilocodeToken) {
+						provider.log("KiloCode token not found, skipping line counter update")
+						break
+					}
+
+					// Get git repository info for x-axon-repo header
+					const { getGitRepositoryInfo } = await import("../../utils/git")
+					const gitInfo = await getGitRepositoryInfo(provider.cwd)
+					const repo = gitInfo.repositoryUrl || path.basename(provider.cwd)
+
+					// Get the primary language from the first edited file
+					const pendingEdits = currentTask.fileEditReviewController.getPendingEdits()
+					let language = "ts" // default
+					if (pendingEdits.size > 0) {
+						const firstFile = Array.from(pendingEdits.keys())[0]
+						const ext = path.extname(firstFile).toLowerCase()
+						const languageMap: Record<string, string> = {
+							".ts": "ts",
+							".tsx": "tsx",
+							".js": "js",
+							".jsx": "jsx",
+							".py": "py",
+							".java": "java",
+							".go": "go",
+							".rs": "rs",
+							".cpp": "cpp",
+							".c": "c",
+							".cs": "cs",
+							".php": "php",
+							".rb": "rb",
+							".swift": "swift",
+							".kt": "kt",
+							".dart": "dart",
+							".vue": "vue",
+							".svelte": "svelte",
+						}
+						language = languageMap[ext] || "ts"
+					}
+
+					// Send POST request to update line counters
+					const url = `https://api.matterai.so/axoncode/meta/${currentTask.taskId}/lines`
+					const response = await fetch(url, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${kilocodeToken}`,
+							"X-AXON-REPO": repo,
+						},
+						body: JSON.stringify({
+							language,
+							linesAdded: lineCounters.linesAdded,
+							linesUpdated: lineCounters.linesUpdated,
+							linesDeleted: lineCounters.linesDeleted,
+						}),
+					})
+
+					if (!response.ok) {
+						provider.log(`Failed to update line counters: ${response.statusText}`)
+					}
+				} catch (error) {
+					provider.log(
+						`Error updating line counters: ${error instanceof Error ? error.message : String(error)}`,
+					)
+				}
+			}
 			break
+		}
 		case "fileEditReviewRejectAll":
 			await vscode.commands.executeCommand("axon-code.fileEdit.rejectAll")
 			break

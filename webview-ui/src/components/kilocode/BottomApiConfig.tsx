@@ -122,7 +122,7 @@ export const BottomApiConfig = () => {
 								flexShrink: 0,
 							}}
 						/>
-						{usagePercentage !== null ? `used ${usagePercentage.toFixed(1)}% monthly limit` : "loading..."}
+						{usagePercentage !== null ? `used ${usagePercentage.toFixed(0)}% monthly limit` : "loading..."}
 					</span>
 					{showHoverCard &&
 						createPortal(
@@ -157,7 +157,7 @@ export const BottomApiConfig = () => {
 											Monthly Reviews
 										</div>
 										<div className="text-xs text-[var(--vscode-descriptionForeground)]">
-											{(profileData?.remainingReviews || 0).toFixed(1)} reviews remaining
+											{(profileData?.remainingReviews || 0).toFixed(0)} reviews remaining
 										</div>
 									</div>
 								</div>

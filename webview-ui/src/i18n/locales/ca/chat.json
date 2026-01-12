@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "Raonament",
+		"thought": "Pensament",
 		"seconds": "{{count}}s"
 	},
 	"followUpSuggest": {

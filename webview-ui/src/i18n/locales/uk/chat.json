@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "Думаю",
+		"thought": "Думка",
 		"seconds": "{{count}}с"
 	},
 	"followUpSuggest": {

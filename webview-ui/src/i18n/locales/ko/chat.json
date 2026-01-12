@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "추론 중",
+		"thought": "생각",
 		"seconds": "{{count}}초"
 	},
 	"followUpSuggest": {

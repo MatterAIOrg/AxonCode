@@ -35,7 +35,7 @@ import { CommandExecution } from "./CommandExecution"
 import { CommandExecutionError } from "./CommandExecutionError"
 import { FollowUpSuggest } from "./FollowUpSuggest"
 import { Markdown } from "./Markdown"
-import { ProgressIndicator } from "./ProgressIndicator"
+import { MatterProgressIndicator, ProgressIndicator } from "./ProgressIndicator"
 import ReportBugPreview from "./ReportBugPreview"
 import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import { PlanFileIndicator } from "./PlanFileIndicator"
@@ -329,7 +329,7 @@ export const ChatRowContent = ({
 					) : apiRequestFailedMessage ? (
 						getIconSpan("error", errorColor)
 					) : (
-						<ProgressIndicator />
+						<MatterProgressIndicator />
 					),
 					apiReqCancelReason !== null && apiReqCancelReason !== undefined ? (
 						apiReqCancelReason === "user_cancelled" ? (
@@ -1197,7 +1197,8 @@ export const ChatRowContent = ({
 							content={message.text || ""}
 							ts={message.ts}
 							isStreaming={isStreaming}
-							isLast={isLast}
+							_isLast={isLast}
+							partial={message.partial}
 							metadata={message.metadata as any}
 						/>
 					)

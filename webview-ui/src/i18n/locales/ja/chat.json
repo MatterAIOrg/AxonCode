@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "推論中",
+		"thought": "思考",
 		"seconds": "{{count}}秒"
 	},
 	"followUpSuggest": {
