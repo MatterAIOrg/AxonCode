@@ -50,6 +50,7 @@ import {
 	checkoutDiffPayloadSchema,
 	checkoutRestorePayloadSchema,
 } from "../../shared/WebviewMessage"
+import type { WebviewMessage as WebviewMessageType } from "../../shared/WebviewMessage"
 import { checkExistKey } from "../../shared/checkExistApiConfig"
 import { experimentDefault } from "../../shared/experiments"
 import { Terminal } from "../../integrations/terminal/Terminal"
@@ -976,6 +977,48 @@ export const webviewMessageHandler = async (
 			} as any)
 			break
 		}
+		// kilocode_change start: View pending file diffs in VS Code diff view
+		case "viewPendingFileDiffs" as any: {
+			const currentTask = provider.getCurrentTask()
+
+			if (!currentTask) {
+				break
+			}
+
+			const pendingEdits = currentTask.fileEditReviewController.getPendingEdits()
+
+			if (pendingEdits.size === 0) {
+				break
+			}
+
+			// Open each file with pending edits in diff view
+			for (const [readablePath, edit] of pendingEdits.entries()) {
+				try {
+					const fileName = path.basename(edit.absolutePath)
+					const fileUri = vscode.Uri.file(edit.absolutePath)
+
+					// Create a URI for the original content using the diff view scheme
+					const originalUri = vscode.Uri.parse(`cline-diff:${fileName}`).with({
+						query: Buffer.from(edit.originalContent).toString("base64"),
+					})
+
+					// Open diff view between original and current content
+					await vscode.commands.executeCommand(
+						"vscode.diff",
+						originalUri,
+						fileUri,
+						`${fileName}: Original ↔ Axon Code's Changes`,
+						{ preserveFocus: true },
+					)
+				} catch (error) {
+					provider.log(
+						`Failed to open diff for ${readablePath}: ${error instanceof Error ? error.message : "Unknown error"}`,
+					)
+				}
+			}
+			break
+		}
+		// kilocode_change end
 		// kilocode_change start: Get Git changes for AI Code Review (separate from pending file edits)
 		case "getGitChangesForReview": {
 			try {

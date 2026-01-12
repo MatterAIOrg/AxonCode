@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "Uvažování",
+		"thought": "Myšlenka",
 		"seconds": "{{count}}s"
 	},
 	"followUpSuggest": {

@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "तर्क",
+		"thought": "विचार",
 		"seconds": "{{count}}सेकंड"
 	},
 	"followUpSuggest": {

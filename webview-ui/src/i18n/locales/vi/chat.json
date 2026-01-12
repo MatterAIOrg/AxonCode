@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "Đang suy nghĩ",
+		"thought": "Suy nghĩ",
 		"seconds": "{{count}} giây"
 	},
 	"followUpSuggest": {

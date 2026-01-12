@@ -314,6 +314,7 @@ export interface WebviewMessage {
 		| "commitChanges"
 		| "getPendingFileEdits"
 		| "pendingFileEdits"
+		| "viewPendingFileDiffs"
 		| "requestCodeReview"
 		| "codeReviewResults"
 		| "applyCodeReviewFix"

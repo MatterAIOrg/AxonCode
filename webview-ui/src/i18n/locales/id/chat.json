@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "Penalaran",
+		"thought": "Pikiran",
 		"seconds": "{{count}}d"
 	},
 	"followUpSuggest": {

@@ -313,6 +313,7 @@
 	},
 	"reasoning": {
 		"thinking": "กำลังคิด",
+		"thought": "คิด",
 		"seconds": "{{count}} วินาที"
 	},
 	"followUpSuggest": {

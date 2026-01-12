@@ -69,6 +69,11 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 		setFiles([])
 	}, [onDismiss])
 
+	const viewDiffCallback = useCallback(() => {
+		// View diffs for all pending file edits in VS Code
+		vscode.postMessage({ type: "viewPendingFileDiffs" })
+	}, [])
+
 	// Helper to format path
 	const getFileName = (path: string) => path.split("/").pop() || path
 	const getDir = (path: string) => {
@@ -101,6 +106,21 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 			{/* File List - Only show when expanded */}
 			{isExpanded && (
 				<div className="flex flex-col">
+					{/* View Diff Button at the top */}
+					<div className="flex items-center justify-between px-2 py-1.5 border-b border-vscode-editorWidget-border bg-vscode-editorWidget-background">
+						<span className="text-xs text-vscode-foreground opacity-80">View changes in editor</span>
+						<Button
+							type="button"
+							size="sm"
+							className="rounded-md text-sm px-3 py-1"
+							onClick={viewDiffCallback}
+							style={{
+								background: "var(--vscode-button-secondaryBackground)",
+								color: "var(--vscode-button-secondaryForeground)",
+							}}>
+							View Diff
+						</Button>
+					</div>
 					{files.map((file) => {
 						const fileIconUrl = getFileIconUrl(file.relPath)
 						return (

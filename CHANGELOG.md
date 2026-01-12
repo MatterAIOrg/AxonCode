@@ -1,5 +1,24 @@
 # Changelog
 
+## [v5.1.0] - 2026-01-12
+
+### Added
+
+- Line counter tracking for file edit reviews (lines added, updated, deleted)
+- Server integration to report line change statistics
+- Automatic language detection from edited files for analytics
+
+### Changed
+
+- Enhanced file edit review accept all functionality with detailed metrics
+- Improved webview message handling for file edit operations
+
+### Fixed
+
+- Removed debug console.log statement from kilo config loading
+
+---
+
 ## [v5.0.3] - 2026-01-11
 
 ### Added

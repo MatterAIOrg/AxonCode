@@ -10,18 +10,20 @@ interface ReasoningBlockProps {
 	content: string
 	ts: number
 	isStreaming: boolean
-	isLast: boolean
+	_isLast: boolean
+	partial?: boolean
 	metadata?: any
 }
 
-export const ReasoningBlock = ({ content, isStreaming, isLast }: ReasoningBlockProps) => {
+export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial }: ReasoningBlockProps) => {
 	const { t } = useTranslation()
 	const { reasoningBlockCollapsed } = useExtensionState()
 
 	const [isCollapsed, setIsCollapsed] = useState(reasoningBlockCollapsed)
 
-	const startTimeRef = useRef<number>(Date.now())
 	const [elapsed, setElapsed] = useState<number>(0)
+	const [finalElapsed, setFinalElapsed] = useState<number>(0)
+	const hasStoredFinalRef = useRef<boolean>(false)
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -29,16 +31,36 @@ export const ReasoningBlock = ({ content, isStreaming, isLast }: ReasoningBlockP
 	}, [reasoningBlockCollapsed])
 
 	useEffect(() => {
-		if (isLast && isStreaming) {
-			const tick = () => setElapsed(Date.now() - startTimeRef.current)
+		if (partial) {
+			hasStoredFinalRef.current = false
+			const tick = () => setElapsed(Date.now() - ts)
 			tick()
 			const id = setInterval(tick, 1000)
-			return () => clearInterval(id)
+			return () => {
+				clearInterval(id)
+				// Capture final elapsed time when streaming stops
+				const finalTime = Date.now() - ts
+				setFinalElapsed(finalTime)
+				setElapsed(0) // Reset elapsed to stop counting
+				hasStoredFinalRef.current = true
+			}
 		}
-	}, [isLast, isStreaming])
+	}, [partial, ts])
 
-	const seconds = Math.floor(elapsed / 1000)
-	const secondsLabel = t("chat:reasoning.seconds", { count: seconds })
+	const displayElapsed = isStreaming ? elapsed : finalElapsed
+	const totalSeconds = Math.floor(displayElapsed / 1000)
+
+	const formatTime = (seconds: number): string => {
+		if (seconds < 60) {
+			return `${seconds}s`
+		}
+		const minutes = Math.floor(seconds / 60)
+		const remainingSeconds = seconds % 60
+		return remainingSeconds > 0 ? `${minutes}m${remainingSeconds}s` : `${minutes}m`
+	}
+
+	const timeLabel = formatTime(totalSeconds)
+	const label = partial ? t("chat:reasoning.thinking") : t("chat:reasoning.thought")
 
 	const handleToggle = () => {
 		setIsCollapsed(!isCollapsed)
@@ -47,13 +69,16 @@ export const ReasoningBlock = ({ content, isStreaming, isLast }: ReasoningBlockP
 	return (
 		<div className="group">
 			<div
-				className="flex items-center justify-start gap-1 pr-2 cursor-pointer select-none opacity-40 hover:opacity-100"
+				className="flex items-center justify-start gap-1 pr-2 mt-1 cursor-pointer select-none opacity-40 hover:opacity-100"
 				onClick={handleToggle}>
 				<div className="flex items-center gap-1">
 					{/* <Lightbulb className="w-3" /> */}
-					<span className="text-vscode-foreground">{t("chat:reasoning.thinking")}</span>
-					{elapsed > 0 && (
-						<span className="text-sm text-vscode-descriptionForeground mt-0.5">{secondsLabel}</span>
+					{displayElapsed > 0 ? (
+						<span className="text-vscode-foreground hover:text-[var(--color-matterai-green)]">
+							{label} for {timeLabel}
+						</span>
+					) : (
+						<span className="text-vscode-foreground hover:text-[var(--color-matterai-green)]">{label}</span>
 					)}
 				</div>
 				<div className="flex items-center gap-1">

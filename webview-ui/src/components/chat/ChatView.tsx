@@ -828,6 +828,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			if (isStreaming) {
 				vscode.postMessage({ type: "cancelTask" })
 				setDidClickCancel(true)
+				// Reset sendingDisabled so subsequent messages are sent directly instead of queued
+				setSendingDisabled(false)
 				return
 			}
 
@@ -859,9 +861,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					break
 				case "command_output":
 					vscode.postMessage({ type: "terminalOperation", terminalOperation: "abort" })
+					// Reset sendingDisabled so subsequent messages are sent directly instead of queued
+					setSendingDisabled(false)
 					break
 			}
-			setSendingDisabled(true)
+			// Only set sendingDisabled to true for cases that need it (not for command_output abort)
+			if (clineAsk !== "command_output") {
+				setSendingDisabled(true)
+			}
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
