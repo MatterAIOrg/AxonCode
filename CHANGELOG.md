@@ -7,15 +7,23 @@
 - Line counter tracking for file edit reviews (lines added, updated, deleted)
 - Server integration to report line change statistics
 - Automatic language detection from edited files for analytics
+- `MatterProgressIndicator` component with animated loading dots
+- "View Diff" button in file edit review to view pending changes in VS Code editor
+- Elapsed time tracking for reasoning blocks (shows "Thinking for Xs" during streaming)
+- "Thought" translation key for completed reasoning blocks
 
 ### Changed
 
 - Enhanced file edit review accept all functionality with detailed metrics
 - Improved webview message handling for file edit operations
+- Updated "API Request..." label to "Generating..." for better UX
+- Fixed sendingDisabled behavior when canceling tasks or aborting commands
+- Enhanced reasoning block UI with time display and collapse functionality
 
 ### Fixed
 
 - Removed debug console.log statement from kilo config loading
+- Fixed unused parameter warning in ReasoningBlock component
 
 ---
 
