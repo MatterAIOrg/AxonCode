@@ -46,9 +46,9 @@ const MemoriesView = ({ onDone }: MemoriesViewProps) => {
 		if (!searchQuery) return true
 		const query = searchQuery.toLowerCase()
 		return (
-			memory.taskTitle.toLowerCase().includes(query) ||
-			memory.content.toLowerCase().includes(query) ||
-			memory.workspace.toLowerCase().includes(query)
+			memory?.taskTitle?.toLowerCase().includes(query) ||
+			memory?.content?.toLowerCase().includes(query) ||
+			memory?.workspace?.toLowerCase().includes(query)
 		)
 	})
 
