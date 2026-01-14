@@ -67,7 +67,7 @@ describe("Provider Merging", () => {
 					id: "default",
 					provider: "kilocode",
 					kilocodeToken: "test-token-1234567890",
-					kilocodeModel: "axon-code",
+					kilocodeModel: "axon-code-2",
 				},
 			],
 			theme: "dark",

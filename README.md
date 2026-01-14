@@ -82,11 +82,11 @@ Axon Code provides a comprehensive suite of intelligent tools:
 
 Choose the right model for your workflow:
 
-| Model                     | Use Case              | Capabilities                                 |
-| ------------------------- | --------------------- | -------------------------------------------- |
-| **`axon-code`**           | Daily coding tasks    | High intelligence, balanced performance      |
-| **`axon-code-2-preview`** | Complex agentic tasks | Maximum intelligence, long-running workflows |
-| **`axon-mini`**           | Quick tasks           | Lightweight, low-effort operations           |
+| Model             | Use Case              | Capabilities                                 |
+| ----------------- | --------------------- | -------------------------------------------- |
+| **`axon-code`**   | Daily coding tasks    | High intelligence, balanced performance      |
+| **`axon-code-2`** | Complex agentic tasks | Maximum intelligence, long-running workflows |
+| **`axon-mini`**   | Quick tasks           | Lightweight, low-effort operations           |
 
 ## 📦 Installation
 

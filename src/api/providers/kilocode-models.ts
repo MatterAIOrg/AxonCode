@@ -96,9 +96,9 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 			input_cache_writes: "0",
 		},
 	},
-	"axon-code-2-preview": {
-		id: "axon-code-2-preview",
-		name: "Axon Code 2 (Preview)",
+	"axon-code-2": {
+		id: "axon-code-2",
+		name: "Axon Code 2",
 		description:
 			"Axon Code 2 is the next-generation of Axon Code for coding tasks, currently in experimental stage.",
 		input_modalities: ["text"],

@@ -558,7 +558,7 @@ export const getProviderSettings = (provider: ProviderName, config: ProviderSett
 			return [
 				createFieldConfig("kilocodeToken", config),
 				createFieldConfig("kilocodeOrganizationId", config, "personal"),
-				createFieldConfig("kilocodeModel", config, "axon-code"),
+				createFieldConfig("kilocodeModel", config, "axon-code-2"),
 			]
 
 		default:

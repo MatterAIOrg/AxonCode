@@ -203,7 +203,7 @@ export async function performBrowserAuth(source: string = "axon-code-cli"): Prom
 					id: "default",
 					provider: "kilocode",
 					kilocodeToken: token,
-					kilocodeModel: config.providers?.[0]?.kilocodeModel || "axon-code",
+					kilocodeModel: config.providers?.[0]?.kilocodeModel || "axon-code-2",
 					...config.providers?.[0], // Preserve other existing fields
 				},
 			],
