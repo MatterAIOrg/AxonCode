@@ -6,7 +6,7 @@ import { rooCodeSettingsSchema } from "@roo-code/types"
  * CreateRun
  */
 
-export const MODEL_DEFAULT = "axon-code"
+export const MODEL_DEFAULT = "axon-code-2"
 
 export const CONCURRENCY_MIN = 1
 export const CONCURRENCY_MAX = 25
