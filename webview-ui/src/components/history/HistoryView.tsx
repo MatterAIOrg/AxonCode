@@ -129,7 +129,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								setSortOption("mostRelevant")
 							}
 						}}>
-						<div slot="start" className="codicon codicon-search mt-0.5 opacity-80 text-sm!" />
+						<div slot="start" className="codicon codicon-search mt-0.5 opacity-80 text-sm! mr-1" />
 						{searchQuery && (
 							<div
 								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"

@@ -196,9 +196,6 @@ export class AssistantMessageParser {
 
 			// Tool call is complete - convert it to ToolUse format
 			if (isComplete) {
-				console.log(
-					`[AssistantMessageParser] Successfully processed native tool call "${accumulatedCall.function!.name}" (id: ${toolCallId})`,
-				)
 				const toolName = accumulatedCall.function!.name
 				// Finalize any current text content before adding tool use
 				if (this.currentTextContent) {

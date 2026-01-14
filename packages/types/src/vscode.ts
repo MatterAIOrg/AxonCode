@@ -64,6 +64,7 @@ export const commandIds = [
 	"acceptInput",
 	"profileButtonClicked", // kilocode_change
 	"helpButtonClicked", // kilocode_change
+	"memoriesButtonClicked", // kilocode_change: Chat memories
 	"focusChatInput", // kilocode_change
 	"importSettings", // kilocode_change
 	"exportSettings", // kilocode_change

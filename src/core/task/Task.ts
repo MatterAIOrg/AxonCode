@@ -2621,14 +2621,22 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				}
 				// kilocode_change end
 
-				if (partialBlocks.length > 0) {
+				// kilocode_change start: Fix native tool calls not being executed
+				// Native tool calls are added with partial: false, so partialBlocks.length
+				// may be 0 even when there are unprocessed content blocks (especially tool uses).
+				// We need to call presentAssistantMessage if:
+				// 1. There were partial blocks that we just marked as complete, OR
+				// 2. There are content blocks that haven't been processed yet (currentStreamingContentIndex < content length)
+				const hasUnprocessedContent = this.currentStreamingContentIndex < this.assistantMessageContent.length
+				if (partialBlocks.length > 0 || hasUnprocessedContent) {
 					// If there is content to update then it will complete and
 					// update `this.userMessageContentReady` to true, which we
 					// `pWaitFor` before making the next request. All this is really
 					// doing is presenting the last partial message that we just set
-					// to complete.
+					// to complete, or executing any unprocessed tool calls.
 					presentAssistantMessage(this)
 				}
+				// kilocode_change end
 
 				// Note: updateApiReqMsg() is now called from within drainStreamInBackgroundToFindAllUsage
 				// to ensure usage data is captured even when the stream is interrupted. The background task

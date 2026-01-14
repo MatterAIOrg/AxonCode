@@ -67,6 +67,9 @@ export const generateSystemPrompt = async (provider: ClineProvider, message: Web
 	// and browser tools are enabled in settings
 	const canUseBrowserTool = modelSupportsComputerUse && modeSupportsBrowser && (browserToolEnabled ?? true)
 
+	// Get task history for chat memories
+	const taskHistory = provider.getTaskHistory()
+
 	const systemPrompt = await SYSTEM_PROMPT(
 		provider.context,
 		cwd,
@@ -97,6 +100,7 @@ export const generateSystemPrompt = async (provider: ClineProvider, message: Web
 		undefined,
 		getActiveToolUseStyle(apiConfiguration),
 		state,
+		taskHistory, // kilocode_change: Chat memories
 		// kilocode_change end
 	)
 

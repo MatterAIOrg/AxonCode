@@ -29,6 +29,7 @@
 	"command.acceptInput.title": "Accept Input/Suggestion",
 	"command.generateCommitMessage.title": "Generate Commit Message with Kilo",
 	"command.profile.title": "Profile",
+	"command.memories.title": "Memories",
 	"configuration.title": "Axon Code",
 	"command.toggleAutoApprove.title": "Toggle Auto-Approve",
 	"commands.allowedCommands.description": "Commands that can be auto-executed when 'Always approve execute operations' is enabled",

@@ -80,6 +80,7 @@ export const toolParamNames = [
 	"todos",
 	"prompt",
 	"image",
+	"workspace",
 ] as const
 
 export type ToolParamName = (typeof toolParamNames)[number]
@@ -204,6 +205,12 @@ export interface EditFileToolUse extends ToolUse {
 }
 // kilocode_change end
 
+export interface CheckPastChatMemoriesToolUse extends ToolUse {
+	name: "check_past_chat_memories"
+	params: Required<Pick<Record<ToolParamName, string>, "regex">> &
+		Partial<Pick<Record<ToolParamName, string>, "workspace">>
+}
+
 export interface GenerateImageToolUse extends ToolUse {
 	name: "generate_image"
 	params: Partial<Pick<Record<ToolParamName, string>, "prompt" | "path" | "image">>
@@ -237,12 +244,13 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	search_and_replace: "search and replace",
 	new_rule: "create new rule",
 	report_bug: "report bug", // kilocode_change
-	condense: "condense the current context window", // kilicode_change
+	condense: "condense the current context window", // kilocode_change
 	codebase_search: "codebase search",
 	update_todo_list: "update todo list",
 	run_slash_command: "run slash command",
 	generate_image: "generate images",
 	plan_file_edit: "edit plan files", // kilocode_change: Plan mode file editing
+	check_past_chat_memories: "check past chat memories",
 } as const
 
 // Define available tool groups.
@@ -255,6 +263,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 			"list_files",
 			"list_code_definition_names",
 			"codebase_search",
+			"check_past_chat_memories",
 		],
 	},
 	edit: {

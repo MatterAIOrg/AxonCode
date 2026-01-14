@@ -32,6 +32,7 @@ import { getCodebaseSearchDescription } from "./codebase-search"
 import { getUpdateTodoListDescription } from "./update-todo-list"
 import { getRunSlashCommandDescription } from "./run-slash-command"
 import { getGenerateImageDescription } from "./generate-image"
+import { getCheckPastChatMemoriesDescription } from "./check-past-chat-memories"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 
 // kilocode_change start: Morph fast apply
@@ -73,6 +74,7 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined>
 	update_todo_list: (args) => getUpdateTodoListDescription(args),
 	run_slash_command: () => getRunSlashCommandDescription(),
 	generate_image: (args) => getGenerateImageDescription(args),
+	check_past_chat_memories: (args) => getCheckPastChatMemoriesDescription(args),
 }
 
 export function getToolDescriptionsForMode(
@@ -212,4 +214,5 @@ export {
 	getCodebaseSearchDescription,
 	getRunSlashCommandDescription,
 	getGenerateImageDescription,
+	getCheckPastChatMemoriesDescription,
 }

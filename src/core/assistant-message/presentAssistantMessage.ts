@@ -251,6 +251,10 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.path}']`
 					case "plan_file_edit":
 						return `[${block.name} for '${block.params.filename}']`
+					case "check_past_chat_memories":
+						return `[${block.name} for '${block.params.regex}']`
+					default:
+						return `[${block.name}]`
 				}
 			}
 
