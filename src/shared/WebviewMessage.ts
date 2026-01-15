@@ -323,6 +323,8 @@ export interface WebviewMessage {
 		| "gitChangesForReview"
 		| "codeReviewSettings" // kilocode_change
 		| "showToast" // kilocode_change
+		| "get_memories" // kilocode_change: Chat memories
+		| "memories_response" // kilocode_change: Chat memories response
 	// kilocode_change end
 	text?: string
 	editedMessageContent?: string
@@ -392,6 +394,8 @@ export interface WebviewMessage {
 	upsellId?: string // For dismissUpsell
 	list?: string[] // For dismissedUpsells response
 	organizationId?: string | null // For organization switching
+	showAllWorkspaces?: boolean // kilocode_change: For get_memories
+	memories?: MemoryItem[] // kilocode_change: For memories_response
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean
@@ -493,6 +497,17 @@ export interface TaskHistoryResponsePayload {
 	historyItems: HistoryItem[]
 	pageIndex: number
 	pageCount: number
+}
+
+// kilocode_change: Chat memories
+export interface MemoryItem {
+	id: string
+	workspace: string
+	taskId: string
+	taskTitle?: string
+	content: string
+	timestamp: string
+	mode?: string
 }
 // kilocode_change end
 

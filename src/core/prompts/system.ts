@@ -1,7 +1,14 @@
 import * as os from "os"
 import * as vscode from "vscode"
 
-import type { CustomModePrompts, Experiments, ModeConfig, PromptComponent, TodoItem } from "@roo-code/types"
+import type {
+	CustomModePrompts,
+	Experiments,
+	ModeConfig,
+	PromptComponent,
+	TodoItem,
+	HistoryItem,
+} from "@roo-code/types"
 
 import type { SystemPromptSettings } from "./types"
 
@@ -30,6 +37,27 @@ export function getPromptComponent(
 		return undefined
 	}
 	return component
+}
+
+/**
+ * Get previous chat titles section for system prompt
+ */
+function getPreviousChatTitlesSection(history?: HistoryItem[]): string {
+	if (!history || history.length === 0) {
+		return ""
+	}
+
+	// Get titles from history, filter out empty ones, and take last 20
+	const titles = history
+		.filter((item) => item.title && item.title.trim() !== "")
+		.map((item) => item.title)
+		.slice(-20)
+
+	if (titles.length === 0) {
+		return ""
+	}
+
+	return `Previous Chat Titles: ${titles.join(", ")}`
 }
 
 const applyDiffToolDescription = `
@@ -416,6 +444,7 @@ async function generatePrompt(
 	modelId?: string,
 	toolUseStyle?: ToolUseStyle, // kilocode_change
 	clineProviderState?: ClineProviderState, // kilocode_change
+	taskHistory?: HistoryItem[], // kilocode_change: Chat memories
 ): Promise<string> {
 	if (!context) {
 		throw new Error("Extension context is required for generating system prompt")
@@ -441,6 +470,8 @@ async function generatePrompt(
 	])
 
 	const codeIndexManager = CodeIndexManager.getInstance(context, cwd)
+
+	const previousChatTitlesSection = getPreviousChatTitlesSection(taskHistory)
 
 	const basePrompt = `${roleDefinition}
 
@@ -468,6 +499,8 @@ ${
 ${applyDiffToolDescription}
 
 ${mcpServersSection}
+
+${previousChatTitlesSection}
 
 ${getSystemInfoSection(cwd)}
 `
@@ -497,6 +530,7 @@ export const SYSTEM_PROMPT = async (
 	modelId?: string,
 	toolUseStyle?: ToolUseStyle, // kilocode_change
 	clineProviderState?: ClineProviderState, // kilocode_change
+	taskHistory?: HistoryItem[], // kilocode_change: Chat memories
 ): Promise<string> => {
 	if (!context) {
 		throw new Error("Extension context is required for generating system prompt")
@@ -574,5 +608,6 @@ ${customInstructions}`
 		modelId,
 		toolUseStyle, // kilocode_change
 		clineProviderState, // kilocode_change
+		taskHistory, // kilocode_change: Chat memories
 	)
 }

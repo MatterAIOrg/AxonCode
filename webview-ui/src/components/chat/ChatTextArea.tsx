@@ -1520,6 +1520,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						"transition-background-color duration-150 ease-in-out",
 						"will-change-background-color",
 						"min-h-[110px]",
+						"max-h-[calc(100vh/2.5)]",
 						"box-border",
 						"rounded-xl",
 						"overflow-x-hidden",

@@ -18,6 +18,7 @@ import {
 import { formatResponse } from "../prompts/responses"
 import { Package } from "../../shared/package"
 import { getCommitRangeForNewCompletion } from "../checkpoints/kilocode/seeNewChanges"
+import { MemoryManager } from "../../services/chat-memory"
 
 // kilocode_change start
 async function getClineMessageOptions(task: Task) {
@@ -30,7 +31,40 @@ async function getClineMessageOptions(task: Task) {
 		}
 	)
 }
-// kilocode_change end
+
+/**
+ * Save completion result as a chat memory
+ * This is non-critical - errors are logged but don't block completion
+ */
+async function saveCompletionMemory(cline: Task, result: string): Promise<void> {
+	try {
+		const provider = cline.providerRef.deref()
+		const globalStoragePath = provider?.contextProxy.globalStorageUri.fsPath
+
+		if (!globalStoragePath) {
+			return
+		}
+
+		// Get task title from the first message
+		const taskTitle = cline.clineMessages[0]?.text
+
+		// Get current mode from provider state
+		const mode = (await provider?.getState())?.mode ?? "default"
+
+		// Save memory
+		const memoryManager = new MemoryManager(globalStoragePath)
+		await memoryManager.saveMemory({
+			taskId: cline.taskId,
+			content: result,
+			taskTitle,
+			workspace: cline.workspacePath,
+			mode,
+		})
+	} catch (error) {
+		// Don't block completion if memory saving fails
+		console.error("Failed to save chat memory:", error)
+	}
+}
 
 export async function attemptCompletionTool(
 	cline: Task,
@@ -94,6 +128,11 @@ export async function attemptCompletionTool(
 					TelemetryService.instance.captureTaskCompleted(cline.taskId)
 					cline.emit(RooCodeEventName.TaskCompleted, cline.taskId, cline.getTokenUsage(), cline.toolUsage)
 
+					// Save completion as chat memory
+					if (result) {
+						await saveCompletionMemory(cline, result)
+					}
+
 					await cline.ask("command", removeClosingTag("command", command), block.partial).catch(() => {})
 				}
 			} else {
@@ -124,6 +163,9 @@ export async function attemptCompletionTool(
 			)
 			TelemetryService.instance.captureTaskCompleted(cline.taskId)
 			cline.emit(RooCodeEventName.TaskCompleted, cline.taskId, cline.getTokenUsage(), cline.toolUsage)
+
+			// Save completion as chat memory
+			await saveCompletionMemory(cline, result)
 
 			if (cline.parentTask) {
 				const didApprove = await askFinishSubTaskApproval()

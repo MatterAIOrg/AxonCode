@@ -1,10 +1,8 @@
 // Hardcoded credits information for Axon models
 const AXON_MODEL_CREDITS: Record<string, string> = {
 	"axon-mini": "(0.5x)",
-	"axon-code": "(1x)",
-	"axon-code-2-preview": "(0.5x)",
-	// "gemini-3-flash-preview": "(1x)",
-	// "gemini-3-pro-preview": "(2x)",
+	"axon-code": "(0.8x)",
+	"axon-code-2": "(1x)",
 }
 
 export const prettyModelName = (modelId: string): string => {

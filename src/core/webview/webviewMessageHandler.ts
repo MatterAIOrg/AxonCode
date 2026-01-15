@@ -11,6 +11,7 @@ import { codeReviewSettingsSchema, CodeReviewSettings, getKiloUrlFromToken, isGl
 import { getAppUrl } from "@roo-code/types"
 import {
 	MaybeTypedWebviewMessage,
+	MemoryItem,
 	ProfileData,
 	SeeNewChangesPayload,
 	TaskHistoryRequestPayload,
@@ -1606,6 +1607,20 @@ ${comment.suggestion}
 					provider.cwd,
 					message.payload as TaskHistoryRequestPayload,
 				),
+			})
+			break
+		}
+		case "get_memories": {
+			const { MemoryManager } = await import("../../services/chat-memory/MemoryManager")
+			const memoryManager = new MemoryManager(provider.context.globalStorageUri.fsPath)
+			const memories = await memoryManager.getAllMemories(message.showAllWorkspaces ? undefined : provider.cwd)
+			const memoryItems: MemoryItem[] = memories.map((memory) => ({
+				...memory,
+				timestamp: memory.timestamp.toString(),
+			}))
+			await provider.postMessageToWebview({
+				type: "memories_response",
+				memories: memoryItems,
 			})
 			break
 		}

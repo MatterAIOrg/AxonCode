@@ -1,6 +1,7 @@
 import { OpenAI } from "openai/client"
 import askFollowupQuestion from "./ask_followup_question"
 import attemptCompletion from "./attempt_completion"
+import checkPastChatMemories from "./check_past_chat_memories"
 import executeCommand from "./execute_command"
 import fetchInstructions from "./fetch_instructions"
 import listCodeDefinitionNames from "./list_code_definition_names"
@@ -22,6 +23,7 @@ export const nativeTools = [
 	fileEdit,
 	askFollowupQuestion,
 	attemptCompletion,
+	checkPastChatMemories,
 	// browserAction,
 	codebaseSearch,
 	// editFile,

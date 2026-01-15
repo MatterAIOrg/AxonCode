@@ -1,40 +1,40 @@
-import React, { useCallback, useEffect, useRef, useState, useMemo } from "react"
-import { useEvent } from "react-use"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import React, { useCallback, useEffect, useRef, useState } from "react"
+import { useEvent } from "react-use"
 
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 import TranslationProvider from "./i18n/TranslationContext"
-import { MarketplaceViewStateManager } from "./components/marketplace/MarketplaceViewStateManager"
 
-import { vscode } from "./utils/vscode"
-import { telemetryClient } from "./utils/TelemetryClient"
 import { TelemetryEventName } from "@roo-code/types"
-import { initializeSourceMaps, exposeSourceMapsForDebugging } from "./utils/sourceMapInitializer"
-import { ExtensionStateContextProvider, useExtensionState } from "./context/ExtensionStateContext"
 import ChatView, { ChatViewRef } from "./components/chat/ChatView"
 import HistoryView from "./components/history/HistoryView"
-import SettingsView, { SettingsViewRef } from "./components/settings/SettingsView"
-import WelcomeView from "./components/kilocode/welcome/WelcomeView" // kilocode_change
 import ProfileView from "./components/kilocode/profile/ProfileView" // kilocode_change
+import WelcomeView from "./components/kilocode/welcome/WelcomeView" // kilocode_change
 import McpView from "./components/mcp/McpView"
-import { MarketplaceView } from "./components/marketplace/MarketplaceView"
-import ModesView from "./components/modes/ModesView"
-import { HumanRelayDialog } from "./components/human-relay/HumanRelayDialog"
-import BottomControls from "./components/kilocode/BottomControls" // kilocode_change
-import { MemoryService } from "./services/MemoryService" // kilocode_change
+import MemoriesView from "./components/memories/MemoriesView"
+import SettingsView, { SettingsViewRef } from "./components/settings/SettingsView"
+import { ExtensionStateContextProvider, useExtensionState } from "./context/ExtensionStateContext"
+import { exposeSourceMapsForDebugging, initializeSourceMaps } from "./utils/sourceMapInitializer"
+import { telemetryClient } from "./utils/TelemetryClient"
+import { vscode } from "./utils/vscode"
+// import { MarketplaceView } from "./components/marketplace/MarketplaceView"
 import { CheckpointRestoreDialog } from "./components/chat/CheckpointRestoreDialog"
 import { DeleteMessageDialog, EditMessageDialog } from "./components/chat/MessageModificationConfirmationDialog"
 import ErrorBoundary from "./components/ErrorBoundary"
+import { HumanRelayDialog } from "./components/human-relay/HumanRelayDialog"
+import BottomControls from "./components/kilocode/BottomControls" // kilocode_change
+import ModesView from "./components/modes/ModesView"
+import { MemoryService } from "./services/MemoryService" // kilocode_change
 // import { AccountView } from "./components/account/AccountView" // kilocode_change: we have our own profile view
 // import { CloudView } from "./components/cloud/CloudView" // kilocode_change: not rendering this
 import { useAddNonInteractiveClickListener } from "./components/ui/hooks/useNonInteractiveClick"
-import { TooltipProvider } from "./components/ui/tooltip"
 import { STANDARD_TOOLTIP_DELAY } from "./components/ui/standard-tooltip"
-import { useKiloIdentity } from "./utils/kilocode/useKiloIdentity"
-import { MemoryWarningBanner } from "./kilocode/MemoryWarningBanner"
 import { ToastProvider, useToast } from "./components/ui/toast"
+import { TooltipProvider } from "./components/ui/tooltip"
+import { MemoryWarningBanner } from "./kilocode/MemoryWarningBanner"
+import { useKiloIdentity } from "./utils/kilocode/useKiloIdentity"
 
-type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account" | "cloud" | "profile" // kilocode_change: add "profile"
+type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "account" | "profile" | "memories" | "marketplace"
 
 interface HumanRelayDialogState {
 	isOpen: boolean
@@ -69,7 +69,8 @@ const tabsByMessageAction: Partial<Record<NonNullable<ExtensionMessage["action"]
 	mcpButtonClicked: "mcp",
 	historyButtonClicked: "history",
 	profileButtonClicked: "profile",
-	marketplaceButtonClicked: "marketplace",
+	memoriesButtonClicked: "memories",
+	// marketplaceButtonClicked: "marketplace",
 	// cloudButtonClicked: "cloud", // kilocode_change: no cloud
 }
 
@@ -95,7 +96,7 @@ const App = () => {
 	const { showToast } = useToast()
 
 	// Create a persistent state manager
-	const marketplaceStateManager = useMemo(() => new MarketplaceViewStateManager(), [])
+	// const marketplaceStateManager = useMemo(() => new MarketplaceViewStateManager(), [])
 
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 	const [tab, setTab] = useState<Tab>("chat")
@@ -127,7 +128,7 @@ const App = () => {
 		(newTab: Tab) => {
 			// Only check MDM compliance if mdmCompliant is explicitly false (meaning there's an MDM policy and user is non-compliant)
 			// If mdmCompliant is undefined or true, allow tab switching
-			if (mdmCompliant === false && newTab !== "cloud") {
+			if (mdmCompliant === false) {
 				// Notify the user that authentication is required by their organization
 				vscode.postMessage({ type: "showMdmAuthRequiredNotification" })
 				return
@@ -302,19 +303,20 @@ const App = () => {
 			{tab === "modes" && <ModesView onDone={() => switchTab("chat")} />}
 			{tab === "mcp" && <McpView onDone={() => switchTab("chat")} />}
 			{tab === "history" && <HistoryView onDone={() => switchTab("chat")} />}
+			{tab === "memories" && <MemoriesView onDone={() => switchTab("chat")} />}
 			{tab === "settings" && (
 				<SettingsView ref={settingsRef} onDone={() => switchTab("chat")} targetSection={currentSection} /> // kilocode_change
 			)}
 			{/* kilocode_change: add profileview */}
 			{tab === "profile" && <ProfileView onDone={() => switchTab("chat")} />}
-			{tab === "marketplace" && (
+			{/* {tab === "marketplace" && (
 				<MarketplaceView
 					stateManager={marketplaceStateManager}
 					onDone={() => switchTab("chat")}
 					// kilocode_change: targetTab="mode"
 					targetTab="mode"
 				/>
-			)}
+			)} */}
 			{/* kilocode_change: no cloud view */}
 			{/* {tab === "cloud" && (
 				<CloudView

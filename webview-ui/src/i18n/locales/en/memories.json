@@ -1,0 +1,12 @@
+{
+	"title": "Memories",
+	"done": "Done",
+	"searchPlaceholder": "Search memories...",
+	"loading": "Loading memories...",
+	"noMemories": "No memories found. Memories are saved when you complete tasks.",
+	"noResults": "No memories match your search.",
+	"count": "{{count}} memories",
+	"currentWorkspace": "Current Workspace",
+	"allWorkspaces": "All Workspaces",
+	"untitled": "Untitled"
+}

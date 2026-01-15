@@ -1,7 +1,7 @@
 import type { ModelInfo } from "../model.js"
 
 // https://openrouter.ai/models?order=newest&supported_parameters=tools
-export const openRouterDefaultModelId = "axon-code"
+export const openRouterDefaultModelId = "axon-code-2"
 
 export const openRouterDefaultModelInfo: ModelInfo = {
 	maxTokens: 32000,
@@ -13,7 +13,7 @@ export const openRouterDefaultModelInfo: ModelInfo = {
 	outputPrice: 4.0,
 	cacheWritesPrice: 0.0,
 	cacheReadsPrice: 0.0,
-	description: "Axon Code is super intelligent LLM model for coding tasks",
+	description: "Axon Code 2 is the next-generation of Axon Code for coding tasks, currently in experimental stage.",
 }
 
 export const OPENROUTER_DEFAULT_PROVIDER_NAME = "[default]"

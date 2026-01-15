@@ -1,5 +1,16 @@
 # Changelog
 
+## [v5.2.0] - 2026-01-14
+
+### Added
+
+- New Auto-Generated memories for past chats: Axon Code can now generate and reference memories in chats when building or updating codebase to ensure any previously used context can be quickly remembered.
+
+### Changed
+
+- Removed marketplace
+- Minor fixes to stream tool calling in cases where tools got stuck
+
 ## [v5.1.0] - 2026-01-12
 
 ### Added

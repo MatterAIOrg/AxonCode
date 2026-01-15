@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "5.1.0",
+	"version": "5.2.0",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -146,6 +146,11 @@
 				"command": "axon-code.marketplaceButtonClicked",
 				"title": "%command.marketplace.title%",
 				"icon": "$(extensions)"
+			},
+			{
+				"command": "axon-code.memoriesButtonClicked",
+				"title": "%command.memories.title%",
+				"icon": "$(book)"
 			},
 			{
 				"command": "axon-code.popoutButtonClicked",
@@ -345,33 +350,33 @@
 					"when": "view == axon-code.SidebarProvider"
 				},
 				{
-					"command": "axon-code.marketplaceButtonClicked",
-					"group": "navigation@3",
-					"when": "view == axon-code.SidebarProvider"
-				},
-				{
 					"command": "axon-code.historyButtonClicked",
 					"group": "navigation@4",
 					"when": "view == axon-code.SidebarProvider"
 				},
 				{
-					"command": "axon-code.profileButtonClicked",
+					"command": "axon-code.memoriesButtonClicked",
 					"group": "navigation@5",
 					"when": "view == axon-code.SidebarProvider"
 				},
 				{
-					"command": "axon-code.settingsButtonClicked",
+					"command": "axon-code.profileButtonClicked",
 					"group": "navigation@6",
 					"when": "view == axon-code.SidebarProvider"
 				},
 				{
-					"command": "axon-code.popoutButtonClicked",
+					"command": "axon-code.settingsButtonClicked",
 					"group": "navigation@7",
 					"when": "view == axon-code.SidebarProvider"
 				},
 				{
-					"command": "axon-code.helpButtonClicked",
+					"command": "axon-code.popoutButtonClicked",
 					"group": "navigation@8",
+					"when": "view == axon-code.SidebarProvider"
+				},
+				{
+					"command": "axon-code.helpButtonClicked",
+					"group": "navigation@9",
 					"when": "false && view == axon-code.SidebarProvider"
 				}
 			],
@@ -392,18 +397,23 @@
 					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
 				},
 				{
-					"command": "axon-code.popoutButtonClicked",
+					"command": "axon-code.memoriesButtonClicked",
 					"group": "navigation@4",
 					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
 				},
 				{
-					"command": "axon-code.settingsButtonClicked",
+					"command": "axon-code.popoutButtonClicked",
 					"group": "navigation@5",
 					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
 				},
 				{
-					"command": "axon-code.helpButtonClicked",
+					"command": "axon-code.settingsButtonClicked",
 					"group": "navigation@6",
+					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
+				},
+				{
+					"command": "axon-code.helpButtonClicked",
+					"group": "navigation@7",
 					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
 				}
 			],

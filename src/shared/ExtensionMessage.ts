@@ -28,6 +28,7 @@ import {
 	ProfileDataResponsePayload,
 	TaskHistoryResponsePayload,
 	TasksByIdResponsePayload,
+	MemoryItem,
 } from "./WebviewMessage"
 import { ClineRulesToggles } from "./cline-rules"
 import { KiloCodeWrapperProperties } from "./kilocode/wrapper"
@@ -157,6 +158,7 @@ export interface ExtensionMessage {
 		| "organizationSwitchResult"
 		| "implementPlan" // kilocode_change: Plan mode implementation
 		| "showToast" // kilocode_change
+		| "memories_response" // kilocode_change: Chat memories response
 	text?: string
 	// kilocode_change start
 	payload?:
@@ -170,10 +172,11 @@ export interface ExtensionMessage {
 		| "chatButtonClicked"
 		| "mcpButtonClicked"
 		| "settingsButtonClicked"
-		| "historyButtonClicked"
 		| "promptsButtonClicked"
+		| "historyButtonClicked"
 		| "profileButtonClicked" // kilocode_change
 		| "marketplaceButtonClicked"
+		| "memoriesButtonClicked"
 		| "cloudButtonClicked"
 		| "didBecomeVisible"
 		| "focusInput"
@@ -273,6 +276,7 @@ export interface ExtensionMessage {
 	queuedMessages?: QueuedMessage[]
 	list?: string[] // For dismissedUpsells
 	organizationId?: string | null // For organizationSwitchResult
+	memories?: MemoryItem[] // kilocode_change: For memories_response
 }
 
 export type ExtensionState = Pick<
@@ -485,6 +489,7 @@ export interface ClineSayTool {
 		| "runSlashCommand"
 		| "planFileEdit" // kilocode_change: Plan mode file editing
 		| "codeReview" // kilocode_change: AI Code Review
+		| "checkPastChatMemories" // Chat memories feature
 	path?: string
 	diff?: string
 	content?: string
@@ -494,6 +499,7 @@ export interface ClineSayTool {
 	reason?: string
 	isOutsideWorkspace?: boolean
 	isProtected?: boolean
+	workspace?: string
 	additionalFileCount?: number // Number of additional files in same read_file request
 	search?: string
 	replace?: string
