@@ -34,12 +34,18 @@ const MemoriesView = ({ onDone }: MemoriesViewProps) => {
 			if (message.type === "memories_response") {
 				setMemories(message.memories || [])
 				setLoading(false)
+			} else if (message.type === "memory_deleted") {
+				// Refresh memories after deletion
+				vscode.postMessage({
+					type: "get_memories",
+					showAllWorkspaces,
+				})
 			}
 		}
 
 		window.addEventListener("message", handleMessage)
 		return () => window.removeEventListener("message", handleMessage)
-	}, [])
+	}, [showAllWorkspaces])
 
 	// Filter memories by search query
 	const filteredMemories = memories.filter((memory) => {
@@ -62,6 +68,14 @@ const MemoriesView = ({ onDone }: MemoriesViewProps) => {
 	const truncateContent = (content: string, maxLength = 200) => {
 		if (content.length <= maxLength) return content
 		return content.substring(0, maxLength) + "..."
+	}
+
+	// Handle delete memory
+	const handleDeleteMemory = (memoryId: string) => {
+		vscode.postMessage({
+			type: "delete_memory",
+			memoryId,
+		})
 	}
 
 	return (
@@ -135,11 +149,21 @@ const MemoriesView = ({ onDone }: MemoriesViewProps) => {
 									<h4 className="text-vscode-foreground font-medium m-0 flex-1">
 										{memory.taskTitle || t("memories:untitled")}
 									</h4>
-									{memory.mode && (
-										<span className="text-xs text-vscode-descriptionForeground ml-2">
-											{memory.mode}
-										</span>
-									)}
+									<div className="flex items-center gap-2">
+										{memory.mode && (
+											<span className="text-xs text-vscode-descriptionForeground">
+												{memory.mode}
+											</span>
+										)}
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => handleDeleteMemory(memory.id)}
+											className="p-1 h-auto min-w-0"
+											title={t("memories:delete")}>
+											<span className="codicon codicon-trash" />
+										</Button>
+									</div>
 								</div>
 								<div className="text-xs text-vscode-descriptionForeground mb-2">
 									<div className="flex items-center gap-2">

@@ -1320,7 +1320,7 @@ export const ChatRowContent = ({
 										e.preventDefault()
 										vscode.postMessage({
 											type: "openInBrowser",
-											url: "https://app.matterai.so/billing",
+											url: "https://app.matterai.so/billing?tab=axon-code",
 										})
 									}}
 									style={{

@@ -8,5 +8,6 @@
 	"count": "{{count}} memories",
 	"currentWorkspace": "Current Workspace",
 	"allWorkspaces": "All Workspaces",
-	"untitled": "Untitled"
+	"untitled": "Untitled",
+	"delete": "Delete memory"
 }

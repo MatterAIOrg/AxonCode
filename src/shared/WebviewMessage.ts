@@ -325,6 +325,8 @@ export interface WebviewMessage {
 		| "showToast" // kilocode_change
 		| "get_memories" // kilocode_change: Chat memories
 		| "memories_response" // kilocode_change: Chat memories response
+		| "delete_memory" // kilocode_change: Delete memory
+		| "memory_deleted" // kilocode_change: Memory deleted response
 	// kilocode_change end
 	text?: string
 	editedMessageContent?: string
@@ -396,6 +398,7 @@ export interface WebviewMessage {
 	organizationId?: string | null // For organization switching
 	showAllWorkspaces?: boolean // kilocode_change: For get_memories
 	memories?: MemoryItem[] // kilocode_change: For memories_response
+	memoryId?: string // kilocode_change: For delete_memory
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean

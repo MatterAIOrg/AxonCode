@@ -156,9 +156,10 @@ export interface ExtensionMessage {
 		| "dismissedUpsells"
 		| "showTimestamps" // kilocode_change
 		| "organizationSwitchResult"
-		| "implementPlan" // kilocode_change: Plan mode implementation
-		| "showToast" // kilocode_change
-		| "memories_response" // kilocode_change: Chat memories response
+		| "implementPlan"
+		| "showToast"
+		| "memories_response"
+		| "memory_deleted"
 	text?: string
 	// kilocode_change start
 	payload?:
