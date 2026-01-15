@@ -2263,9 +2263,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 							case "native_tool_calls": {
 								// Handle native OpenAI-format tool calls
 								// Process native tool calls through the parser
-								console.log(
-									`[Task] Received native_tool_calls chunk with ${chunk.toolCalls.length} tool call(s)`,
-								)
 								let yieldedCount = 0
 								for (const toolUse of this.assistantMessageParser.processNativeToolCalls(
 									chunk.toolCalls,
@@ -2273,17 +2270,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 									assistantToolUses.push(toolUse)
 									yieldedCount++
 								}
-								console.log(
-									`[Task] After processing: yielded ${yieldedCount} tool uses, contentBlocks before: ${this.assistantMessageContent.length}`,
-								)
-
 								// Update content blocks after processing native tool calls
 								const prevLength = this.assistantMessageContent.length
 								this.assistantMessageContent = this.assistantMessageParser.getContentBlocks()
-								console.log(
-									`[Task] contentBlocks after: ${this.assistantMessageContent.length}, prevLength: ${prevLength}`,
-								)
-
 								if (this.assistantMessageContent.length > prevLength) {
 									// New content we need to present
 									this.userMessageContentReady = false

@@ -77,15 +77,6 @@ export class AssistantMessageParser {
 	 * currently set parallel_tool_calls to false, so in theory there should only be 1 call.
 	 */
 	public *processNativeToolCalls(toolCalls: NativeToolCall[]): Generator<Anthropic.ToolUseBlockParam> {
-		console.log(
-			`[AssistantMessageParser] Processing ${toolCalls.length} native tool call(s):`,
-			toolCalls.map((tc) => ({
-				id: tc.id,
-				index: tc.index,
-				name: tc.function?.name,
-				argsLength: tc.function?.arguments?.length,
-			})),
-		)
 		for (const toolCall of toolCalls) {
 			// Determine the tracking key
 			// If we have an index, use that to look up or store the id
@@ -186,11 +177,6 @@ export class AssistantMessageParser {
 				}
 			} catch (error) {
 				// Arguments are not yet complete valid JSON, continue accumulating
-				// Log to help diagnose parsing issues
-				console.log(
-					`[AssistantMessageParser] JSON parsing incomplete/failed for tool "${accumulatedCall.function!.name}" (id: ${toolCallId}). Args length: ${accumulatedCall.function!.arguments.length}. Error:`,
-					error,
-				)
 				continue
 			}
 
