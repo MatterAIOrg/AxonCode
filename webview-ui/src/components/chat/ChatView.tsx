@@ -865,8 +865,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					setSendingDisabled(false)
 					break
 			}
-			// Only set sendingDisabled to true for cases that need it (not for command_output abort)
-			if (clineAsk !== "command_output") {
+			// Only set sendingDisabled to true for cases that need it (not for command_output abort or tool/command rejection)
+			// When rejecting a tool/command, we don't want to block subsequent messages
+			if (
+				clineAsk !== "command_output" &&
+				clineAsk !== "command" &&
+				clineAsk !== "tool" &&
+				clineAsk !== "browser_action_launch" &&
+				clineAsk !== "use_mcp_server"
+			) {
 				setSendingDisabled(true)
 			}
 			setClineAsk(undefined)
