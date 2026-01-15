@@ -54,13 +54,13 @@
 		"activated": "Axon Code कमिट संदेश जनरेटर सक्रिय",
 		"gitNotFound": "⚠️ Git रिपॉजिटरी नहीं मिली या Git उपलब्ध नहीं है",
 		"gitInitError": "⚠️ Git इनिशियलाइज़ेशन त्रुटि: {{error}}",
-		"generating": "Kilo: कमिट संदेश उत्पन्न कर रहा है...",
-		"noChanges": "Kilo: विश्लेषण के लिए कोई बदलाव नहीं मिला",
-		"generated": "Kilo: कमिट संदेश उत्पन्न हुआ!",
-		"generationFailed": "Kilo: कमिट संदेश उत्पन्न करने में विफल: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: अनस्टेज किए गए परिवर्तनों का उपयोग करके संदेश उत्पन्न कर रहा है",
-		"activationFailed": "Kilo: संदेश जनरेटर सक्रिय करने में विफल: {{error}}",
-		"providerRegistered": "Kilo: कमिट संदेश प्रदाता पंजीकृत",
+		"generating": "Axon: कमिट संदेश उत्पन्न कर रहा है...",
+		"noChanges": "Axon: विश्लेषण के लिए कोई बदलाव नहीं मिला",
+		"generated": "Axon: कमिट संदेश उत्पन्न हुआ!",
+		"generationFailed": "Axon: कमिट संदेश उत्पन्न करने में विफल: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: अनस्टेज किए गए परिवर्तनों का उपयोग करके संदेश उत्पन्न कर रहा है",
+		"activationFailed": "Axon: संदेश जनरेटर सक्रिय करने में विफल: {{error}}",
+		"providerRegistered": "Axon: कमिट संदेश प्रदाता पंजीकृत",
 		"errors": {
 			"noProject": "कोई प्रोजेक्ट उपलब्ध नहीं है",
 			"timeout": "30 सेकंड के बाद अनुरोध का समय समाप्त हो गया",
@@ -156,18 +156,18 @@
 		}
 	},
 	"terminalCommandGenerator": {
-		"inputPrompt": "Kilo: उस कमांड का वर्णन करें जिसे आप जनरेट करना चाहते हैं",
-		"noActiveTerminal": "Kilo: कोई सक्रिय टर्मिनल नहीं मिला। कृपया पहले एक टर्मिनल खोलें।",
+		"inputPrompt": "Axon: उस कमांड का वर्णन करें जिसे आप जनरेट करना चाहते हैं",
+		"noActiveTerminal": "Axon: कोई सक्रिय टर्मिनल नहीं मिला। कृपया पहले एक टर्मिनल खोलें।",
 		"inputPlaceholder": "उदाहरण के लिए, पोर्ट 3001 पर चल रही प्रक्रिया को समाप्त करें, बड़ी फाइलें खोजें, इत्यादि",
-		"generatingProgress": "Kilo: टर्मिनल कमांड उत्पन्न कर रहा है...",
-		"generationFailed": "Kilo: कमांड जनरेट करने में विफल: {{error}}",
-		"commandGenerated": "Kilo: उत्पन्न आदेश: {{command}}",
+		"generatingProgress": "Axon: टर्मिनल कमांड उत्पन्न कर रहा है...",
+		"generationFailed": "Axon: कमांड जनरेट करने में विफल: {{error}}",
+		"commandGenerated": "Axon: उत्पन्न आदेश: {{command}}",
 		"warningDialog": {
 			"title": "टर्मिनल सुरक्षा चेतावनी",
 			"okButton": "मैं समझता हूँ",
 			"message": "सभी जनरेट किए गए कमांड्स को चलाने से पहले दोबारा जांच लें। टर्मिनल क्रियाओं को हमेशा पूर्ववत नहीं किया जा सकता है - बिना सत्यापित कमांड्स चलाने से अपरिवर्तनीय डेटा हानि या सिस्टम क्षति हो सकती है। आगे बढ़ने से पहले कमांड को पूरी तरह से समझें और समीक्षा करें!",
 			"cancelButton": "रद्द करें"
 		},
-		"tipMessage": "Kilo: टर्मिनल कमांड उत्पन्न करने के लिए {{shortcut}} दबाएँ"
+		"tipMessage": "Axon: टर्मिनल कमांड उत्पन्न करने के लिए {{shortcut}} दबाएँ"
 	}
 }

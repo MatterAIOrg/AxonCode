@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "Huidige Bewerkingssuggestie Toepassen",
 	"ghost.commands.applyAllSuggestions": "Alle Bewerkingssuggesties Toepassen",
 	"ghost.commands.goToNextSuggestion": "Ga Naar Volgende Suggestie",
-	"ghost.commands.goToPreviousSuggestion": "Ga Naar Vorige Suggestie"
+	"ghost.commands.goToPreviousSuggestion": "Ga Naar Vorige Suggestie",
+	"command.memories.title": "Herinneringen"
 }

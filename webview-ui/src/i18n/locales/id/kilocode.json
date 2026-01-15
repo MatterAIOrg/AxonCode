@@ -7,7 +7,9 @@
 		"ctaButton": "Mulai",
 		"manualModeButton": "Gunakan API key sendiri",
 		"alreadySignedUp": "Sudah mendaftar?",
-		"loginText": "Masuk di sini"
+		"loginText": "Masuk di sini",
+		"tagline": "Agen Rekayasa AI",
+		"exploreMatterAI": "Jelajahi MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Tambah Kredit",
@@ -32,7 +34,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "Server MCP"
+			"mcp": "Server MCP",
+			"codeReview": "Review Kode AI"
 		},
 		"provider": {
 			"account": "Akun Axon Code",

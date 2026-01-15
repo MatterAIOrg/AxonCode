@@ -34,7 +34,8 @@
 		"ui": "Uživatelské rozhraní",
 		"experimental": "Experimentální",
 		"language": "Jazyk",
-		"about": "O Axon Code"
+		"about": "O Axon Code",
+		"codeReview": "AI Code Reviews"
 	},
 	"slashCommands": {
 		"description": "Spravujte své slash příkazy pro rychlé spouštění vlastních pracovních postupů a akcí. <DocsLink>Více informací</DocsLink>"

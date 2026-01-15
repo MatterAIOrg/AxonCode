@@ -35,7 +35,8 @@
 		"language": "Dil",
 		"about": "Axon Code Hakkında",
 		"display": "Göster",
-		"ghost": "Ghost"
+		"ghost": "Ghost",
+		"codeReview": "AI Kod İncelemeleri"
 	},
 	"slashCommands": {
 		"description": "Özel iş akışlarını ve eylemleri hızlı bir şekilde yürütmek için eğik çizgi komutlarınızı yönetin. <DocsLink>Daha fazla bilgi edinin</DocsLink>"

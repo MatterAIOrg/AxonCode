@@ -34,7 +34,8 @@
 		"experimental": "Экспериментальное",
 		"language": "Язык",
 		"about": "О Axon Code",
-		"display": "Показать"
+		"display": "Показать",
+		"codeReview": "AI Code Reviews"
 	},
 	"slashCommands": {
 		"description": "Управляйте своими слэш-командами для быстрого выполнения пользовательских рабочих процессов и действий. <DocsLink>Узнать больше</DocsLink>"

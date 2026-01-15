@@ -34,7 +34,8 @@
 		"experimental": "Experimenteel",
 		"language": "Taal",
 		"about": "Over Axon Code",
-		"display": "Weergeven"
+		"display": "Weergeven",
+		"codeReview": "AI Code Reviews"
 	},
 	"slashCommands": {
 		"description": "Beheer je slash-commando's om snel aangepaste workflows en acties uit te voeren. <DocsLink>Meer informatie</DocsLink>"

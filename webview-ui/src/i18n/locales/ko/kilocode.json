@@ -7,7 +7,9 @@
 		"ctaButton": "시작하기",
 		"manualModeButton": "내 API 키 사용하기",
 		"alreadySignedUp": "이미 가입하셨나요?",
-		"loginText": "여기에서 로그인"
+		"loginText": "여기에서 로그인",
+		"tagline": "AI 엔지니어링 에이전트",
+		"exploreMatterAI": "MatterAI 탐색"
 	},
 	"lowCreditWarning": {
 		"addCredit": "크레딧 추가",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP 서버"
+			"mcp": "MCP 서버",
+			"codeReview": "AI 코드 리뷰"
 		},
 		"provider": {
 			"account": "Axon Code 계정",

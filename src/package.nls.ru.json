@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "Применить Текущую Предлагаемую Правку",
 	"ghost.commands.applyAllSuggestions": "Применить Все Предлагаемые Правки",
 	"ghost.commands.goToNextSuggestion": "Перейти к Следующему Предложению",
-	"ghost.commands.goToPreviousSuggestion": "Перейти к Предыдущему Предложению"
+	"ghost.commands.goToPreviousSuggestion": "Перейти к Предыдущему Предложению",
+	"command.memories.title": "Воспоминания"
 }

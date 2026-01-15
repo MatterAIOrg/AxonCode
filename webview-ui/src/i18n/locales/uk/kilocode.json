@@ -7,7 +7,9 @@
 		"ctaButton": "Почати",
 		"manualModeButton": "Використовуй власний API key",
 		"alreadySignedUp": "Вже зареєструвався?",
-		"loginText": "Увійти тут"
+		"loginText": "Увійти тут",
+		"tagline": "Агент ІІ-інженерії",
+		"exploreMatterAI": "Дослідити MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Додати кредит",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP сервери"
+			"mcp": "MCP сервери",
+			"codeReview": "AI Code Reviews"
 		},
 		"contextManagement": {
 			"allowVeryLargeReads": {

@@ -7,7 +7,9 @@
 		"ctaButton": "Comença",
 		"manualModeButton": "Utilitza la teva pròpia clau API",
 		"alreadySignedUp": "Ja t'has registrat?",
-		"loginText": "Inicia sessió aquí"
+		"loginText": "Inicia sessió aquí",
+		"tagline": "L'Agent d'Enginyeria d'IA",
+		"exploreMatterAI": "Explora MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Afegir crèdit",
@@ -32,7 +34,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "Servidors MCP"
+			"mcp": "Servidors MCP",
+			"codeReview": "Revisions de Codi amb IA"
 		},
 		"provider": {
 			"account": "Compte de Axon Code",

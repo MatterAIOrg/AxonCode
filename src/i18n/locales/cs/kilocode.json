@@ -54,13 +54,13 @@
 		"activated": "Generátor zpráv pro commit Axon Code aktivován",
 		"gitNotFound": "⚠️ Git repozitář nebyl nalezen nebo git není dostupný",
 		"gitInitError": "⚠️ Chyba inicializace Gitu: {{error}}",
-		"generating": "Kilo: Generuji zprávu commitu...",
-		"noChanges": "Kilo: Nenalezeny žádné změny k analýze",
-		"generated": "Kilo: Zpráva byla vygenerována!",
-		"generationFailed": "Kilo: Nepodařilo se vygenerovat zprávu commitu: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: Generování zprávy s použitím nenapojených změn",
-		"activationFailed": "Kilo: Aktivace generátoru zpráv se nezdařila: {{error}}",
-		"providerRegistered": "Kilo: Poskytovatel zpráv commitů zaregistrován",
+		"generating": "Axon: Generuji zprávu commitu...",
+		"noChanges": "Axon: Nenalezeny žádné změny k analýze",
+		"generated": "Axon: Zpráva byla vygenerována!",
+		"generationFailed": "Axon: Nepodařilo se vygenerovat zprávu commitu: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: Generování zprávy s použitím nenapojených změn",
+		"activationFailed": "Axon: Aktivace generátoru zpráv se nezdařila: {{error}}",
+		"providerRegistered": "Axon: Poskytovatel zpráv commitů zaregistrován",
 		"errors": {
 			"noProject": "Žádný projekt k dispozici",
 			"connectionFailed": "Nepodařilo se připojit k rozšíření Axon Code",
@@ -156,18 +156,18 @@
 		}
 	},
 	"terminalCommandGenerator": {
-		"inputPrompt": "Kilo: Popište příkaz, který chcete vygenerovat",
-		"noActiveTerminal": "Kilo: Nebyl nalezen žádný aktivní terminál. Nejprve prosím otevřete terminál.",
+		"inputPrompt": "Axon: Popište příkaz, který chcete vygenerovat",
+		"noActiveTerminal": "Axon: Nebyl nalezen žádný aktivní terminál. Nejprve prosím otevřete terminál.",
 		"inputPlaceholder": "např. ukončit proces běžící na portu 3001, najít velké soubory atd.",
-		"generatingProgress": "Kilo: Generuji příkaz terminálu...",
-		"generationFailed": "Kilo: Příkaz se nepodařilo vygenerovat: {{error}}",
-		"commandGenerated": "Kilo: Vygenerovaný příkaz: {{command}}",
+		"generatingProgress": "Axon: Generuji příkaz terminálu...",
+		"generationFailed": "Axon: Příkaz se nepodařilo vygenerovat: {{error}}",
+		"commandGenerated": "Axon: Vygenerovaný příkaz: {{command}}",
 		"warningDialog": {
 			"title": "Bezpečnostní Upozornění Terminálu",
 			"okButton": "Rozumím",
 			"message": "Dvakrát zkontrolujte všechny vygenerované příkazy před jejich spuštěním. Akce v terminálu nelze vždy vrátit zpět – spuštění neověřených příkazů může vést k nevratné ztrátě dat nebo poškození systému. Před pokračováním si příkaz důkladně projděte a ujistěte se, že mu rozumíte!",
 			"cancelButton": "Zrušit"
 		},
-		"tipMessage": "Kilo: Stiskněte {{shortcut}} pro generování příkazů v terminálu"
+		"tipMessage": "Axon: Stiskněte {{shortcut}} pro generování příkazů v terminálu"
 	}
 }

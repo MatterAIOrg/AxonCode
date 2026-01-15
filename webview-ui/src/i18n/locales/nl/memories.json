@@ -1,0 +1,13 @@
+{
+	"title": "Herinneringen",
+	"done": "Klaar",
+	"searchPlaceholder": "Herinneringen zoeken...",
+	"loading": "Herinneringen laden...",
+	"noMemories": "Geen herinneringen gevonden. Herinneringen worden opgeslagen wanneer u taken voltooit.",
+	"noResults": "Geen herinneringen komen overeen met uw zoekopdracht.",
+	"count": "{{count}} herinneringen",
+	"currentWorkspace": "Huidige werkruimte",
+	"allWorkspaces": "Alle werkruimtes",
+	"untitled": "Naamloos",
+	"delete": "Herinnering verwijderen"
+}

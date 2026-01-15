@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "Terapkan Saran Pengeditan Saat Ini",
 	"ghost.commands.applyAllSuggestions": "Terapkan Semua Saran Pengeditan",
 	"ghost.commands.goToNextSuggestion": "Pergi ke Saran Berikutnya",
-	"ghost.commands.goToPreviousSuggestion": "Pergi ke Saran Sebelumnya"
+	"ghost.commands.goToPreviousSuggestion": "Pergi ke Saran Sebelumnya",
+	"command.memories.title": "Memori"
 }

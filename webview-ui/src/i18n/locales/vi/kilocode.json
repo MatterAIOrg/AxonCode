@@ -7,7 +7,9 @@
 		"ctaButton": "Bắt đầu",
 		"manualModeButton": "Sử dụng khóa API của riêng bạn",
 		"alreadySignedUp": "Đã đăng ký?",
-		"loginText": "Đăng nhập tại đây"
+		"loginText": "Đăng nhập tại đây",
+		"tagline": "AI Engineering Agent",
+		"exploreMatterAI": "Khám phá MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Thêm tín dụng",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "Máy chủ MCP"
+			"mcp": "Máy chủ MCP",
+			"codeReview": "AI Code Reviews"
 		},
 		"contextManagement": {
 			"allowVeryLargeReads": {

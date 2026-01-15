@@ -1,0 +1,13 @@
+{
+	"title": "Paměti",
+	"done": "Hotovo",
+	"searchPlaceholder": "Hledat paměti...",
+	"loading": "Načítání pamětí...",
+	"noMemories": "Nebyly nalezeny žádné paměti. Paměti se ukládají při dokončování úkolů.",
+	"noResults": "Žádné paměti neodpovídají vašemu vyhledávání.",
+	"count": "{{count}} pamětí",
+	"currentWorkspace": "Aktuální pracovní prostor",
+	"allWorkspaces": "Všechny pracovní prostory",
+	"untitled": "Bez názvu",
+	"delete": "Smazat paměť"
+}

@@ -1,0 +1,13 @@
+{
+	"title": "Hafızalar",
+	"done": "Tamamlandı",
+	"searchPlaceholder": "Hafıza ara...",
+	"loading": "Hafızalar yükleniyor...",
+	"noMemories": "Hafıza bulunamadı. Hafızalar görevleri tamamladığınızda kaydedilir.",
+	"noResults": "Aramanızla eşleşen hafıza yok.",
+	"count": "{{count}} hafıza",
+	"currentWorkspace": "Mevcut çalışma alanı",
+	"allWorkspaces": "Tüm çalışma alanları",
+	"untitled": "Adsız",
+	"delete": "Hafızayı sil"
+}

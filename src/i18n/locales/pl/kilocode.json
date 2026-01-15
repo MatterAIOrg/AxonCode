@@ -54,13 +54,13 @@
 		"activated": "Generator wiadomości commit Axon Code aktywowany",
 		"gitNotFound": "⚠️ Nie znaleziono repozytorium Git lub git jest niedostępny",
 		"gitInitError": "⚠️ Błąd inicjalizacji Git: {{error}}",
-		"generating": "Kilo: Generowanie wiadomości commit...",
-		"noChanges": "Kilo: Nie znaleziono zmian do analizy",
-		"generated": "Kilo: Wiadomość commit wygenerowana!",
-		"generationFailed": "Kilo: Nie udało się wygenerować wiadomości commit: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: Generowanie wiadomości przy użyciu niezatwierdzonych zmian",
-		"activationFailed": "Kilo: Nie udało się aktywować generatora wiadomości: {{error}}",
-		"providerRegistered": "Kilo: Zarejestrowano dostawcę wiadomości commit",
+		"generating": "Axon: Generowanie wiadomości commit...",
+		"noChanges": "Axon: Nie znaleziono zmian do analizy",
+		"generated": "Axon: Wiadomość commit wygenerowana!",
+		"generationFailed": "Axon: Nie udało się wygenerować wiadomości commit: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: Generowanie wiadomości przy użyciu niezatwierdzonych zmian",
+		"activationFailed": "Axon: Nie udało się aktywować generatora wiadomości: {{error}}",
+		"providerRegistered": "Axon: Zarejestrowano dostawcę wiadomości commit",
 		"errors": {
 			"noProject": "Brak dostępnego projektu",
 			"timeout": "Upłynął limit czasu żądania po 30 sekundach",
@@ -156,18 +156,18 @@
 		}
 	},
 	"terminalCommandGenerator": {
-		"inputPrompt": "Kilo: Opisz polecenie, które chcesz wygenerować",
+		"inputPrompt": "Axon: Opisz polecenie, które chcesz wygenerować",
 		"inputPlaceholder": "np. zakończ proces działający na porcie 3001, znajdź duże pliki, itp.",
-		"generatingProgress": "Kilo: Generowanie polecenia terminala...",
-		"generationFailed": "Kilo: Nie udało się wygenerować polecenia: {{error}}",
-		"commandGenerated": "Kilo: Wygenerowane polecenie: {{command}}",
-		"noActiveTerminal": "Kilo: Nie znaleziono aktywnego terminala. Proszę najpierw otworzyć terminal.",
+		"generatingProgress": "Axon: Generowanie polecenia terminala...",
+		"generationFailed": "Axon: Nie udało się wygenerować polecenia: {{error}}",
+		"commandGenerated": "Axon: Wygenerowane polecenie: {{command}}",
+		"noActiveTerminal": "Axon: Nie znaleziono aktywnego terminala. Proszę najpierw otworzyć terminal.",
 		"warningDialog": {
 			"title": "Ostrzeżenie o Bezpieczeństwie Terminala",
 			"okButton": "Rozumiem",
 			"message": "Dokładnie sprawdzaj wszystkie wygenerowane polecenia przed ich uruchomieniem. Działań wykonanych w terminalu nie zawsze można cofnąć – uruchamianie niezweryfikowanych poleceń może spowodować nieodwracalną utratę danych lub uszkodzenie systemu. Przejrzyj i zrozum polecenie w całości zanim przejdziesz dalej!",
 			"cancelButton": "Anuluj"
 		},
-		"tipMessage": "Kilo: Naciśnij {{shortcut}}, aby wygenerować polecenia terminala"
+		"tipMessage": "Axon: Naciśnij {{shortcut}}, aby wygenerować polecenia terminala"
 	}
 }

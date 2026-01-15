@@ -34,7 +34,8 @@
 		"experimental": "Eksperymentalne",
 		"language": "Język",
 		"about": "O Axon Code",
-		"display": "Wyświetl"
+		"display": "Wyświetl",
+		"codeReview": "Przeglądy Kodu AI"
 	},
 	"slashCommands": {
 		"description": "Zarządzaj poleceniami slash, aby szybko wykonywać niestandardowe przepływy pracy i akcje. <DocsLink>Dowiedz się więcej</DocsLink>"

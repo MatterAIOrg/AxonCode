@@ -151,7 +151,7 @@
 	},
 	"terminalCommandGenerator": {
 		"tipMessage": "Kilo：按下 {{shortcut}} 產生終端機指令",
-		"noActiveTerminal": "Kilo: 找不到活動的終端機。請先開啟一個終端機",
+		"noActiveTerminal": "Axon: 找不到活動的終端機。請先開啟一個終端機",
 		"inputPrompt": "Kilo：描述您想要產生的指令",
 		"inputPlaceholder": "例如，結束在連接埠 3001 上執行的行程，尋找大檔案等",
 		"generatingProgress": "Kilo：正在產生終端機指令...",

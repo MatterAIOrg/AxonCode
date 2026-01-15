@@ -54,13 +54,13 @@
 		"activated": "Axon Code コミットメッセージジェネレーターがアクティブになりました",
 		"gitNotFound": "⚠️ Git リポジトリが見つからないか、git が利用できません",
 		"gitInitError": "⚠️ Git 初期化エラー: {{error}}",
-		"generating": "Kilo: コミットメッセージを生成中...",
-		"noChanges": "Kilo: 分析する変更が見つかりません",
-		"generated": "Kilo: コミットメッセージが生成されました！",
-		"generationFailed": "Kilo: コミットメッセージの生成に失敗しました: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: ステージされていない変更を使用してメッセージを生成中",
-		"activationFailed": "Kilo: メッセージジェネレーターのアクティブ化に失敗しました: {{error}}",
-		"providerRegistered": "Kilo: コミットメッセージプロバイダーが登録されました",
+		"generating": "Axon: コミットメッセージを生成中...",
+		"noChanges": "Axon: 分析する変更が見つかりません",
+		"generated": "Axon: コミットメッセージが生成されました！",
+		"generationFailed": "Axon: コミットメッセージの生成に失敗しました: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: ステージされていない変更を使用してメッセージを生成中",
+		"activationFailed": "Axon: メッセージジェネレーターのアクティブ化に失敗しました: {{error}}",
+		"providerRegistered": "Axon: コミットメッセージプロバイダーが登録されました",
 		"errors": {
 			"noProject": "利用可能なプロジェクトがありません",
 			"timeout": "リクエストが30秒後にタイムアウトしました",
@@ -150,19 +150,19 @@
 		}
 	},
 	"terminalCommandGenerator": {
-		"inputPrompt": "Kilo: 生成したいコマンドを説明してください",
+		"inputPrompt": "Axon: 生成したいコマンドを説明してください",
 		"commandGenerated": "Kilo：生成されたコマンド：{{command}}",
 		"inputPlaceholder": "例えば、ポート3001で実行中のプロセスを終了する、大きなファイルを見つける、など",
-		"generatingProgress": "Kilo: ターミナルコマンドを生成中...",
-		"noActiveTerminal": "Kilo: アクティブな端末が見つかりません。まず端末を開いてください。",
-		"generationFailed": "Kilo: コマンドの生成に失敗しました: {{error}}",
+		"generatingProgress": "Axon: ターミナルコマンドを生成中...",
+		"noActiveTerminal": "Axon: アクティブな端末が見つかりません。まず端末を開いてください。",
+		"generationFailed": "Axon: コマンドの生成に失敗しました: {{error}}",
 		"warningDialog": {
 			"title": "ターミナル安全警告",
 			"okButton": "理解しました",
 			"message": "生成されたコマンドはすべて実行前に二重確認してください。ターミナル操作は常に元に戻せるとは限りません—未検証のコマンドを実行すると、取り返しのつかないデータ損失やシステム損傷を引き起こす可能性があります。実行前にコマンドを完全に確認し理解してください！",
 			"cancelButton": "キャンセル"
 		},
-		"tipMessage": "Kilo: {{shortcut}}を押してターミナルコマンドを生成"
+		"tipMessage": "Axon: {{shortcut}}を押してターミナルコマンドを生成"
 	},
 	"seeNewChanges": {
 		"title": "新しい変更を表示中",

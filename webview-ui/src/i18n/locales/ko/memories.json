@@ -1,0 +1,13 @@
+{
+	"title": "메모리",
+	"done": "완료",
+	"searchPlaceholder": "메모리 검색...",
+	"loading": "메모리 로드 중...",
+	"noMemories": "메모리를 찾을 수 없습니다. 메모리는 작업을 완료할 때 저장됩니다.",
+	"noResults": "검색과 일치하는 메모리가 없습니다.",
+	"count": "{{count}}개의 메모리",
+	"currentWorkspace": "현재 작업 공간",
+	"allWorkspaces": "모든 작업 공간",
+	"untitled": "제목 없음",
+	"delete": "메모리 삭제"
+}

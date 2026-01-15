@@ -34,7 +34,8 @@
 		"experimental": "실험적",
 		"language": "언어",
 		"about": "Axon Code 정보",
-		"display": "디스플레이"
+		"display": "디스플레이",
+		"codeReview": "AI 코드 리뷰"
 	},
 	"slashCommands": {
 		"description": "사용자 지정 워크플로와 작업을 신속하게 실행하기 위해 슬래시 명령을 관리합니다. <DocsLink>더 알아보기</DocsLink>"

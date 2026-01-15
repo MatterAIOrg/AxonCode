@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "Appliquer la Modification Suggérée Actuelle",
 	"ghost.commands.applyAllSuggestions": "Appliquer Toutes les Modifications Suggérées",
 	"ghost.commands.goToNextSuggestion": "Aller à la Suggestion Suivante",
-	"ghost.commands.goToPreviousSuggestion": "Aller à la Suggestion Précédente"
+	"ghost.commands.goToPreviousSuggestion": "Aller à la Suggestion Précédente",
+	"command.memories.title": "Mémoires"
 }

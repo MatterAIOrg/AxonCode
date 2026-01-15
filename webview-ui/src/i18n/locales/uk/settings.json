@@ -35,7 +35,8 @@
 		"experimental": "Експериментальне",
 		"language": "Мова",
 		"about": "Про Axon Code",
-		"ghost": "Ghost"
+		"ghost": "Ghost",
+		"codeReview": "AI Code Reviews"
 	},
 	"slashCommands": {
 		"description": "Керуйте своїми slash командами для швидкого виконання власних робочих процесів та дій. <DocsLink>Дізнатися більше</DocsLink>"

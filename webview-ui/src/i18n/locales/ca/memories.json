@@ -1,0 +1,13 @@
+{
+	"title": "Memòries",
+	"done": "Fet",
+	"searchPlaceholder": "Cerca memòries...",
+	"loading": "Carregant memòries...",
+	"noMemories": "No s'han trobat memòries. Les memòries es desen quan completes tasques.",
+	"noResults": "No hi ha memòries que coincideixin amb la teva cerca.",
+	"count": "{{count}} memòries",
+	"currentWorkspace": "Espai de treball actual",
+	"allWorkspaces": "Tots els espais de treball",
+	"untitled": "Sense títol",
+	"delete": "Esborrar memòria"
+}

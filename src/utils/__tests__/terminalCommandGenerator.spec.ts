@@ -26,7 +26,7 @@ vi.mock("../../core/config/ProviderSettingsManager", () => ({
 vi.mock("../../i18n", () => ({
 	t: vi.fn((key: string, params?: any) => {
 		const translations: Record<string, string> = {
-			"kilocode:terminalCommandGenerator.inputPrompt": "Kilo: Describe the command you want to generate",
+			"kilocode:terminalCommandGenerator.inputPrompt": "Axon: Describe the command you want to generate",
 			"kilocode:terminalCommandGenerator.inputPlaceholder":
 				"e.g., kill the process running on port 3001, find large files, etc",
 			"kilocode:terminalCommandGenerator.noActiveTerminal":
@@ -120,7 +120,7 @@ describe("generateTerminalCommand", () => {
 		})
 
 		expect(vscode.window.showInputBox).toHaveBeenCalledWith({
-			prompt: "Kilo: Describe the command you want to generate",
+			prompt: "Axon: Describe the command you want to generate",
 			placeHolder: "e.g., kill the process running on port 3001, find large files, etc",
 			ignoreFocusOut: true,
 		})

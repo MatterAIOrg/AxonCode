@@ -372,7 +372,7 @@ Regular expressions (`fileRegex`) offer fine-grained control over file editing p
 :::tip
 **Let Kilo Build Your Regex Patterns**
 
-Instead of writing complex regex manually, ask Kilo:
+Instead of writing complex regex manually, ask Axon:
 
 ```
 Create a regex pattern that matches JavaScript files but excludes test files

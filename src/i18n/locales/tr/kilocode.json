@@ -49,13 +49,13 @@
 		"activated": "Axon Code commit mesajı oluşturucu etkinleştirildi",
 		"gitNotFound": "⚠️ Git deposu bulunamadı veya git kullanılamıyor",
 		"gitInitError": "⚠️ Git başlatma hatası: {{error}}",
-		"generating": "Kilo: Commit mesajı oluşturuluyor...",
-		"noChanges": "Kilo: Analiz edilecek değişiklik bulunamadı",
-		"generated": "Kilo: Commit mesajı oluşturuldu!",
-		"generationFailed": "Kilo: Commit mesajı oluşturulamadı: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: Hazırlanmamış değişikliklerle mesaj oluşturuluyor",
-		"activationFailed": "Kilo: Mesaj oluşturucu etkinleştirilemedi: {{error}}",
-		"providerRegistered": "Kilo: Commit mesajı sağlayıcısı kaydedildi",
+		"generating": "Axon: Commit mesajı oluşturuluyor...",
+		"noChanges": "Axon: Analiz edilecek değişiklik bulunamadı",
+		"generated": "Axon: Commit mesajı oluşturuldu!",
+		"generationFailed": "Axon: Commit mesajı oluşturulamadı: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: Hazırlanmamış değişikliklerle mesaj oluşturuluyor",
+		"activationFailed": "Axon: Mesaj oluşturucu etkinleştirilemedi: {{error}}",
+		"providerRegistered": "Axon: Commit mesajı sağlayıcısı kaydedildi",
 		"errors": {
 			"noProject": "Proje mevcut değil",
 			"connectionFailed": "Axon Code uzantısına bağlanılamadı",
@@ -150,19 +150,19 @@
 		}
 	},
 	"terminalCommandGenerator": {
-		"noActiveTerminal": "Kilo: Aktif terminal bulunamadı. Lütfen önce bir terminal açın.",
-		"inputPrompt": "Kilo: Oluşturmak istediğiniz komutu açıklayın",
+		"noActiveTerminal": "Axon: Aktif terminal bulunamadı. Lütfen önce bir terminal açın.",
+		"inputPrompt": "Axon: Oluşturmak istediğiniz komutu açıklayın",
 		"inputPlaceholder": "örn., 3001 portunda çalışan işlemi sonlandır, büyük dosyaları bul, vb.",
-		"generatingProgress": "Kilo: Uçbirim komutu oluşturuluyor...",
-		"commandGenerated": "Kilo: Oluşturulan komut: {{command}}",
-		"generationFailed": "Kilo: Komut oluşturulamadı: {{error}}",
+		"generatingProgress": "Axon: Uçbirim komutu oluşturuluyor...",
+		"commandGenerated": "Axon: Oluşturulan komut: {{command}}",
+		"generationFailed": "Axon: Komut oluşturulamadı: {{error}}",
 		"warningDialog": {
 			"title": "Uçbirim Güvenlik Uyarısı",
 			"okButton": "Anlıyorum",
 			"message": "Oluşturulan tüm komutları çalıştırmadan önce iki kez kontrol edin. Terminal eylemleri her zaman geri alınamaz— doğrulanmamış komutları çalıştırmak geri döndürülemez veri kaybına veya sistem hasarına neden olabilir. İlerlemeden önce komutu tamamen inceleyin ve anlayın!",
 			"cancelButton": "İptal"
 		},
-		"tipMessage": "Kilo: Terminal komutları oluşturmak için {{shortcut}} tuşuna basın"
+		"tipMessage": "Axon: Terminal komutları oluşturmak için {{shortcut}} tuşuna basın"
 	},
 	"seeNewChanges": {
 		"title": "Yeni değişiklikler gösteriliyor",

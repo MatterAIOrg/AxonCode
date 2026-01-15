@@ -1,0 +1,13 @@
+{
+	"title": "记忆",
+	"done": "完成",
+	"searchPlaceholder": "搜索记忆...",
+	"loading": "正在加载记忆...",
+	"noMemories": "未找到记忆。完成任务时会保存记忆。",
+	"noResults": "没有与您的搜索匹配的记忆。",
+	"count": "{{count}}条记忆",
+	"currentWorkspace": "当前工作区",
+	"allWorkspaces": "所有工作区",
+	"untitled": "无标题",
+	"delete": "删除记忆"
+}

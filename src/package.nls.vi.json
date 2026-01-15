@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "Áp Dụng Gợi Ý Chỉnh Sửa Hiện Tại",
 	"ghost.commands.applyAllSuggestions": "Áp Dụng Tất Cả Gợi Ý Chỉnh Sửa",
 	"ghost.commands.goToNextSuggestion": "Đi Đến Gợi Ý Tiếp Theo",
-	"ghost.commands.goToPreviousSuggestion": "Đi Đến Gợi Ý Trước Đó"
+	"ghost.commands.goToPreviousSuggestion": "Đi Đến Gợi Ý Trước Đó",
+	"command.memories.title": "Ký ức"
 }

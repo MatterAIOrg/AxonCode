@@ -1,0 +1,13 @@
+{
+	"title": "Erinnerungen",
+	"done": "Fertig",
+	"searchPlaceholder": "Erinnerungen suchen...",
+	"loading": "Erinnerungen werden geladen...",
+	"noMemories": "Keine Erinnerungen gefunden. Erinnerungen werden gespeichert, wenn Sie Aufgaben abschließen.",
+	"noResults": "Keine Erinnerungen stimmen mit Ihrer Suche überein.",
+	"count": "{{count}} Erinnerungen",
+	"currentWorkspace": "Aktueller Arbeitsbereich",
+	"allWorkspaces": "Alle Arbeitsbereiche",
+	"untitled": "Unbenannt",
+	"delete": "Erinnerung löschen"
+}

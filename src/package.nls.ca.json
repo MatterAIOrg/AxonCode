@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "Aplicar Edició Suggerida Actual",
 	"ghost.commands.applyAllSuggestions": "Aplicar Totes les Edicions Suggerides",
 	"ghost.commands.goToNextSuggestion": "Anar al Suggeriment Següent",
-	"ghost.commands.goToPreviousSuggestion": "Anar al Suggeriment Anterior"
+	"ghost.commands.goToPreviousSuggestion": "Anar al Suggeriment Anterior",
+	"command.memories.title": "Memòries"
 }
