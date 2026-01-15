@@ -48,7 +48,7 @@ export class MemoryManager {
 	}
 
 	/**
-	 * Save a new memory
+	 * Save a new memory (replaces existing memory with same taskId)
 	 */
 	async saveMemory(options: MemorySaveOptions): Promise<void> {
 		await this.loadMemories()
@@ -69,7 +69,14 @@ export class MemoryManager {
 			mode,
 		}
 
-		this.memories.push(memory)
+		// Remove existing memory with same taskId (replace instead of append)
+		const existingIndex = this.memories.findIndex((m) => m.taskId === taskId)
+		if (existingIndex !== -1) {
+			this.memories[existingIndex] = memory
+		} else {
+			this.memories.push(memory)
+		}
+
 		await this.saveMemories()
 	}
 

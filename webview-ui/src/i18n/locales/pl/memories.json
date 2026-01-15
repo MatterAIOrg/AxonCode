@@ -1,0 +1,13 @@
+{
+	"title": "Pamięci",
+	"done": "Gotowe",
+	"searchPlaceholder": "Szukaj pamięci...",
+	"loading": "Ładowanie pamięci...",
+	"noMemories": "Nie znaleziono żadnych pamięci. Pamięci są zapisywane po ukończeniu zadań.",
+	"noResults": "Żadne pamięci nie pasują do Twojego wyszukiwania.",
+	"count": "{{count}} pamięci",
+	"currentWorkspace": "Bieżący obszar roboczy",
+	"allWorkspaces": "Wszystkie obszary robocze",
+	"untitled": "Bez tytułu",
+	"delete": "Usuń pamięć"
+}

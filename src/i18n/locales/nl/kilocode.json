@@ -54,13 +54,13 @@
 		"activated": "Axon Code commit bericht generator geactiveerd",
 		"gitNotFound": "⚠️ Git-repository niet gevonden of git niet beschikbaar",
 		"gitInitError": "⚠️ Git-initialisatiefout: {{error}}",
-		"generating": "Kilo: Commit bericht genereren...",
-		"noChanges": "Kilo: Geen wijzigingen gevonden om te analyseren",
-		"generated": "Kilo: Commit bericht gegenereerd!",
-		"generationFailed": "Kilo: Fout bij het genereren van commit bericht: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: Bericht genereren met niet-gestage wijzigingen",
-		"activationFailed": "Kilo: Fout bij het activeren van berichtgenerator: {{error}}",
-		"providerRegistered": "Kilo: Commit bericht provider geregistreerd",
+		"generating": "Axon: Commit bericht genereren...",
+		"noChanges": "Axon: Geen wijzigingen gevonden om te analyseren",
+		"generated": "Axon: Commit bericht gegenereerd!",
+		"generationFailed": "Axon: Fout bij het genereren van commit bericht: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: Bericht genereren met niet-gestage wijzigingen",
+		"activationFailed": "Axon: Fout bij het activeren van berichtgenerator: {{error}}",
+		"providerRegistered": "Axon: Commit bericht provider geregistreerd",
 		"errors": {
 			"noProject": "Geen project beschikbaar",
 			"timeout": "Verzoek is verlopen na 30 seconden",
@@ -150,19 +150,19 @@
 		}
 	},
 	"terminalCommandGenerator": {
-		"inputPrompt": "Kilo: Beschrijf het commando dat je wilt genereren",
-		"noActiveTerminal": "Kilo: Geen actieve terminal gevonden. Open eerst een terminal.",
+		"inputPrompt": "Axon: Beschrijf het commando dat je wilt genereren",
+		"noActiveTerminal": "Axon: Geen actieve terminal gevonden. Open eerst een terminal.",
 		"inputPlaceholder": "bijv., dood het proces dat draait op poort 3001, zoek grote bestanden, enz",
-		"generatingProgress": "Kilo: Terminal opdracht genereren...",
-		"commandGenerated": "Kilo: Gegenereerd commando: {{command}}",
-		"generationFailed": "Kilo: Opdracht genereren mislukt: {{error}}",
+		"generatingProgress": "Axon: Terminal opdracht genereren...",
+		"commandGenerated": "Axon: Gegenereerd commando: {{command}}",
+		"generationFailed": "Axon: Opdracht genereren mislukt: {{error}}",
 		"warningDialog": {
 			"title": "Waarschuwing Terminalveiligheid",
 			"okButton": "Ik begrijp",
 			"message": "Controleer alle gegenereerde commando's dubbel voordat je ze uitvoert. Acties in de terminal kunnen niet altijd worden teruggedraaid— het uitvoeren van niet-geverifieerde commando's kan resulteren in onherstelbaar dataverlies of beschadiging van het systeem. Bekijk en begrijp het commando volledig voordat je verdergaat!",
 			"cancelButton": "Annuleren"
 		},
-		"tipMessage": "Kilo: Druk op {{shortcut}} om terminalopdrachten te genereren"
+		"tipMessage": "Axon: Druk op {{shortcut}} om terminalopdrachten te genereren"
 	},
 	"seeNewChanges": {
 		"title": "Nieuwe wijzigingen weergeven",

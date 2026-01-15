@@ -7,7 +7,9 @@
 		"ctaButton": "Začít",
 		"manualModeButton": "Použij vlastní API key",
 		"alreadySignedUp": "Už jsi registrovaný?",
-		"loginText": "Přihlas se zde"
+		"loginText": "Přihlas se zde",
+		"tagline": "AI Engineering Agent",
+		"exploreMatterAI": "Prozkoumat MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Přidat kredit",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP servery"
+			"mcp": "MCP servery",
+			"codeReview": "AI Code Reviews"
 		},
 		"provider": {
 			"account": "Účet Axon Code",

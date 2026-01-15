@@ -34,7 +34,8 @@
 		"experimental": "प्रायोगिक",
 		"language": "भाषा",
 		"about": "परिचय",
-		"display": "प्रदर्शित करें"
+		"display": "प्रदर्शित करें",
+		"codeReview": "AI कोड समीक्षा"
 	},
 	"slashCommands": {
 		"description": "कस्टम वर्कफ़्लो और क्रियाओं को तेज़ी से निष्पादित करने के लिए अपने स्लैश कमांड प्रबंधित करें। <DocsLink>और जानें</DocsLink>"

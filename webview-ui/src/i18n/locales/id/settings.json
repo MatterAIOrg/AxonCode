@@ -34,7 +34,8 @@
 		"experimental": "Eksperimental",
 		"language": "Bahasa",
 		"about": "Tentang Axon Code",
-		"display": "Tampilkan"
+		"display": "Tampilkan",
+		"codeReview": "Review Kode AI"
 	},
 	"slashCommands": {
 		"description": "Kelola perintah slash kamu untuk mengeksekusi alur kerja dan tindakan kustom dengan cepat. <DocsLink>Pelajari lebih lanjut</DocsLink>"

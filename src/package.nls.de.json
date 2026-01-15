@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "Aktuelle Vorgeschlagene Bearbeitung Anwenden",
 	"ghost.commands.applyAllSuggestions": "Alle Vorgeschlagenen Bearbeitungen Anwenden",
 	"ghost.commands.goToNextSuggestion": "Zur Nächsten Vorgeschlagenen Bearbeitung",
-	"ghost.commands.goToPreviousSuggestion": "Zur Vorherigen Vorgeschlagenen Bearbeitung"
+	"ghost.commands.goToPreviousSuggestion": "Zur Vorherigen Vorgeschlagenen Bearbeitung",
+	"command.memories.title": "Erinnerungen"
 }

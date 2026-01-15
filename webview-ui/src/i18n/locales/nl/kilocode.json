@@ -7,7 +7,9 @@
 		"ctaButton": "Aan de slag",
 		"manualModeButton": "Gebruik je eigen API-sleutel",
 		"alreadySignedUp": "Al aangemeld?",
-		"loginText": "Log hier in"
+		"loginText": "Log hier in",
+		"tagline": "De AI Engineering Agent",
+		"exploreMatterAI": "MatterAI verkennen"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Krediet toevoegen",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP-servers"
+			"mcp": "MCP-servers",
+			"codeReview": "AI Code Reviews"
 		},
 		"provider": {
 			"account": "Axon Code Account",

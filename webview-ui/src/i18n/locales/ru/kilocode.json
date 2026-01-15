@@ -7,7 +7,9 @@
 		"ctaButton": "Начать",
 		"manualModeButton": "Использовать свой API-ключ",
 		"alreadySignedUp": "Уже зарегистрированы?",
-		"loginText": "Войти здесь"
+		"loginText": "Войти здесь",
+		"tagline": "Агент ИИ-инженерии",
+		"exploreMatterAI": "Изучить MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Добавить кредит",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP Серверы"
+			"mcp": "MCP Серверы",
+			"codeReview": "AI Code Reviews"
 		},
 		"provider": {
 			"account": "Аккаунт Axon Code",

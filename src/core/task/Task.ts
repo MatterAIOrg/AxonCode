@@ -1015,6 +1015,15 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			return
 		}
 
+		// If user rejects a tool/command, don't enqueue the feedback text as a new message
+		// The feedback is already handled by the tool rejection logic
+		if (askResponse === "noButtonClicked") {
+			this.askResponseText = text
+			this.askResponseImages = images
+			this.askResponse = askResponse
+			return
+		}
+
 		// this.askResponse = askResponse kilocode_change
 		this.askResponseText = text
 		this.askResponseImages = images

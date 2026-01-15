@@ -1,0 +1,13 @@
+{
+	"title": "Memórias",
+	"done": "Concluído",
+	"searchPlaceholder": "Pesquisar memórias...",
+	"loading": "Carregando memórias...",
+	"noMemories": "Nenhuma memória encontrada. As memórias são salvas quando você completa tarefas.",
+	"noResults": "Nenhuma memória corresponde à sua pesquisa.",
+	"count": "{{count}} memórias",
+	"currentWorkspace": "Espaço de trabalho atual",
+	"allWorkspaces": "Todos os espaços de trabalho",
+	"untitled": "Sem título",
+	"delete": "Excluir memória"
+}

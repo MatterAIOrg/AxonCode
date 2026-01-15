@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "套用目前編輯建議",
 	"ghost.commands.applyAllSuggestions": "套用所有編輯建議",
 	"ghost.commands.goToNextSuggestion": "前往下一個建議",
-	"ghost.commands.goToPreviousSuggestion": "前往上一個建議"
+	"ghost.commands.goToPreviousSuggestion": "前往上一個建議",
+	"command.memories.title": "記憶"
 }

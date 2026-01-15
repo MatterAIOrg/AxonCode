@@ -35,7 +35,8 @@
 		"language": "语言",
 		"about": "关于 Axon Code",
 		"mcp": "MCP 服务器",
-		"display": "显示"
+		"display": "显示",
+		"codeReview": "AI 代码审查"
 	},
 	"slashCommands": {
 		"description": "管理您的斜杠命令，以快速执行自定义工作流和操作。 <DocsLink>了解更多</DocsLink>"

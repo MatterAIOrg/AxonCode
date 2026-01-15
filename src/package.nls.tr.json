@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "Mevcut Düzenleme Önerisini Uygula",
 	"ghost.commands.applyAllSuggestions": "Tüm Düzenleme Önerilerini Uygula",
 	"ghost.commands.goToNextSuggestion": "Sonraki Öneriye Git",
-	"ghost.commands.goToPreviousSuggestion": "Önceki Öneriye Git"
+	"ghost.commands.goToPreviousSuggestion": "Önceki Öneriye Git",
+	"command.memories.title": "Hafızalar"
 }

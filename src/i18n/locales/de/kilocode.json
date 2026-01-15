@@ -54,13 +54,13 @@
 		"activated": "Axon Code Commit-Nachrichten-Generator aktiviert",
 		"gitNotFound": "⚠️ Git-Repository nicht gefunden oder Git nicht verfügbar",
 		"gitInitError": "⚠️ Git-Initialisierungsfehler: {{error}}",
-		"generating": "Kilo: Generiere Commit-Nachricht...",
-		"noChanges": "Kilo: Keine Änderungen zum Analysieren gefunden",
-		"generated": "Kilo: Commit-Nachricht generiert!",
-		"generationFailed": "Kilo: Fehler beim Generieren der Commit-Nachricht: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: Nachricht mit nicht bereitgestellten Änderungen generieren",
-		"activationFailed": "Kilo: Der Nachrichtengenerator konnte nicht aktiviert werden: {{error}}",
-		"providerRegistered": "Kilo: Commit-Nachrichtenanbieter registriert",
+		"generating": "Axon: Generiere Commit-Nachricht...",
+		"noChanges": "Axon: Keine Änderungen zum Analysieren gefunden",
+		"generated": "Axon: Commit-Nachricht generiert!",
+		"generationFailed": "Axon: Fehler beim Generieren der Commit-Nachricht: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: Nachricht mit nicht bereitgestellten Änderungen generieren",
+		"activationFailed": "Axon: Der Nachrichtengenerator konnte nicht aktiviert werden: {{error}}",
+		"providerRegistered": "Axon: Commit-Nachrichtenanbieter registriert",
 		"errors": {
 			"noProject": "Kein Projekt verfügbar",
 			"connectionFailed": "Verbindung zur Axon Code-Erweiterung fehlgeschlagen",
@@ -150,19 +150,19 @@
 		}
 	},
 	"terminalCommandGenerator": {
-		"inputPrompt": "Kilo: Beschreibe den Befehl, den du generieren möchtest",
-		"generatingProgress": "Kilo: Terminal-Befehl wird generiert...",
-		"noActiveTerminal": "Kilo: Kein aktives Terminal gefunden. Bitte öffne zuerst ein Terminal.",
+		"inputPrompt": "Axon: Beschreibe den Befehl, den du generieren möchtest",
+		"generatingProgress": "Axon: Terminal-Befehl wird generiert...",
+		"noActiveTerminal": "Axon: Kein aktives Terminal gefunden. Bitte öffne zuerst ein Terminal.",
 		"inputPlaceholder": "z.B. den Prozess beenden, der auf Port 3001 läuft, große Dateien finden, usw.",
-		"generationFailed": "Kilo: Fehler beim Generieren des Befehls: {{error}}",
-		"commandGenerated": "Kilo: Generierter Befehl: {{command}}",
+		"generationFailed": "Axon: Fehler beim Generieren des Befehls: {{error}}",
+		"commandGenerated": "Axon: Generierter Befehl: {{command}}",
 		"warningDialog": {
 			"okButton": "Ich verstehe",
 			"title": "Sicherheitswarnung für das Terminal",
 			"message": "Überprüfe alle generierten Befehle doppelt, bevor du sie ausführst. Terminal-Aktionen können nicht immer rückgängig gemacht werden - das Ausführen ungeprüfter Befehle kann zu irreversiblem Datenverlust oder Systemschäden führen. Überprüfe und verstehe den Befehl vollständig, bevor du fortfährst!",
 			"cancelButton": "Abbrechen"
 		},
-		"tipMessage": "Kilo: Drücke {{shortcut}}, um Terminal-Befehle zu generieren"
+		"tipMessage": "Axon: Drücke {{shortcut}}, um Terminal-Befehle zu generieren"
 	},
 	"seeNewChanges": {
 		"title": "Zeige neue Änderungen",

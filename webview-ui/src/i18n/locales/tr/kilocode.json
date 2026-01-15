@@ -7,7 +7,9 @@
 		"ctaButton": "Başla",
 		"manualModeButton": "Kendi API anahtarınızı kullanın",
 		"alreadySignedUp": "Zaten kaydoldunuz mu?",
-		"loginText": "Buradan giriş yapın"
+		"loginText": "Buradan giriş yapın",
+		"tagline": "AI Mühendislik Aracısı",
+		"exploreMatterAI": "MatterAI'yi Keşfet"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Kredi Ekle",
@@ -32,7 +34,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP Sunucuları"
+			"mcp": "MCP Sunucuları",
+			"codeReview": "AI Kod İncelemeleri"
 		},
 		"contextManagement": {
 			"allowVeryLargeReads": {

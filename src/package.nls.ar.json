@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "تطبيق التعديل المقترح الحالي",
 	"ghost.commands.applyAllSuggestions": "تطبيق جميع التعديلات المقترحة",
 	"ghost.commands.goToNextSuggestion": "انتقل إلى الاقتراح التالي",
-	"ghost.commands.goToPreviousSuggestion": "انتقل إلى الاقتراح السابق"
+	"ghost.commands.goToPreviousSuggestion": "انتقل إلى الاقتراح السابق",
+	"command.memories.title": "الذكريات"
 }

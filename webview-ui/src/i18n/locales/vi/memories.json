@@ -1,0 +1,13 @@
+{
+	"title": "Ký ức",
+	"done": "Xong",
+	"searchPlaceholder": "Tìm kiếm ký ức...",
+	"loading": "Đang tải ký ức...",
+	"noMemories": "Không tìm thấy ký ức nào. Ký ức được lưu khi bạn hoàn thành nhiệm vụ.",
+	"noResults": "Không có ký ức nào khớp với tìm kiếm của bạn.",
+	"count": "{{count}} ký ức",
+	"currentWorkspace": "Không gian làm việc hiện tại",
+	"allWorkspaces": "Tất cả không gian làm việc",
+	"untitled": "Không có tiêu đề",
+	"delete": "Xóa ký ức"
+}

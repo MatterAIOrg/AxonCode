@@ -1,0 +1,13 @@
+{
+	"title": "Memori",
+	"done": "Selesai",
+	"searchPlaceholder": "Cari memori...",
+	"loading": "Memuat memori...",
+	"noMemories": "Tidak ada memori yang ditemukan. Memori disimpan saat Anda menyelesaikan tugas.",
+	"noResults": "Tidak ada memori yang cocok dengan pencarian Anda.",
+	"count": "{{count}} memori",
+	"currentWorkspace": "Ruang kerja saat ini",
+	"allWorkspaces": "Semua ruang kerja",
+	"untitled": "Tanpa judul",
+	"delete": "Hapus memori"
+}

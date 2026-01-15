@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "वर्तमान सुझाया गया संपादन लागू करें",
 	"ghost.commands.applyAllSuggestions": "सभी सुझाए गए संपादन लागू करें",
 	"ghost.commands.goToNextSuggestion": "अगले सुझाव पर जाएं",
-	"ghost.commands.goToPreviousSuggestion": "पिछले सुझाव पर जाएं"
+	"ghost.commands.goToPreviousSuggestion": "पिछले सुझाव पर जाएं",
+	"command.memories.title": "यादें"
 }

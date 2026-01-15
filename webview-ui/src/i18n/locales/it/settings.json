@@ -35,7 +35,8 @@
 		"language": "Lingua",
 		"about": "Informazioni su Axon Code",
 		"display": "Mostra",
-		"ghost": "Ghost"
+		"ghost": "Ghost",
+		"codeReview": "Code Review AI"
 	},
 	"slashCommands": {
 		"description": "Gestisci i tuoi comandi slash per eseguire rapidamente flussi di lavoro e azioni personalizzate. <DocsLink>Scopri di più</DocsLink>"

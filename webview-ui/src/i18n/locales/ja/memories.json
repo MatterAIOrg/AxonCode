@@ -1,0 +1,13 @@
+{
+	"title": "メモリ",
+	"done": "完了",
+	"searchPlaceholder": "メモリを検索...",
+	"loading": "メモリを読み込み中...",
+	"noMemories": "メモリが見つかりません。メモリはタスクを完了したときに保存されます。",
+	"noResults": "検索に一致するメモリがありません。",
+	"count": "{{count}}個のメモリ",
+	"currentWorkspace": "現在のワークスペース",
+	"allWorkspaces": "すべてのワークスペース",
+	"untitled": "無題",
+	"delete": "メモリを削除"
+}

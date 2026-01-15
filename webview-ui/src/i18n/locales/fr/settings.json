@@ -34,7 +34,8 @@
 		"experimental": "Expérimental",
 		"language": "Langue",
 		"about": "À propos de Axon Code",
-		"display": "Afficher"
+		"display": "Afficher",
+		"codeReview": "Revues de Code IA"
 	},
 	"slashCommands": {
 		"description": "Gérez vos commandes slash pour exécuter rapidement des flux de travail et des actions personnalisées. <DocsLink>En savoir plus</DocsLink>"

@@ -54,13 +54,13 @@
 		"activated": "Generator pesan komit Axon Code diaktifkan",
 		"gitNotFound": "⚠️ Repositori Git tidak ditemukan atau git tidak tersedia",
 		"gitInitError": "⚠️ Kesalahan inisialisasi Git: {{error}}",
-		"generating": "Kilo: Menghasilkan pesan komit...",
-		"noChanges": "Kilo: Tidak ada perubahan yang ditemukan untuk dianalisis",
-		"generated": "Kilo: Pesan komit dihasilkan!",
-		"generationFailed": "Kilo: Gagal menghasilkan pesan komit: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: Menghasilkan pesan menggunakan perubahan yang belum ditahapkan",
-		"activationFailed": "Kilo: Gagal mengaktifkan generator pesan: {{error}}",
-		"providerRegistered": "Kilo: Penyedia pesan komit terdaftar",
+		"generating": "Axon: Menghasilkan pesan komit...",
+		"noChanges": "Axon: Tidak ada perubahan yang ditemukan untuk dianalisis",
+		"generated": "Axon: Pesan komit dihasilkan!",
+		"generationFailed": "Axon: Gagal menghasilkan pesan komit: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: Menghasilkan pesan menggunakan perubahan yang belum ditahapkan",
+		"activationFailed": "Axon: Gagal mengaktifkan generator pesan: {{error}}",
+		"providerRegistered": "Axon: Penyedia pesan komit terdaftar",
 		"errors": {
 			"noProject": "Tidak ada proyek yang tersedia",
 			"connectionFailed": "Gagal terhubung ke ekstensi Axon Code",
@@ -151,18 +151,18 @@
 	},
 	"terminalCommandGenerator": {
 		"inputPlaceholder": "mis., matikan proses yang berjalan di port 3001, temukan file besar, dll",
-		"noActiveTerminal": "Kilo: Tidak ada terminal aktif yang ditemukan. Silakan buka terminal terlebih dahulu.",
-		"inputPrompt": "Kilo: Jelaskan perintah yang ingin Anda hasilkan",
-		"generatingProgress": "Kilo: Menghasilkan perintah terminal...",
-		"generationFailed": "Kilo: Gagal menghasilkan perintah: {{error}}",
-		"commandGenerated": "Kilo: Perintah yang dihasilkan: {{command}}",
+		"noActiveTerminal": "Axon: Tidak ada terminal aktif yang ditemukan. Silakan buka terminal terlebih dahulu.",
+		"inputPrompt": "Axon: Jelaskan perintah yang ingin Anda hasilkan",
+		"generatingProgress": "Axon: Menghasilkan perintah terminal...",
+		"generationFailed": "Axon: Gagal menghasilkan perintah: {{error}}",
+		"commandGenerated": "Axon: Perintah yang dihasilkan: {{command}}",
 		"warningDialog": {
 			"title": "Peringatan Keamanan Terminal",
 			"okButton": "Saya Mengerti",
 			"message": "Periksa kembali semua perintah yang dihasilkan sebelum menjalankannya. Tindakan terminal tidak selalu dapat dibatalkan—menjalankan perintah yang belum diverifikasi dapat mengakibatkan kehilangan data atau kerusakan sistem yang tidak dapat dipulihkan. Tinjau dan pahami perintah sepenuhnya sebelum melanjutkan!",
 			"cancelButton": "Batal"
 		},
-		"tipMessage": "Kilo: Tekan {{shortcut}} untuk menghasilkan perintah terminal"
+		"tipMessage": "Axon: Tekan {{shortcut}} untuk menghasilkan perintah terminal"
 	},
 	"seeNewChanges": {
 		"title": "Menampilkan perubahan baru",

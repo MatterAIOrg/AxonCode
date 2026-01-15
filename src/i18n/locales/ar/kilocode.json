@@ -54,17 +54,17 @@
 		"activated": "تم تفعيل منشئ رسائل التزام Axon Code",
 		"gitNotFound": "⚠️ مستودع Git غير موجود أو Git غير متاح",
 		"gitInitError": "⚠️ خطأ في تهيئة Git: {{error}}",
-		"generating": "Kilo: جارٍ إنشاء رسالة الالتزام...",
-		"noChanges": "Kilo: لم يتم العثور على تغييرات للتحليل",
-		"generated": "Kilo: تم إنشاء رسالة الالتزام!",
-		"generationFailed": "Kilo: فشل في إنشاء رسالة الالتزام: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: إنشاء رسالة باستخدام التغييرات غير المرحلة",
-		"analyzingChanges": "Kilo: جاري تحليل التعديلات الجاهزة...",
-		"noStagedChangesRepo": "Kilo: ما فيه تعديلات مضافة في مستودع git",
-		"noStagedChanges": "Kilo: ما فيه تعديلات مضافة لتحليلها",
+		"generating": "Axon: جارٍ إنشاء رسالة الالتزام...",
+		"noChanges": "Axon: لم يتم العثور على تغييرات للتحليل",
+		"generated": "Axon: تم إنشاء رسالة الالتزام!",
+		"generationFailed": "Axon: فشل في إنشاء رسالة الالتزام: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: إنشاء رسالة باستخدام التغييرات غير المرحلة",
+		"analyzingChanges": "Axon: جاري تحليل التعديلات الجاهزة...",
+		"noStagedChangesRepo": "Axon: ما فيه تعديلات مضافة في مستودع git",
+		"noStagedChanges": "Axon: ما فيه تعديلات مضافة لتحليلها",
 		"tokenRequired": "يتطلب توليد الرسالة رمز Axon Code",
-		"activationFailed": "Kilo: فشل تفعيل مولّد الرسائل: {{error}}",
-		"providerRegistered": "Kilo: تم تسجيل موفر رسائل الاعتماد",
+		"activationFailed": "Axon: فشل تفعيل مولّد الرسائل: {{error}}",
+		"providerRegistered": "Axon: تم تسجيل موفر رسائل الاعتماد",
 		"errors": {
 			"noProject": "لا يوجد مشروع متاح",
 			"connectionFailed": "فشل الاتصال بملحق Axon Code",
@@ -154,19 +154,19 @@
 		}
 	},
 	"terminalCommandGenerator": {
-		"inputPrompt": "Kilo: وصف الأمر الذي ترغب في توليده",
-		"generatingProgress": "Kilo: جاري توليد الأمر الطرفي...",
-		"noActiveTerminal": "Kilo: لا يوجد طرفية نشطة. يرجى فتح طرفية أولاً.",
-		"commandGenerated": "Kilo: الأمر الذي تم إنشاؤه: {{command}}",
+		"inputPrompt": "Axon: وصف الأمر الذي ترغب في توليده",
+		"generatingProgress": "Axon: جاري توليد الأمر الطرفي...",
+		"noActiveTerminal": "Axon: لا يوجد طرفية نشطة. يرجى فتح طرفية أولاً.",
+		"commandGenerated": "Axon: الأمر الذي تم إنشاؤه: {{command}}",
 		"inputPlaceholder": "مثلًا، إنهاء العملية التي تعمل على المنفذ 3001، إيجاد الملفات الكبيرة، إلخ",
-		"generationFailed": "Kilo: فشل في إنشاء الأمر: {{error}}",
+		"generationFailed": "Axon: فشل في إنشاء الأمر: {{error}}",
 		"warningDialog": {
 			"okButton": "أفهم",
 			"title": "تحذير أمان للمحطة",
 			"message": "تحقق مرة أخرى من جميع الأوامر التي تم إنشاؤها قبل تنفيذها. لا يمكن دائمًا التراجع عن الإجراءات التي تتم في نافذة الطرفية - فتنفيذ أوامر غير موثوقة قد يؤدي إلى فقدان البيانات بشكل لا رجعة فيه أو تلف النظام. راجع وافهم الأمر بشكل كامل قبل المتابعة!",
 			"cancelButton": "إلغاء"
 		},
-		"tipMessage": "Kilo: اضغط {{shortcut}} لإنشاء أوامر الطرفية"
+		"tipMessage": "Axon: اضغط {{shortcut}} لإنشاء أوامر الطرفية"
 	},
 	"seeNewChanges": {
 		"title": "عرض التغييرات الجديدة",

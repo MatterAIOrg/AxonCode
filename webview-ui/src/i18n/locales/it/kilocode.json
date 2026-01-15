@@ -7,7 +7,9 @@
 		"ctaButton": "Inizia",
 		"manualModeButton": "Usa la tua chiave API",
 		"alreadySignedUp": "Già registrato?",
-		"loginText": "Accedi qui"
+		"loginText": "Accedi qui",
+		"tagline": "L'Agente di Ingegneria AI",
+		"exploreMatterAI": "Esplora MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Aggiungi credito",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "Server MCP"
+			"mcp": "Server MCP",
+			"codeReview": "Code Review AI"
 		},
 		"provider": {
 			"account": "Account Axon Code",

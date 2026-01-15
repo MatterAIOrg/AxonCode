@@ -7,7 +7,9 @@
 		"ctaButton": "开始使用",
 		"manualModeButton": "使用你自己的 API 密钥",
 		"alreadySignedUp": "已经注册了？",
-		"loginText": "在此登录"
+		"loginText": "在此登录",
+		"tagline": "AI 工程代理",
+		"exploreMatterAI": "探索 MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "添加额度",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP 服务器"
+			"mcp": "MCP 服务器",
+			"codeReview": "AI 代码审查"
 		},
 		"contextManagement": {
 			"allowVeryLargeReads": {

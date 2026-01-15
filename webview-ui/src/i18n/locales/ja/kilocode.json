@@ -7,7 +7,9 @@
 		"ctaButton": "始める",
 		"manualModeButton": "自分のAPIキーを使う",
 		"alreadySignedUp": "すでに登録済みですか？",
-		"loginText": "こちらからログイン"
+		"loginText": "こちらからログイン",
+		"tagline": "AIエンジニアリングエージェント",
+		"exploreMatterAI": "MatterAIを探索"
 	},
 	"lowCreditWarning": {
 		"addCredit": "クレジットを追加",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCPサーバー"
+			"mcp": "MCPサーバー",
+			"codeReview": "AIコードレビュー"
 		},
 		"provider": {
 			"account": "Axon Code アカウント",

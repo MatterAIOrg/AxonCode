@@ -76,7 +76,7 @@ Key characteristics:
 
 ### Accessing Settings
 
-To change Browser / Computer Use settings in Kilo:
+To change Browser / Computer Use settings in Axon:
 
 1. Open Settings by clicking the gear icon <Codicon name="gear" /> → Browser / Computer Use
 

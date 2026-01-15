@@ -7,7 +7,9 @@
 		"ctaButton": "ابدأ الآن",
 		"manualModeButton": "استخدم مفتاح API الخاص بك",
 		"alreadySignedUp": "مسجل من قبل؟",
-		"loginText": "سجّل دخولك هنا"
+		"loginText": "سجّل دخولك هنا",
+		"tagline": "وكيل هندسة الذكاء الاصطناعي",
+		"exploreMatterAI": "استكشف MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "شحن الرصيد",
@@ -35,7 +37,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "خوادم MCP"
+			"mcp": "خوادم MCP",
+			"codeReview": "مراجعات الكود بالذكاء الاصطناعي"
 		},
 		"provider": {
 			"account": "حساب Axon Code",

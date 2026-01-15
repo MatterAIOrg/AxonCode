@@ -7,7 +7,9 @@
 		"ctaButton": "เริ่มต้น",
 		"manualModeButton": "ใช้ API key ของคุณเอง",
 		"alreadySignedUp": "สมัครแล้ว?",
-		"loginText": "เข้าสู่ระบบที่นี่"
+		"loginText": "เข้าสู่ระบบที่นี่",
+		"tagline": "AI Engineering Agent",
+		"exploreMatterAI": "สำรวจ MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "เติมเครดิต",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP Servers"
+			"mcp": "MCP Servers",
+			"codeReview": "AI Code Reviews"
 		},
 		"contextManagement": {
 			"allowVeryLargeReads": {

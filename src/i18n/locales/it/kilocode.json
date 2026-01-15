@@ -54,13 +54,13 @@
 		"activated": "Generatore di messaggi di commit Axon Code attivato",
 		"gitNotFound": "⚠️ Repository Git non trovato o git non disponibile",
 		"gitInitError": "⚠️ Errore di inizializzazione Git: {{error}}",
-		"generating": "Kilo: Generazione messaggio di commit...",
-		"noChanges": "Kilo: Nessuna modifica trovata da analizzare",
-		"generated": "Kilo: Messaggio di commit generato!",
-		"generationFailed": "Kilo: Errore durante la generazione del messaggio di commit: {{errorMessage}}",
-		"generatingFromUnstaged": "Kilo: Generazione messaggio utilizzando modifiche non preparate",
-		"activationFailed": "Kilo: Impossibile attivare il generatore di messaggi: {{error}}",
-		"providerRegistered": "Kilo: Provider di messaggi di commit registrato",
+		"generating": "Axon: Generazione messaggio di commit...",
+		"noChanges": "Axon: Nessuna modifica trovata da analizzare",
+		"generated": "Axon: Messaggio di commit generato!",
+		"generationFailed": "Axon: Errore durante la generazione del messaggio di commit: {{errorMessage}}",
+		"generatingFromUnstaged": "Axon: Generazione messaggio utilizzando modifiche non preparate",
+		"activationFailed": "Axon: Impossibile attivare il generatore di messaggi: {{error}}",
+		"providerRegistered": "Axon: Provider di messaggi di commit registrato",
 		"errors": {
 			"noProject": "Nessun progetto disponibile",
 			"connectionFailed": "Impossibile connettersi all'estensione Axon Code",
@@ -151,18 +151,18 @@
 	},
 	"terminalCommandGenerator": {
 		"inputPlaceholder": "ad es., terminare il processo in esecuzione sulla porta 3001, trovare file di grandi dimensioni, ecc.",
-		"inputPrompt": "Kilo: Descrivi il comando che vuoi generare",
-		"noActiveTerminal": "Kilo: Nessun terminale attivo trovato. Apri prima un terminale.",
-		"generatingProgress": "Kilo: Generazione del comando del terminale in corso...",
-		"commandGenerated": "Kilo: Comando generato: {{command}}",
-		"generationFailed": "Kilo: Impossibile generare il comando: {{error}}",
+		"inputPrompt": "Axon: Descrivi il comando che vuoi generare",
+		"noActiveTerminal": "Axon: Nessun terminale attivo trovato. Apri prima un terminale.",
+		"generatingProgress": "Axon: Generazione del comando del terminale in corso...",
+		"commandGenerated": "Axon: Comando generato: {{command}}",
+		"generationFailed": "Axon: Impossibile generare il comando: {{error}}",
 		"warningDialog": {
 			"title": "Avviso di Sicurezza del Terminale",
 			"okButton": "Ho Capito",
 			"message": "Controlla attentamente tutti i comandi generati prima di eseguirli. Le azioni nel terminale non possono sempre essere annullate—eseguire comandi non verificati può causare una perdita di dati irreversibile o danni al sistema. Esamina e comprendi completamente il comando prima di procedere!",
 			"cancelButton": "Annulla"
 		},
-		"tipMessage": "Kilo: Premi {{shortcut}} per generare comandi del terminale"
+		"tipMessage": "Axon: Premi {{shortcut}} per generare comandi del terminale"
 	},
 	"seeNewChanges": {
 		"title": "Visualizzazione nuove modifiche",

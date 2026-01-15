@@ -34,7 +34,8 @@
 		"experimental": "Experimentell",
 		"language": "Sprache",
 		"about": "Über Axon Code",
-		"display": "Anzeigen"
+		"display": "Anzeigen",
+		"codeReview": "KI-Code-Reviews"
 	},
 	"slashCommands": {
 		"description": "Verwalte deine Slash-Befehle, um benutzerdefinierte Workflows und Aktionen schnell auszuführen. <DocsLink>Mehr erfahren</DocsLink>"

@@ -7,7 +7,9 @@
 		"ctaButton": "Empezar",
 		"manualModeButton": "Usa tu propia clave API",
 		"alreadySignedUp": "¿Ya te registraste?",
-		"loginText": "Inicia sesión aquí"
+		"loginText": "Inicia sesión aquí",
+		"tagline": "El Agente de Ingeniería de IA",
+		"exploreMatterAI": "Explorar MatterAI"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Añadir Crédito",
@@ -32,7 +34,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "Servidores MCP"
+			"mcp": "Servidores MCP",
+			"codeReview": "Revisiones de Código con IA"
 		},
 		"provider": {
 			"account": "Cuenta de Axon Code",

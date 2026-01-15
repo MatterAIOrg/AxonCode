@@ -34,7 +34,8 @@
 		"experimental": "Experimental",
 		"language": "Idioma",
 		"about": "Sobre",
-		"display": "Exibir"
+		"display": "Exibir",
+		"codeReview": "Revisões de Código IA"
 	},
 	"slashCommands": {
 		"description": "Gerencie seus comandos de barra para executar rapidamente fluxos de trabalho e ações personalizadas. <DocsLink>Saiba mais</DocsLink>"

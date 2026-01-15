@@ -1,0 +1,13 @@
+{
+	"title": "Memorie",
+	"done": "Fatto",
+	"searchPlaceholder": "Cerca memorie...",
+	"loading": "Caricamento memorie...",
+	"noMemories": "Nessuna memoria trovata. Le memorie vengono salvate quando completi i compiti.",
+	"noResults": "Nessuna memoria corrisponde alla tua ricerca.",
+	"count": "{{count}} memorie",
+	"currentWorkspace": "Spazio di lavoro corrente",
+	"allWorkspaces": "Tutti gli spazi di lavoro",
+	"untitled": "Senza titolo",
+	"delete": "Elimina memoria"
+}

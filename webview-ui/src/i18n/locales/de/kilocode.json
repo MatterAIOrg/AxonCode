@@ -7,7 +7,9 @@
 		"ctaButton": "Loslegen",
 		"manualModeButton": "Eigenen API-Schlüssel verwenden",
 		"alreadySignedUp": "Bereits registriert?",
-		"loginText": "Hier anmelden"
+		"loginText": "Hier anmelden",
+		"tagline": "Der KI-Ingenieurs-Agent",
+		"exploreMatterAI": "MatterAI erkunden"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Guthaben hinzufügen",
@@ -39,7 +41,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP-Server"
+			"mcp": "MCP-Server",
+			"codeReview": "KI-Code-Reviews"
 		},
 		"provider": {
 			"account": "Axon Code Konto",

@@ -75,7 +75,7 @@ export const LowCreditWarning = ({
 
 						vscode.postMessage({
 							type: "openInBrowser",
-							url: "https://app.matterai.so/billing",
+							url: "https://app.matterai.so/billing?tab=axon-code",
 						})
 					}}>
 					{t("kilocode:lowCreditWarning.addCredit")}

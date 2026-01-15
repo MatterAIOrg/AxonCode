@@ -7,7 +7,9 @@
 		"ctaButton": "शुरू करें",
 		"manualModeButton": "अपनी स्वयं की API कुंजी का उपयोग करें",
 		"alreadySignedUp": "पहले से साइन अप हैं?",
-		"loginText": "यहाँ लॉग इन करें"
+		"loginText": "यहाँ लॉग इन करें",
+		"tagline": "AI इंजीनियरिंग एजेंट",
+		"exploreMatterAI": "MatterAI का अन्वेषण करें"
 	},
 	"lowCreditWarning": {
 		"addCredit": "क्रेडिट जोड़ें",
@@ -32,7 +34,8 @@
 	},
 	"settings": {
 		"sections": {
-			"mcp": "MCP सर्वर"
+			"mcp": "MCP सर्वर",
+			"codeReview": "AI कोड समीक्षा"
 		},
 		"provider": {
 			"account": "Axon Code खाता",

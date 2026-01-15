@@ -35,7 +35,8 @@
 		"language": "言語",
 		"about": "Kilo Codeについて",
 		"display": "表示",
-		"ghost": "Ghost"
+		"ghost": "Ghost",
+		"codeReview": "AIコードレビュー"
 	},
 	"slashCommands": {
 		"description": "スラッシュコマンドを管理して、カスタムワークフローやアクションを素早く実行します。<DocsLink>詳細はこちら</DocsLink>"

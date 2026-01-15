@@ -34,7 +34,8 @@
 		"experimental": "Experimental",
 		"language": "Idioma",
 		"about": "Acerca de Axon Code",
-		"display": "Mostrar"
+		"display": "Mostrar",
+		"codeReview": "Revisiones de Código con IA"
 	},
 	"slashCommands": {
 		"description": "Gestiona tus comandos de barra para ejecutar rápidamente flujos de trabajo y acciones personalizadas. <DocsLink>Saber más</DocsLink>"

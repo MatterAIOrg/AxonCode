@@ -35,7 +35,8 @@
 		"ui": "UI",
 		"experimental": "ทดลอง",
 		"language": "ภาษา",
-		"about": "เกี่ยวกับ Axon Code"
+		"about": "เกี่ยวกับ Axon Code",
+		"codeReview": "AI Code Reviews"
 	},
 	"slashCommands": {
 		"description": "จัดการคำสั่งแบบ slash ของคุณเพื่อดำเนินการเวิร์กโฟลว์และการกระทำแบบกำหนดเองอย่างรวดเร็ว <DocsLink>เรียนรู้เพิ่มเติม</DocsLink>"

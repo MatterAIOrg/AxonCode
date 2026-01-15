@@ -54,5 +54,6 @@
 	"ghost.commands.applyCurrentSuggestion": "ใช้ข้อเสนอแนะการแก้ไขปัจจุบัน",
 	"ghost.commands.applyAllSuggestions": "ใช้ข้อเสนอแนะการแก้ไขทั้งหมด",
 	"ghost.commands.goToNextSuggestion": "ไปยังข้อเสนอแนะถัดไป",
-	"ghost.commands.goToPreviousSuggestion": "ไปยังข้อเสนอแนะก่อนหน้า"
+	"ghost.commands.goToPreviousSuggestion": "ไปยังข้อเสนอแนะก่อนหน้า",
+	"command.memories.title": "ความทรงจำ"
 }
