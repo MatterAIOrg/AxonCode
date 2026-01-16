@@ -93,7 +93,7 @@ async function showProfile(context: any): Promise<void> {
 export const profileCommand: Command = {
 	name: "profile",
 	aliases: ["me", "whoami"],
-	description: "View your Kilocode profile information",
+	description: "View your Axon Code profile information",
 	usage: "/profile",
 	examples: ["/profile"],
 	category: "settings",

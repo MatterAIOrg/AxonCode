@@ -90,13 +90,13 @@ function createCallbackServer(port: number, state: string): Promise<AuthCallback
 					<head>
 						<title>Authentication Successful</title>
 						<style>
-							body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-							h1 { color: #4CAF50; }
-							p { font-size: 18px; }
+							body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: black;}
+							h1 { color: #c4fdff; }
+							p { font-size: 18px; color: white; }
 						</style>
 					</head>
 					<body>
-						<h1>✓ Authentication Successful</h1>
+						<h1>Axon Code Authentication Successful</h1>
 						<p>You can now close this window and return to the CLI.</p>
 					</body>
 				</html>
@@ -129,9 +129,9 @@ function createCallbackServer(port: number, state: string): Promise<AuthCallback
  */
 function openAuthUrl(source: string, state: string, port: number): void {
 	const callbackUrl = encodeURIComponent(`http://localhost:${port}/callback`)
-	const authUrl = `https://app.matterai.so/authentication/sign-in?loginType=extension&source=${encodeURIComponent(
+	const authUrl = `http://localhost:3000/authentication/sign-in?loginType=extension&source=${encodeURIComponent(
 		source,
-	)}&callback=${callbackUrl}&state=${state}`
+	)}&callback=${callbackUrl}&clistate=${state}`
 
 	logs.debug(`Opening authentication URL: ${authUrl}`, "BrowserAuth")
 
@@ -203,8 +203,7 @@ export async function performBrowserAuth(source: string = "axon-code-cli"): Prom
 					id: "default",
 					provider: "kilocode",
 					kilocodeToken: token,
-					kilocodeModel: config.providers?.[0]?.kilocodeModel || "axon-code-2",
-					...config.providers?.[0], // Preserve other existing fields
+					kilocodeModel: "axon-code-2",
 				},
 			],
 		}

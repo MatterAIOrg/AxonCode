@@ -1,12 +1,30 @@
-import { CaretUpIcon } from "@radix-ui/react-icons"
+import { CaretDownIcon } from "@radix-ui/react-icons"
 import { Fzf } from "fzf"
-import { Check } from "lucide-react"
+import { Infinity as InfinityIC, ListTodo, LucideIcon, MessagesSquare } from "lucide-react"
 import * as React from "react"
 
 import { Popover, PopoverContent, PopoverTrigger, StandardTooltip } from "@/components/ui"
 import { cn } from "@/lib/utils"
 import { IconProps } from "@radix-ui/react-icons/dist/types" // kilocode_change
 import { useRooPortal } from "./hooks/useRooPortal"
+
+// kilocode_change: Map icon names to Lucide icons
+const iconMap: Record<string, LucideIcon> = {
+	"list-todo": ListTodo,
+	"infinity-ic": InfinityIC,
+	"messages-square": MessagesSquare,
+}
+
+// kilocode_change: Helper function to get Lucide icon component from icon name
+const getIconComponent = (iconName?: string): LucideIcon | null => {
+	if (!iconName) return null
+	// Check if it's a Lucide icon name
+	if (iconMap[iconName]) {
+		return iconMap[iconName]
+	}
+	// Fallback for codicon names - return null (will render as codicon class)
+	return null
+}
 
 export enum DropdownOptionType {
 	ITEM = "item",
@@ -60,10 +78,10 @@ export const SelectDropdown = React.memo(
 				sideOffset = 4,
 				align = "start",
 				placeholder = "",
-				shortcutText = "",
+				// shortcutText = "",
 				renderItem,
 				disableSearch = false,
-				triggerIcon = CaretUpIcon, // kilocode_change
+				triggerIcon = CaretDownIcon, // kilocode_change
 			},
 			ref,
 		) => {
@@ -74,7 +92,7 @@ export const SelectDropdown = React.memo(
 			const portalContainer = useRooPortal("roo-portal")
 
 			// kilocode_change start
-			const TriggerIcon = triggerIcon === false ? null : triggerIcon === true ? CaretUpIcon : triggerIcon
+			const TriggerIcon = triggerIcon === false ? null : triggerIcon === true ? CaretDownIcon : triggerIcon
 			// kilocode_change end
 
 			// Memoize the selected option to prevent unnecessary calculations
@@ -214,13 +232,20 @@ export const SelectDropdown = React.memo(
 					{/* kilocode_change end */}
 
 					{/* kilocode_change start */}
-					{selectedOption?.codicon && (
-						<span
-							slot="start"
-							style={{ fontSize: "12px" }}
-							className={cn("codicon opacity-80 mr", selectedOption?.codicon)}
-						/>
-					)}
+					{selectedOption?.codicon &&
+						(() => {
+							const IconComponent = getIconComponent(selectedOption.codicon)
+							if (IconComponent) {
+								return <IconComponent className="opacity-80 mr size-4" />
+							}
+							return (
+								<span
+									slot="start"
+									style={{ fontSize: "12px" }}
+									className={cn("codicon opacity-80 mr", selectedOption.codicon)}
+								/>
+							)
+						})()}
 					{/* kilocode_change end */}
 					<span className="truncate">{displayText}</span>
 				</PopoverTrigger>
@@ -234,7 +259,7 @@ export const SelectDropdown = React.memo(
 						sideOffset={sideOffset}
 						container={portalContainer}
 						className={cn("p-0 overflow-hidden", contentClassName)}>
-						<div className="flex flex-col w-full">
+						<div className="flex flex-col w-min-content">
 							{/* Search input */}
 							{/* {!disableSearch && (
 								<div className="relative p-2 border-b border-vscode-dropdown-border">
@@ -276,18 +301,18 @@ export const SelectDropdown = React.memo(
 												)
 											}
 
-											if (
-												option.type === DropdownOptionType.SHORTCUT ||
-												(option.disabled && shortcutText && option.label.includes(shortcutText))
-											) {
-												return (
-													<div
-														key={`label-${index}`}
-														className="px-3 py-1.5 text-sm opacity-50">
-														{option.label}
-													</div>
-												)
-											}
+											// if (
+											// 	option.type === DropdownOptionType.SHORTCUT ||
+											// 	(option.disabled && shortcutText && option.label.includes(shortcutText))
+											// ) {
+											// 	return (
+											// 		<div
+											// 			key={`label-${index}`}
+											// 			className="px-3 py-1.5 text-sm opacity-50">
+											// 			{option.label}
+											// 		</div>
+											// 	)
+											// }
 
 											// Use stable keys for better reconciliation
 											const itemKey = `item-${option.value || option.label || index}`
@@ -302,8 +327,8 @@ export const SelectDropdown = React.memo(
 															? "opacity-50 cursor-not-allowed"
 															: "hover:bg-vscode-list-hoverBackground",
 														option.value === value
-															? "bg-vscode-list-activeSelectionBackground text-vscode-list-activeSelectionForeground"
-															: "",
+															? "bg-[var(--vscode-menu-background)] text-vscode-list-activeSelectionForeground"
+															: "opacity-80",
 														itemClassName,
 													)}
 													data-testid="dropdown-item">
@@ -312,15 +337,28 @@ export const SelectDropdown = React.memo(
 													) : (
 														<>
 															{/* kilocode_change start */}
-															<div className="flex items-center flex-1 py-1.5 px-3 hover:bg-vscode-list-hoverBackground">
-																<span
-																	slot="start"
-																	style={{ fontSize: "14px" }}
-																	className={cn(
-																		"codicon opacity-80 mr-2",
-																		option.codicon,
-																	)}
-																/>
+															<div className="flex items-center flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
+																{option.codicon &&
+																	(() => {
+																		const IconComponent = getIconComponent(
+																			option.codicon,
+																		)
+																		if (IconComponent) {
+																			return (
+																				<IconComponent className="opacity-80 mr-2 size-4" />
+																			)
+																		}
+																		return (
+																			<span
+																				slot="start"
+																				style={{ fontSize: "14px" }}
+																				className={cn(
+																					"codicon opacity-80 mr-2",
+																					option.codicon,
+																				)}
+																			/>
+																		)
+																	})()}
 																<div className="flex-1">
 																	<div>{option.label}</div>
 																	{option.description && (
@@ -330,9 +368,9 @@ export const SelectDropdown = React.memo(
 																	)}
 																</div>
 																{/* kilocode_change end */}
-																{option.value === value && (
-																	<Check className="ml-auto size-4 p-0.5" />
-																)}
+																{/* {option.value === value && (
+																	<Check className="ml-1 size-4 p-0.5" />
+																)} */}
 															</div>
 														</>
 													)}

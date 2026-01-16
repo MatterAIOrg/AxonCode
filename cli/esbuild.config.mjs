@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import esbuild from "esbuild"
-import { chmodSync, mkdirSync, copyFileSync } from "fs"
+import { chmodSync, mkdirSync, copyFileSync, cpSync } from "fs"
 import { rimrafSync } from "rimraf"
 
 // Function to copy post-build files
@@ -15,7 +15,7 @@ function copyPostBuildFiles() {
 
 		try {
 			copyFileSync(".env", "dist/.env")
-			copyFileSync(".env", "dist/kilocode/.env")
+			copyFileSync(".env", "dist/axoncode/.env")
 		} catch {
 			// .env might not exist, that's okay
 		}
@@ -26,9 +26,32 @@ function copyPostBuildFiles() {
 	}
 }
 
+// Function to copy extension bundle
+function copyExtensionBundle() {
+	try {
+		// Remove existing axoncode directory if it exists
+		rimrafSync("dist/axoncode")
+
+		// Copy extension from bin-unpacked to dist/axoncode
+		cpSync("../bin-unpacked/extension", "dist/axoncode", {
+			recursive: true,
+			filter: (src) => {
+				// Skip webview-ui and assets to reduce size
+				const relativePath = src.replace(/.*\/bin-unpacked\/extension\//, "")
+				return !relativePath.startsWith("webview-ui") && !relativePath.startsWith("assets")
+			},
+		})
+
+		console.log("✓ Extension bundle copied to dist/axoncode")
+	} catch (err) {
+		console.error("Error copying extension bundle:", err)
+		console.warn("⚠ Extension bundle not copied - CLI may not work properly")
+	}
+}
+
 function removeUnneededFiles() {
-	rimrafSync("dist/kilocode/webview-ui")
-	rimrafSync("dist/kilocode/assets")
+	rimrafSync("dist/axoncode/webview-ui")
+	rimrafSync("dist/axoncode/assets")
 	console.log("✓ Unneeded files removed")
 }
 
@@ -39,6 +62,7 @@ const afterBuildPlugin = {
 			if (result.errors.length > 0) return
 
 			copyPostBuildFiles()
+			copyExtensionBundle()
 			removeUnneededFiles()
 			try {
 				chmodSync("dist/index.js", 0o755)

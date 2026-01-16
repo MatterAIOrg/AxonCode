@@ -1,5 +1,21 @@
 # Changelog
 
+## [v5.2.1] - 2026-01-15
+
+### Added
+
+- Updated translations and added memories locale files for internationalization support
+
+### Fixed
+
+- Fixed issue where messages were being queued after rejecting exec_cmd tool
+
+### Changed
+
+- Code cleanup and improvements
+
+---
+
 ## [v5.2.0] - 2026-01-14
 
 ### Added

@@ -25,14 +25,13 @@ import { renderMentionChip } from "@/utils/chat-render"
 import { MessageSquareX, Paperclip, SendHorizontal, VolumeX } from "lucide-react"
 import Thumbnails from "../common/Thumbnails"
 import KiloModeSelector from "../kilocode/KiloModeSelector"
-import { KiloProfileSelector } from "../kilocode/chat/KiloProfileSelector" // kilocode_change
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import ContextMenu from "./ContextMenu"
+import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
 import { ImageWarningBanner } from "./ImageWarningBanner" // kilocode_change
 import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
-import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
 
 // kilocode_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
@@ -74,7 +73,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			inputValue,
 			setInputValue,
 			sendingDisabled,
-			selectApiConfigDisabled,
+			// selectApiConfigDisabled,
 			selectedImages,
 			setSelectedImages,
 			onSend,
@@ -96,12 +95,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const {
 			filePaths,
 			openedTabs,
-			currentApiConfigName,
-			listApiConfigMeta,
+			// currentApiConfigName,
+			// listApiConfigMeta,
 			customModes,
 			cwd,
-			pinnedApiConfigs,
-			togglePinnedApiConfig,
+			// pinnedApiConfigs,
+			// togglePinnedApiConfig,
 			localWorkflows, // kilocode_change
 			globalWorkflows, // kilocode_change
 			taskHistoryVersion, // kilocode_change
@@ -109,13 +108,13 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		} = useExtensionState()
 
 		// Find the ID and display text for the currently selected API configuration
-		const { currentConfigId, displayName } = useMemo(() => {
-			const currentConfig = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
-			return {
-				currentConfigId: currentConfig?.id || "",
-				displayName: currentApiConfigName || "", // Use the name directly for display
-			}
-		}, [listApiConfigMeta, currentApiConfigName])
+		// const { currentConfigId, displayName } = useMemo(() => {
+		// 	const currentConfig = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
+		// 	return {
+		// 		currentConfigId: currentConfig?.id || "",
+		// 		displayName: currentApiConfigName || "", // Use the name directly for display
+		// 	}
+		// }, [listApiConfigMeta, currentApiConfigName])
 
 		const [gitCommits, setGitCommits] = useState<any[]>([])
 		const [showDropdown, setShowDropdown] = useState(false)
@@ -1540,7 +1539,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				/>
 				{/* kilocode_change {Transparent overlay at bottom of textArea to avoid text overlap } */}
 				<div
-					className="absolute bottom-[1px] left-2 right-2 h-16 bg-gradient-to-t from-[var(--vscode-input-background)] via-[var(--vscode-input-background)] to-transparent pointer-events-none z-[2]"
+					className="absolute bottom-[1px] left-2 right-2 h-16 pointer-events-none z-[2]"
 					aria-hidden="true"
 				/>
 
@@ -1557,7 +1556,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				)}
 
 				{/* kilocode_change: position tweaked, rtl support */}
-				<div className="absolute bottom-2 end-2 z-30">
+				<div className="absolute bottom-1 end-1 z-30">
 					{/* kilocode_change start */}
 					{!isEditMode && (
 						<>
@@ -1784,7 +1783,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						<div
 							// kilocode_change start
 							style={{
-								marginTop: "-38px",
+								marginTop: "-32px",
 								zIndex: 2,
 								paddingLeft: "8px",
 								paddingRight: "8px",
@@ -1805,7 +1804,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									{/* kilocode_change end */}
 								</div>
 
-								<KiloProfileSelector
+								{/* <KiloProfileSelector
 									currentConfigId={currentConfigId}
 									currentApiConfigName={currentApiConfigName}
 									displayName={displayName}
@@ -1813,7 +1812,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									pinnedApiConfigs={pinnedApiConfigs}
 									togglePinnedApiConfig={togglePinnedApiConfig}
 									selectApiConfigDisabled={selectApiConfigDisabled}
-								/>
+								/> */}
 							</div>
 						</div>
 					</div>

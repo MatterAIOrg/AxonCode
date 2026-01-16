@@ -146,11 +146,12 @@
 
 	--color-matterai-green: #8bf4f7;
 	--color-matterai-green-dark: #199598;
-	--color-matterai-border: #8bf4f720;
+	--color-matterai-border: #a0c5c620;
 	--color-matterai-blue: #8bf4f750;
 	--color-matterai-red: #ac3e3e;
 	--color-matterai-chip-blue: #8bf4f720;
 	--color-matterai-yellow: #fff0ac;
+	--color-matterai-blue-dark: #1a3b59;
 }
 
 @layer base {
