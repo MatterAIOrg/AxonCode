@@ -25,6 +25,8 @@ import { renderMentionChip } from "@/utils/chat-render"
 import { MessageSquareX, Paperclip, SendHorizontal, VolumeX } from "lucide-react"
 import Thumbnails from "../common/Thumbnails"
 import KiloModeSelector from "../kilocode/KiloModeSelector"
+import { ModelSelector } from "../kilocode/chat/ModelSelector"
+import { useSelectedModel } from "../ui/hooks/useSelectedModel"
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import ContextMenu from "./ContextMenu"
 import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
@@ -95,17 +97,17 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const {
 			filePaths,
 			openedTabs,
-			// currentApiConfigName,
-			// listApiConfigMeta,
+			currentApiConfigName,
+			apiConfiguration,
 			customModes,
 			cwd,
-			// pinnedApiConfigs,
-			// togglePinnedApiConfig,
 			localWorkflows, // kilocode_change
 			globalWorkflows, // kilocode_change
 			taskHistoryVersion, // kilocode_change
 			clineMessages,
 		} = useExtensionState()
+
+		const { id: selectedModelId, provider: selectedProvider } = useSelectedModel(apiConfiguration)
 
 		// Find the ID and display text for the currently selected API configuration
 		// const { currentConfigId, displayName } = useMemo(() => {
@@ -1803,6 +1805,15 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									/>
 									{/* kilocode_change end */}
 								</div>
+								{apiConfiguration && (
+									<div className="w-auto overflow-hidden shrink-0" data-testid="model-selector">
+										<ModelSelector
+											currentApiConfigName={currentApiConfigName}
+											apiConfiguration={apiConfiguration}
+											fallbackText={`${selectedProvider}:${selectedModelId}`}
+										/>
+									</div>
+								)}
 
 								{/* <KiloProfileSelector
 									currentConfigId={currentConfigId}
