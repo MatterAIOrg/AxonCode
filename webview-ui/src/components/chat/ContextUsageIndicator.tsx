@@ -41,7 +41,7 @@ export const ContextUsageIndicator: React.FC<ContextUsageIndicatorProps> = ({ cl
 					<div className="text-vscode-descriptionForeground mt-1">{percentage.toFixed(1)}% used</div>
 				</div>
 			}>
-			<div className={cn("relative inline-flex items-center justify-center mr-2", className)}>
+			<div className={cn("relative inline-flex items-center justify-center mr-1", className)}>
 				<svg width={size} height={size} className="transform -rotate-90">
 					{/* Background circle */}
 					<circle

@@ -1458,15 +1458,25 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		// Helper function to render the text area section
 		const renderTextAreaSection = () => (
 			<div
+				ref={containerRef}
 				className={cn(
 					"relative",
 					"flex-1",
 					"flex",
-					"flex-col-reverse",
+					"flex-col",
 					"min-h-0",
 					"overflow-hidden",
 					"rounded-xl",
-					"border-none",
+					isFocused
+						? "border border-[var(--color-matterai-border)]"
+						: isDraggingOver
+							? "border-2 border-dashed border-[var(--color-matterai-border)]"
+							: "border border-[var(--color-matterai-border)]",
+					isDraggingOver
+						? "bg-[color-mix(in_srgb,var(--vscode-input-background)_95%,white)]"
+						: "bg-vscode-input-background",
+					"transition-background-color duration-150 ease-in-out",
+					"will-change-background-color",
 					"outline-none",
 				)}>
 				<div
@@ -1509,40 +1519,21 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						"leading-vscode-editor-line-height",
 						"cursor-text",
 						"outline-none",
-						isEditMode ? "pt-1.5 pb-10 px-2" : "py-1.5 px-2",
-						isFocused
-							? "border border-[var(--color-matterai-border)] outline-none"
-							: isDraggingOver
-								? "border-2 border-dashed border-[var(--color-matterai-border)] outline-none"
-								: "border border-[var(--color-matterai-border)] outline-none",
-						isDraggingOver
-							? "bg-[color-mix(in_srgb,var(--vscode-input-background)_95%,white)]"
-							: "bg-vscode-input-background",
-						"transition-background-color duration-150 ease-in-out",
-						"will-change-background-color",
-						"min-h-[110px]",
+						isEditMode ? "pt-1.5 pb-2 px-2" : "py-1.5 px-2",
+						"min-h-[80px]",
 						"max-h-[calc(100vh/2.5)]",
 						"box-border",
-						"rounded-xl",
 						"overflow-x-hidden",
 						"overflow-y-auto",
-						"pr-9",
-						"flex-none flex-grow",
-						"z-[2]",
+						"flex-grow",
 						"scrollbar-none",
 						"scrollbar-hide",
-						"pb-14",
 						"whitespace-pre-wrap",
 						"break-words",
 					)}
 					style={{
 						caretColor: "var(--vscode-input-foreground)",
 					}}
-				/>
-				{/* kilocode_change {Transparent overlay at bottom of textArea to avoid text overlap } */}
-				<div
-					className="absolute bottom-[1px] left-2 right-2 h-16 pointer-events-none z-[2]"
-					aria-hidden="true"
 				/>
 
 				{isTtsPlaying && (
@@ -1557,99 +1548,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					</StandardTooltip>
 				)}
 
-				{/* kilocode_change: position tweaked, rtl support */}
-				<div className="absolute bottom-1 end-1 z-30">
-					{/* kilocode_change start */}
-					{!isEditMode && (
-						<>
-							<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
-							<IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />
-						</>
-					)}
-					<StandardTooltip content="Add Context (@)">
-						<button
-							aria-label="Add Context (@)"
-							disabled={showContextMenu}
-							onClick={() => {
-								if (showContextMenu || !textAreaRef.current) return
-
-								textAreaRef.current.focus()
-
-								setInputValue(`${inputValue} @`)
-								setShowContextMenu(true)
-								// Empty search query explicitly to show all options
-								// and set to "File" option by default
-								setSearchQuery("")
-								setSelectedMenuIndex(4)
-							}}
-							className={cn(
-								"relative inline-flex items-center justify-center",
-								"bg-transparent border-none p-1.5",
-								"rounded-md min-w-[28px] min-h-[28px]",
-								"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-								"transition-all duration-150",
-								"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
-								"active:bg-[rgba(255,255,255,0.1)]",
-								!showContextMenu && "cursor-pointer",
-								showContextMenu &&
-									"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
-							)}>
-							<Paperclip className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
-						</button>
-					</StandardTooltip>
-					{isEditMode && (
-						<StandardTooltip content={t("chat:cancel.title")}>
-							<button
-								aria-label={t("chat:cancel.title")}
-								disabled={false}
-								onClick={onCancel}
-								className={cn(
-									"relative inline-flex items-center justify-center",
-									"bg-transparent border-none p-1.5",
-									"rounded-md min-w-[28px] min-h-[28px]",
-									"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-									"transition-all duration-150",
-									"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
-									"active:bg-[rgba(255,255,255,0.1)]",
-									"cursor-pointer",
-								)}>
-								<MessageSquareX className="w-4 h-4" />
-							</button>
-						</StandardTooltip>
-					)}
-					<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
-						<button
-							aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}
-							disabled={sendingDisabled && !isStreaming}
-							onClick={isStreaming ? onCancelStreaming : !sendingDisabled ? handleSend : undefined}
-							className={cn(
-								"relative inline-flex items-center justify-center",
-								"bg-transparent border-none p-1.5",
-								"rounded-md min-w-[28px] min-h-[28px]",
-								"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-								"transition-all duration-150",
-								"focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
-								"active:bg-[rgba(255,255,255,0.1)]",
-								!sendingDisabled && "cursor-pointer",
-								sendingDisabled &&
-									!isStreaming &&
-									"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
-								isStreaming && "text-red-400 hover:text-red-300 hover:bg-red-500/10",
-							)}>
-							{/* kilocode_change: rtl */}
-							{isStreaming ? (
-								<div className="w-4 h-4 bg-current rounded-sm"></div>
-							) : (
-								<SendHorizontal className="w-4 h-4 rtl:-scale-x-100" />
-							)}
-						</button>
-					</StandardTooltip>
-					{/* kilocode_change end */}
-				</div>
-
 				{!inputValue && (
 					<div
-						className="absolute inset-0 z-[3] px-2 pr-9 flex items-start pt-1.5"
+						className="absolute inset-0 z-[3] px-2 flex items-start pt-1.5"
 						style={{
 							color: "var(--vscode-tab-inactiveForeground)",
 							userSelect: "none",
@@ -1660,6 +1561,112 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						<span>{placeholderBottomText}</span>
 					</div>
 				)}
+
+				{/* Bottom controls section */}
+				<div className="flex items-center justify-between px-2 pb-1.5 pt-0 shrink-0">
+					<div className="flex items-center gap-1 min-w-0">
+						<div className="shrink-0">
+							<KiloModeSelector
+								value={mode}
+								onChange={setMode}
+								modeShortcutText={modeShortcutText}
+								customModes={customModes}
+							/>
+						</div>
+						{apiConfiguration && (
+							<div className="w-auto overflow-hidden shrink-0" data-testid="model-selector">
+								<ModelSelector
+									currentApiConfigName={currentApiConfigName}
+									apiConfiguration={apiConfiguration}
+									fallbackText={`${selectedProvider}:${selectedModelId}`}
+								/>
+							</div>
+						)}
+					</div>
+					<div className="flex items-center gap-0">
+						{!isEditMode && (
+							<>
+								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
+								<IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />
+							</>
+						)}
+						<StandardTooltip content="Add Context (@)">
+							<button
+								aria-label="Add Context (@)"
+								disabled={showContextMenu}
+								onClick={() => {
+									if (showContextMenu || !textAreaRef.current) return
+
+									textAreaRef.current.focus()
+
+									setInputValue(`${inputValue} @`)
+									setShowContextMenu(true)
+									setSearchQuery("")
+									setSelectedMenuIndex(4)
+								}}
+								className={cn(
+									"relative inline-flex items-center justify-center",
+									"bg-transparent border-none py-1.5",
+									"rounded-md min-w-[24px] min-h-[28px]",
+									"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+									"transition-all duration-150",
+									"focus-visible:ring-1 focus-visible:ring-white/50",
+									"active:bg-[rgba(255,255,255,0.1)]",
+									!showContextMenu && "cursor-pointer",
+									showContextMenu &&
+										"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
+								)}>
+								<Paperclip className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
+							</button>
+						</StandardTooltip>
+						{isEditMode && (
+							<StandardTooltip content={t("chat:cancel.title")}>
+								<button
+									aria-label={t("chat:cancel.title")}
+									disabled={false}
+									onClick={onCancel}
+									className={cn(
+										"relative inline-flex items-center justify-center",
+										"bg-transparent border-none py-1.5",
+										"rounded-md min-w-[24px] min-h-[28px]",
+										"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+										"transition-all duration-150",
+										"focus-visible:ring-1 focus-visible:ring-white/50",
+										"active:bg-[rgba(255,255,255,0.1)]",
+										"cursor-pointer",
+									)}>
+									<MessageSquareX className="w-4 h-4" />
+								</button>
+							</StandardTooltip>
+						)}
+						<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
+							<button
+								aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}
+								disabled={sendingDisabled && !isStreaming}
+								onClick={isStreaming ? onCancelStreaming : !sendingDisabled ? handleSend : undefined}
+								className={cn(
+									"relative inline-flex items-center justify-center",
+									"bg-transparent border-none p-1.5",
+									"rounded-md min-w-[28px] min-h-[28px]",
+									"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+									"transition-all duration-150",
+									"focus-visible:ring-1 focus-visible:ring-white/50",
+									"active:bg-[rgba(255,255,255,0.1)]",
+									!sendingDisabled && "cursor-pointer",
+									sendingDisabled &&
+										!isStreaming &&
+										"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
+									isStreaming && "text-red-400 hover:text-red-300 hover:bg-red-500/10",
+								)}>
+								{isStreaming ? (
+									<div className="w-4 h-4 bg-current rounded-sm"></div>
+								) : (
+									<SendHorizontal className="w-4 h-4 rtl:-scale-x-100" />
+								)}
+							</button>
+						</StandardTooltip>
+					</div>
+				</div>
 			</div>
 		)
 
@@ -1781,51 +1788,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						)}
 
 						{renderTextAreaSection()}
-
-						<div
-							// kilocode_change start
-							style={{
-								marginTop: "-32px",
-								zIndex: 2,
-								paddingLeft: "8px",
-								paddingRight: "8px",
-								paddingBottom: isEditMode ? "10px" : "0",
-							}}
-							ref={containerRef}
-							// kilocode_change end
-							className={cn("flex", "justify-between", "items-center", "mt-auto")}>
-							<div className={cn("flex", "items-center", "gap-1", "min-w-0")}>
-								<div className="shrink-0">
-									{/* kilocode_change start: KiloModeSelector instead of ModeSelector */}
-									<KiloModeSelector
-										value={mode}
-										onChange={setMode}
-										modeShortcutText={modeShortcutText}
-										customModes={customModes}
-									/>
-									{/* kilocode_change end */}
-								</div>
-								{apiConfiguration && (
-									<div className="w-auto overflow-hidden shrink-0" data-testid="model-selector">
-										<ModelSelector
-											currentApiConfigName={currentApiConfigName}
-											apiConfiguration={apiConfiguration}
-											fallbackText={`${selectedProvider}:${selectedModelId}`}
-										/>
-									</div>
-								)}
-
-								{/* <KiloProfileSelector
-									currentConfigId={currentConfigId}
-									currentApiConfigName={currentApiConfigName}
-									displayName={displayName}
-									listApiConfigMeta={listApiConfigMeta}
-									pinnedApiConfigs={pinnedApiConfigs}
-									togglePinnedApiConfig={togglePinnedApiConfig}
-									selectApiConfigDisabled={selectApiConfigDisabled}
-								/> */}
-							</div>
-						</div>
 					</div>
 				</div>
 
