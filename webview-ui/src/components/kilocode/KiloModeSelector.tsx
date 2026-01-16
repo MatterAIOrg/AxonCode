@@ -32,7 +32,7 @@ export const KiloModeSelector = ({
 	const allModes = React.useMemo(() => getAllModes(customModes), [customModes])
 
 	// Group modes by source
-	const { organizationModes, otherModes } = React.useMemo(() => {
+	const { otherModes } = React.useMemo(() => {
 		const orgModes = allModes.filter((mode) => mode.source === "organization")
 		const other = allModes.filter((mode) => mode.source !== "organization")
 		return { organizationModes: orgModes, otherModes: other }
@@ -50,38 +50,38 @@ export const KiloModeSelector = ({
 	// Build options with organization modes grouped separately
 	const options = React.useMemo(() => {
 		const opts: DropdownOption[] = [
-			{
-				value: "shortcut",
-				label: modeShortcutText,
-				disabled: true,
-				type: DropdownOptionType.SHORTCUT,
-			},
+			// {
+			// 	value: "shortcut",
+			// 	label: modeShortcutText,
+			// 	disabled: true,
+			// 	type: DropdownOptionType.SHORTCUT,
+			// },
 		]
 
 		// Add organization modes section if any exist
-		if (organizationModes.length > 0) {
-			// Add header as a disabled item
-			opts.push({
-				value: "org-header",
-				label: t("chat:modeSelector.organizationModes"),
-				disabled: true,
-				type: DropdownOptionType.SHORTCUT,
-			})
-			opts.push(
-				...organizationModes.map((mode) => ({
-					value: mode.slug,
-					label: mode.name,
-					codicon: mode.iconName || "codicon-organization",
-					// description: mode.description,
-					type: DropdownOptionType.ITEM,
-				})),
-			)
-			opts.push({
-				value: "sep-org",
-				label: t("chat:separator"),
-				type: DropdownOptionType.SEPARATOR,
-			})
-		}
+		// if (organizationModes.length > 0) {
+		// 	// Add header as a disabled item
+		// 	opts.push({
+		// 		value: "org-header",
+		// 		label: t("chat:modeSelector.organizationModes"),
+		// 		disabled: true,
+		// 		type: DropdownOptionType.SHORTCUT,
+		// 	})
+		// 	opts.push(
+		// 		...organizationModes.map((mode) => ({
+		// 			value: mode.slug,
+		// 			label: mode.name,
+		// 			codicon: mode.iconName || "codicon-organization",
+		// 			// description: mode.description,
+		// 			type: DropdownOptionType.ITEM,
+		// 		})),
+		// 	)
+		// 	opts.push({
+		// 		value: "sep-org",
+		// 		label: t("chat:separator"),
+		// 		type: DropdownOptionType.SEPARATOR,
+		// 	})
+		// }
 
 		// Add other modes
 		opts.push(
@@ -108,7 +108,7 @@ export const KiloModeSelector = ({
 		// )
 
 		return opts
-	}, [organizationModes, otherModes, modeShortcutText, t])
+	}, [otherModes])
 
 	return (
 		<SelectDropdown
@@ -120,7 +120,12 @@ export const KiloModeSelector = ({
 			onChange={handleChange}
 			shortcutText={modeShortcutText}
 			triggerClassName={cn(
-				"w-full bg-[var(--background)] border-[var(--vscode-input-border)] hover:bg-[var(--color-vscode-list-hoverBackground)]",
+				`w-full
+				
+				${(allModes.find((m) => m.slug === value)?.slug ?? defaultModeSlug) === "plan" ? "bg-[var(--color-matterai-blue-dark)]" : "bg-[var(--color-matterai-border)]"}
+				rounded-md 
+				border-none 
+				hover:bg-[var(--color-matterai-blue)]`,
 				triggerClassName,
 			)}
 		/>

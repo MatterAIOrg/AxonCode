@@ -8,7 +8,7 @@ import listCodeDefinitionNames from "./list_code_definition_names"
 import listFiles from "./list_files"
 // import newTask from "./new_task"
 import { read_file_single } from "./read_file"
-import runSlashCommand from "./run_slash_command"
+// import runSlashCommand from "./run_slash_command"
 // import searchAndReplace from "./search_and_replace"
 import searchFiles from "./search_files"
 // import switchMode from "./switch_mode"
@@ -36,7 +36,7 @@ export const nativeTools = [
 	// newTask,
 	planFileEdit,
 	read_file_single,
-	runSlashCommand,
+	// runSlashCommand,
 	// searchAndReplace,
 	searchFiles,
 	updateTodoList,

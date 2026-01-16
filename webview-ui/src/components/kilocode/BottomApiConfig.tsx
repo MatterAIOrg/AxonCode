@@ -1,15 +1,13 @@
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { vscode } from "@/utils/vscode"
-import { WebviewMessage, ProfileData } from "@roo/WebviewMessage"
+import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 import { GaugeCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { useSelectedModel } from "../ui/hooks/useSelectedModel"
-import { ModelSelector } from "./chat/ModelSelector"
 
 export const BottomApiConfig = () => {
-	const { currentApiConfigName, apiConfiguration, clineMessages } = useExtensionState()
-	const { id: selectedModelId, provider: selectedProvider } = useSelectedModel(apiConfiguration)
+	const { apiConfiguration, clineMessages } = useExtensionState()
+	// const { id: selectedModelId, provider: selectedProvider } = useSelectedModel(apiConfiguration)
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
 	const [showHoverCard, setShowHoverCard] = useState(false)
 	const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 })
@@ -99,14 +97,6 @@ export const BottomApiConfig = () => {
 
 	return (
 		<div className="flex items-center justify-center">
-			{/* kilocode_change - add data-testid="model-selector" below */}
-			<div className="w-auto overflow-hidden shrink-0" data-testid="model-selector">
-				<ModelSelector
-					currentApiConfigName={currentApiConfigName}
-					apiConfiguration={apiConfiguration}
-					fallbackText={`${selectedProvider}:${selectedModelId}`}
-				/>
-			</div>
 			{apiConfiguration.kilocodeToken && (
 				<div
 					ref={triggerRef}

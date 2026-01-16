@@ -2274,6 +2274,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																background: "var(--color-matterai-chip-blue)",
 																border: "1px solid var(--color-matterai-blue)",
 																borderRadius: "6px",
+																color: "var(--color-secondary-foreground)",
 															}}>
 															Get Started for free
 														</VSCodeButtonLink>
@@ -2282,7 +2283,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 														<VSCodeButtonLink
 															variant="secondary"
 															href="https://docs.matterai.so/quickstart-ai-code-review-agent"
-															style={{ borderRadius: "6px" }}>
+															style={{
+																borderRadius: "6px",
+																color: "var(--color-secondary-foreground)",
+															}}>
 															View Demo
 														</VSCodeButtonLink>
 													</div>

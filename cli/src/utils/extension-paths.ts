@@ -8,7 +8,7 @@ export interface ExtensionPaths {
 
 /**
  * Resolves extension paths for production CLI.
- * Assumes the extension is bundled in dist/kilocode/
+ * Assumes the extension is bundled in dist/axoncode/
  *
  * Production structure:
  * cli/dist/
@@ -16,7 +16,7 @@ export interface ExtensionPaths {
  * ├── cli/KiloCodeCLI.js
  * ├── host/ExtensionHost.js
  * ├── utils/extension-paths.js (this file)
- * └── kilocode/
+ * └── axoncode/
  *     ├── dist/extension.js
  *     ├── assets/
  *     └── webview-ui/
@@ -34,8 +34,8 @@ export function resolveExtensionPaths(): ExtensionPaths {
 	// Navigate to dist directory
 	const distDir = isInUtilsSubdir ? path.resolve(currentDir, "..") : currentDir
 
-	// Extension is in dist/kilocode/
-	const extensionRootPath = path.join(distDir, "kilocode")
+	// Extension is in dist/axoncode/
+	const extensionRootPath = path.join(distDir, "axoncode")
 	const extensionBundlePath = path.join(extensionRootPath, "dist", "extension.js")
 
 	return {
