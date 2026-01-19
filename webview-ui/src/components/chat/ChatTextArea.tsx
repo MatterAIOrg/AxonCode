@@ -1679,7 +1679,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					"gap-1",
 					"bg-editor-background",
 					isEditMode ? "px-0" : "px-1.5",
-					"pb-1",
 					"outline-none",
 					"border-none",
 					isEditMode ? "w-full" : "w-[calc(100%-16px)]",
