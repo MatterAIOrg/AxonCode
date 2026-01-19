@@ -2,6 +2,7 @@ import { vscode } from "@/utils/vscode"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useMemo, useState } from "react"
 import { getIconForFilePath, getIconUrlByName } from "vscode-material-icons"
+import MarkdownBlock from "../common/MarkdownBlock"
 
 interface FileChange {
 	relPath: string
@@ -277,7 +278,7 @@ ${comment.suggestion}
 								return (
 									<div
 										key={index}
-										className="flex items-center gap-2 px-3 py-1.5 hover:bg-vscode-list-hoverBackground cursor-pointer group"
+										className="flex items-center gap-1 px-3 py-1.5 hover:bg-vscode-list-hoverBackground cursor-pointer group"
 										onClick={() => handleFileClick(file.absolutePath)}
 										title={file.absolutePath}>
 										{/* File Icon */}
@@ -288,7 +289,7 @@ ${comment.suggestion}
 										)}
 
 										{/* Diff Stats */}
-										<div className="flex gap-0.5 text-xs font-mono flex-shrink-0 w-12">
+										<div className="flex gap-0.5 text-xs font-mono flex-shrink-0 w-fit">
 											<span style={{ color: "var(--vscode-charts-green)" }}>
 												+{file.stat?.additions || 0}
 											</span>
@@ -298,7 +299,7 @@ ${comment.suggestion}
 										</div>
 
 										{/* File Name & Path */}
-										<div className="flex items-center gap-2 flex-1 min-w-0">
+										<div className="flex items-center gap-1 flex-1 min-w-0">
 											<span className="text-sm font-medium text-vscode-foreground truncate">
 												{fileName}
 											</span>
@@ -359,14 +360,26 @@ ${comment.suggestion}
 							)}
 						</div>
 						{codeReviewResult.reviewComments?.length > 0 && (
-							<VSCodeButton
-								appearance="secondary"
-								onClick={hasKilocodeToken ? handleApplyAllFixes : handleCopyAllPrompts}>
-								<span
-									className={`codicon ${hasKilocodeToken ? "codicon-check-all" : "codicon-copy"} mr-1`}
-								/>
-								{hasKilocodeToken ? "Apply All" : copyButtonText}
-							</VSCodeButton>
+							<>
+								{hasKilocodeToken ? (
+									<div className="flex gap-1">
+										<VSCodeButton appearance="secondary" onClick={handleCopyAllPrompts}>
+											<span className={`codicon codicon-copy`} />
+										</VSCodeButton>
+										<VSCodeButton appearance="secondary" onClick={handleApplyAllFixes}>
+											<span className={`codicon codicon-check-all mr-1`} />
+											Apply All
+										</VSCodeButton>
+									</div>
+								) : (
+									<VSCodeButton
+										appearance="secondary"
+										onClick={handleCopyAllPrompts}>
+										<span className="codicon codicon-copy mr-1" />
+										{copyButtonText}
+									</VSCodeButton>
+								)}
+							</>
 						)}
 					</div>
 
@@ -399,18 +412,33 @@ ${comment.suggestion}
 												{getFileName(comment.path)}:{comment.startLine}
 												{comment.endLine !== comment.startLine && `-${comment.endLine}`}
 											</button>
-											<VSCodeButton
-												appearance="primary"
-												onClick={() =>
-													hasKilocodeToken ? handleApplyFix(index) : handleCopyPrompt(comment)
-												}>
-												<span
-													className={`codicon ${hasKilocodeToken ? "codicon-check" : "codicon-copy"} mr-1`}
-												/>
-												{hasKilocodeToken ? "Apply" : "Copy"}
-											</VSCodeButton>
+
+											{hasKilocodeToken ? (
+												<div className="flex gap-1">
+													<VSCodeButton
+														appearance="primary"
+														onClick={() => handleCopyPrompt(comment)}>
+														<span className={`codicon codicon-copy`} />
+													</VSCodeButton>
+													<VSCodeButton
+														appearance="primary"
+														onClick={() => handleApplyFix(index)}>
+														<span className={`codicon codicon-check mr-1`} />
+														Apply
+													</VSCodeButton>
+												</div>
+											) : (
+												<VSCodeButton
+													appearance="primary"
+													onClick={() => handleCopyPrompt(comment)}>
+													<span className="codicon codicon-copy mr-1" />
+													Copy
+												</VSCodeButton>
+											)}
 										</div>
-										<div className="text-sm text-vscode-foreground mb-1.5">{comment.body}</div>
+										<div className="text-sm text-vscode-foreground mb-1.5">
+											<MarkdownBlock markdown={comment.body} />
+										</div>
 										{comment.suggestion && (
 											<div
 												className="text-xs p-2 rounded-r border-l-2"
