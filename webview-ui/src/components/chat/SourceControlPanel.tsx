@@ -374,11 +374,9 @@ ${comment.suggestion}
 								) : (
 									<VSCodeButton
 										appearance="secondary"
-										onClick={hasKilocodeToken ? handleApplyAllFixes : handleCopyAllPrompts}>
-										<span
-											className={`codicon ${hasKilocodeToken ? "codicon-check-all" : "codicon-copy"} mr-1`}
-										/>
-										{hasKilocodeToken ? "Apply All" : copyButtonText}
+										onClick={handleCopyAllPrompts}>
+										<span className="codicon codicon-copy mr-1" />
+										{copyButtonText}
 									</VSCodeButton>
 								)}
 							</>
@@ -432,15 +430,9 @@ ${comment.suggestion}
 											) : (
 												<VSCodeButton
 													appearance="primary"
-													onClick={() =>
-														hasKilocodeToken
-															? handleApplyFix(index)
-															: handleCopyPrompt(comment)
-													}>
-													<span
-														className={`codicon ${hasKilocodeToken ? "codicon-check" : "codicon-copy"} mr-1`}
-													/>
-													{hasKilocodeToken ? "Apply" : "Copy"}
+													onClick={() => handleCopyPrompt(comment)}>
+													<span className="codicon codicon-copy mr-1" />
+													Copy
 												</VSCodeButton>
 											)}
 										</div>
