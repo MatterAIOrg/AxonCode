@@ -8,7 +8,6 @@ import { type ProviderSettings } from "@roo-code/types"
 import { useRouterModels } from "@src/components/ui/hooks/useRouterModels"
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
-import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { validateApiConfigurationExcludingModelErrors } from "@src/utils/validate"
 import { vscode } from "@src/utils/vscode"
 // kilocode_change start
@@ -17,13 +16,11 @@ import { vscode } from "@src/utils/vscode"
 //	OPENROUTER_DEFAULT_PROVIDER_NAME,
 //} from "@src/components/ui/hooks/useOpenRouterModelProviders"
 // kilocode_change start
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@src/components/ui"
 
 // import { ModelPicker } from "./ModelPicker" // kilocode_change
 import { KiloCode } from "../kilocode/settings/providers/KiloCode" // kilocode_change
 import { ApiErrorMessage } from "./ApiErrorMessage"
 import { ThinkingBudget } from "./ThinkingBudget"
-import { TodoListSettingsControl } from "./TodoListSettingsControl"
 import { Verbosity } from "./Verbosity"
 
 export interface ApiOptionsProps {
@@ -45,13 +42,13 @@ const ApiOptions = ({
 	uriScheme,
 	apiConfiguration,
 	setApiConfigurationField,
-	fromWelcomeView,
+	// fromWelcomeView,
 	errorMessage,
 	setErrorMessage,
 	hideKiloCodeButton = false,
 	currentApiConfigName, // kilocode_change
 }: ApiOptionsProps) => {
-	const { t } = useAppTranslation()
+	// const { t } = useAppTranslation()
 	const {
 		organizationAllowList,
 		uiKind, // kilocode_change
@@ -90,7 +87,7 @@ const ApiOptions = ({
 		[customHeaders, apiConfiguration?.openAiHeaders, setApiConfigurationField],
 	)
 
-	const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false)
+	// const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false)
 
 	// const handleInputChange = useCallback(
 	// 	<K extends keyof ProviderSettings, E>(
@@ -440,7 +437,7 @@ const ApiOptions = ({
 				// kilocode_change end
 			} */}
 
-			{!fromWelcomeView && (
+			{/* {!fromWelcomeView && (
 				<Collapsible open={isAdvancedSettingsOpen} onOpenChange={setIsAdvancedSettingsOpen}>
 					<CollapsibleTrigger className="flex items-center gap-1 w-full cursor-pointer hover:opacity-80 mb-2">
 						<span className={`codicon codicon-chevron-${isAdvancedSettingsOpen ? "down" : "right"}`}></span>
@@ -451,7 +448,7 @@ const ApiOptions = ({
 							todoListEnabled={apiConfiguration.todoListEnabled}
 							onChange={(field, value) => setApiConfigurationField(field, value)}
 						/>
-						{/* <DiffSettingsControl
+						<DiffSettingsControl
 							diffEnabled={apiConfiguration.diffEnabled}
 							fuzzyMatchThreshold={apiConfiguration.fuzzyMatchThreshold}
 							onChange={(field, value) => setApiConfigurationField(field, value)}
@@ -474,8 +471,8 @@ const ApiOptions = ({
 									: DEFAULT_CONSECUTIVE_MISTAKE_LIMIT
 							}
 							onChange={(value) => setApiConfigurationField("consecutiveMistakeLimit", value)}
-						/> */}
-						{/* kilocode_change start
+						/>
+						kilocode_change start
 						selectedProvider === "openrouter" &&
 							openRouterModelProviders &&
 							Object.keys(openRouterModelProviders).length > 0 && (
@@ -518,10 +515,10 @@ const ApiOptions = ({
 									</div>
 								</div>
 							)
-							kilocode_change end */}
+							kilocode_change end
 					</CollapsibleContent>
 				</Collapsible>
-			)}
+			)} */}
 		</div>
 	)
 }
