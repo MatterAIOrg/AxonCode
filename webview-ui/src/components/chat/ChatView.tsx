@@ -751,6 +751,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				newValue = inputValue + " " + text
 			}
 
+			// Add a space after the chip so cursor can be positioned after it
+			if (!newValue.endsWith(" ")) {
+				newValue += " "
+			}
+
 			setInputValue(newValue)
 			setSelectedImages([...selectedImages, ...images])
 		},

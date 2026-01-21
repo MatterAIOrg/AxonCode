@@ -706,13 +706,15 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 							{t("settings:unsavedChangesDialog.description")}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => onConfirmDialogResult(false)}>
-							{t("settings:unsavedChangesDialog.cancelButton")}
-						</AlertDialogCancel>
-						<AlertDialogAction onClick={() => onConfirmDialogResult(true)}>
-							{t("settings:unsavedChangesDialog.discardButton")}
-						</AlertDialogAction>
+					<AlertDialogFooter className="flex-col gap-2 items-center justify-center">
+						<div className="flex gap-1 flex-col">
+							<AlertDialogCancel onClick={() => onConfirmDialogResult(false)}>
+								{t("settings:unsavedChangesDialog.cancelButton")}
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={() => onConfirmDialogResult(true)}>
+								{t("settings:unsavedChangesDialog.discardButton")}
+							</AlertDialogAction>
+						</div>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

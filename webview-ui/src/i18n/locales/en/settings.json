@@ -877,7 +877,7 @@
 	},
 	"modelPicker": {
 		"automaticFetch": "The extension automatically fetches the latest list of models available on <serviceLink>{{serviceName}}</serviceLink>. If you're unsure which model to choose, Axon Code works best with <defaultModelLink>{{defaultModelId}}</defaultModelLink>.",
-		"label": "Model",
+		"label": "Default Model",
 		"searchPlaceholder": "Search",
 		"noMatchFound": "No match found",
 		"useCustomModel": "Use custom: {{modelId}}"

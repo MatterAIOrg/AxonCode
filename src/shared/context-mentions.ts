@@ -10,12 +10,12 @@ Mention regex:
   - `(?:^|\s)`:
 	- **Non-Capturing Group (`(?:...)`)**: Groups the alternatives without capturing them.
 	- **Line Start or Whitespace (`^|\s`)**: The @ must be at the start of a line or preceded by whitespace.
-  
+
   - `(?<!\\)@`:
 	- **Negative Lookbehind (`(?<!\\)`)**: Ensures the @ is not escaped with a backslash.
 	- **@**: The mention must start with the '@' symbol.
-  
-  - `((?:\/|\w+:\/\/)[^\s]+?|problems\b|git-changes\b)`:
+
+  - `((?:\/|\w+:\/\/)(?:[^\s\\]|\\ )+?(?:#L\d+(?:-\d+)?)?|[a-f0-9]{7,40}\b|problems\b|git-changes\b|terminal\b)`:
 	- **Capturing Group (`(...)`)**: Captures the part of the string that matches one of the specified patterns.
 	- `(?:\/|\w+:\/\/)`:
 	  - **Non-Capturing Group (`(?:...)`)**: Groups the alternatives without capturing them for back-referencing.
@@ -30,6 +30,11 @@ Mention regex:
 	  - **OR (`|`)**: Logical OR.
 	  - **Escaped Space (`\\ `)**: Matches a backslash followed by a space (an escaped space).
 	  - **Non-Greedy (`+?`)**: Ensures the smallest possible match, preventing the inclusion of trailing punctuation.
+	- `(?:#L\d+(?:-\d+)?)?`:
+	  - **Optional Non-Capturing Group (`(?:...)?`)**: Optionally matches line number syntax.
+	  - `#L`: Matches the literal string '#L'.
+	  - `\d+`: Matches one or more digits (the start line number).
+	  - `(?:-\d+)?`: Optionally matches a dash followed by one or more digits (the end line number).
 	- `|`: Logical OR.
 	- `problems\b`:
 	  - **Exact Word ('problems')**: Matches the exact word 'problems'.
@@ -44,11 +49,12 @@ Mention regex:
 	  - **Optional Punctuation (`[.,;:!?]?`)**: Matches zero or one of the specified punctuation marks.
 	- `(?=[\s\r\n]|$)`:
 	  - **Nested Positive Lookahead (`(?=[\s\r\n]|$)`)**: Ensures that the punctuation (if present) is followed by a whitespace character, a line break, or the end of the string.
-  
+
 - **Summary**:
   - The regex effectively matches:
 	- Mentions that are file or folder paths starting with '/' and containing any non-whitespace characters (including periods within the path).
 	- File paths can include spaces if they are escaped with a backslash (e.g., `@/path/to/file\ with\ spaces.txt`).
+	- File paths can optionally include line numbers in the format `#L20` or `#L20-80`.
 	- URLs that start with a protocol (like 'http://') followed by any non-whitespace characters (including query parameters).
 	- The exact word 'problems'.
 	- The exact word 'git-changes'.
@@ -61,7 +67,7 @@ Mention regex:
 
 */
 export const mentionRegex =
-	/(?:^|(?<=\s))(?<!\\)@((?:\/|\w+:\/\/)(?:[^\s\\]|\\ )+?|[a-f0-9]{7,40}\b|problems\b|git-changes\b|terminal\b)(?=[.,;:!?]?(?=[\s\r\n]|$))/
+	/(?:^|(?<=\s))(?<!\\)@((?:\/|\w+:\/\/)(?:[^\s\\]|\\ )+?(?:#L\d+(?:-\d+)?)?|[a-f0-9]{7,40}\b|problems\b|git-changes\b|terminal\b)(?=[.,;:!?]?(?=[\s\r\n]|$))/
 export const mentionRegexGlobal = new RegExp(mentionRegex.source, "g")
 
 // Regex to match command mentions like /command-name anywhere in text

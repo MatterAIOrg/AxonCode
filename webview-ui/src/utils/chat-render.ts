@@ -77,7 +77,9 @@ export const escapeHtml = (value: string): string =>
 
 export const getFileIconForMention = (rawMention: string, materialIconsBaseUri: string): string => {
 	const mention = unescapeSpaces(rawMention)
-	const filename = mention.split("/").pop() || ""
+	// Remove line numbers (#L20-80) before extracting filename
+	const pathWithoutLineNumbers = mention.replace(/#L\d+(?:-\d+)?$/, "")
+	const filename = pathWithoutLineNumbers.split("/").pop() || ""
 
 	if (filename.includes(".")) {
 		const iconName = getIconForFilePath(filename)
@@ -92,7 +94,8 @@ export const renderMentionChip = (
 	materialIconsBaseUri: string,
 	isCompactFile: boolean = false,
 ): string => {
-	const displayText = isCompactFile ? rawMention : formatMentionChipParts(rawMention).primary || rawMention
+	const parts = formatMentionChipParts(rawMention)
+	const displayText = isCompactFile ? rawMention : parts.primary || rawMention
 	const escapedPrimary = escapeHtml(displayText)
 	const label = escapeHtml(`${isCompactFile ? rawMention : unescapeSpaces(rawMention)}`)
 	const mentionValue = escapeHtml(`@${isCompactFile ? rawMention : unescapeSpaces(rawMention)}`)
@@ -100,7 +103,11 @@ export const renderMentionChip = (
 	const fileIconUrl = getFileIconForMention(rawMention, materialIconsBaseUri)
 	const iconHtml = fileIconUrl ? `<img src="${fileIconUrl}" class="mention-chip__icon" alt="" />` : ""
 
-	return `<span class="mention-chip" data-mention-value="${mentionValue}" aria-label="${label}">${iconHtml}<span class="mention-chip__primary">${escapedPrimary}</span></span>`
+	// Extract line number from meta parts if available
+	const lineInfo = parts.meta.find((m) => m.startsWith("L"))
+	const lineHtml = lineInfo ? `<span class="mention-chip__line">${escapeHtml(lineInfo)}</span>` : ""
+
+	return `<span class="mention-chip" data-mention-value="${mentionValue}" aria-label="${label}">${iconHtml}<span class="mention-chip__primary">${escapedPrimary}</span>${lineHtml}</span>`
 }
 
 export const valueToHtml = (
