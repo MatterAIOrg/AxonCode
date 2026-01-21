@@ -268,7 +268,21 @@ async function getFileOrFolderContent(
 	showRooIgnoredFiles: boolean = false,
 	maxReadFileLine?: number,
 ): Promise<string> {
-	const unescapedPath = unescapeSpaces(mentionPath)
+	// Parse line numbers from the mention path (e.g., "file.ts#L20-80")
+	const lineMatch = mentionPath.match(/^(.*?)(?:#L(\d+)(?:-(\d+))?)?$/)
+	let filePath = mentionPath
+	let startLine: number | undefined
+	let endLine: number | undefined
+
+	if (lineMatch) {
+		filePath = lineMatch[1]
+		if (lineMatch[2]) {
+			startLine = parseInt(lineMatch[2], 10)
+			endLine = lineMatch[3] ? parseInt(lineMatch[3], 10) : startLine
+		}
+	}
+
+	const unescapedPath = unescapeSpaces(filePath)
 	const absPath = path.resolve(cwd, unescapedPath)
 
 	try {
@@ -285,9 +299,20 @@ async function getFileOrFolderContent(
 			// kilocode_change end
 			try {
 				const content = await extractTextFromFile(absPath, maxReadFileLine)
+
+				// Extract specific lines if line numbers are specified
+				if (startLine !== undefined && endLine !== undefined) {
+					const lines = content.split("\n")
+					// Convert to 0-based index
+					const startIndex = Math.max(0, startLine - 1)
+					const endIndex = Math.min(lines.length, endLine)
+					const extractedLines = lines.slice(startIndex, endIndex)
+					return extractedLines.join("\n")
+				}
+
 				return content
 			} catch (error) {
-				return `(Failed to read contents of ${mentionPath}): ${error.message}`
+				return `(Failed to read contents of ${filePath}): ${error.message}`
 			}
 		} else if (stats.isDirectory()) {
 			const entries = await fs.readdir(absPath, { withFileTypes: true })
@@ -341,10 +366,10 @@ async function getFileOrFolderContent(
 			const fileContents = (await Promise.all(fileContentPromises)).filter((content) => content)
 			return `${folderContent}\n${fileContents.join("\n\n")}`.trim()
 		} else {
-			return `(Failed to read contents of ${mentionPath})`
+			return `(Failed to read contents of ${filePath})`
 		}
 	} catch (error) {
-		throw new Error(`Failed to access path "${mentionPath}": ${error.message}`)
+		throw new Error(`Failed to access path "${filePath}": ${error.message}`)
 	}
 }
 
