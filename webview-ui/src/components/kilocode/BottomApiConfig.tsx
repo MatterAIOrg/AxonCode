@@ -89,7 +89,7 @@ export const BottomApiConfig = () => {
 			const rect = triggerRef.current.getBoundingClientRect()
 			setCardPosition({
 				top: rect.top - 10,
-				left: rect.left + rect.width / 2,
+				left: rect.left,
 			})
 		}
 		setShowHoverCard(true)
@@ -121,7 +121,7 @@ export const BottomApiConfig = () => {
 								style={{
 									top: `${cardPosition.top}px`,
 									left: `${cardPosition.left}px`,
-									transform: "translate(-50%, -100%)",
+									transform: "translate(0, -100%)",
 								}}>
 								<div className="space-y-3">
 									<div className="space-y-1">
