@@ -3,6 +3,7 @@ import { promises as fs } from "fs"
 import * as path from "path"
 
 import { getReadablePath } from "../../utils/path"
+import { myersDiff } from "../../services/continuedev/core/diff/myers"
 
 type PendingFileEdit = {
 	relPath: string
@@ -282,32 +283,17 @@ export class FileEditReviewController implements vscode.Disposable {
 
 		for (const edit of this.pendingEdits.values()) {
 			for (const editEntry of edit.edits) {
-				const beforeLines = editEntry.originalContent ? editEntry.originalContent.split("\n") : []
-				const afterLines = editEntry.newContent ? editEntry.newContent.split("\n") : []
+				const beforeContent = editEntry.originalContent || ""
+				const afterContent = editEntry.newContent || ""
 
-				if (beforeLines.length === 0) {
-					// New content added
-					linesAdded += afterLines.length
-				} else if (afterLines.length === 0) {
-					// Content deleted
-					linesDeleted += beforeLines.length
-				} else {
-					// Modified content - count changed lines
-					const commonLength = Math.min(beforeLines.length, afterLines.length)
-					let changedInCommon = 0
-					for (let i = 0; i < commonLength; i++) {
-						if (beforeLines[i] !== afterLines[i]) {
-							changedInCommon++
-						}
-					}
-					linesUpdated += changedInCommon
+				// Use proper diff algorithm to calculate changes
+				const diffLines = myersDiff(beforeContent, afterContent)
 
-					// Account for added/deleted lines beyond common length
-					const diff = afterLines.length - beforeLines.length
-					if (diff > 0) {
-						linesAdded += diff
-					} else if (diff < 0) {
-						linesDeleted += Math.abs(diff)
+				for (const diffLine of diffLines) {
+					if (diffLine.type === "new") {
+						linesAdded++
+					} else if (diffLine.type === "old") {
+						linesDeleted++
 					}
 				}
 			}

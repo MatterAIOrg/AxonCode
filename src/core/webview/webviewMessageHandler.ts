@@ -18,6 +18,7 @@ import {
 	TasksByIdRequestPayload,
 	UpdateGlobalStateMessage,
 } from "../../shared/WebviewMessage"
+import { myersDiff } from "../../services/continuedev/core/diff/myers"
 // kilocode_change end
 
 import {
@@ -1268,28 +1269,17 @@ export const webviewMessageHandler = async (
 
 				// Process each edit to accumulate diff stats
 				for (const editEntry of edit.edits) {
-					const beforeLines = (editEntry.originalContent || "").split("\n")
-					const afterLines = (editEntry.newContent || "").split("\n")
+					const beforeContent = editEntry.originalContent || ""
+					const afterContent = editEntry.newContent || ""
 
-					// Simple line-based diff calculation for each edit
-					if (beforeLines.length === 0 && afterLines.length > 0) {
-						// New content added
-						totalAdditions += afterLines.length
-					} else if (beforeLines.length > 0 && afterLines.length === 0) {
-						// Content deleted
-						totalDeletions += beforeLines.length
-					} else {
-						// Modified content - use simple line count difference
-						const lineDiff = afterLines.length - beforeLines.length
-						if (lineDiff > 0) {
-							totalAdditions += lineDiff
-						} else {
-							totalDeletions += Math.abs(lineDiff)
-						}
-						// If same line count, assume at least some lines changed
-						if (lineDiff === 0 && beforeLines.some((line, i) => line !== afterLines[i])) {
-							totalAdditions += 1
-							totalDeletions += 1
+					// Use proper diff algorithm to calculate changes
+					const diffLines = myersDiff(beforeContent, afterContent)
+
+					for (const diffLine of diffLines) {
+						if (diffLine.type === "new") {
+							totalAdditions++
+						} else if (diffLine.type === "old") {
+							totalDeletions++
 						}
 					}
 				}

@@ -1,31 +1,31 @@
-import path from "path"
 import os from "os"
+import path from "path"
 
-import * as vscode from "vscode"
-import pWaitFor from "p-wait-for"
 import delay from "delay"
+import pWaitFor from "p-wait-for"
+import * as vscode from "vscode"
 
 import type { ExperimentId } from "@roo-code/types"
 import { DEFAULT_TERMINAL_OUTPUT_CHARACTER_LIMIT } from "@roo-code/types"
 
-import { EXPERIMENT_IDS, experiments as Experiments } from "../../shared/experiments"
-import { formatLanguage } from "../../shared/language"
-import { defaultModeSlug, getFullModeDetails, getModeBySlug, isToolAllowedForMode } from "../../shared/modes"
-import { getApiMetrics } from "../../shared/getApiMetrics"
-import { listFiles } from "../../services/glob/list-files"
-import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
+import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
+import { listFiles } from "../../services/glob/list-files"
+import { EXPERIMENT_IDS, experiments as Experiments } from "../../shared/experiments"
+import { getApiMetrics } from "../../shared/getApiMetrics"
+import { formatLanguage } from "../../shared/language"
+import { defaultModeSlug, getFullModeDetails } from "../../shared/modes"
+import { getGitRepositoryInfo } from "../../utils/git"
 import { arePathsEqual } from "../../utils/path"
 import { formatResponse } from "../prompts/responses"
 
 import { Task } from "../task/Task"
-import { formatReminderSection } from "./reminder"
 
 // kilocode_change start
-import { OpenRouterHandler } from "../../api/providers/openrouter"
 import { TelemetryService } from "@roo-code/telemetry"
-import { t } from "../../i18n"
 import { NativeOllamaHandler } from "../../api/providers/native-ollama"
+import { OpenRouterHandler } from "../../api/providers/openrouter"
+import { t } from "../../i18n"
 // kilocode_change end
 
 export async function getEnvironmentDetails(cline: Task, includeFileDetails: boolean = false) {
@@ -207,6 +207,63 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 	const timeZoneOffsetStr = `${timeZoneOffset >= 0 ? "+" : "-"}${timeZoneOffsetHours}:${timeZoneOffsetMinutes.toString().padStart(2, "0")}`
 	details += `\n\n# Current Time\nCurrent time in ISO 8601 UTC format: ${now.toISOString()}\nUser time zone: ${timeZone}, UTC${timeZoneOffsetStr}`
 
+	// Add Git repository information.
+	try {
+		const gitInfo = await getGitRepositoryInfo(cline.cwd)
+		const hasGitInfo = gitInfo.repositoryUrl || gitInfo.repositoryName
+
+		// Get current branch and default branch using git commands
+		let currentBranch = ""
+		let defaultBranch = ""
+
+		try {
+			const { exec } = await import("child_process")
+			const { promisify } = await import("util")
+			const execAsync = promisify(exec)
+
+			// Get current branch
+			const currentBranchResult = await execAsync("git branch --show-current", {
+				cwd: cline.cwd,
+				timeout: 5000,
+			}).catch(() => ({ stdout: "" }))
+			currentBranch = currentBranchResult.stdout.trim()
+
+			// Get default branch from remote HEAD reference
+			const defaultBranchResult = await execAsync("git symbolic-ref refs/remotes/origin/HEAD", {
+				cwd: cline.cwd,
+				timeout: 5000,
+			}).catch(() => ({ stdout: "" }))
+			const defaultBranchMatch = defaultBranchResult.stdout.match(/refs\/remotes\/origin\/(.+)/)
+			if (defaultBranchMatch && defaultBranchMatch[1]) {
+				defaultBranch = defaultBranchMatch[1].trim()
+			}
+		} catch {
+			// Ignore errors getting branch info
+		}
+
+		if (hasGitInfo || currentBranch || defaultBranch) {
+			details += "\n\n# Git Repository Information"
+
+			if (gitInfo.repositoryUrl) {
+				details += `\nRepository URL: ${gitInfo.repositoryUrl}`
+			}
+
+			if (gitInfo.repositoryName) {
+				details += `\nRepository Name: ${gitInfo.repositoryName}`
+			}
+
+			if (defaultBranch) {
+				details += `\nDefault Branch: ${defaultBranch}`
+			}
+
+			if (currentBranch) {
+				details += `\nCurrent Branch: ${currentBranch}`
+			}
+		}
+	} catch {
+		// Ignore errors getting git info
+	}
+
 	// Add context tokens information.
 	const { contextTokens, totalCost } = getApiMetrics(cline.clineMessages)
 
@@ -228,7 +285,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 
 	const { id: modelId, info: modelInfo } = cline.api.getModel()
 
-	details += `\n\n# Current Cost\n${totalCost !== null ? `$${totalCost.toFixed(2)}` : "(Not available)"}`
+	// details += `\n\n# Current Cost\n${totalCost !== null ? `$${totalCost.toFixed(2)}` : "(Not available)"}`
 
 	// Add current mode and any mode-specific warnings.
 	const {

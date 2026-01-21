@@ -51,7 +51,7 @@ import { findLast } from "../../shared/array"
 import { supportPrompt } from "../../shared/support-prompt"
 import { GlobalFileNames } from "../../shared/globalFileNames"
 import type { ExtensionMessage, ExtensionState, MarketplaceInstalledMetadata } from "../../shared/ExtensionMessage"
-import { Mode, defaultModeSlug, getModeBySlug } from "../../shared/modes"
+import { Mode, defaultModeSlug, getModeBySlug, validateModeSlug } from "../../shared/modes"
 import { experimentDefault } from "../../shared/experiments"
 import { formatLanguage } from "../../shared/language"
 import { WebviewMessage } from "../../shared/WebviewMessage"
@@ -2303,7 +2303,7 @@ ${prompt}
 			terminalZshP10k: stateValues.terminalZshP10k ?? false,
 			terminalZdotdir: stateValues.terminalZdotdir ?? false,
 			terminalCompressProgressBar: stateValues.terminalCompressProgressBar ?? true,
-			mode: stateValues.mode ?? defaultModeSlug,
+			mode: validateModeSlug(stateValues.mode),
 			language: stateValues.language ?? formatLanguage(vscode.env.language),
 			mcpEnabled: true, // kilocode_change: always true
 			enableMcpServerCreation: stateValues.enableMcpServerCreation ?? true,
@@ -2901,7 +2901,9 @@ ${prompt}
 	}
 
 	public async setMode(mode: string): Promise<void> {
-		await this.setValues({ mode })
+		// Validate mode - only built-in modes are allowed
+		const validatedMode = validateModeSlug(mode)
+		await this.setValues({ mode: validatedMode })
 	}
 
 	// Provider Profiles

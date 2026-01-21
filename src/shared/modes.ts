@@ -77,6 +77,28 @@ export function getModeBySlug(slug: string, customModes?: ModeConfig[]): ModeCon
 	return modes.find((mode) => mode.slug === slug)
 }
 
+/**
+ * Validates and sanitizes a mode slug. If the mode is invalid (not a built-in mode),
+ * returns the default mode slug ("agent").
+ * Custom modes are not supported and will be treated as invalid.
+ */
+export function validateModeSlug(slug: string | undefined): string {
+	// If no slug provided, use default
+	if (!slug) {
+		return defaultModeSlug
+	}
+
+	// Check if it's a valid built-in mode
+	const isValidMode = modes.some((mode) => mode.slug === slug)
+	if (isValidMode) {
+		return slug
+	}
+
+	// Invalid mode - default to agent
+	console.warn(`Invalid mode "${slug}" detected. Defaulting to "${defaultModeSlug}" mode.`)
+	return defaultModeSlug
+}
+
 export function getModeConfig(slug: string, customModes?: ModeConfig[]): ModeConfig {
 	const mode = getModeBySlug(slug, customModes)
 	if (!mode) {
@@ -86,32 +108,19 @@ export function getModeConfig(slug: string, customModes?: ModeConfig[]): ModeCon
 }
 
 // Get all available modes, with custom modes overriding built-in modes
+// Custom modes are disabled - only built-in modes are returned
 export function getAllModes(customModes?: ModeConfig[]): ModeConfig[] {
-	if (!customModes?.length) {
-		return [...modes]
-	}
-
-	// Start with built-in modes
-	const allModes = [...modes]
-
-	// Process custom modes
-	customModes.forEach((customMode) => {
-		const index = allModes.findIndex((mode) => mode.slug === customMode.slug)
-		if (index !== -1) {
-			// Override existing mode
-			allModes[index] = customMode
-		} else {
-			// Add new mode
-			allModes.push(customMode)
-		}
-	})
-
-	return allModes
+	// Custom modes are disabled - only return built-in modes
+	// Only the 3 built-in modes (agent, plan, ask) are allowed
+	return [...modes]
 }
 
 // Check if a mode is custom or an override
+// Custom modes are disabled - always returns false
 export function isCustomMode(slug: string, customModes?: ModeConfig[]): boolean {
-	return !!customModes?.some((mode) => mode.slug === slug)
+	// Custom modes are disabled - no mode is considered custom
+	// Only the 3 built-in modes (agent, plan, ask) are allowed
+	return false
 }
 
 /**

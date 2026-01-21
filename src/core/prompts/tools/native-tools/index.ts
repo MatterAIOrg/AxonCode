@@ -3,7 +3,7 @@ import askFollowupQuestion from "./ask_followup_question"
 import attemptCompletion from "./attempt_completion"
 import checkPastChatMemories from "./check_past_chat_memories"
 import executeCommand from "./execute_command"
-import fetchInstructions from "./fetch_instructions"
+// import fetchInstructions from "./fetch_instructions"
 import listCodeDefinitionNames from "./list_code_definition_names"
 import listFiles from "./list_files"
 // import newTask from "./new_task"
@@ -28,7 +28,7 @@ export const nativeTools = [
 	codebaseSearch,
 	// editFile,
 	executeCommand,
-	fetchInstructions,
+	// fetchInstructions,
 	// generateImage,
 	// insertContent,
 	listCodeDefinitionNames,
