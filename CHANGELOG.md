@@ -1,5 +1,54 @@
 # Changelog
 
+## [v5.2.5] - 2026-01-21
+
+### Added
+
+- Multi-line chip rendering for improved mention display
+
+### Changed
+
+- Clean up profile page
+- Enhanced chat rendering utilities
+
+### Fixed
+
+- Fixed plan hover popup display
+
+---
+
+## [v5.2.4] - 2026-01-19
+
+### Fixed
+
+- Fixed SourceControlPanel.tsx - addressed review comments
+- Fixed chat text UI issues
+
+---
+
+## [v5.2.3] - 2026-01-16
+
+### Fixed
+
+- Fixed chat text UI with improved component structure
+
+---
+
+## [v5.2.2] - 2026-01-16
+
+### Added
+
+- Model selector moved to improved location
+
+### Changed
+
+- UI improvements and IDE theme fixes
+- Enhanced ChatTextArea component
+- Updated translations for all supported languages
+- Improved select-dropdown and popover components
+
+---
+
 ## [v5.2.1] - 2026-01-15
 
 ### Added
