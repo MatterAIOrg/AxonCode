@@ -214,6 +214,8 @@ The tool accepts these parameters:
 - \`command\` (required): The CLI command to execute. Must be valid for the user's operating system.
 - \`cwd\` (optional): The working directory to execute the command in. If not provided, the current working directory is used. Ensure this is always an absolute path, starting with \`/\`. If you are running the command in the root directly, skip this parameter. The command executor is defaulted to run in the root directory. You already have the Current Workspace Directory in <environment_details>.
 
+CRITICAL: If the command is a very long running process, prefer to let the user to that they can run it manually in thier terminal. If the user specifically requests to run a long running command, you may proceed.
+
 ## search_files
 
 The \`search_files\` tool allows you to search for patterns across files in a directory using regex.
