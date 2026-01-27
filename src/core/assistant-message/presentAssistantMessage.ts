@@ -675,6 +675,17 @@ export async function presentAssistantMessage(cline: Task) {
 			// kilocode_change end
 			return
 		}
+
+		// If we've already used a tool and there are no more blocks to process,
+		// we need to set userMessageContentReady to true to allow the loop to continue.
+		// This fixes the issue where update_todo_list (or other tools) execute but
+		// the agent stops because userMessageContentReady is never set.
+		// This handles the case where the stream has finished and we've processed all blocks,
+		// but userMessageContentReady wasn't set because we weren't at the last block when
+		// the tool executed.
+		if (cline.didAlreadyUseTool && cline.didCompleteReadingStream) {
+			cline.userMessageContentReady = true
+		}
 	}
 
 	// Block is partial, but the read stream may have finished.

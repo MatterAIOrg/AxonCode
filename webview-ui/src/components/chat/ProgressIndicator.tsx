@@ -22,7 +22,7 @@ export const MatterProgressIndicator = () => {
 	useEffect(() => {
 		const interval = setInterval(() => {
 			setActiveIndex((prev) => (prev + 1) % 3)
-		}, 200)
+		}, 100)
 
 		return () => clearInterval(interval)
 	}, [])
@@ -40,9 +40,10 @@ export const MatterProgressIndicator = () => {
 					style={{
 						width: "6px",
 						height: "6px",
+						borderRadius: "1px",
 						backgroundColor: index === activeIndex ? "#c4fdff" : "rgba(196, 253, 255, 0.5)",
 						cursor: "pointer",
-						transition: "background-color 0.3s ease",
+						transition: "all 0.05s ease",
 					}}
 				/>
 			))}
