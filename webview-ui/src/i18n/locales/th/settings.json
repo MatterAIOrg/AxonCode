@@ -918,8 +918,8 @@
 		"useCustomModel": "ใช้แบบกำหนดเอง: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "หากคุณมีคำถามหรือข้อเสนอแนะ โปรดเปิด issue ที่ <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> หรือเข้าร่วม <redditLink>reddit.com/r/kilocode</redditLink> หรือ <discordLink>matterai.so/discord</discordLink>",
-		"support": "สำหรับคำถามด้านการเงิน โปรดติดต่อฝ่ายสนับสนุนลูกค้าที่ <supportLink>https://matterai.so/support</supportLink>",
+		"feedback": "หากคุณมีคำถามหรือข้อเสนอแนะ โปรดเปิด issue ที่ <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> หรือเข้าร่วม <redditLink>reddit.com/r/matter_ai</redditLink> หรือ <discordLink>discord.gg/fJU5DvanU3</discordLink>",
+		"support": "สำหรับคำถามด้านการเงิน โปรดติดต่อฝ่ายสนับสนุนลูกค้าที่ <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "อนุญาตการรายงานข้อผิดพลาดและการใช้งาน",
 			"description": "ช่วยปรับปรุง Axon Code โดยการส่งข้อมูลการใช้งานและรายงานข้อผิดพลาด ไม่มีการส่งโค้ด พรอมต์ หรือข้อมูลส่วนบุคคล ดูนโยบายความเป็นส่วนตัวของเราสำหรับรายละเอียดเพิ่มเติม"

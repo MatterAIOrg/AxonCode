@@ -105,6 +105,6 @@ If you prefer to download and install the VSIX file directly:
 
 If you encounter issues not covered here:
 
-- Join our [Discord community](https://matterai.so/discord) for real-time support
+- Join our [Discord community](https://discord.gg/fJU5DvanU3) for real-time support
 - Submit issues on [GitHub](https://github.com/MatterAIOrg/AxonCode/issues)
-- Visit our [Reddit community](https://www.reddit.com/r/KiloCode)
+- Visit our [Reddit community](https://www.reddit.com/r/matter_ai)

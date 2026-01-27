@@ -175,7 +175,7 @@ Yes, you can create your own MCP servers to add custom functionality to Axon Cod
 - Check your internet connection.
 - Check the status of your chosen API provider.
 - Try restarting VS Code.
-- If the problem persists, report the issue on [GitHub](https://github.com/MatterAIOrg/AxonCode/issues) or [Discord](https://matterai.so/discord).
+- If the problem persists, report the issue on [GitHub](https://github.com/MatterAIOrg/AxonCode/issues) or [Discord](https://discord.gg/fJU5DvanU3).
 
 ### I'm seeing an error message. What does it mean?
 

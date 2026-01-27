@@ -858,8 +858,8 @@
 		"useCustomModel": "Usa personalizzato: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Se hai domande o feedback, sentiti libero di aprire un issue su <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> o unirti a <redditLink>reddit.com/r/kilocode</redditLink> o <discordLink>matterai.so/discord</discordLink>",
-		"support": "Per domande finanziarie, contatta il Supporto Clienti a <supportLink>https://matterai.so/support</supportLink>",
+		"feedback": "Se hai domande o feedback, sentiti libero di aprire un issue su <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> o unirti a <redditLink>reddit.com/r/matter_ai</redditLink> o <discordLink>discord.gg/fJU5DvanU3</discordLink>",
+		"support": "Per domande finanziarie, contatta il Supporto Clienti a <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Consenti segnalazioni di errori e utilizzo",
 			"description": "Aiuta a migliorare Axon Code inviando dati di utilizzo e segnalazioni di errori. Non vengono mai inviati codice, prompt o informazioni personali. Consulta la nostra politica sulla privacy per maggiori dettagli."

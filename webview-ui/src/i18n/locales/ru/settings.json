@@ -857,8 +857,8 @@
 		"useCustomModel": "Использовать пользовательскую: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Если у вас есть вопросы или предложения, откройте issue на <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> или присоединяйтесь к <redditLink>reddit.com/r/kilocode</redditLink> или <discordLink>matterai.so/discord</discordLink>",
-		"support": "По финансовым вопросам обращайтесь в службу поддержки по адресу <supportLink>https://matterai.so/support</supportLink>",
+		"feedback": "Если у вас есть вопросы или предложения, откройте issue на <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> или присоединяйтесь к <redditLink>reddit.com/r/matter_ai</redditLink> или <discordLink>discord.gg/fJU5DvanU3</discordLink>",
+		"support": "По финансовым вопросам обращайтесь в службу поддержки по адресу <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Разрешить отправку ошибок и статистики использования",
 			"description": "Помогите улучшить Axon Code, отправляя данные об ошибках и использовании. Код, подсказки и личная информация не отправляются. Подробнее — в политике конфиденциальности."

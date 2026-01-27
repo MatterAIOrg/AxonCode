@@ -218,7 +218,7 @@ describe("URL functions", () => {
 		it("should handle production URLs correctly", () => {
 			expect(getAppUrl()).toBe("https://matterai.so")
 			expect(getAppUrl("/profile")).toBe("https://matterai.so/profile")
-			expect(getAppUrl("/support")).toBe("https://matterai.so/support")
+			expect(getAppUrl("/support")).toBe("https://www.matterai.so/contact")
 			expect(getAppUrl("/sign-in-to-editor")).toBe("https://matterai.so/sign-in-to-editor")
 			expect(getAppUrl("/sign-in-to-editor?source=vscode")).toBe(
 				"https://matterai.so/sign-in-to-editor?source=vscode",
@@ -307,7 +307,7 @@ describe("URL functions", () => {
 		it("should correctly handle app navigation URLs", () => {
 			// These are the actual URLs used in Task.ts and webviewMessageHandler.ts
 			expect(getAppUrl("/profile")).toBe("https://matterai.so/profile")
-			expect(getAppUrl("/support")).toBe("https://matterai.so/support")
+			expect(getAppUrl("/support")).toBe("https://www.matterai.so/contact")
 		})
 
 		it("should correctly handle token-based API calls", () => {

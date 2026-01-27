@@ -113,9 +113,9 @@ git checkout -b your-branch-name
 
 如果你需要帮助：
 
-- 加入我们的 [Discord 社区](https://matterai.so/discord) 获取实时支持
+- 加入我们的 [Discord 社区](https://discord.gg/fJU5DvanU3) 获取实时支持
 - 在 [GitHub Discussions](https://github.com/MatterAIOrg/AxonCode/discussions) 上提问
-- 访问我们的 [Reddit 社区](https://www.reddit.com/r/KiloCode)
+- 访问我们的 [Reddit 社区](https://www.reddit.com/r/matter_ai)
 
 ## 致谢
 

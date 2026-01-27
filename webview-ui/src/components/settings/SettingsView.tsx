@@ -987,11 +987,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					{activeTab === "about" && (
 						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
 					)}
-
-					{/* About Section */}
-					{activeTab === "about" && (
-						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
-					)}
 				</TabContent>
 			</div>
 

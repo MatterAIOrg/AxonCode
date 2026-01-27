@@ -8,8 +8,8 @@ export const GITHUB_ISSUES_URL = `${GITHUB_REPO_URL}/issues`
 export const GITHUB_NEW_ISSUE_URL = `${GITHUB_ISSUES_URL}/new`
 
 // Community links
-export const DISCORD_URL = "https://matterai.so/discord"
-export const REDDIT_URL = "https://www.reddit.com/r/kilocode/"
+export const DISCORD_URL = "https://discord.gg/fJU5DvanU3"
+export const REDDIT_URL = "https://www.reddit.com/r/matter_ai/"
 export const TWITTER_URL = "https://x.com/kilocode"
 export const YOUTUBE_URL = "https://www.youtube.com/@Kilo-Code"
 

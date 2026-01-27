@@ -939,8 +939,8 @@
 		"useCustomModel": "Použít vlastní: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Pokud máte nějaké dotazy nebo zpětnou vazbu, neváhejte otevřít problém na <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> nebo se připojte k <redditLink>reddit.com/r/kilocode</redditLink> nebo <discordLink>matterai.so/discord</discordLink>.",
-		"support": "Pro finanční dotazy kontaktujte prosím zákaznickou podporu na <supportLink>https://matterai.so/support</supportLink>",
+		"feedback": "Pokud máte nějaké dotazy nebo zpětnou vazbu, neváhejte otevřít problém na <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> nebo se připojte k <redditLink>reddit.com/r/matter_ai</redditLink> nebo <discordLink>discord.gg/fJU5DvanU3</discordLink>.",
+		"support": "Pro finanční dotazy kontaktujte prosím zákaznickou podporu na <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Povolit hlášení chyb a používání",
 			"description": "Pomozte vylepšit Axon Code odesíláním dat o používání a hlášení chyb. Nikdy se neodesílá žádný kód, výzvy ani osobní informace. Další podrobnosti najdete v našich zásadách ochrany osobních údajů."

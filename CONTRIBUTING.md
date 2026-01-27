@@ -13,4 +13,4 @@ There are lots of ways to contribute to the project
 - **Feature Requests:** Suggest new features or improvements
 - **Community Support:** Help other users in the community
 
-The Kilocode Community is [here on Discord](https://matterai.so/discord)
+The Kilocode Community is [here on Discord](https://discord.gg/fJU5DvanU3)

@@ -17,8 +17,8 @@ export const SettingsFooter = ({ version, className, ...props }: SettingsFooterP
 				github.com/MatterAIOrg/AxonCode
 			</VSCodeLink>{" "}
 			or join{" "}
-			<VSCodeLink href="https://www.reddit.com/r/KiloCode/" style={{ display: "inline" }}>
-				reddit.com/r/KiloCode
+			<VSCodeLink href="https://www.reddit.com/r/matter_ai/" style={{ display: "inline" }}>
+				reddit.com/r/matter_ai
 			</VSCodeLink>
 			.
 		</p>
