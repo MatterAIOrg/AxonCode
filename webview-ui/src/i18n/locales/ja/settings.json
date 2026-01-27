@@ -858,8 +858,8 @@
 		"useCustomModel": "カスタムを使用: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "質問やフィードバックがある場合は、<githubLink>github.com/MatterAIOrg/AxonCode</githubLink>で問題を開くか、<redditLink>reddit.com/r/kilocode</redditLink>や<discordLink>matterai.so/discord</discordLink>に参加してください",
-		"support": "財務に関するご質問は、<supportLink>https://matterai.so/support</supportLink>のカスタマーサポートまでお問い合わせください",
+		"feedback": "質問やフィードバックがある場合は、<githubLink>github.com/MatterAIOrg/AxonCode</githubLink>で問題を開くか、<redditLink>reddit.com/r/matter_ai</redditLink>や<discordLink>discord.gg/fJU5DvanU3</discordLink>に参加してください",
+		"support": "財務に関するご質問は、<supportLink>https://www.matterai.so/contact</supportLink>のカスタマーサポートまでお問い合わせください",
 		"telemetry": {
 			"label": "匿名のエラーと使用状況レポートを許可",
 			"description": "匿名の使用データとエラーレポートを送信してKilo Codeの改善にご協力ください。コード、プロンプト、個人情報が送信されることはありません。詳細については、プライバシーポリシーをご覧ください。"

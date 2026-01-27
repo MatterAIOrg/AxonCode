@@ -103,8 +103,8 @@ npx docusaurus build
 
 ### Community Platforms
 
-- **Discord**: https://matterai.so/discord
-- **Reddit**: https://www.reddit.com/r/kilocode/
+- **Discord**: https://discord.gg/fJU5DvanU3
+- **Reddit**: https://www.reddit.com/r/matter_ai/
 - **Twitter**: https://x.com/kilocode
 - **YouTube**: https://www.youtube.com/@Kilo-Code
 

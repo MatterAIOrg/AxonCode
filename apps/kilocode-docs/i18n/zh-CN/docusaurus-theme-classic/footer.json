@@ -17,11 +17,11 @@
 	},
 	"link.item.label.Discord": {
 		"message": "Discord",
-		"description": "The label of footer link with label=Discord linking to https://matterai.so/discord"
+		"description": "The label of footer link with label=Discord linking to https://discord.gg/fJU5DvanU3"
 	},
 	"link.item.label.Reddit": {
 		"message": "Reddit",
-		"description": "The label of footer link with label=Reddit linking to https://www.reddit.com/r/kilocode/"
+		"description": "The label of footer link with label=Reddit linking to https://www.reddit.com/r/matter_ai/"
 	},
 	"link.item.label.Twitter": {
 		"message": "Twitter",

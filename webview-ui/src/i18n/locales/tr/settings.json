@@ -858,8 +858,8 @@
 		"useCustomModel": "Özel kullan: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Herhangi bir sorunuz veya geri bildiriminiz varsa, <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> adresinde bir konu açmaktan veya <redditLink>reddit.com/r/kilocode</redditLink> ya da <discordLink>matterai.so/discord</discordLink>'a katılmaktan çekinmeyin",
-		"support": "Mali konular için lütfen <supportLink>https://matterai.so/support</supportLink> adresinden Müşteri Desteği ile iletişime geçin",
+		"feedback": "Herhangi bir sorunuz veya geri bildiriminiz varsa, <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> adresinde bir konu açmaktan veya <redditLink>reddit.com/r/matter_ai</redditLink> ya da <discordLink>discord.gg/fJU5DvanU3</discordLink>'a katılmaktan çekinmeyin",
+		"support": "Mali konular için lütfen <supportLink>https://www.matterai.so/contact</supportLink> adresinden Müşteri Desteği ile iletişime geçin",
 		"telemetry": {
 			"label": "Hata ve kullanım raporlamaya izin ver",
 			"description": "Kullanım verileri ve hata raporları göndererek Axon Code'u geliştirmeye yardımcı olun. Hiçbir kod, istem veya kişisel bilgi asla gönderilmez. Daha fazla ayrıntı için gizlilik politikamıza bakın."

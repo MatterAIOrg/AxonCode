@@ -857,8 +857,8 @@
 		"useCustomModel": "Użyj niestandardowy: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Jeśli masz jakiekolwiek pytania lub opinie, śmiało otwórz zgłoszenie na <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> lub dołącz do <redditLink>reddit.com/r/kilocode</redditLink> lub <discordLink>matterai.so/discord</discordLink>",
-		"support": "W sprawach finansowych skontaktuj się z Obsługą Klienta pod adresem <supportLink>https://matterai.so/support</supportLink>",
+		"feedback": "Jeśli masz jakiekolwiek pytania lub opinie, śmiało otwórz zgłoszenie na <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> lub dołącz do <redditLink>reddit.com/r/matter_ai</redditLink> lub <discordLink>discord.gg/fJU5DvanU3</discordLink>",
+		"support": "W sprawach finansowych skontaktuj się z Obsługą Klienta pod adresem <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Zezwól na anonimowe raportowanie błędów i użycia",
 			"description": "Pomóż ulepszyć Axon Code, wysyłając anonimowe dane o użytkowaniu i raporty o błędach. Nigdy nie są wysyłane kod, podpowiedzi ani informacje osobiste. Zobacz naszą politykę prywatności, aby uzyskać więcej szczegółów."

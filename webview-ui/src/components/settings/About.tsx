@@ -68,8 +68,8 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 						i18nKey="settings:footer.feedback"
 						components={{
 							githubLink: <VSCodeLink href="https://github.com/MatterAIOrg/AxonCode" />,
-							redditLink: <VSCodeLink href="https://reddit.com/r/kilocode" />,
-							discordLink: <VSCodeLink href="https://matterai.so/discord" />,
+							redditLink: <VSCodeLink href="https://reddit.com/r/matter_ai" />,
+							discordLink: <VSCodeLink href="https://discord.gg/fJU5DvanU3" />,
 						}}
 					/>
 				</div>
@@ -79,7 +79,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 					<Trans
 						i18nKey="settings:footer.support"
 						components={{
-							supportLink: <VSCodeLink href="https://matterai.so/support" />,
+							supportLink: <VSCodeLink href="https://www.matterai.so/contact" />,
 						}}
 					/>
 				</div>
