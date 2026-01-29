@@ -16,6 +16,7 @@ import fileEdit from "./file_edit"
 import updateTodoList from "./update_todo_list"
 import codebaseSearch from "./codebase_search"
 import planFileEdit from "./plan_file_edit"
+import useSkill from "./use_skill"
 
 export const nativeTools = [
 	// apply_diff_single_file,
@@ -40,5 +41,6 @@ export const nativeTools = [
 	// searchAndReplace,
 	searchFiles,
 	updateTodoList,
+	useSkill,
 	// writeToFile,
 ] satisfies OpenAI.Chat.ChatCompletionTool[]

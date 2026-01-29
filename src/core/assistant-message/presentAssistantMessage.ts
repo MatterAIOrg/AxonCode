@@ -33,6 +33,7 @@ import { generateImageTool } from "../tools/generateImageTool"
 import { planFileEditTool } from "../tools/planFileEditTool"
 import { runSlashCommandTool } from "../tools/runSlashCommandTool"
 import { updateTodoListTool } from "../tools/updateTodoListTool"
+import { useSkillTool } from "../tools/useSkillTool"
 
 import Anthropic from "@anthropic-ai/sdk" // kilocode_change
 import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
@@ -625,6 +626,9 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				case "plan_file_edit":
 					await planFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
+					break
+				case "use_skill":
+					await useSkillTool(cline, block, askApproval, handleError, pushToolResult)
 					break
 			}
 

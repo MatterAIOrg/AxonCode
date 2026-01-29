@@ -89,6 +89,74 @@ export class CodeIndexOrchestrator {
 	}
 
 	/**
+	 * Starts only the file watcher without re-scanning the workspace.
+	 * This is used when the extension restarts and the index is already up-to-date.
+	 */
+	public async startWatcherOnly(): Promise<void> {
+		if (!this.configManager.isFeatureConfigured) {
+			throw new Error("Cannot start watcher: Service not configured.")
+		}
+
+		// Check if watcher is already running
+		if (this._fileWatcherSubscriptions.length > 0) {
+			console.log("[CodeIndexOrchestrator] File watcher already running, skipping.")
+			return
+		}
+
+		try {
+			await this.fileWatcher.initialize()
+
+			this._fileWatcherSubscriptions = [
+				this.fileWatcher.onDidStartBatchProcessing((filePaths: string[]) => {}),
+				this.fileWatcher.onBatchProgressUpdate(({ processedInBatch, totalInBatch, currentFile }) => {
+					if (totalInBatch > 0 && this.stateManager.state !== "Indexing") {
+						this.stateManager.setSystemState("Indexing", "Processing file changes...")
+					}
+					this.stateManager.reportFileQueueProgress(
+						processedInBatch,
+						totalInBatch,
+						currentFile ? path.basename(currentFile) : undefined,
+					)
+					if (processedInBatch === totalInBatch) {
+						// Covers (N/N) and (0/0)
+						if (totalInBatch > 0) {
+							// Batch with items completed
+							this.stateManager.setSystemState("Indexed", "File changes processed. Index up-to-date.")
+						} else {
+							if (this.stateManager.state === "Indexing") {
+								// Only transition if it was "Indexing"
+								this.stateManager.setSystemState("Indexed", "Index up-to-date. File queue empty.")
+							}
+						}
+					}
+				}),
+				this.fileWatcher.onDidFinishBatchProcessing((summary: BatchProcessingSummary) => {
+					if (summary.batchError) {
+						console.error(`[CodeIndexOrchestrator] Batch processing failed:`, summary.batchError)
+					} else {
+						const successCount = summary.processedFiles.filter(
+							(f: { status: string }) => f.status === "success",
+						).length
+						const errorCount = summary.processedFiles.filter(
+							(f: { status: string }) => f.status === "error" || f.status === "local_error",
+						).length
+					}
+				}),
+			]
+
+			console.log("[CodeIndexOrchestrator] File watcher started successfully (watcher-only mode).")
+		} catch (error) {
+			console.error("[CodeIndexOrchestrator] Failed to start file watcher:", error)
+			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
+				error: error instanceof Error ? error.message : String(error),
+				stack: error instanceof Error ? error.stack : undefined,
+				location: "startWatcherOnly",
+			})
+			throw error
+		}
+	}
+
+	/**
 	 * Updates the status of a file in the state manager.
 	 */
 

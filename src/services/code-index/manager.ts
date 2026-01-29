@@ -71,6 +71,7 @@ export class CodeIndexManager {
 		this.workspacePath = workspacePath
 		this.context = context
 		this._stateManager = new CodeIndexStateManager()
+		this._stateManager.setContext(context)
 	}
 
 	// --- Public API ---
@@ -124,6 +125,9 @@ export class CodeIndexManager {
 	 */
 	public async initialize(contextProxy: ContextProxy): Promise<{ requiresRestart: boolean }> {
 		try {
+			// 0. Load persisted state before anything else
+			await this._stateManager.loadPersistedState()
+
 			// 1. ConfigManager Initialization and Configuration Loading
 			if (!this._configManager) {
 				this._configManager = new CodeIndexConfigManager(contextProxy)
@@ -162,12 +166,19 @@ export class CodeIndexManager {
 			}
 
 			// 6. Handle Indexing Start/Restart
+			// Only start indexing if: restart is required OR services need recreation AND state is not already Indexed/Indexing
 			const shouldStartOrRestartIndexing =
 				requiresRestart ||
-				(needsServiceRecreation && (!this._orchestrator || this._orchestrator.state !== "Indexing"))
+				(needsServiceRecreation &&
+					(!this._orchestrator ||
+						this._orchestrator.state === "Standby" ||
+						this._orchestrator.state === "Error"))
 
 			if (shouldStartOrRestartIndexing) {
 				this._orchestrator?.startIndexing() // This method is async, but we don't await it here
+			} else if (this._orchestrator && this._orchestrator.state === "Indexed" && needsServiceRecreation) {
+				// State is already Indexed and services were recreated - just start the watcher
+				this._orchestrator.startWatcherOnly() // This method is async, but we don't await it here
 			}
 
 			return { requiresRestart }
@@ -314,6 +325,10 @@ export class CodeIndexManager {
 	 * Used by both initialize() and handleSettingsChange().
 	 */
 	private async _recreateServices(): Promise<void> {
+		// Preserve the current state before recreating services
+		const currentState = this._stateManager.state
+		const currentMessage = this._stateManager.getCurrentStatus().message
+
 		// Stop watcher if it exists
 		if (this._orchestrator) {
 			this.stopWatcher()
@@ -399,8 +414,13 @@ export class CodeIndexManager {
 			vectorStore,
 		)
 
-		// Clear any error state after successful recreation
-		this._stateManager.setSystemState("Standby", "")
+		// Restore the previous state if it was "Indexed", otherwise clear to "Standby"
+		if (currentState === "Indexed") {
+			this._stateManager.setSystemState("Indexed", currentMessage || "Index up-to-date.")
+		} else {
+			// Clear any error state after successful recreation
+			this._stateManager.setSystemState("Standby", "")
+		}
 	}
 
 	/**

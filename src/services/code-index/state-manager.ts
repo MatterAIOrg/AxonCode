@@ -2,6 +2,8 @@ import * as vscode from "vscode"
 
 export type IndexingState = "Standby" | "Indexing" | "Indexed" | "Error"
 
+const STATE_STORAGE_KEY = "codeIndexState"
+
 export class CodeIndexStateManager {
 	private _systemStatus: IndexingState = "Standby"
 	private _statusMessage: string = ""
@@ -9,6 +11,7 @@ export class CodeIndexStateManager {
 	private _totalItems: number = 0
 	private _currentItemUnit: string = "blocks"
 	private _progressEmitter = new vscode.EventEmitter<ReturnType<typeof this.getCurrentStatus>>()
+	private _context: vscode.ExtensionContext | undefined
 
 	// --- Public API ---
 
@@ -16,6 +19,13 @@ export class CodeIndexStateManager {
 
 	public get state(): IndexingState {
 		return this._systemStatus
+	}
+
+	/**
+	 * Sets the extension context for state persistence
+	 */
+	public setContext(context: vscode.ExtensionContext): void {
+		this._context = context
 	}
 
 	public getCurrentStatus() {
@@ -52,6 +62,53 @@ export class CodeIndexStateManager {
 			}
 
 			this._progressEmitter.fire(this.getCurrentStatus())
+			this._persistState()
+		}
+	}
+
+	/**
+	 * Loads the persisted state from extension context
+	 */
+	public async loadPersistedState(): Promise<void> {
+		if (!this._context) {
+			return
+		}
+
+		try {
+			const persistedState = this._context.globalState.get<IndexingState>(STATE_STORAGE_KEY)
+			if (persistedState && (persistedState === "Indexed" || persistedState === "Standby")) {
+				// Only restore "Indexed" or "Standby" states - never restore "Indexing" or "Error" on restart
+				this._systemStatus = persistedState
+				if (persistedState === "Indexed") {
+					this._statusMessage = "Index up-to-date."
+				} else {
+					this._statusMessage = "Ready."
+				}
+				console.log(`[CodeIndexStateManager] Restored state: ${persistedState}`)
+			}
+		} catch (error) {
+			console.error("[CodeIndexStateManager] Failed to load persisted state:", error)
+		}
+	}
+
+	/**
+	 * Persists the current state to extension context
+	 */
+	private _persistState(): void {
+		if (!this._context) {
+			return
+		}
+
+		try {
+			// Only persist "Indexed" state - other states should reset on restart
+			if (this._systemStatus === "Indexed") {
+				this._context.globalState.update(STATE_STORAGE_KEY, this._systemStatus)
+			} else {
+				// Clear persisted state if not Indexed
+				this._context.globalState.update(STATE_STORAGE_KEY, undefined)
+			}
+		} catch (error) {
+			console.error("[CodeIndexStateManager] Failed to persist state:", error)
 		}
 	}
 
