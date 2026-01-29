@@ -30,7 +30,7 @@ export async function useSkillTool(
 
 			// Show in UI that we're loading the skill (no approval needed - read-only operation)
 			const completeMessage = JSON.stringify({ ...sharedMessageProps, content: skillName } satisfies ClineSayTool)
-			await cline.say("tool", completeMessage)
+			await cline.say("tool" as any, completeMessage)
 
 			// Fetch the skill content
 			const skill = await getSkillByName(skillName, { workspacePath: cline.workspacePath })
