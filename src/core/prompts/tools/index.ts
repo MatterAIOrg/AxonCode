@@ -33,6 +33,7 @@ import { getUpdateTodoListDescription } from "./update-todo-list"
 import { getRunSlashCommandDescription } from "./run-slash-command"
 import { getGenerateImageDescription } from "./generate-image"
 import { getCheckPastChatMemoriesDescription } from "./check-past-chat-memories"
+import { getUseSkillDescription } from "./use-skill"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 
 // kilocode_change start: Morph fast apply
@@ -42,7 +43,7 @@ import { type ClineProviderState } from "../../webview/ClineProvider"
 // kilocode_change end
 
 // Map of tool names to their description functions
-const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined> = {
+const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined | Promise<string>> = {
 	execute_command: (args) => getExecuteCommandDescription(args),
 	read_file: (args) => {
 		// Check if the current model should use the simplified read_file tool
@@ -75,9 +76,10 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined>
 	run_slash_command: () => getRunSlashCommandDescription(),
 	generate_image: (args) => getGenerateImageDescription(args),
 	check_past_chat_memories: (args) => getCheckPastChatMemoriesDescription(args),
+	use_skill: (args) => getUseSkillDescription(args),
 }
 
-export function getToolDescriptionsForMode(
+export async function getToolDescriptionsForMode(
 	mode: Mode,
 	cwd: string,
 	supportsComputerUse: boolean,
@@ -92,7 +94,7 @@ export function getToolDescriptionsForMode(
 	enableMcpServerCreation?: boolean,
 	modelId?: string,
 	clineProviderState?: ClineProviderState, // kilocode_change
-): string {
+): Promise<string> {
 	const config = getModeConfig(mode, customModes)
 	const args: ToolArgs = {
 		cwd,
@@ -176,17 +178,22 @@ export function getToolDescriptionsForMode(
 	}
 
 	// Map tool descriptions for allowed tools
-	const descriptions = Array.from(tools).map((toolName) => {
-		const descriptionFn = toolDescriptionMap[toolName]
-		if (!descriptionFn) {
-			return undefined
-		}
+	const descriptions = await Promise.all(
+		Array.from(tools).map(async (toolName) => {
+			const descriptionFn = toolDescriptionMap[toolName]
+			if (!descriptionFn) {
+				return undefined
+			}
 
-		return descriptionFn({
-			...args,
-			toolOptions: undefined, // No tool options in group-based approach
-		})
-	})
+			const result = descriptionFn({
+				...args,
+				toolOptions: undefined, // No tool options in group-based approach
+			})
+
+			// Handle both sync and async description functions
+			return result instanceof Promise ? await result : result
+		}),
+	)
 
 	return `# Tools\n\n${descriptions.filter(Boolean).join("\n\n")}`
 }

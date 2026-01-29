@@ -81,6 +81,7 @@ export const toolParamNames = [
 	"prompt",
 	"image",
 	"workspace",
+	"skill_name",
 ] as const
 
 export type ToolParamName = (typeof toolParamNames)[number]
@@ -216,6 +217,11 @@ export interface GenerateImageToolUse extends ToolUse {
 	params: Partial<Pick<Record<ToolParamName, string>, "prompt" | "path" | "image">>
 }
 
+export interface UseSkillToolUse extends ToolUse {
+	name: "use_skill"
+	params: Required<Pick<Record<ToolParamName, string>, "skill_name">>
+}
+
 // Define tool group configuration
 export type ToolGroupConfig = {
 	tools: readonly string[]
@@ -251,6 +257,7 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	generate_image: "generate images",
 	plan_file_edit: "edit plan files", // kilocode_change: Plan mode file editing
 	check_past_chat_memories: "check past chat memories",
+	use_skill: "use skill",
 } as const
 
 // Define available tool groups.
@@ -264,6 +271,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 			"list_code_definition_names",
 			"codebase_search",
 			"check_past_chat_memories",
+			"use_skill",
 		],
 	},
 	edit: {

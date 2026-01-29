@@ -491,6 +491,7 @@ export interface ClineSayTool {
 		| "planFileEdit" // kilocode_change: Plan mode file editing
 		| "codeReview" // kilocode_change: AI Code Review
 		| "checkPastChatMemories" // Chat memories feature
+		| "useSkill"
 	path?: string
 	diff?: string
 	content?: string
