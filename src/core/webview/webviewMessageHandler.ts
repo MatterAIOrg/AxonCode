@@ -446,7 +446,6 @@ async function getGitChanges(cwd: string): Promise<{ files: any[]; gitDiff: stri
 					if (filePath) {
 						// Skip files that match skip patterns
 						if (shouldSkipFile(filePath)) {
-							console.log(`[Code Review] Skipping file: ${filePath}`)
 							continue
 						}
 
@@ -497,7 +496,6 @@ async function getGitChanges(cwd: string): Promise<{ files: any[]; gitDiff: stri
 
 					// Skip files that match skip patterns
 					if (shouldSkipFile(filePath)) {
-						console.log(`[Code Review] Skipping untracked file: ${filePath}`)
 						continue
 					}
 
@@ -546,7 +544,6 @@ async function getGitChanges(cwd: string): Promise<{ files: any[]; gitDiff: stri
 					// Check if this file should be skipped
 					includeCurrentFile = !shouldSkipFile(currentFile)
 					if (!includeCurrentFile) {
-						console.log(`[Code Review] Filtering diff for: ${currentFile}`)
 					}
 				}
 

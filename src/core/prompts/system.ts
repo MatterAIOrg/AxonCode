@@ -25,6 +25,7 @@ import { PromptVariables, loadSystemPromptFile } from "./sections/custom-system-
 import { type ClineProviderState } from "../webview/ClineProvider" // kilocode_change
 import { addCustomInstructions, getMcpServersSection, getSystemInfoSection } from "./sections"
 import { getToolDescriptionsForMode } from "./tools"
+import { discoverSkills } from "../tools/skills"
 
 // Helper function to get prompt component, filtering out empty objects
 export function getPromptComponent(
@@ -58,6 +59,26 @@ function getPreviousChatTitlesSection(history?: HistoryItem[]): string {
 	}
 
 	return `Previous Chat Titles: ${titles.join(", ")}`
+}
+
+/**
+ * Get available skills section for system prompt
+ */
+async function getSkillsSection(workspacePath: string): Promise<string> {
+	const skills = await discoverSkills({ workspacePath })
+
+	if (skills.length === 0) {
+		return ""
+	}
+
+	const skillList = skills
+		.map((skill) => {
+			return `  - ${skill.metadata.name}: ${skill.metadata.description}`
+		})
+		.join("\n")
+
+	return `You are provided Skills below, these skills are to be used by you as per your descretion. The purpose of these skills is to provide you additional niche context for you tasks. You might get skills for React, Security or even third-party tools. Use the tool use_skill to get the skill context:
+${skillList}`
 }
 
 const applyDiffToolDescription = `
@@ -464,11 +485,12 @@ async function generatePrompt(
 	const hasMcpServers = mcpHub && mcpHub.getServers().length > 0
 	const shouldIncludeMcp = hasMcpGroup && hasMcpServers
 
-	const [mcpServersSection] = await Promise.all([
+	const [mcpServersSection, skillsSection] = await Promise.all([
 		// getModesSection(context, toolUseStyle /*kilocode_change*/),
 		shouldIncludeMcp
 			? getMcpServersSection(mcpHub, effectiveDiffStrategy, enableMcpServerCreation)
 			: Promise.resolve(""),
+		getSkillsSection(cwd),
 	])
 
 	const codeIndexManager = CodeIndexManager.getInstance(context, cwd)
@@ -501,6 +523,8 @@ ${
 ${applyDiffToolDescription}
 
 ${mcpServersSection}
+
+${skillsSection}
 
 ${previousChatTitlesSection}
 

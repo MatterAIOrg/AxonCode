@@ -2,12 +2,11 @@ import { Task } from "../task/Task"
 import { getSkillByName } from "./skills"
 import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { formatResponse } from "../prompts/responses"
-import { ToolUse, AskApproval, HandleError, PushToolResult } from "../../shared/tools"
+import { ToolUse, HandleError, PushToolResult } from "../../shared/tools"
 
 export async function useSkillTool(
 	cline: Task,
 	block: ToolUse,
-	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,
 ) {
@@ -29,12 +28,9 @@ export async function useSkillTool(
 
 			cline.consecutiveMistakeCount = 0
 
+			// Show in UI that we're loading the skill (no approval needed - read-only operation)
 			const completeMessage = JSON.stringify({ ...sharedMessageProps, content: skillName } satisfies ClineSayTool)
-			const didApprove = await askApproval("tool", completeMessage)
-
-			if (!didApprove) {
-				return
-			}
+			await cline.say("tool", completeMessage)
 
 			// Fetch the skill content
 			const skill = await getSkillByName(skillName, { workspacePath: cline.workspacePath })

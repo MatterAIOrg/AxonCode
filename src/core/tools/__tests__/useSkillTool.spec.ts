@@ -12,13 +12,11 @@ vi.mock("../../prompts/responses", () => ({
 
 describe("useSkillTool", () => {
 	let mockCline: any
-	let mockAskApproval: any
 	let mockHandleError: any
 	let mockPushToolResult: any
 
 	beforeEach(() => {
 		mockPushToolResult = vi.fn()
-		mockAskApproval = vi.fn().mockResolvedValue(true)
 		mockHandleError = vi.fn()
 
 		mockCline = {
@@ -27,6 +25,7 @@ describe("useSkillTool", () => {
 			recordToolError: vi.fn(),
 			sayAndCreateMissingParamError: vi.fn().mockResolvedValue("Missing param error"),
 			ask: vi.fn().mockResolvedValue({ text: "", images: [] }),
+			say: vi.fn().mockResolvedValue(undefined),
 		} as const
 	})
 
@@ -39,7 +38,7 @@ describe("useSkillTool", () => {
 			partial: true,
 		} as const
 
-		await useSkillTool(mockCline, block, mockAskApproval, mockHandleError, mockPushToolResult)
+		await useSkillTool(mockCline, block, mockHandleError, mockPushToolResult)
 
 		expect(mockCline.ask).toHaveBeenCalledWith("tool", expect.any(String), true)
 		expect(mockPushToolResult).not.toHaveBeenCalled()
@@ -53,7 +52,7 @@ describe("useSkillTool", () => {
 			partial: false,
 		} as const
 
-		await useSkillTool(mockCline, block, mockAskApproval, mockHandleError, mockPushToolResult)
+		await useSkillTool(mockCline, block, mockHandleError, mockPushToolResult)
 
 		expect(mockCline.consecutiveMistakeCount).toBe(1)
 		expect(mockCline.recordToolError).toHaveBeenCalledWith("use_skill")
@@ -69,9 +68,9 @@ describe("useSkillTool", () => {
 			partial: false,
 		} as const
 
-		await useSkillTool(mockCline, block, mockAskApproval, mockHandleError, mockPushToolResult)
+		await useSkillTool(mockCline, block, mockHandleError, mockPushToolResult)
 
-		expect(mockAskApproval).toHaveBeenCalled()
+		expect(mockCline.say).toHaveBeenCalled()
 		expect(mockPushToolResult).toHaveBeenCalledWith(
 			'<error>Skill "non-existent-skill" not found. Make sure the skill exists in .agent/skills/<skill-name>/SKILL.md</error>',
 		)
@@ -99,28 +98,12 @@ describe("useSkillTool", () => {
 				}) as const,
 		)
 
-		await useSkillTool(mockCline, block, mockAskApproval, mockHandleError, mockPushToolResult)
+		await useSkillTool(mockCline, block, mockHandleError, mockPushToolResult)
 
-		expect(mockAskApproval).toHaveBeenCalled()
+		expect(mockCline.say).toHaveBeenCalled()
 		expect(mockPushToolResult).toHaveBeenCalledWith(
 			"You are requested to follow the below instructions\n\n# Test Skill\n\nThis is the skill content.",
 		)
-	})
-
-	it("should not execute when approval is denied", async () => {
-		mockAskApproval.mockResolvedValue(false)
-
-		const block = {
-			type: "tool_use",
-			name: "use_skill",
-			params: { skill_name: "test-skill" },
-			partial: false,
-		} as const
-
-		await useSkillTool(mockCline, block, mockAskApproval, mockHandleError, mockPushToolResult)
-
-		expect(mockAskApproval).toHaveBeenCalled()
-		expect(mockPushToolResult).not.toHaveBeenCalled()
 	})
 
 	it("should handle errors gracefully", async () => {
@@ -140,7 +123,7 @@ describe("useSkillTool", () => {
 				}) as const,
 		)
 
-		await useSkillTool(mockCline, block, mockAskApproval, mockHandleError, mockPushToolResult)
+		await useSkillTool(mockCline, block, mockHandleError, mockPushToolResult)
 
 		expect(mockHandleError).toHaveBeenCalledWith("using skill", expect.any(Error))
 	})

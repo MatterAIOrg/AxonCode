@@ -11,21 +11,37 @@ export async function discoverSkills(options: SkillDiscoveryOptions): Promise<Sk
 	const skillsDir = path.join(workspacePath, SKILLS_DIR)
 
 	try {
-		// Check if skills directory exists
 		await fs.access(skillsDir)
-	} catch {
-		// Directory doesn't exist, return empty array
+	} catch (error) {
+		console.warn(`[Skills] error accessing skills directory:`, error)
 		return []
 	}
 
 	const skills: Skill[] = []
 
 	try {
-		// Read all subdirectories in skills directory
 		const entries = await fs.readdir(skillsDir, { withFileTypes: true })
-		const skillFolders = entries.filter((entry) => entry.isDirectory())
 
-		// Load SKILL.md from each folder
+		// Filter for directories and symlinks that point to directories
+		const skillFolders: typeof entries = []
+
+		for (const entry of entries) {
+			if (entry.isDirectory()) {
+				skillFolders.push(entry)
+			} else if (entry.isSymbolicLink()) {
+				const fullPath = path.join(skillsDir, entry.name)
+				try {
+					// Use stat() to follow the symlink and check what it points to
+					const stats = await fs.stat(fullPath)
+					if (stats.isDirectory()) {
+						skillFolders.push(entry)
+					}
+				} catch {
+					// Skip invalid symlinks
+				}
+			}
+		}
+
 		for (const folder of skillFolders) {
 			const skillPath = path.join(skillsDir, folder.name, SKILL_FILE)
 
@@ -35,14 +51,16 @@ export async function discoverSkills(options: SkillDiscoveryOptions): Promise<Sk
 
 				if (skill) {
 					skills.push(skill)
+				} else {
+					console.warn(`[Skills] Failed to parse skill from ${folder.name}`)
 				}
-			} catch {
-				// SKILL.md doesn't exist or can't be read, skip this folder
+			} catch (error) {
+				console.warn(`[Skills] Could not read SKILL.md from ${folder.name}:`, error)
 				continue
 			}
 		}
-	} catch {
-		// Error reading directory, return empty array
+	} catch (error) {
+		console.warn("[Skills] Could not read skills directory:", error)
 		return []
 	}
 

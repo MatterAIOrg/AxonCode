@@ -628,7 +628,7 @@ export async function presentAssistantMessage(cline: Task) {
 					await planFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
 					break
 				case "use_skill":
-					await useSkillTool(cline, block, askApproval, handleError, pushToolResult)
+					await useSkillTool(cline, block, handleError, pushToolResult)
 					break
 			}
 
