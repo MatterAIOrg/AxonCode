@@ -1,5 +1,24 @@
 # Changelog
 
+## [v5.3.0] - 2026-01-29
+
+### Added
+
+- New skill tool functionality for enhanced code assistance
+- Skill parser and type definitions for skill management
+- Comprehensive test coverage for skill tool components
+- Enhanced code index orchestrator with skill integration
+- State manager for skill tool operations
+
+### Changed
+
+- Updated tool type definitions to support skill tools
+- Enhanced assistant message presentation with skill support
+- Improved code index manager with skill-related functionality
+- Updated dependencies in package.json
+
+---
+
 ## [v5.2.5] - 2026-01-21
 
 ### Added
