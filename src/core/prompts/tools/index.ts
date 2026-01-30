@@ -35,6 +35,7 @@ import { getGenerateImageDescription } from "./generate-image"
 import { getCheckPastChatMemoriesDescription } from "./check-past-chat-memories"
 import { getUseSkillDescription } from "./use-skill"
 import { CodeIndexManager } from "../../../services/code-index/manager"
+import { discoverSkills } from "../../tools/skills"
 
 // kilocode_change start: Morph fast apply
 import { isFastApplyAvailable } from "../../tools/editFileTool"
@@ -175,6 +176,12 @@ export async function getToolDescriptionsForMode(
 	// Conditionally exclude run_slash_command if experiment is not enabled
 	if (!experiments?.runSlashCommand) {
 		tools.delete("run_slash_command")
+	}
+
+	// Conditionally exclude use_skill if no skills are available
+	const skills = await discoverSkills({ workspacePath: cwd })
+	if (skills.length === 0) {
+		tools.delete("use_skill")
 	}
 
 	// Map tool descriptions for allowed tools
