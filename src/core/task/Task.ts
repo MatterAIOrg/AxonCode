@@ -3289,7 +3289,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 			// kilocode_change end
 			// note that this api_req_failed ask is unique in that we only present this option if the api hasn't streamed any content yet (ie it fails on the first chunk due), as it would allow them to hit a retry button. However if the api failed mid-stream, it could be in any arbitrary state where some tools may have executed, so that error is handled differently and requires cancelling the task entirely.
-			if (autoApprovalEnabled && alwaysApproveResubmit) {
+
+			// Check if this is a 5xx error - always show retry dialog for server errors
+			const isServerError = error.status && error.status >= 500 && error.status < 600
+
+			if (autoApprovalEnabled && alwaysApproveResubmit && !isServerError) {
 				let errorMsg
 
 				if (error.error?.metadata?.raw) {
@@ -3403,7 +3407,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 			// kilocode_change end
 
+			// Check if this is a 5xx error - always show retry dialog for server errors
+			const isServerError = error.status && error.status >= 500 && error.status < 600
+
 			// For mid-stream failures, show the retry dialog to allow user to retry
+			// Always show retry dialog for 5xx server errors
 			const { response } = await this.ask(
 				"api_req_failed",
 				error.message ?? JSON.stringify(serializeError(error), null, 2),

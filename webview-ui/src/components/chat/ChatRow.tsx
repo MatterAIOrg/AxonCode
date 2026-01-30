@@ -1740,6 +1740,20 @@ export const ChatRowContent = ({
 			switch (message.ask) {
 				case "mistake_limit_reached":
 					return <ErrorRow type="mistake_limit" message={message.text || ""} />
+				case "api_req_failed":
+					return (
+						<CommandExecution
+							executionId={message.ts.toString()}
+							text={message.text}
+							icon={icon}
+							title={title}
+							onPrimaryButtonClick={onPrimaryButtonClick}
+							onSecondaryButtonClick={onSecondaryButtonClick}
+							enableButtons={enableButtons}
+							primaryButtonText={primaryButtonText}
+							secondaryButtonText={secondaryButtonText}
+						/>
+					)
 				case "command":
 					return (
 						<CommandExecution

@@ -230,7 +230,9 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			if (this.providerName == "KiloCode" && isAnyRecognizedKiloCodeError(error)) {
 				throw error
 			}
-			throw new Error(makeOpenRouterErrorReadable(error))
+			const err = new Error(makeOpenRouterErrorReadable(error)) as any
+			err.status = error?.status || error?.code
+			throw err
 			// kilocode_change end
 		}
 
@@ -247,7 +249,9 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 				if ("error" in chunk) {
 					const error = chunk.error as { message?: string; code?: number }
 					console.error(`OpenRouter API Error: ${error?.code} - ${error?.message}`)
-					throw new Error(`OpenRouter API Error ${error?.code}: ${error?.message}`)
+					const err = new Error(`OpenRouter API Error ${error?.code}: ${error?.message}`) as any
+					err.status = error?.code
+					throw err
 				}
 
 				// kilocode_change start
@@ -332,7 +336,9 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		} catch (error) {
 			console.error("OpenRouter API Error:", error)
 			let errorMessage = makeOpenRouterErrorReadable(error)
-			throw new Error(errorMessage)
+			const err = new Error(errorMessage) as any
+			err.status = error?.status || error?.code
+			throw err
 		}
 
 		if (lastUsage) {
@@ -411,7 +417,9 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		if ("error" in response) {
 			const error = response.error as { message?: string; code?: number }
-			throw new Error(`OpenRouter API Error ${error?.code}: ${error?.message}`)
+			const err = new Error(`OpenRouter API Error ${error?.code}: ${error?.message}`) as any
+			err.status = error?.code
+			throw err
 		}
 
 		const completion = response as OpenAI.Chat.ChatCompletion

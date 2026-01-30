@@ -78,7 +78,10 @@ async function getSkillsSection(workspacePath: string): Promise<string> {
 		.join("\n")
 
 	return `You are provided Skills below, these skills are to be used by you as per your descretion. The purpose of these skills is to provide you additional niche context for you tasks. You might get skills for React, Security or even third-party tools. Use the tool use_skill to get the skill context:
-${skillList}`
+${skillList}
+
+IMPORTANT: Skills are not tool calls such as read_file_with_content.
+`
 }
 
 const applyDiffToolDescription = `
