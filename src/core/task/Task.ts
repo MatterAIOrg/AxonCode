@@ -3408,7 +3408,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// kilocode_change end
 
 			// Check if this is a 5xx error - always show retry dialog for server errors
-			const isServerError = error.status && error.status >= 500 && error.status < 600
+			const isServerError = error.status && Number(error.status) >= 500 && Number(error.status) < 600
 
 			// For mid-stream failures, show the retry dialog to allow user to retry
 			// Always show retry dialog for 5xx server errors
