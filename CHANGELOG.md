@@ -2,6 +2,10 @@
 
 ## [v5.3.1] - 2026-01-30
 
+### Added
+
+- Retry button for 5xx streaming failures
+
 ### Fixed
 
 - Fixed use_skill tool being included in system prompt when no skills are available
