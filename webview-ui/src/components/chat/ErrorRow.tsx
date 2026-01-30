@@ -1,8 +1,9 @@
-import React, { useState, useCallback, memo, useRef, useEffect } from "react"
-import { useTranslation } from "react-i18next"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { XCircle, Info } from "lucide-react"
 import { useCopyToClipboard } from "@src/utils/clipboard"
+import { vscode } from "@src/utils/vscode"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { Info } from "lucide-react"
+import React, { memo, useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import CodeBlock from "../kilocode/common/CodeBlock" // kilocode_change
 
 export interface ErrorRowProps {
@@ -125,7 +126,6 @@ export const ErrorRow = memo(
 						}`}
 						onClick={handleToggleExpand}>
 						<div className="flex items-center gap-2 flex-grow">
-							<XCircle className="w-3 h-3 text-vscode-foreground opacity-50" />
 							<span className="font-bold">{errorTitle}</span>
 						</div>
 						<div className="flex items-center">
@@ -154,11 +154,8 @@ export const ErrorRow = memo(
 			<div className="relative my-1">
 				<div
 					className={
-						headerClassName || "flex items-center gap-2 py-1.5 px-2 rounded-md bg-vscode-editor-background"
+						headerClassName || "flex items-center gap-2 py-2 px-2 rounded-md bg-vscode-editor-background"
 					}>
-					{/* Error Icon */}
-					<XCircle className="w-4 h-4 flex-shrink-0 text-vscode-foreground opacity-50" />
-
 					{/* Error Title */}
 					{errorTitle && (
 						<span className="text-vscode-editor-foreground font-medium text-sm whitespace-nowrap">
@@ -216,6 +213,25 @@ export const ErrorRow = memo(
 								</VSCodeButton>
 							</div>
 						)}
+					</div>
+				)}
+
+				{/* Retry Button - outside tooltip, below error row */}
+				{type === "api_failure" && message?.includes("Provider error:") && (
+					<div className="mt-1 flex justify-start">
+						<VSCodeButton
+							appearance="secondary"
+							className="p-0"
+							onClick={() => {
+								// This will be handled by the parent component
+								vscode.postMessage({
+									type: "askResponse",
+									askResponse: "yesButtonClicked",
+								})
+							}}>
+							<span className="codicon codicon-refresh mr-1" />
+							{t("chat:retry.title")}
+						</VSCodeButton>
 					</div>
 				)}
 

@@ -17,13 +17,19 @@ export function handleOpenAIError(error: unknown, providerName: string): Error {
 
 		// Invalid character/ByteString conversion error in API key
 		if (msg.includes("Cannot convert argument to a ByteString")) {
-			return new Error(i18n.t("common:errors.api.invalidKeyInvalidChars"))
+			const err = new Error(i18n.t("common:errors.api.invalidKeyInvalidChars")) as any
+			err.status = (error as any).status
+			return err
 		}
 
 		// For other Error instances, wrap with provider-specific prefix
-		return new Error(`${providerName} completion error: ${msg}`)
+		const err = new Error(`${providerName} completion error: ${msg}`) as any
+		err.status = (error as any).status
+		return err
 	}
 
 	// Non-Error: wrap with provider-specific prefix
-	return new Error(`${providerName} completion error: ${String(error)}`)
+	const err = new Error(`${providerName} completion error: ${String(error)}`) as any
+	err.status = (error as any).status
+	return err
 }
