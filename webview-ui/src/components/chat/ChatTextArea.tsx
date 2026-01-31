@@ -22,7 +22,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { renderMentionChip } from "@/utils/chat-render"
-import { MessageSquareX, Paperclip, SendHorizontal, VolumeX } from "lucide-react"
+import { FilePlus2, MessageSquareX, VolumeX } from "lucide-react"
 import Thumbnails from "../common/Thumbnails"
 import KiloModeSelector from "../kilocode/KiloModeSelector"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
@@ -37,6 +37,7 @@ import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
 
 // kilocode_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
+import { ArrowRight02Icon } from "@/utils/customIcons"
 import {
 	SlashCommand,
 	getMatchingSlashCommands,
@@ -96,7 +97,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const { t } = useAppTranslation()
 		const {
 			filePaths,
-			openedTabs,
 			currentApiConfigName,
 			apiConfiguration,
 			customModes,
@@ -118,7 +118,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		// 	}
 		// }, [listApiConfigMeta, currentApiConfigName])
 
-		const [gitCommits, setGitCommits] = useState<any[]>([])
+		// const [gitCommits, setGitCommits] = useState<any[]>([])
 		const [showDropdown, setShowDropdown] = useState(false)
 		const [fileSearchResults, setFileSearchResults] = useState<SearchResult[]>([])
 
@@ -242,14 +242,14 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		// Fetch git commits when Git is selected or when typing a hash.
 		useEffect(() => {
-			if (selectedType === ContextMenuOptionType.Git || /^[a-f0-9]+$/i.test(searchQuery)) {
+			if (/^[a-f0-9]+$/i.test(searchQuery)) {
 				const message: WebviewMessage = {
 					type: "searchCommits",
 					query: searchQuery || "",
 				} as const
 				vscode.postMessage(message)
 			}
-		}, [selectedType, searchQuery])
+		}, [searchQuery])
 
 		// kilocode_change start: Image warning handlers
 		const showImageWarning = useCallback((messageKey: string) => {
@@ -277,24 +277,23 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		const queryItems = useMemo(() => {
 			return [
-				{ type: ContextMenuOptionType.Problems, value: "problems" },
-				{ type: ContextMenuOptionType.Terminal, value: "terminal" },
-				...gitCommits,
-				...openedTabs
-					.filter((tab) => tab.path)
-					.map((tab) => ({
-						type: ContextMenuOptionType.OpenedFile,
-						value: "/" + tab.path,
-					})),
+				// { type: ContextMenuOptionType.Problems, value: "problems" },
+				// { type: ContextMenuOptionType.Terminal, value: "terminal" },
+				// ...gitCommits,
+				// ...openedTabs
+				// 	.filter((tab) => tab.path)
+				// 	.map((tab) => ({
+				// 		type: ContextMenuOptionType.OpenedFile,
+				// 		value: "/" + tab.path,
+				// 	})),
 				...filePaths
 					.map((file) => "/" + file)
-					.filter((path) => !openedTabs.some((tab) => tab.path && "/" + tab.path === path)) // Filter out paths that are already in openedTabs
 					.map((path) => ({
 						type: path.endsWith("/") ? ContextMenuOptionType.Folder : ContextMenuOptionType.File,
 						value: path,
 					})),
 			]
-		}, [filePaths, gitCommits, openedTabs])
+		}, [filePaths])
 
 		useEffect(() => {
 			const handleClickOutside = (event: MouseEvent) => {
@@ -341,19 +340,19 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return
 				}
 
-				if (type === ContextMenuOptionType.Mode && value) {
-					// Handle mode selection.
-					setMode(value)
-					setInputValue("")
-					setShowContextMenu(false)
-					vscode.postMessage({ type: "mode", text: value })
-					return
-				}
+				// if (type === ContextMenuOptionType.Mode && value) {
+				// 	// Handle mode selection.
+				// 	setMode(value)
+				// 	setInputValue("")
+				// 	setShowContextMenu(false)
+				// 	vscode.postMessage({ type: "mode", text: value })
+				// 	return
+				// }
 
 				if (
 					type === ContextMenuOptionType.File ||
-					type === ContextMenuOptionType.Folder ||
-					type === ContextMenuOptionType.Git
+					type === ContextMenuOptionType.Folder
+					// type === ContextMenuOptionType.Git
 				) {
 					if (!value) {
 						setSelectedType(type)
@@ -368,12 +367,13 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 				let insertValue = value || ""
 
-				if (type === ContextMenuOptionType.URL) {
-					insertValue = value || ""
-				} else if (
+				// if (type === ContextMenuOptionType.URL) {
+				// 	insertValue = value || ""
+				// } else
+				if (
 					type === ContextMenuOptionType.File ||
-					type === ContextMenuOptionType.Folder ||
-					type === ContextMenuOptionType.OpenedFile
+					type === ContextMenuOptionType.Folder
+					// type === ContextMenuOptionType.OpenedFile
 				) {
 					const fullPath = value || ""
 					if (fullPath.startsWith("/")) {
@@ -384,13 +384,14 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					} else {
 						insertValue = fullPath
 					}
-				} else if (type === ContextMenuOptionType.Problems) {
-					insertValue = "problems"
-				} else if (type === ContextMenuOptionType.Terminal) {
-					insertValue = "terminal"
-				} else if (type === ContextMenuOptionType.Git) {
-					insertValue = value || ""
 				}
+				// else if (type === ContextMenuOptionType.Problems) {
+				// 	insertValue = "problems"
+				// } else if (type === ContextMenuOptionType.Terminal) {
+				// 	insertValue = "terminal"
+				// } else if (type === ContextMenuOptionType.Git) {
+				// 	insertValue = value || ""
+				// }
 
 				const { newValue, mentionIndex } = insertMention(inputValue, cursorPosition, insertValue)
 
@@ -403,7 +404,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					textAreaRef.current?.focus()
 				}, 0)
 			},
-			[setInputValue, cursorPosition, inputValue, onSelectImages, setMode],
+			[setInputValue, cursorPosition, inputValue, onSelectImages],
 		)
 
 		// kilocode_change start: pull slash commands from Cline
@@ -904,7 +905,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 							const selectableOptions = options.filter(
 								(option) =>
-									option.type !== ContextMenuOptionType.URL &&
+									// option.type !== ContextMenuOptionType.URL &&
 									option.type !== ContextMenuOptionType.NoResults,
 							)
 
@@ -933,7 +934,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						)[selectedMenuIndex]
 						if (
 							selectedOption &&
-							selectedOption.type !== ContextMenuOptionType.URL &&
+							// selectedOption.type !== ContextMenuOptionType.URL &&
 							selectedOption.type !== ContextMenuOptionType.NoResults
 						) {
 							handleMentionSelect(selectedOption.type, selectedOption.value)
@@ -1153,17 +1154,19 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							setInputValue(message.text)
 						}
 					}
-				} else if (message.type === "commitSearchResults") {
-					const commits = message.commits.map((commit: any) => ({
-						type: ContextMenuOptionType.Git,
-						value: commit.hash,
-						label: commit.subject,
-						description: `${commit.shortHash} by ${commit.author} on ${commit.date}`,
-						icon: "$(git-commit)",
-					}))
+				}
+				// else if (message.type === "commitSearchResults") {
+				// 	const commits = message.commits.map((commit: any) => ({
+				// 		type: ContextMenuOptionType.Git,
+				// 		value: commit.hash,
+				// 		label: commit.subject,
+				// 		description: `${commit.shortHash} by ${commit.author} on ${commit.date}`,
+				// 		icon: "$(git-commit)",
+				// 	}))
 
-					setGitCommits(commits)
-				} else if (message.type === "fileSearchResults") {
+				// 	setGitCommits(commits)
+				// }
+				else if (message.type === "fileSearchResults") {
 					setSearchLoading(false)
 					if (message.requestId === searchRequestId) {
 						setFileSearchResults(message.results || [])
@@ -1585,10 +1588,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					</div>
 					<div className="flex items-center gap-0">
 						{!isEditMode && (
-							<>
+							<div className="flex items-center gap-0.5">
 								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
 								<IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />
-							</>
+							</div>
 						)}
 						<StandardTooltip content="Add Context (@)">
 							<button
@@ -1608,7 +1611,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"relative inline-flex items-center justify-center",
 									"bg-transparent border-none py-1.5",
 									"rounded-md min-w-[24px] min-h-[28px]",
-									"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+									"opacity-80 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 									"transition-all duration-150",
 									"focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
@@ -1616,7 +1619,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									showContextMenu &&
 										"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
 								)}>
-								<Paperclip className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
+								<FilePlus2 className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
 							</button>
 						</StandardTooltip>
 						{isEditMode && (
@@ -1646,22 +1649,24 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								onClick={isStreaming ? onCancelStreaming : !sendingDisabled ? handleSend : undefined}
 								className={cn(
 									"relative inline-flex items-center justify-center",
-									"bg-transparent border-none p-1.5",
+									"bg-transparent border-none",
 									"rounded-md min-w-[28px] min-h-[28px]",
-									"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+									"opacity-100 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 									"transition-all duration-150",
 									"focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
 									!sendingDisabled && "cursor-pointer",
 									sendingDisabled &&
 										!isStreaming &&
-										"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
+										"opacity-60 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
 									isStreaming && "text-red-400 hover:text-red-300 hover:bg-red-500/10",
 								)}>
 								{isStreaming ? (
 									<div className="w-4 h-4 bg-current rounded-sm"></div>
 								) : (
-									<SendHorizontal className="w-4 h-4 rtl:-scale-x-100" />
+									<div className="w-5.5 h-5.5 rounded-full bg-current/20 flex items-center justify-center">
+										<ArrowRight02Icon className="w-4 h-4 rtl:-scale-x-100" />
+									</div>
 								)}
 							</button>
 						</StandardTooltip>
@@ -1779,7 +1784,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									setSelectedIndex={setSelectedMenuIndex}
 									selectedType={selectedType}
 									queryItems={queryItems}
-									modes={allModes}
+									// modes={allModes}
 									loading={searchLoading}
 									dynamicSearchResults={fileSearchResults}
 								/>

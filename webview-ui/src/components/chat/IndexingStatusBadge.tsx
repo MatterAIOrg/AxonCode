@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useMemo } from "react"
-import { Database } from "lucide-react"
+import React, { useEffect, useMemo, useState } from "react"
 
+import { useAppTranslation } from "@/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
-import { useAppTranslation } from "@/i18n/TranslationContext"
 
 import type { IndexingStatus, IndexingStatusUpdateMessage } from "@roo/ExtensionMessage"
 
+import { Button, PopoverTrigger, StandardTooltip } from "@src/components/ui"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
-import { PopoverTrigger, StandardTooltip, Button } from "@src/components/ui"
 
+import { DatabaseLightningIcon } from "@/utils/customIcons"
 import { CodeIndexPopover } from "./CodeIndexPopover"
 
 interface IndexingStatusBadgeProps {
@@ -97,7 +97,7 @@ export const IndexingStatusBadge: React.FC<IndexingStatusBadgeProps> = ({ classN
 							"focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder",
 							className,
 						)}>
-						<Database className="w-4 h-4" />
+						<DatabaseLightningIcon className="w-4 h-4" />
 						<span
 							className={cn(
 								"absolute top-0 right-0 w-1.5 h-1.5 rounded-full transition-colors duration-200",

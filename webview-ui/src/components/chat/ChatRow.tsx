@@ -1,8 +1,8 @@
 import { VSCodeBadge, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { OctagonAlert, Undo2 } from "lucide-react"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useSize } from "react-use"
-import { Undo2 } from "lucide-react"
 
 import type { ClineMessage, FollowUpData, SuggestionItem } from "@roo-code/types"
 import { Mode } from "@roo/modes"
@@ -35,10 +35,10 @@ import { CommandExecution } from "./CommandExecution"
 import { CommandExecutionError } from "./CommandExecutionError"
 import { FollowUpSuggest } from "./FollowUpSuggest"
 import { Markdown } from "./Markdown"
-import { MatterProgressIndicator, ProgressIndicator } from "./ProgressIndicator"
-import ReportBugPreview from "./ReportBugPreview"
-import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import { PlanFileIndicator } from "./PlanFileIndicator"
+import { MatterProgressIndicator, ProgressIndicator } from "./ProgressIndicator"
+import { ReadOnlyChatText } from "./ReadOnlyChatText"
+import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
 import { appendImages } from "@src/utils/imageUtils"
@@ -377,7 +377,7 @@ export const ChatRowContent = ({
 					) : cost !== null && cost !== undefined ? (
 						getIconSpan("arrow-swap", normalColor)
 					) : apiRequestFailedMessage ? (
-						getIconSpan("error", errorColor)
+						<OctagonAlert className="size-4 mt-0.5" aria-label="Alert icon" style={{ color: errorColor }} />
 					) : (
 						<MatterProgressIndicator />
 					),
@@ -394,7 +394,9 @@ export const ChatRowContent = ({
 						</StandardTooltip>
 					) : // kilocode_change end
 					apiRequestFailedMessage ? (
-						<span style={{ color: errorColor }}>{t("chat:apiRequest.failed")}</span>
+						<span style={{ color: errorColor, marginTop: "3px", marginLeft: "-4px" }}>
+							{t("chat:apiRequest.failed")}
+						</span>
 					) : (
 						<span style={{ color: normalColor }}>{streamingWords[currentWordIndex]}...</span>
 					),
@@ -1287,7 +1289,7 @@ export const ChatRowContent = ({
 									marginBottom:
 										((cost === null || cost === undefined) && apiRequestFailedMessage) ||
 										apiReqStreamingFailedMessage
-											? 10
+											? 2
 											: 0,
 									justifyContent: "space-between",
 								}}>
@@ -1296,7 +1298,7 @@ export const ChatRowContent = ({
 									{/* kilocode_change start */}
 									<div style={{ display: "flex", alignItems: "center", gap: "8px", flexGrow: 1 }}>
 										{title}
-										{showTimestamps && <ChatTimestamps ts={message.ts} />}
+										{/* {showTimestamps && <ChatTimestamps ts={message.ts} />} */}
 									</div>
 									{/* kilocode_change end */}
 								</div>

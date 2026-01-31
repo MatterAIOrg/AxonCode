@@ -218,7 +218,7 @@ export const ErrorRow = memo(
 
 				{/* Retry Button - outside tooltip, below error row */}
 				{type === "api_failure" && message?.includes("Provider error:") && (
-					<div className="mt-1 flex justify-start">
+					<div className="mt-1 flex justify-end">
 						<VSCodeButton
 							appearance="secondary"
 							className="p-0"
