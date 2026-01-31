@@ -1577,7 +1577,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							/>
 						</div>
 						{apiConfiguration && (
-							<div className="w-auto overflow-hidden shrink-0" data-testid="model-selector">
+							<div className="mt-1 w-auto overflow-hidden min-w-0" data-testid="model-selector">
 								<ModelSelector
 									currentApiConfigName={currentApiConfigName}
 									apiConfiguration={apiConfiguration}
