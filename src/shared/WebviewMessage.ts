@@ -229,6 +229,8 @@ export interface WebviewMessage {
 		| "shopBuyCredits" // kilocode_change
 		| "balanceDataResponse" // kilocode_change
 		| "updateProfileData" // kilocode_change
+		| "fetchBetaModelsRequest" // kilocode_change
+		| "betaModelsResponse" // kilocode_change
 		| "condense" // kilocode_change
 		| "toggleWorkflow" // kilocode_change
 		| "refreshRules" // kilocode_change
@@ -472,6 +474,13 @@ export interface BalanceDataResponsePayload {
 	error?: string
 }
 
+export interface BetaModelsResponsePayload {
+	// Payload for beta models availability
+	success: boolean
+	enabled?: boolean
+	error?: string
+}
+
 export interface SeeNewChangesPayload {
 	commitRange: CommitRange
 }
@@ -593,6 +602,7 @@ export type WebViewMessagePayload =
 	// kilocode_change start
 	| ProfileDataResponsePayload
 	| BalanceDataResponsePayload
+	| BetaModelsResponsePayload
 	| SeeNewChangesPayload
 	| TasksByIdRequestPayload
 	| TaskHistoryRequestPayload

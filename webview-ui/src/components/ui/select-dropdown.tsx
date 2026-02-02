@@ -1,4 +1,4 @@
-import { CaretDownIcon } from "@radix-ui/react-icons"
+import { CaretUpIcon } from "@radix-ui/react-icons"
 import { Fzf } from "fzf"
 import { Infinity as InfinityIC, ListTodo, LucideIcon, MessagesSquare } from "lucide-react"
 import * as React from "react"
@@ -81,7 +81,7 @@ export const SelectDropdown = React.memo(
 				// shortcutText = "",
 				renderItem,
 				disableSearch = false,
-				triggerIcon = CaretDownIcon, // kilocode_change
+				triggerIcon = CaretUpIcon, // kilocode_change
 			},
 			ref,
 		) => {
@@ -92,7 +92,7 @@ export const SelectDropdown = React.memo(
 			const portalContainer = useRooPortal("roo-portal")
 
 			// kilocode_change start
-			const TriggerIcon = triggerIcon === false ? null : triggerIcon === true ? CaretDownIcon : triggerIcon
+			const TriggerIcon = triggerIcon === false ? null : triggerIcon === true ? CaretUpIcon : triggerIcon
 			// kilocode_change end
 
 			// Memoize the selected option to prevent unnecessary calculations
@@ -219,7 +219,7 @@ export const SelectDropdown = React.memo(
 					disabled={disabled}
 					data-testid="dropdown-trigger"
 					className={cn(
-						"w-full min-w-0 max-w-full inline-flex items-center gap-1 relative whitespace-nowrap px-1.5 py-1 text-xs",
+						"w-full min-w-0 max-w-full inline-flex items-center gap-0.5 relative whitespace-nowrap px-1.5 py-1 text-xs",
 						"bg-transparent border border-[rgba(255,255,255,0.08)] rounded-md text-vscode-foreground w-auto",
 						"transition-all duration-150 focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder focus-visible:ring-inset",
 						disabled
@@ -228,7 +228,7 @@ export const SelectDropdown = React.memo(
 						triggerClassName,
 					)}>
 					{/* kilocode_change start */}
-					{TriggerIcon && <TriggerIcon className="pointer-events-none opacity-80 flex-shrink-0 size-3" />}
+					{TriggerIcon && <TriggerIcon className="pointer-events-none opacity-80 flex-shrink-0 size-3.5" />}
 					{/* kilocode_change end */}
 
 					{/* kilocode_change start */}

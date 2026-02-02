@@ -3661,6 +3661,42 @@ ${comment.suggestion}
 				})
 			}
 			break
+		case "fetchBetaModelsRequest": // New handler for beta models
+			try {
+				const { apiConfiguration } = await provider.getState()
+				const kilocodeToken = apiConfiguration?.kilocodeToken
+
+				if (!kilocodeToken) {
+					provider.log("KiloCode token not found in extension state for beta models.")
+					provider.postMessageToWebview({
+						type: "betaModelsResponse",
+						payload: { success: false, error: "KiloCode API token not configured." },
+					})
+					break
+				}
+
+				const headers: Record<string, string> = {
+					Authorization: `Bearer ${kilocodeToken}`,
+					"Content-Type": "application/json",
+				}
+
+				const url = "https://api.matterai.so/axoncode/betamodels"
+				const response = await axios.get<{ enabled: boolean }>(url, { headers })
+
+				provider.postMessageToWebview({
+					type: "betaModelsResponse",
+					payload: { success: true, enabled: response.data.enabled },
+				})
+			} catch (error: any) {
+				const errorMessage =
+					error.response?.data?.message || error.message || "Failed to fetch beta models data from backend."
+				provider.log(`Error fetching beta models data: ${errorMessage}`)
+				provider.postMessageToWebview({
+					type: "betaModelsResponse",
+					payload: { success: false, error: errorMessage },
+				})
+			}
+			break
 
 		case "fetchMcpMarketplace": {
 			await provider.fetchMcpMarketplace(message.bool)

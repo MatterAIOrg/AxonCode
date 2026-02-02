@@ -1,16 +1,16 @@
-import { HTMLAttributes } from "react"
-import React from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
-import { Database, FoldVertical } from "lucide-react"
+import { FoldVertical } from "lucide-react"
+import React, { HTMLAttributes } from "react"
 
+import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Slider } from "@/components/ui"
 import { cn } from "@/lib/utils"
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Slider, Button } from "@/components/ui"
 
-import { SetCachedStateField } from "./types"
-import { SectionHeader } from "./SectionHeader"
-import { Section } from "./Section"
+import { DatabaseLightningIcon } from "@/utils/customIcons"
 import { vscode } from "@/utils/vscode"
+import { Section } from "./Section"
+import { SectionHeader } from "./SectionHeader"
+import { SetCachedStateField } from "./types"
 
 type ContextManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	autoCondenseContext: boolean
@@ -101,7 +101,7 @@ export const ContextManagementSettings = ({
 		<div className={cn("flex flex-col gap-2", className)} {...props}>
 			<SectionHeader description={t("settings:contextManagement.description")}>
 				<div className="flex items-center gap-2">
-					<Database className="w-4" />
+					<DatabaseLightningIcon className="w-4" />
 					<div>{t("settings:sections.contextManagement")}</div>
 				</div>
 			</SectionHeader>

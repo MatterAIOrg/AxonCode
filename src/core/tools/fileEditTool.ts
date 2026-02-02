@@ -31,7 +31,10 @@ export async function fileEditTool(
 	// Support both file_path (new) and target_file (legacy)
 	const filePath = (block.params as any).file_path || block.params.target_file
 	const oldString = block.params.old_string
-	const newString = block.params.new_string
+	// Handle case where LLM passes new_string as an object (e.g., when creating JSON files)
+	const rawNewString = block.params.new_string
+	const newString =
+		typeof rawNewString === "object" && rawNewString !== null ? JSON.stringify(rawNewString, null, 2) : rawNewString
 	const replaceAllFlag = block.params.replace_all
 	const replaceAll = replaceAllFlag === "true" || replaceAllFlag === "1"
 
@@ -75,12 +78,57 @@ export async function fileEditTool(
 		if (!fileExists && oldString) {
 			const trimmedOld = oldString.trim()
 			if (trimmedOld.length > 0) {
-				cline.consecutiveMistakeCount++
-				cline.recordToolError("file_edit")
-				const errorMessage = `File does not exist at path: ${absolutePath}\nCannot replace non-empty old_string in a missing file.`
-				const formattedError = formatResponse.toolError(errorMessage)
-				await cline.say("error", formattedError)
-				pushToolResult(formattedError)
+				// Create the file with newString content instead of erroring
+				const provider = cline.providerRef.deref()
+				const state = await provider?.getState()
+				const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
+				const writeDelayMs = state?.writeDelayMs ?? DEFAULT_WRITE_DELAY_MS
+				const isPreventFocusDisruptionEnabled = experiments.isEnabled(
+					state?.experiments ?? {},
+					EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION,
+				)
+
+				cline.diffViewProvider.editType = "create"
+				cline.diffViewProvider.originalContent = ""
+
+				await cline.diffViewProvider.saveDirectly(
+					relPath,
+					newString ?? "",
+					!isPreventFocusDisruptionEnabled,
+					diagnosticsEnabled,
+					writeDelayMs,
+				)
+
+				const sayMessageProps: ClineSayTool = {
+					tool: "fileEdit",
+					path: readablePath,
+					isProtected: isWriteProtected,
+					search: truncatePreview(oldString ?? "", PREVIEW_LIMIT),
+					replace: truncatePreview(newString ?? "", PREVIEW_LIMIT),
+					content: truncatePreview(newString ?? "", PREVIEW_LIMIT),
+					useRegex: false,
+					ignoreCase: false,
+					replaceAll,
+				}
+
+				await cline.say("tool" as any, JSON.stringify(sayMessageProps))
+				cline.fileEditReviewController.addEdit({
+					relPath,
+					absolutePath,
+					originalContent: "",
+					newContent: newString ?? "",
+				})
+
+				await cline.fileContextTracker.trackFileContext(relPath, "roo_edited" as RecordSource)
+				cline.didEditFile = true
+				cline.consecutiveMistakeCount = 0
+				cline.recordToolUsage("file_edit")
+
+				const message = await cline.diffViewProvider.pushToolWriteResult(cline, cline.cwd, true)
+				pushToolResult(message)
+
+				await cline.diffViewProvider.reset()
+				cline.processQueuedMessages()
 				return
 			}
 		}

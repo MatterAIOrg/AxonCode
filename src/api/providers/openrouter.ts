@@ -210,7 +210,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		const requestOptions: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
 			model: modelId,
-			temperature: 0,
+			temperature: 0.2,
 			messages: convertedMessages,
 			stream: true,
 			stream_options: { include_usage: true },
@@ -386,7 +386,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			modelId: id,
 			model: info,
 			settings: this.options,
-			defaultTemperature: 0,
+			defaultTemperature: 0.2,
 		})
 
 		return { id, info, topP: 0.95, ...params }
@@ -398,7 +398,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		const completionParams: OpenRouterChatCompletionParams = {
 			model: modelId,
 			max_tokens: maxTokens,
-			temperature,
+			temperature: 1,
 			messages: [{ role: "user", content: prompt }],
 			stream: false,
 			...this.getProviderParams(), // kilocode_change: original expression was moved into function

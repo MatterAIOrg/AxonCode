@@ -11,9 +11,9 @@ import { escapeSpaces } from "./path-mentions"
  * Gets the description for a mode, prioritizing description > whenToUse > roleDefinition
  * and taking only the first line
  */
-function getModeDescription(mode: ModeConfig): string {
-	return (mode.description || mode.whenToUse || mode.roleDefinition).split("\n")[0]
-}
+// function getModeDescription(mode: ModeConfig): string {
+// 	return (mode.description || mode.whenToUse || mode.roleDefinition).split("\n")[0]
+// }
 
 export interface SearchResult {
 	path: string
@@ -98,18 +98,10 @@ export function removeMention(text: string, position: number): { newText: string
 }
 
 export enum ContextMenuOptionType {
-	OpenedFile = "openedFile",
 	File = "file",
 	Folder = "folder",
-	Problems = "problems",
-	Terminal = "terminal",
-	URL = "url",
-	Git = "git",
+	Image = "image",
 	NoResults = "noResults",
-	Mode = "mode", // Add mode type
-	Image = "image", // kilocode_change
-	Command = "command", // Add command type
-	SectionHeader = "sectionHeader", // Add section header type
 }
 
 export interface ContextMenuQueryItem {
@@ -128,109 +120,13 @@ export function getContextMenuOptions(
 	selectedType: ContextMenuOptionType | null = null,
 	queryItems: ContextMenuQueryItem[],
 	dynamicSearchResults: SearchResult[] = [],
-	modes?: ModeConfig[],
-	commands?: Command[],
+	_modes?: ModeConfig[],
+	_commands?: Command[],
 ): ContextMenuQueryItem[] {
-	// Handle slash commands for modes and commands
-	// Only process as slash command if the query itself starts with "/" (meaning we're typing a slash command)
-	if (query.startsWith("/")) {
-		const slashQuery = query.slice(1)
-		const results: ContextMenuQueryItem[] = []
-
-		// Add command suggestions first (prioritize commands at the top)
-		if (commands?.length) {
-			// Create searchable strings array for fzf
-			const searchableCommands = commands.map((command) => ({
-				original: command,
-				searchStr: command.name,
-			}))
-
-			// Initialize fzf instance for fuzzy search
-			const fzf = new Fzf(searchableCommands, {
-				selector: (item) => item.searchStr,
-			})
-
-			// Get fuzzy matching commands
-			const matchingCommands = slashQuery
-				? fzf.find(slashQuery).map((result) => ({
-						type: ContextMenuOptionType.Command,
-						value: result.item.original.name,
-						slashCommand: `/${result.item.original.name}`,
-						description: result.item.original.description,
-						argumentHint: result.item.original.argumentHint,
-					}))
-				: commands.map((command) => ({
-						type: ContextMenuOptionType.Command,
-						value: command.name,
-						slashCommand: `/${command.name}`,
-						description: command.description,
-						argumentHint: command.argumentHint,
-					}))
-
-			if (matchingCommands.length > 0) {
-				results.push({
-					type: ContextMenuOptionType.SectionHeader,
-					label: "Commands",
-				})
-				results.push(...matchingCommands)
-			}
-		}
-
-		// Add mode suggestions second
-		if (modes?.length) {
-			// Create searchable strings array for fzf
-			const searchableItems = modes.map((mode) => ({
-				original: mode,
-				searchStr: mode.name,
-			}))
-
-			// Initialize fzf instance for fuzzy search
-			const fzf = new Fzf(searchableItems, {
-				selector: (item) => item.searchStr,
-			})
-
-			// Get fuzzy matching items
-			const matchingModes = slashQuery
-				? fzf.find(slashQuery).map((result) => ({
-						type: ContextMenuOptionType.Mode,
-						value: result.item.original.slug,
-						slashCommand: `/${result.item.original.slug}`,
-						description: getModeDescription(result.item.original),
-					}))
-				: modes.map((mode) => ({
-						type: ContextMenuOptionType.Mode,
-						value: mode.slug,
-						slashCommand: `/${mode.slug}`,
-						description: getModeDescription(mode),
-					}))
-
-			if (matchingModes.length > 0) {
-				results.push({
-					type: ContextMenuOptionType.SectionHeader,
-					label: "Modes",
-				})
-				results.push(...matchingModes)
-			}
-		}
-
-		return results.length > 0 ? results : [{ type: ContextMenuOptionType.NoResults }]
-	}
-
-	const workingChanges: ContextMenuQueryItem = {
-		type: ContextMenuOptionType.Git,
-		value: "git-changes",
-		label: "Working changes",
-		description: "Current uncommitted changes",
-		icon: "$(git-commit)",
-	}
-
 	if (query === "") {
 		if (selectedType === ContextMenuOptionType.File) {
 			const files = queryItems
-				.filter(
-					(item) =>
-						item.type === ContextMenuOptionType.File || item.type === ContextMenuOptionType.OpenedFile,
-				)
+				.filter((item) => item.type === ContextMenuOptionType.File)
 				.map((item) => ({
 					type: item.type,
 					value: item.value,
@@ -245,64 +141,15 @@ export function getContextMenuOptions(
 			return folders.length > 0 ? folders : [{ type: ContextMenuOptionType.NoResults }]
 		}
 
-		if (selectedType === ContextMenuOptionType.Git) {
-			const commits = queryItems.filter((item) => item.type === ContextMenuOptionType.Git)
-			return commits.length > 0 ? [workingChanges, ...commits] : [workingChanges]
-		}
-
 		return [
-			{ type: ContextMenuOptionType.Problems },
-			{ type: ContextMenuOptionType.Terminal },
-			{ type: ContextMenuOptionType.URL },
 			{ type: ContextMenuOptionType.Folder },
 			{ type: ContextMenuOptionType.File },
-			{ type: ContextMenuOptionType.Image }, // kilocode_change
-			{ type: ContextMenuOptionType.Git },
+			{ type: ContextMenuOptionType.Image },
 		]
 	}
 
-	const lowerQuery = query.toLowerCase()
+	// const lowerQuery = query.toLowerCase()
 	const suggestions: ContextMenuQueryItem[] = []
-
-	// Check for top-level option matches
-	if ("git".startsWith(lowerQuery)) {
-		suggestions.push({
-			type: ContextMenuOptionType.Git,
-			label: "Git Commits",
-			description: "Search repository history",
-			icon: "$(git-commit)",
-		})
-	} else if ("git-changes".startsWith(lowerQuery)) {
-		suggestions.push(workingChanges)
-	}
-	if ("problems".startsWith(lowerQuery)) {
-		suggestions.push({ type: ContextMenuOptionType.Problems })
-	}
-	if ("terminal".startsWith(lowerQuery)) {
-		suggestions.push({ type: ContextMenuOptionType.Terminal })
-	}
-	if (query.startsWith("http")) {
-		suggestions.push({ type: ContextMenuOptionType.URL, value: query })
-	}
-
-	// Add exact SHA matches to suggestions
-	if (/^[a-f0-9]{7,40}$/i.test(lowerQuery)) {
-		const exactMatches = queryItems.filter(
-			(item) => item.type === ContextMenuOptionType.Git && item.value?.toLowerCase() === lowerQuery,
-		)
-		if (exactMatches.length > 0) {
-			suggestions.push(...exactMatches)
-		} else {
-			// If no exact match but valid SHA format, add as option
-			suggestions.push({
-				type: ContextMenuOptionType.Git,
-				value: lowerQuery,
-				label: `Commit ${lowerQuery}`,
-				description: "Git commit hash",
-				icon: "$(git-commit)",
-			})
-		}
-	}
 
 	const searchableItems = queryItems.map((item) => ({
 		original: item,
@@ -317,11 +164,6 @@ export function getContextMenuOptions(
 	// Get fuzzy matching items
 	const matchingItems = query ? fzf.find(query).map((result) => result.item.original) : []
 
-	// Separate matches by type
-	const openedFileMatches = matchingItems.filter((item) => item.type === ContextMenuOptionType.OpenedFile)
-
-	const gitMatches = matchingItems.filter((item) => item.type === ContextMenuOptionType.Git)
-
 	// Convert search results to queryItems format
 	const searchResultItems = dynamicSearchResults.map((result) => {
 		// Ensure paths start with / for consistency
@@ -331,9 +173,6 @@ export function getContextMenuOptions(
 		const displayPath = formattedPath
 		const displayName = result.label || getBasename(result.path)
 
-		// We don't need to escape spaces here because the insertMention function
-		// will handle that when the user selects a suggestion
-
 		return {
 			type: result.type === "folder" ? ContextMenuOptionType.Folder : ContextMenuOptionType.File,
 			value: formattedPath,
@@ -342,7 +181,7 @@ export function getContextMenuOptions(
 		}
 	})
 
-	const allItems = [...suggestions, ...openedFileMatches, ...searchResultItems, ...gitMatches]
+	const allItems = [...suggestions, ...matchingItems, ...searchResultItems]
 
 	// Remove duplicates - normalize paths by ensuring all have leading slashes
 	const seen = new Set()
@@ -350,11 +189,7 @@ export function getContextMenuOptions(
 		// Normalize paths for deduplication by ensuring leading slashes
 		const normalizedValue = item.value
 		let key = ""
-		if (
-			item.type === ContextMenuOptionType.File ||
-			item.type === ContextMenuOptionType.Folder ||
-			item.type === ContextMenuOptionType.OpenedFile
-		) {
+		if (item.type === ContextMenuOptionType.File || item.type === ContextMenuOptionType.Folder) {
 			key = normalizedValue!
 		} else {
 			key = `${item.type}-${normalizedValue}`

@@ -34,6 +34,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onDone }) => {
 	useEffect(() => {
 		vscode.postMessage({ type: "fetchProfileDataRequest" })
 		vscode.postMessage({ type: "fetchBalanceDataRequest" })
+		vscode.postMessage({ type: "fetchBetaModelsRequest" })
 	}, [apiConfiguration?.kilocodeToken, organizationId])
 
 	useEffect(() => {
@@ -63,6 +64,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onDone }) => {
 				})
 				vscode.postMessage({
 					type: "fetchBalanceDataRequest",
+				})
+				vscode.postMessage({
+					type: "fetchBetaModelsRequest",
 				})
 			}
 		}

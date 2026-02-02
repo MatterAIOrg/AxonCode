@@ -205,6 +205,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 		currentTokens: number
 		maxTokens: number
 	} // kilocode_change: Track context window usage
+	betaModelsEnabled?: boolean // kilocode_change: Beta models availability
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -403,6 +404,16 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 					}
 					if (newState.marketplaceInstalledMetadata !== undefined) {
 						setMarketplaceInstalledMetadata(newState.marketplaceInstalledMetadata)
+					}
+					break
+				}
+				case "betaModelsResponse": {
+					if (message.payload && "enabled" in message.payload) {
+						const betaPayload = message.payload as { enabled?: boolean }
+						setState((prevState) => ({
+							...prevState,
+							betaModelsEnabled: betaPayload.enabled,
+						}))
 					}
 					break
 				}
