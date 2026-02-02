@@ -381,6 +381,7 @@ export type ExtensionState = Pick<
 	| "reasoningBlockCollapsed"
 	| "codeReviewSettings"
 > & {
+	betaModelsEnabled?: boolean // kilocode_change: Beta models availability
 	version: string
 	clineMessages: ClineMessage[]
 	currentTaskItem?: HistoryItem

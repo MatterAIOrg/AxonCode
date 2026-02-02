@@ -46,6 +46,7 @@ type RouterModelsQueryKey = {
 	geminiApiKey?: string
 	googleGeminiBaseUrl?: string
 	chutesApiKey?: string
+	betaModelsEnabled?: boolean // kilocode_change: Beta models availability
 	// Requesty, Unbound, etc should perhaps also be here, but they already have their own hacks for reloading
 }
 

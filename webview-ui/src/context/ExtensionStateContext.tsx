@@ -335,6 +335,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		openRouterImageApiKey: "",
 		kiloCodeImageApiKey: "",
 		openRouterImageGenerationSelectedModel: "",
+		betaModelsEnabled: false, // kilocode_change: Default to false
 	})
 
 	const [didHydrateState, setDidHydrateState] = useState(false)
@@ -408,13 +409,20 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 					break
 				}
 				case "betaModelsResponse": {
-					if (message.payload && "enabled" in message.payload) {
-						const betaPayload = message.payload as { enabled?: boolean }
-						setState((prevState) => ({
-							...prevState,
-							betaModelsEnabled: betaPayload.enabled,
-						}))
-					}
+					const payload = message.payload as { enabled?: boolean; success?: boolean }
+					const enabled = payload?.enabled ?? payload?.success ?? false
+
+					setState((prevState) => ({
+						...prevState,
+						betaModelsEnabled: !!enabled,
+					}))
+
+					// Flush router models cache to force refresh when beta models status changes
+					vscode.postMessage({ type: "flushRouterModels", text: "kilocode-openrouter" })
+					// Add a small delay to ensure cache flush completes before requesting new models
+					setTimeout(() => {
+						vscode.postMessage({ type: "requestRouterModels" })
+					}, 100)
 					break
 				}
 				case "action": {

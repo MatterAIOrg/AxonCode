@@ -309,6 +309,7 @@ export const useProviderModels = (apiConfiguration?: ProviderSettings) => {
 		chutesApiKey: apiConfiguration?.chutesApiKey,
 		geminiApiKey: apiConfiguration?.geminiApiKey,
 		googleGeminiBaseUrl: apiConfiguration?.googleGeminiBaseUrl,
+		betaModelsEnabled, // kilocode_change: Beta models availability
 		// kilocode_change end
 	})
 
@@ -324,12 +325,12 @@ export const useProviderModels = (apiConfiguration?: ProviderSettings) => {
 
 	// kilocode_change start: Filter out axon-code-2-pro if beta models are not enabled
 	const filteredModels = useMemo(() => {
-		if (betaModelsEnabled) {
-			return models
+		if (!betaModelsEnabled) {
+			// Filter out axon-code-2-pro when beta models are not enabled
+			const { "axon-code-2-pro": _, ...rest } = models as ModelRecord
+			return rest
 		}
-		// Filter out axon-code-2-pro when beta models are not enabled
-		const { "axon-code-2-pro": _, ...rest } = models as ModelRecord
-		return rest
+		return models
 	}, [models, betaModelsEnabled])
 	// kilocode_change end
 
