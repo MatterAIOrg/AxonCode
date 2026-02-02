@@ -25,6 +25,7 @@ import { Mode } from "./modes"
 // kilocode_change start
 import {
 	BalanceDataResponsePayload,
+	BetaModelsResponsePayload,
 	ProfileDataResponsePayload,
 	TaskHistoryResponsePayload,
 	TasksByIdResponsePayload,
@@ -130,6 +131,7 @@ export interface ExtensionMessage {
 		| "profileDataResponse" // kilocode_change
 		| "balanceDataResponse" // kilocode_change
 		| "updateProfileData" // kilocode_change
+		| "betaModelsResponse" // kilocode_change
 		| "authenticatedUser"
 		| "condenseTaskContextResponse"
 		| "singleRouterModelFetchResponse"
@@ -165,6 +167,7 @@ export interface ExtensionMessage {
 	payload?:
 		| ProfileDataResponsePayload
 		| BalanceDataResponsePayload
+		| BetaModelsResponsePayload
 		| TasksByIdResponsePayload
 		| TaskHistoryResponsePayload
 		| ImplementPlanPayload

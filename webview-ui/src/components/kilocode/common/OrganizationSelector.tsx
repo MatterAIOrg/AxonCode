@@ -77,6 +77,9 @@ export const OrganizationSelector = ({ className, showLabel = false }: { classNa
 					apiKey: apiConfiguration?.kilocodeToken,
 				},
 			})
+			vscode.postMessage({
+				type: "fetchBetaModelsRequest",
+			})
 		} else {
 			vscode.postMessage({
 				type: "upsertApiConfiguration",
@@ -88,6 +91,9 @@ export const OrganizationSelector = ({ className, showLabel = false }: { classNa
 			})
 			vscode.postMessage({
 				type: "fetchBalanceDataRequest",
+			})
+			vscode.postMessage({
+				type: "fetchBetaModelsRequest",
 			})
 		}
 	}

@@ -251,6 +251,13 @@ const App = () => {
 	// Tell the extension that we are ready to receive messages.
 	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
 
+	// kilocode_change start: Fetch beta models availability on mount
+	useEffect(() => {
+		if (didHydrateState && apiConfiguration?.kilocodeToken) {
+			vscode.postMessage({ type: "fetchBetaModelsRequest" })
+		}
+	}, [didHydrateState, apiConfiguration?.kilocodeToken])
+
 	// Initialize source map support for better error reporting
 	useEffect(() => {
 		// Initialize source maps for better error reporting in production
