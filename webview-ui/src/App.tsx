@@ -251,12 +251,28 @@ const App = () => {
 	// Tell the extension that we are ready to receive messages.
 	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
 
-	// kilocode_change start: Fetch beta models availability on mount
+	// kilocode_change start: Fetch beta models availability on mount and when API config changes
 	useEffect(() => {
 		if (didHydrateState && apiConfiguration?.kilocodeToken) {
 			vscode.postMessage({ type: "fetchBetaModelsRequest" })
 		}
 	}, [didHydrateState, apiConfiguration?.kilocodeToken])
+
+	// Additional effect to refresh beta models when switching between API configurations
+	useEffect(() => {
+		if (didHydrateState && apiConfiguration?.kilocodeToken) {
+			// Add a small delay to ensure the API configuration is fully updated
+			const timeoutId = setTimeout(() => {
+				vscode.postMessage({ type: "fetchBetaModelsRequest" })
+			}, 500)
+			return () => clearTimeout(timeoutId)
+		}
+	}, [
+		didHydrateState,
+		apiConfiguration?.kilocodeToken,
+		apiConfiguration?.apiProvider,
+		apiConfiguration?.kilocodeOrganizationId,
+	])
 
 	// Initialize source map support for better error reporting
 	useEffect(() => {

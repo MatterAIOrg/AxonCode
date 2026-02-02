@@ -3661,6 +3661,7 @@ ${comment.suggestion}
 				})
 			}
 			break
+
 		case "fetchBetaModelsRequest": // New handler for beta models
 			try {
 				const { apiConfiguration } = await provider.getState()
@@ -3681,11 +3682,22 @@ ${comment.suggestion}
 				}
 
 				const url = "https://api.matterai.so/axoncode/betamodels"
-				const response = await axios.get<{ enabled: boolean }>(url, { headers })
+				const response = await axios.get(url, { headers, timeout: 10000 })
+
+				// Handle different response formats
+				let enabled = false
+				if (response.data === true) {
+					// API returns boolean true when beta models are enabled
+					enabled = true
+				} else if (response.data && typeof response.data === "object") {
+					// Try different possible field names
+					enabled =
+						response.data.enabled ?? response.data.betaModelsEnabled ?? response.data.isEnabled ?? false
+				}
 
 				provider.postMessageToWebview({
 					type: "betaModelsResponse",
-					payload: { success: true, enabled: response.data.enabled },
+					payload: { success: true, enabled },
 				})
 			} catch (error: any) {
 				const errorMessage =
