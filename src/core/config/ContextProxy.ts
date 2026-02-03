@@ -40,6 +40,8 @@ export class ContextProxy {
 	private stateCache: GlobalState
 	private secretCache: SecretState
 	private _isInitialized = false
+	private secretsChangeDisposable?: vscode.Disposable
+	private onSecretChangeCallback?: () => void | Promise<void>
 
 	constructor(context: vscode.ExtensionContext) {
 		this.originalContext = context
@@ -92,7 +94,30 @@ export class ContextProxy {
 		// Migration: Check for old nested image generation settings and migrate them
 		await this.migrateImageGenerationSettings()
 
+		// Listen for secret changes from other windows to keep cache in sync
+		this.secretsChangeDisposable = this.originalContext.secrets.onDidChange(async () => {
+			await this.refreshSecrets()
+			if (this.onSecretChangeCallback) {
+				await this.onSecretChangeCallback()
+			}
+		})
+
 		this._isInitialized = true
+	}
+
+	/**
+	 * Register a callback to be invoked when secrets change (e.g., from another window).
+	 * This enables cross-window synchronization of auth tokens and other secrets.
+	 */
+	public setOnSecretsChanged(callback: () => void | Promise<void>) {
+		this.onSecretChangeCallback = callback
+	}
+
+	/**
+	 * Dispose of resources, including the secrets change listener.
+	 */
+	public dispose() {
+		this.secretsChangeDisposable?.dispose()
 	}
 
 	/**

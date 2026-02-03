@@ -300,6 +300,20 @@ export class ClineProvider
 		} else {
 			this.log("CloudService not ready, deferring cloud profile sync")
 		}
+
+		// Multi-window synchronization: refresh secrets when window gains focus
+		const windowStateDisposable = vscode.window.onDidChangeWindowState(async (e) => {
+			if (e.focused && this.contextProxy.isInitialized) {
+				await this.contextProxy.refreshSecrets()
+				await this.postStateToWebview()
+			}
+		})
+		this.disposables.push(windowStateDisposable)
+
+		// Listen for secret changes from other windows
+		this.contextProxy.setOnSecretsChanged(async () => {
+			await this.postStateToWebview()
+		})
 	}
 
 	/**
@@ -628,6 +642,7 @@ export class ClineProvider
 		this.mcpHub = undefined
 		this.marketplaceManager?.cleanup()
 		this.customModesManager?.dispose()
+		this.contextProxy?.dispose()
 		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 
