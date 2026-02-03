@@ -1,5 +1,40 @@
 # Changelog
 
+## [v5.3.4] - 2026-02-03
+
+### Fixed
+
+- Fixed multi-window authentication synchronization
+- Fixed beta model access for axon-code-2-pro
+
+---
+
+## [v5.3.3] - 2026-02-02
+
+### Fixed
+
+- Fixed beta model access for axon-code-2-pro
+
+---
+
+## [v5.3.2] - 2026-02-02
+
+### Added
+
+- Beta models gating for axon-code-2-pro with backend API integration
+- Custom icons utility for improved UI components
+
+### Changed
+
+- Set temperature to 0.2 for OpenRouter provider
+- Enhanced file edit tool with improved functionality
+- Updated kilocode models configuration
+- Cleaned up chat text area component
+- Updated and optimized test files
+- UI improvements across chat components
+
+---
+
 ## [v5.3.1] - 2026-01-30
 
 ### Added
