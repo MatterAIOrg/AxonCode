@@ -219,6 +219,8 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		addNativeToolCallsToParams(requestOptions, this.options, metadata)
 
+		// kilocode_change: logs removed
+
 		let stream
 		try {
 			stream = await this.client.chat.completions.create(
@@ -241,6 +243,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		try {
 			let fullContent = ""
+			let fullReasoning = "" // kilocode_change: variable kept for structural integrity if needed, but unused logs removed
 
 			let isThinking = false
 
@@ -302,8 +305,8 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 								isThinking = false
 							}
 
-							newText = newText.replace(/<\/?think>/g, "")
-							newText = newText.replace(/<think>/g, "")
+							// newText = newText.replace(/<\/?think>/g, "")
+							// newText = newText.replace(/<think>/g, "")
 
 							yield {
 								type: "reasoning",
@@ -318,12 +321,24 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 					}
 				}
 
-				if ("reasoning_content" in delta && delta.reasoning_content) {
+				// kilocode_change start: Handle reasoning from API (both 'reasoning' and 'reasoning_content' keys)
+				// Some models send 'reasoning', others send 'reasoning_content'
+				if ("reasoning" in delta && delta.reasoning) {
+					const reasoningText = (delta.reasoning as string | undefined) || ""
 					yield {
 						type: "reasoning",
-						text: (delta.reasoning_content as string | undefined) || "",
+						text: reasoningText,
 					}
 				}
+
+				if ("reasoning_content" in delta && delta.reasoning_content) {
+					const reasoningText = (delta.reasoning_content as string | undefined) || ""
+					yield {
+						type: "reasoning",
+						text: reasoningText,
+					}
+				}
+				// kilocode_change end
 
 				// Handle native tool calls when toolStyle is "json"
 				yield* processNativeToolCallsFromDelta(delta, getActiveToolUseStyle(this.options))
@@ -333,6 +348,8 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 				// 	yield { type: "text", text: delta.content }
 				// }
 			}
+
+			// kilocode_change: logs removed
 		} catch (error) {
 			console.error("OpenRouter API Error:", error)
 			let errorMessage = makeOpenRouterErrorReadable(error)
@@ -556,9 +573,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 // kilocode_change start
 function makeOpenRouterErrorReadable(error: any) {
 	try {
-		// Add logging to help debug the issue
-		console.debug("makeOpenRouterErrorReadable called with error:", JSON.stringify(error, null, 2))
-
 		const metadata = error?.error?.metadata as { raw?: string; provider_name?: string } | undefined
 		const parsedJson = safeJsonParse(metadata?.raw)
 		const rawError = parsedJson as { error?: string & { message?: string }; detail?: string } | undefined

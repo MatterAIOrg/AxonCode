@@ -516,12 +516,16 @@ export interface ClineSayTool {
 	endLine?: number
 	lineNumber?: number
 	query?: string
+	offset?: number
+	limit?: number
 	batchFiles?: Array<{
 		path: string
 		lineSnippet: string
 		isOutsideWorkspace?: boolean
 		key: string
 		content?: string
+		offset?: number
+		limit?: number
 	}>
 	batchDiffs?: Array<{
 		path: string

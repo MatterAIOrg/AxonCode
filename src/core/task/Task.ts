@@ -2239,18 +2239,18 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						switch (chunk.type) {
 							case "reasoning": {
 								reasoningMessage += chunk.text
-								// Only apply formatting if the message contains sentence-ending punctuation followed by **
 								let formattedReasoning = reasoningMessage
 								if (reasoningMessage.includes("**")) {
-									// Add line breaks before **Title** patterns that appear after sentence endings
-									// This targets section headers like "...end of sentence.**Title Here**"
-									// Handles periods, exclamation marks, and question marks
 									formattedReasoning = reasoningMessage.replace(
 										/([.!?])\*\*([^*\n]+)\*\*/g,
 										"$1\n\n**$2**",
 									)
 								}
-								await this.say("reasoning", formattedReasoning, undefined, true)
+								if (formattedReasoning.includes("<think>")) {
+									formattedReasoning = formattedReasoning.replace(/<\/?think>/g, "")
+									formattedReasoning = formattedReasoning.replace(/<think>/g, "")
+									await this.say("reasoning", formattedReasoning, undefined, true)
+								}
 								break
 							}
 							case "usage":
@@ -2685,10 +2685,21 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						assistantMessageContent.push({ type: "text", text: assistantMessage })
 					}
 					assistantMessageContent.push(...assistantToolUses)
-					await this.addToApiConversationHistory({
+
+					const assistantHistoryMessage: Anthropic.MessageParam & {
+						reasoning?: string
+						reasoning_content?: string
+					} = {
 						role: "assistant",
 						content: assistantMessageContent,
-					})
+					}
+
+					// Add reasoning content if present
+					if (reasoningMessage) {
+						assistantHistoryMessage.reasoning = reasoningMessage
+					}
+
+					await this.addToApiConversationHistory(assistantHistoryMessage)
 					// kilocode_change end
 
 					TelemetryService.instance.captureConversationMessage(this.taskId, "assistant")
@@ -3138,9 +3149,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 
 		const messagesSinceLastSummary = getMessagesSinceLastSummary(this.apiConversationHistory)
-		let cleanConversationHistory = maybeRemoveImageBlocks(messagesSinceLastSummary, this.api).map(
-			({ role, content }) => ({ role, content }),
-		)
+		let cleanConversationHistory = maybeRemoveImageBlocks(messagesSinceLastSummary, this.api).map((msg) => ({
+			role: msg.role,
+			content: msg.content,
+			// kilocode_change: preserve reasoning
+			...("reasoning" in msg ? { reasoning: (msg as any).reasoning } : {}),
+		}))
 
 		// kilocode_change start
 		// Fetch project properties for KiloCode provider tracking

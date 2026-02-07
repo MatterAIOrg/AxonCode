@@ -1,3 +1,4 @@
+import { vscode } from "@/utils/vscode"
 import React, { memo, useState } from "react"
 import CodeAccordian from "../common/CodeAccordian"
 
@@ -37,6 +38,8 @@ export const BatchDiffApproval = memo(({ files = [], ts }: BatchDiffApprovalProp
 				{files.map((file) => {
 					// Combine all diffs into a single diff string for this file
 					const combinedDiff = file.diffs?.map((diff) => diff.content).join("\n\n") || file.content
+					// Get the first changed line from the diffs, or fallback to extracting from combined diff
+					const firstChangedLine = file.diffs?.find((d) => d.startLine)?.startLine
 
 					return (
 						<div key={`${file.path}-${ts}`}>
@@ -46,6 +49,14 @@ export const BatchDiffApproval = memo(({ files = [], ts }: BatchDiffApprovalProp
 								language="diff"
 								isExpanded={expandedFiles[file.path] || false}
 								onToggleExpand={() => handleToggleExpand(file.path)}
+								onJumpToFile={(line) =>
+									vscode.postMessage({
+										type: "openFile",
+										text: "./" + file.path,
+										values:
+											(line ?? firstChangedLine) ? { line: line ?? firstChangedLine } : undefined,
+									})
+								}
 							/>
 						</div>
 					)

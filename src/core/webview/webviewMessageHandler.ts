@@ -1281,6 +1281,9 @@ export const webviewMessageHandler = async (
 					}
 				}
 
+				// Get the first changed line number from the diff anchor (1-indexed for VS Code)
+				const firstLineNumber = edit.diffAnchor ? edit.diffAnchor.start.line + 1 : undefined
+
 				return {
 					relPath: edit.relPath,
 					absolutePath: edit.absolutePath,
@@ -1288,6 +1291,7 @@ export const webviewMessageHandler = async (
 						additions: totalAdditions,
 						deletions: totalDeletions,
 					},
+					firstLineNumber,
 				}
 			})
 

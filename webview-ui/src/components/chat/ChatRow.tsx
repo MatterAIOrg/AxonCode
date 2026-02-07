@@ -17,7 +17,7 @@ import { findMatchingResourceOrTemplate } from "@src/utils/mcp"
 import { removeLeadingNonAlphanumeric } from "@src/utils/removeLeadingNonAlphanumeric"
 import { vscode } from "@src/utils/vscode"
 
-import CodeAccordian from "../common/CodeAccordian"
+import CodeAccordian, { extractFirstLineNumberFromDiff } from "../common/CodeAccordian"
 import ImageBlock from "../common/ImageBlock"
 import MarkdownBlock from "../common/MarkdownBlock"
 import Thumbnails from "../common/Thumbnails"
@@ -94,12 +94,12 @@ const headerStyle: React.CSSProperties = {
 }
 
 // Build a minimal unified diff for fileEdit when backend doesn't supply one
-const buildFileEditDiff = (tool: ClineSayTool): string | null => {
+const buildFileEditDiff = (tool: ClineSayTool): string | undefined => {
 	const path = tool.path || "file"
 	const oldText = (tool.search ?? "").trimEnd()
 	const newText = (tool.replace ?? tool.content ?? "").trimEnd()
 
-	if (!oldText && !newText) return null
+	if (!oldText && !newText) return undefined
 
 	const lines: string[] = []
 	lines.push(`--- a/${path}`)
@@ -465,6 +465,7 @@ export const ChatRowContent = ({
 				}
 
 				// Regular single file diff
+				const diffCode = tool.content ?? tool.diff
 				return (
 					<>
 						<div style={headerStyle}>
@@ -487,12 +488,19 @@ export const ChatRowContent = ({
 						<div className="">
 							<CodeAccordian
 								path={tool.path}
-								code={tool.content ?? tool.diff}
+								code={diffCode}
 								language="diff"
 								progressStatus={message.progressStatus}
 								isLoading={message.partial}
 								isExpanded={isExpanded}
 								onToggleExpand={handleToggleExpand}
+								onJumpToFile={(line) =>
+									vscode.postMessage({
+										type: "openFile",
+										text: "./" + tool.path,
+										values: line ? { line } : undefined,
+									})
+								}
 							/>
 							{
 								// kilocode_change start
@@ -502,9 +510,18 @@ export const ChatRowContent = ({
 						</div>
 					</>
 				)
-			case "fileEdit":
+			case "fileEdit": {
 				const fileEditDiff = tool.diff ?? buildFileEditDiff(tool)
 				const diffStats = computeDiffStats(fileEditDiff)
+				// Extract first line number from diff for navigation
+				const firstLineNumber = extractFirstLineNumberFromDiff(fileEditDiff)
+				const openFileWithLine = () => {
+					vscode.postMessage({
+						type: "openFile",
+						text: "./" + tool.path,
+						values: firstLineNumber ? { line: firstLineNumber } : undefined,
+					})
+				}
 				return (
 					<div className={`flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start`}>
 						<div style={headerStyle} className="">
@@ -544,18 +561,18 @@ export const ChatRowContent = ({
 												className="cursor-pointer"
 												role="button"
 												tabIndex={0}
-												title={tool.path}
+												title={tool.path + (firstLineNumber ? `:${firstLineNumber}` : "")}
 												aria-label={tool.path}
 												data-mention={tool.path}
 												onClick={(e) => {
 													e.stopPropagation()
-													vscode.postMessage({ type: "openFile", text: "./" + tool.path })
+													openFileWithLine()
 												}}
 												onKeyDown={(e) => {
 													if (e.key === "Enter" || e.key === " ") {
 														e.preventDefault()
 														e.stopPropagation()
-														vscode.postMessage({ type: "openFile", text: "./" + tool.path })
+														openFileWithLine()
 													}
 												}}>
 												<span>{tool.path.split("/").pop() || tool.path}</span>
@@ -585,6 +602,7 @@ export const ChatRowContent = ({
 						</div>
 					</div>
 				)
+			}
 			case "planFileEdit":
 				return (
 					<div className={`flex ${isExpanded ? "flex-col" : "flex-col"} gap-1 items-start pb-2`}>
@@ -620,7 +638,9 @@ export const ChatRowContent = ({
 						</div>
 					</div>
 				)
-			case "insertContent":
+			case "insertContent": {
+				// Use the explicit lineNumber from the tool, or extract from diff
+				const insertLineNumber = tool.lineNumber && tool.lineNumber > 0 ? tool.lineNumber : undefined
 				return (
 					<>
 						<div style={headerStyle}>
@@ -653,11 +673,23 @@ export const ChatRowContent = ({
 								isLoading={message.partial}
 								isExpanded={isExpanded}
 								onToggleExpand={handleToggleExpand}
+								onJumpToFile={(line) =>
+									vscode.postMessage({
+										type: "openFile",
+										text: "./" + tool.path,
+										values:
+											(line ?? insertLineNumber) ? { line: line ?? insertLineNumber } : undefined,
+									})
+								}
 							/>
 						</div>
 					</>
 				)
-			case "searchAndReplace":
+			}
+			case "searchAndReplace": {
+				const searchDiffCode = tool.diff
+				const searchFirstLineMatch = searchDiffCode?.match(/@@\s*-\d+(?:,\d+)?\s+\+(\d+)(?:,\d+)?\s*@@/)
+				const searchFirstLineNumber = searchFirstLineMatch ? parseInt(searchFirstLineMatch[1], 10) : undefined
 				return (
 					<>
 						<div style={headerStyle}>
@@ -686,10 +718,21 @@ export const ChatRowContent = ({
 								isLoading={message.partial}
 								isExpanded={isExpanded}
 								onToggleExpand={handleToggleExpand}
+								onJumpToFile={(line) =>
+									vscode.postMessage({
+										type: "openFile",
+										text: "./" + tool.path,
+										values:
+											(line ?? searchFirstLineNumber)
+												? { line: line ?? searchFirstLineNumber }
+												: undefined,
+									})
+								}
 							/>
 						</div>
 					</>
 				)
+			}
 			case "codebaseSearch": {
 				return (
 					<div style={headerStyle}>
@@ -753,7 +796,13 @@ export const ChatRowContent = ({
 								isLoading={message.partial}
 								isExpanded={isExpanded}
 								onToggleExpand={handleToggleExpand}
-								onJumpToFile={() => vscode.postMessage({ type: "openFile", text: "./" + tool.path })}
+								onJumpToFile={(line) =>
+									vscode.postMessage({
+										type: "openFile",
+										text: "./" + tool.path,
+										values: line ? { line } : undefined,
+									})
+								}
 							/>
 							{
 								// kilocode_change start
@@ -814,11 +863,13 @@ export const ChatRowContent = ({
 									{tool.path?.startsWith(".") && <span>.</span>}
 									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
 										{fileName}
-										{tool.reason
-											?.replace("lines", "#L")
-											?.replaceAll(" ", "")
-											.replaceAll("(", "")
-											.replaceAll(")", "")}
+										{tool.offset !== undefined && tool.limit !== undefined
+											? `#L${tool.offset}-${tool.offset + tool.limit - 1}`
+											: tool.reason
+													?.replace("lines", "#L")
+													?.replaceAll(" ", "")
+													.replaceAll("(", "")
+													.replaceAll(")", "")}
 									</span>
 								</ToolUseBlockHeader>
 							</ToolUseBlock>

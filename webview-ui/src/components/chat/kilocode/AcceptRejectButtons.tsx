@@ -10,6 +10,7 @@ type FileChange = {
 		additions: number
 		deletions: number
 	}
+	firstLineNumber?: number
 }
 
 export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) => {
@@ -127,7 +128,13 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 							<div
 								key={file.relPath}
 								className="flex items-center gap-1.5 px-2 py-1 border-b border-vscode-editorWidget-border hover:bg-vscode-list-hoverBackground cursor-pointer"
-								onClick={() => vscode.postMessage({ type: "openFile", text: file.relPath })}
+								onClick={() =>
+									vscode.postMessage({
+										type: "openFile",
+										text: file.relPath,
+										values: file.firstLineNumber ? { line: file.firstLineNumber } : undefined,
+									})
+								}
 								title={file.absolutePath}>
 								{/* File Icon - Use actual file icon */}
 								{fileIconUrl ? (
