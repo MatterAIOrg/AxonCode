@@ -303,12 +303,16 @@ export async function readFileTool(
 			const batchFiles = filesToApprove.map((fileResult) => {
 				const relPath = fileResult.path
 				const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
+				const offset = fileResult.offset
+				const limit = fileResult.limit
 				return {
 					path: getReadablePath(cline.cwd, relPath),
-					lineSnippet: "",
+					lineSnippet: offset !== undefined && limit !== undefined ? `#L${offset}-${offset + limit - 1}` : "",
 					isOutsideWorkspace: isPathOutsideWorkspace(fullPath),
 					key: relPath,
 					content: fullPath,
+					offset,
+					limit,
 				}
 			})
 
@@ -342,6 +346,8 @@ export async function readFileTool(
 				path: getReadablePath(cline.cwd, relPath),
 				isOutsideWorkspace,
 				content: fullPath,
+				offset: fileResult.offset || 0,
+				limit: fileResult.limit || MAX_READ_FILE_LINES,
 			} satisfies ClineSayTool)
 
 			// kilocode_change: Auto-approve - show in UI and immediately approve

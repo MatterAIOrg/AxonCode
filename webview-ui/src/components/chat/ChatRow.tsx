@@ -814,11 +814,13 @@ export const ChatRowContent = ({
 									{tool.path?.startsWith(".") && <span>.</span>}
 									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
 										{fileName}
-										{tool.reason
-											?.replace("lines", "#L")
-											?.replaceAll(" ", "")
-											.replaceAll("(", "")
-											.replaceAll(")", "")}
+										{tool.offset !== undefined && tool.limit !== undefined
+											? `#L${tool.offset}-${tool.offset + tool.limit - 1}`
+											: tool.reason
+													?.replace("lines", "#L")
+													?.replaceAll(" ", "")
+													.replaceAll("(", "")
+													.replaceAll(")", "")}
 									</span>
 								</ToolUseBlockHeader>
 							</ToolUseBlock>

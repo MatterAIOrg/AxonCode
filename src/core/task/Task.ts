@@ -2239,7 +2239,18 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						switch (chunk.type) {
 							case "reasoning": {
 								reasoningMessage += chunk.text
-								// kilocode_change: removed UI updates for reasoning as requested
+								let formattedReasoning = reasoningMessage
+								if (reasoningMessage.includes("**")) {
+									formattedReasoning = reasoningMessage.replace(
+										/([.!?])\*\*([^*\n]+)\*\*/g,
+										"$1\n\n**$2**",
+									)
+								}
+								if (formattedReasoning.includes("<think>")) {
+									formattedReasoning = formattedReasoning.replace(/<\/?think>/g, "")
+									formattedReasoning = formattedReasoning.replace(/<think>/g, "")
+									await this.say("reasoning", formattedReasoning, undefined, true)
+								}
 								break
 							}
 							case "usage":

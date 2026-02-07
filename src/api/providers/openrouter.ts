@@ -307,8 +307,8 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 								isThinking = false
 							}
 
-							newText = newText.replace(/<\/?think>/g, "")
-							newText = newText.replace(/<think>/g, "")
+							// newText = newText.replace(/<\/?think>/g, "")
+							// newText = newText.replace(/<think>/g, "")
 
 							yield {
 								type: "reasoning",
