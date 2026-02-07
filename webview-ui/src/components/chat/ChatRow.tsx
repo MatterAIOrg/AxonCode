@@ -94,12 +94,12 @@ const headerStyle: React.CSSProperties = {
 }
 
 // Build a minimal unified diff for fileEdit when backend doesn't supply one
-const buildFileEditDiff = (tool: ClineSayTool): string | null => {
+const buildFileEditDiff = (tool: ClineSayTool): string | undefined => {
 	const path = tool.path || "file"
 	const oldText = (tool.search ?? "").trimEnd()
 	const newText = (tool.replace ?? tool.content ?? "").trimEnd()
 
-	if (!oldText && !newText) return null
+	if (!oldText && !newText) return undefined
 
 	const lines: string[] = []
 	lines.push(`--- a/${path}`)
