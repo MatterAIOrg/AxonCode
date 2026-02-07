@@ -246,10 +246,8 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			let fullReasoning = "" // kilocode_change: variable kept for structural integrity if needed, but unused logs removed
 
 			let isThinking = false
-			const _allRawChunks: any[] = [] // DEBUG: collect all chunks
 
 			for await (const chunk of stream) {
-				_allRawChunks.push(chunk) // DEBUG: collect
 				// OpenRouter returns an error object instead of the OpenAI SDK throwing an error.
 				if ("error" in chunk) {
 					const error = chunk.error as { message?: string; code?: number }
