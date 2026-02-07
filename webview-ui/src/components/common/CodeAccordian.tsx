@@ -7,6 +7,21 @@ import { removeLeadingNonAlphanumeric } from "@src/utils/removeLeadingNonAlphanu
 import { ToolUseBlock, ToolUseBlockHeader } from "./ToolUseBlock"
 import CodeBlock from "../kilocode/common/CodeBlock" // kilocode_change
 
+/**
+ * Extract the first line number from a unified diff string.
+ * Looks for @@ -oldStart,oldCount +newStart,newCount @@ patterns.
+ * Returns the newStart line number (where changes appear in the new file).
+ */
+export function extractFirstLineNumberFromDiff(diff?: string): number | undefined {
+	if (!diff) return undefined
+	// Match unified diff hunk headers: @@ -start,count +start,count @@
+	const match = diff.match(/@@\s*-\d+(?:,\d+)?\s+\+(\d+)(?:,\d+)?\s*@@/)
+	if (match) {
+		return parseInt(match[1], 10)
+	}
+	return undefined
+}
+
 interface CodeAccordianProps {
 	path?: string
 	code?: string
@@ -18,7 +33,7 @@ interface CodeAccordianProps {
 	onToggleExpand: () => void
 	header?: string
 	headerContent?: ReactNode
-	onJumpToFile?: () => void
+	onJumpToFile?: (line?: number) => void
 }
 
 const CodeAccordian = ({
@@ -37,6 +52,8 @@ const CodeAccordian = ({
 	const inferredLanguage = useMemo(() => language ?? (path ? getLanguageFromPath(path) : "txt"), [path, language])
 	const source = useMemo(() => String(code).trim() /*kilocode_change: coerce to string*/, [code])
 	const hasHeader = Boolean(path || isFeedback || header || headerContent)
+	// Extract line number from diff if this is a diff view
+	const firstLineNumber = useMemo(() => extractFirstLineNumberFromDiff(code), [code])
 
 	return (
 		<ToolUseBlock>
@@ -80,9 +97,9 @@ const CodeAccordian = ({
 							style={{ fontSize: 13.5 }}
 							onClick={(e) => {
 								e.stopPropagation()
-								onJumpToFile()
+								onJumpToFile(firstLineNumber)
 							}}
-							aria-label={`Open file: ${path}`}
+							aria-label={`Open file: ${path}${firstLineNumber ? `:${firstLineNumber}` : ""}`}
 						/>
 					)}
 					{!onJumpToFile && (
