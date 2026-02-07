@@ -8,16 +8,36 @@ export function convertToOpenAiMessages(
 
 	for (const anthropicMessage of anthropicMessages) {
 		if (typeof anthropicMessage.content === "string") {
-			openAiMessages.push({ role: anthropicMessage.role, content: anthropicMessage.content })
+			// kilocode_change start: Preserve reasoning fields for assistant messages with string content
+			if (anthropicMessage.role === "assistant") {
+				const messageWithReasoning = anthropicMessage as typeof anthropicMessage & {
+					reasoning?: string
+					reasoning_content?: string
+				}
+				const assistantMsg: OpenAI.Chat.ChatCompletionAssistantMessageParam = {
+					role: "assistant",
+					content: anthropicMessage.content,
+				}
+				if (messageWithReasoning.reasoning) {
+					;(assistantMsg as any).reasoning = messageWithReasoning.reasoning
+				}
+				if (messageWithReasoning.reasoning_content) {
+					;(assistantMsg as any).reasoning_content = messageWithReasoning.reasoning_content
+				}
+				openAiMessages.push(assistantMsg)
+			} else {
+				openAiMessages.push({ role: anthropicMessage.role, content: anthropicMessage.content })
+			}
+			// kilocode_change end
 		} else {
 			// image_url.url is base64 encoded image data
 			// ensure it contains the content-type of the image: data:image/png;base64,
 			/*
-        { role: "user", content: "" | { type: "text", text: string } | { type: "image_url", image_url: { url: string } } },
-         // content required unless tool_calls is present
-        { role: "assistant", content?: "" | null, tool_calls?: [{ id: "", function: { name: "", arguments: "" }, type: "function" }] },
-        { role: "tool", tool_call_id: "", content: ""}
-         */
+		{ role: "user", content: "" | { type: "text", text: string } | { type: "image_url", image_url: { url: string } } },
+		 // content required unless tool_calls is present
+		{ role: "assistant", content?: "" | null, tool_calls?: [{ id: "", function: { name: "", arguments: "" }, type: "function" }] },
+		{ role: "tool", tool_call_id: "", content: ""}
+		 */
 			if (anthropicMessage.role === "user") {
 				const { nonToolMessages, toolMessages } = anthropicMessage.content.reduce<{
 					nonToolMessages: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[]
@@ -139,12 +159,30 @@ export function convertToOpenAiMessages(
 					},
 				}))
 
-				openAiMessages.push({
+				// kilocode_change start: Preserve reasoning fields from the original message
+				// Some models (DeepSeek, OpenRouter, etc.) return reasoning/reasoning_content
+				// in their responses, and these should be passed through in subsequent API calls
+				const assistantMsg: OpenAI.Chat.ChatCompletionAssistantMessageParam = {
 					role: "assistant",
 					content,
 					// Cannot be an empty array. API expects an array with minimum length 1, and will respond with an error if it's empty
 					tool_calls: tool_calls.length > 0 ? tool_calls : undefined,
-				})
+				}
+
+				// Pass through reasoning fields if present on the source message
+				const messageWithReasoning = anthropicMessage as typeof anthropicMessage & {
+					reasoning?: string
+					reasoning_content?: string
+				}
+				if (messageWithReasoning.reasoning) {
+					;(assistantMsg as any).reasoning = messageWithReasoning.reasoning
+				}
+				if (messageWithReasoning.reasoning_content) {
+					;(assistantMsg as any).reasoning_content = messageWithReasoning.reasoning_content
+				}
+
+				openAiMessages.push(assistantMsg)
+				// kilocode_change end
 			}
 		}
 	}
