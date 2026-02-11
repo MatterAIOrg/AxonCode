@@ -181,8 +181,17 @@ export function getContextMenuOptions(
 		return item.value.split("/").pop()?.toLowerCase() || item.value.toLowerCase()
 	}
 
+	// Helper to get basename without extension for matching
+	const getBasenameWithoutExtension = (item: ContextMenuQueryItem): string => {
+		if (!item.value) return ""
+		const basename = item.value.split("/").pop() || item.value
+		// Remove extension (everything after last dot)
+		const lastDotIndex = basename.lastIndexOf(".")
+		return lastDotIndex > 0 ? basename.slice(0, lastDotIndex).toLowerCase() : basename.toLowerCase()
+	}
+
 	// Tier 1: Exact filename matches (case-insensitive)
-	// e.g., searching "readme" matches "README.md"
+	// e.g., searching "readme" matches "README.md" (basename without extension)
 	const exactMatches: ContextMenuQueryItem[] = []
 	const matchedKeys = new Set<string>()
 
@@ -190,10 +199,11 @@ export function getContextMenuOptions(
 		if (item.type !== ContextMenuOptionType.File && item.type !== ContextMenuOptionType.Folder) continue
 
 		const basename = getItemBasename(item)
+		const basenameWithoutExt = getBasenameWithoutExtension(item)
 		const key = getItemKey(item)
 
-		// Match if basename equals query (case-insensitive)
-		if (basename === lowerQuery) {
+		// Match if basename equals query OR basename without extension equals query
+		if (basename === lowerQuery || basenameWithoutExt === lowerQuery) {
 			if (!matchedKeys.has(key)) {
 				exactMatches.push(item)
 				matchedKeys.add(key)
@@ -209,9 +219,11 @@ export function getContextMenuOptions(
 		if (item.type !== ContextMenuOptionType.File && item.type !== ContextMenuOptionType.Folder) continue
 
 		const basename = getItemBasename(item)
+		const basenameWithoutExt = getBasenameWithoutExtension(item)
 		const key = getItemKey(item)
 
-		if (!matchedKeys.has(key) && basename.startsWith(lowerQuery)) {
+		// Match if basename starts with query OR basename without extension starts with query
+		if (!matchedKeys.has(key) && (basename.startsWith(lowerQuery) || basenameWithoutExt.startsWith(lowerQuery))) {
 			prefixMatches.push(item)
 			matchedKeys.add(key)
 		}
@@ -225,9 +237,11 @@ export function getContextMenuOptions(
 		if (item.type !== ContextMenuOptionType.File && item.type !== ContextMenuOptionType.Folder) continue
 
 		const basename = getItemBasename(item)
+		const basenameWithoutExt = getBasenameWithoutExtension(item)
 		const key = getItemKey(item)
 
-		if (!matchedKeys.has(key) && basename.includes(lowerQuery)) {
+		// Match if basename contains query OR basename without extension contains query
+		if (!matchedKeys.has(key) && (basename.includes(lowerQuery) || basenameWithoutExt.includes(lowerQuery))) {
 			substringMatches.push(item)
 			matchedKeys.add(key)
 		}

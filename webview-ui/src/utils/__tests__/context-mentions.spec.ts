@@ -304,17 +304,28 @@ describe("getContextMenuOptions", () => {
 			{ type: ContextMenuOptionType.Folder, value: "/readme-folder", label: "readme-folder" },
 		]
 
+		it("should match files by basename without extension", () => {
+			const result = getContextMenuOptions("readme", null, tieredTestItems, [])
+
+			// Should match files where basename without extension equals "readme"
+			const basenames = result.map((item) => item.value?.split("/").pop())
+			expect(basenames).toContain("README.md")
+			expect(basenames).toContain("readme.txt")
+			expect(basenames).toContain("Readme.ts")
+		})
+
 		it("should prioritize exact matches first (case-insensitive)", () => {
 			const result = getContextMenuOptions("readme", null, tieredTestItems, [])
 
-			// Exact matches should come first
+			// Exact matches should come first (basename without extension equals query)
 			const exactMatches = result.slice(0, 3)
 			expect(exactMatches.length).toBeGreaterThanOrEqual(3)
 
-			// All exact matches should have basename "readme" (case-insensitive)
+			// All exact matches should have basename without extension "readme" (case-insensitive)
 			exactMatches.forEach((item) => {
-				const basename = item.value?.split("/").pop()?.toLowerCase()
-				expect(basename).toBe("readme")
+				const basename = item.value?.split("/").pop()
+				const basenameWithoutExt = basename?.substring(0, basename.lastIndexOf(".")) || basename
+				expect(basenameWithoutExt?.toLowerCase()).toBe("readme")
 			})
 
 			// Verify exact matches include all case variations
@@ -473,6 +484,48 @@ describe("getContextMenuOptions", () => {
 				ContextMenuOptionType.File,
 				ContextMenuOptionType.Image,
 			])
+		})
+
+		it("should match CHANGELOG.md when typing 'changelog' (without extension)", () => {
+			const items: ContextMenuQueryItem[] = [
+				{ type: ContextMenuOptionType.File, value: "/CHANGELOG.md", label: "CHANGELOG.md" },
+				{ type: ContextMenuOptionType.File, value: "/src/other.ts", label: "other.ts" },
+			]
+
+			const result = getContextMenuOptions("changelog", null, items, [])
+
+			// Should match CHANGELOG.md as an exact match (basename without extension)
+			const basenames = result.map((item) => item.value?.split("/").pop())
+			expect(basenames).toContain("CHANGELOG.md")
+
+			// Should be in the first position (exact match)
+			expect(result[0].value).toBe("/CHANGELOG.md")
+		})
+
+		it("should match CHANGELOG.md when typing 'Changelog' (capitalized)", () => {
+			const items: ContextMenuQueryItem[] = [
+				{ type: ContextMenuOptionType.File, value: "/CHANGELOG.md", label: "CHANGELOG.md" },
+				{ type: ContextMenuOptionType.File, value: "/src/other.ts", label: "other.ts" },
+			]
+
+			const result = getContextMenuOptions("Changelog", null, items, [])
+
+			// Should match CHANGELOG.md as an exact match (case-insensitive)
+			const basenames = result.map((item) => item.value?.split("/").pop())
+			expect(basenames).toContain("CHANGELOG.md")
+		})
+
+		it("should match CHANGELOG.md when typing 'CHANGELOG' (all caps)", () => {
+			const items: ContextMenuQueryItem[] = [
+				{ type: ContextMenuOptionType.File, value: "/CHANGELOG.md", label: "CHANGELOG.md" },
+				{ type: ContextMenuOptionType.File, value: "/src/other.ts", label: "other.ts" },
+			]
+
+			const result = getContextMenuOptions("CHANGELOG", null, items, [])
+
+			// Should match CHANGELOG.md as an exact match (case-insensitive)
+			const basenames = result.map((item) => item.value?.split("/").pop())
+			expect(basenames).toContain("CHANGELOG.md")
 		})
 	})
 })
