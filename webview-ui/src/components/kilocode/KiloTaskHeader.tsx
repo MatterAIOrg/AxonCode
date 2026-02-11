@@ -91,7 +91,7 @@ const KiloTaskHeader = ({
 				{title && (
 					<div className="flex justify-between items-center gap-2 mb-2 pb-2 border-b border-[var(--color-matterai-border)]">
 						<div className="flex items-center gap-2 grow min-w-0">
-							<span className="font-semibold text-sm truncate">{title}</span>
+							<span className="font-bold text-md truncate">{title}</span>
 						</div>
 						<button
 							onClick={onClose}
@@ -102,12 +102,12 @@ const KiloTaskHeader = ({
 				)}
 				<div className="flex justify-between items-center gap-2">
 					<div
-						className="flex items-center cursor-pointer -ml-0.5 select-none grow min-w-0"
+						className="flex items-center cursor-pointer -ml-1 select-none grow min-w-0"
 						onClick={() => setIsTaskExpanded(!isTaskExpanded)}>
-						<div className="flex items-center shrink-0">
+						{/* <div className="flex items-center shrink-0">
 							<span className={`codicon codicon-chevron-${isTaskExpanded ? "down" : "right"}`}></span>
-						</div>
-						<div className="ml-1.5 grow min-w-0">
+						</div> */}
+						<div className="grow min-w-0">
 							{/* <span className="font-bold">
 								{t("chat:task.title")}
 								{!isTaskExpanded && ":"}
@@ -121,6 +121,7 @@ const KiloTaskHeader = ({
 										WebkitBoxOrient: "vertical",
 										overflow: "hidden",
 										textOverflow: "ellipsis",
+										opacity: 0.8,
 									}}>
 									<ReadOnlyChatText value={task.text || ""} />
 								</div>
@@ -164,8 +165,9 @@ const KiloTaskHeader = ({
 				{isTaskExpanded && (
 					<>
 						<div
+							onClick={() => setIsTaskExpanded(!isTaskExpanded)}
 							ref={textContainerRef}
-							className="-mt-0.5 text-vscode-font-size overflow-y-auto break-words break-anywhere relative">
+							className="text-vscode-font-size overflow-y-auto break-words break-anywhere relative">
 							<div
 								ref={textRef}
 								className="overflow-auto max-h-80 whitespace-pre-wrap break-words break-anywhere"
