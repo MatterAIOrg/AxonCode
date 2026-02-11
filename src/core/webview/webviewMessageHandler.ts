@@ -4761,6 +4761,25 @@ ${comment.suggestion}
 			}
 			break
 		}
+		case "openPlanFile": {
+			if (message.payload) {
+				const { planFile } = message.payload as { planFile: string }
+				const currentTask = provider.getCurrentTask()
+				if (currentTask) {
+					const { getPlanMemoryDirectoryPath } = await import("../../utils/storage")
+					const globalStoragePath = provider.contextProxy.globalStorageUri.fsPath
+					const planMemoryDir = await getPlanMemoryDirectoryPath(globalStoragePath, currentTask.taskId)
+					const planFilePath = path.join(planMemoryDir, planFile)
+					try {
+						const document = await vscode.workspace.openTextDocument(vscode.Uri.file(planFilePath))
+						await vscode.window.showTextDocument(document, { preview: false })
+					} catch (error) {
+						console.error("Failed to open plan file:", error)
+					}
+				}
+			}
+			break
+		}
 		// kilocode_change end
 	}
 }

@@ -55,6 +55,7 @@ import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } from "./ContextCondenseRow"
 import { McpExecution } from "./McpExecution"
 import { FastApplyChatDisplay } from "./kilocode/FastApplyChatDisplay" // kilocode_change
+import { PlayIcon } from "@/utils/customIcons"
 
 interface ChatRowProps {
 	message: ClineMessage
@@ -581,29 +582,46 @@ export const ChatRowContent = ({
 						</div>
 						<div className="">
 							<PlanFileIndicator filename={tool.filename || "plan.md"} isActive={true} />
-							<CodeAccordian
-								path={undefined}
-								code={tool.content ?? ""}
-								language="markdown"
-								isLoading={message.partial}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggleExpand}
-							/>
+							{isExpanded ? (
+								<MarkdownBlock markdown={tool.content ?? ""} />
+							) : (
+								<CodeAccordian
+									path={undefined}
+									code={tool.content ?? ""}
+									language="markdown"
+									isLoading={message.partial}
+									isExpanded={isExpanded}
+									onToggleExpand={handleToggleExpand}
+								/>
+							)}
 							{!message.partial && (
-								<VSCodeButton
-									onClick={() => {
-										vscode.postMessage({
-											type: "implementPlan",
-											payload: {
-												planFile: tool.filename || "plan.md",
-												planContent: tool.content || "",
-											},
-										})
-									}}
-									className="mt-2">
-									<span className="codicon codicon-play mr-1" />
-									Implement
-								</VSCodeButton>
+								<div className="flex gap-2 mt-2">
+									<VSCodeButton
+										onClick={() => {
+											vscode.postMessage({
+												type: "implementPlan",
+												payload: {
+													planFile: tool.filename || "plan.md",
+													planContent: tool.content || "",
+												},
+											})
+										}}>
+										<PlayIcon className="w-4 h-4 mr-1 rtl:-scale-x-100" />
+										Implement
+									</VSCodeButton>
+									<VSCodeButton
+										onClick={() => {
+											vscode.postMessage({
+												type: "openPlanFile",
+												payload: {
+													planFile: tool.filename || "plan.md",
+												},
+											})
+										}}>
+										<span className="codicon codicon-open-preview mr-1" />
+										Open in Editor
+									</VSCodeButton>
+								</div>
 							)}
 						</div>
 					</div>

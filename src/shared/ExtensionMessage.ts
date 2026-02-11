@@ -171,6 +171,7 @@ export interface ExtensionMessage {
 		| TasksByIdResponsePayload
 		| TaskHistoryResponsePayload
 		| ImplementPlanPayload
+		| OpenPlanFilePayload
 	// kilocode_change end
 	action?:
 		| "chatButtonClicked"
@@ -469,6 +470,10 @@ export type ExtensionState = Pick<
 export interface ImplementPlanPayload {
 	planFile: string
 	planContent: string
+}
+
+export interface OpenPlanFilePayload {
+	planFile: string
 }
 
 export interface ClineSayTool {

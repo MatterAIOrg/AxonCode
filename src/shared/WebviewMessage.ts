@@ -17,7 +17,7 @@ import {
 } from "@roo-code/types"
 
 import { Mode } from "./modes"
-import { ImplementPlanPayload } from "./ExtensionMessage"
+import { ImplementPlanPayload, OpenPlanFilePayload } from "./ExtensionMessage"
 
 export type ClineAskResponse =
 	| "yesButtonClicked"
@@ -302,6 +302,7 @@ export interface WebviewMessage {
 		| "insertTextIntoTextarea"
 		| "showMdmAuthRequiredNotification"
 		| "implementPlan" // kilocode_change: Plan mode implementation
+		| "openPlanFile" // kilocode_change: Open plan file in editor
 		| "imageGenerationSettings"
 		| "openRouterImageApiKey"
 		| "kiloCodeImageApiKey"
@@ -610,6 +611,7 @@ export type WebViewMessagePayload =
 	| CommitChangesPayload
 	| PendingFileEditsPayload
 	| ImplementPlanPayload
+	| OpenPlanFilePayload
 	| CodeReviewResultsPayload
 	| ApplyCodeReviewFixPayload
 	| ApplyAllCodeReviewFixesPayload
