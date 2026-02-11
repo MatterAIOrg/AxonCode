@@ -1969,28 +1969,28 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				)
 			}
 
-			if (this.consecutiveMistakeLimit > 0 && this.consecutiveMistakeCount >= this.consecutiveMistakeLimit) {
-				const { response, text, images } = await this.ask(
-					"mistake_limit_reached",
-					t("common:errors.mistake_limit_guidance"),
-				)
+			// if (this.consecutiveMistakeLimit > 0 && this.consecutiveMistakeCount >= this.consecutiveMistakeLimit) {
+			// 	const { response, text, images } = await this.ask(
+			// 		"mistake_limit_reached",
+			// 		t("common:errors.mistake_limit_guidance"),
+			// 	)
 
-				if (response === "messageResponse") {
-					currentUserContent.push(
-						...[
-							{ type: "text" as const, text: formatResponse.tooManyMistakes(text) },
-							...formatResponse.imageBlocks(images),
-						],
-					)
+			// 	if (response === "messageResponse") {
+			// 		currentUserContent.push(
+			// 			...[
+			// 				{ type: "text" as const, text: formatResponse.tooManyMistakes(text) },
+			// 				...formatResponse.imageBlocks(images),
+			// 			],
+			// 		)
 
-					await this.say("user_feedback", text, images)
+			// 		await this.say("user_feedback", text, images)
 
-					// Track consecutive mistake errors in telemetry.
-					TelemetryService.instance.captureConsecutiveMistakeError(this.taskId)
-				}
+			// 		// Track consecutive mistake errors in telemetry.
+			// 		TelemetryService.instance.captureConsecutiveMistakeError(this.taskId)
+			// 	}
 
-				this.consecutiveMistakeCount = 0
-			}
+			// 	this.consecutiveMistakeCount = 0
+			// }
 
 			// In this Cline request loop, we need to check if this task instance
 			// has been asked to wait for a subtask to finish before continuing.
