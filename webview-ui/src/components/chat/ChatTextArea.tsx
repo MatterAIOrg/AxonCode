@@ -1519,7 +1519,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						"text-vscode-input-foreground",
 						"font-vscode-font-family",
 						"text-vscode-editor-font-size",
-						"leading-vscode-editor-line-height",
 						"cursor-text",
 						"outline-none",
 						isEditMode ? "pt-1.5 pb-2 px-2" : "py-1.5 px-2",
@@ -1536,6 +1535,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					)}
 					style={{
 						caretColor: "var(--vscode-input-foreground)",
+						lineHeight: "16px",
 					}}
 				/>
 
