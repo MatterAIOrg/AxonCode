@@ -290,6 +290,191 @@ describe("getContextMenuOptions", () => {
 	})
 
 	// Add more tests for filtering, fuzzy search interaction if needed
+
+	// --- Tests for Tiered Matching (Exact, Prefix, Substring, Fuzzy) ---
+	describe("tiered matching", () => {
+		const tieredTestItems: ContextMenuQueryItem[] = [
+			{ type: ContextMenuOptionType.File, value: "/src/README.md", label: "README.md" },
+			{ type: ContextMenuOptionType.File, value: "/src/readme.txt", label: "readme.txt" },
+			{ type: ContextMenuOptionType.File, value: "/src/Readme.ts", label: "Readme.ts" },
+			{ type: ContextMenuOptionType.File, value: "/src/ThreadReader.ts", label: "ThreadReader.ts" },
+			{ type: ContextMenuOptionType.File, value: "/src/XXXreadYYY.js", label: "XXXreadYYY.js" },
+			{ type: ContextMenuOptionType.File, value: "/src/reader.ts", label: "reader.ts" },
+			{ type: ContextMenuOptionType.File, value: "/src/other.ts", label: "other.ts" },
+			{ type: ContextMenuOptionType.Folder, value: "/readme-folder", label: "readme-folder" },
+		]
+
+		it("should prioritize exact matches first (case-insensitive)", () => {
+			const result = getContextMenuOptions("readme", null, tieredTestItems, [])
+
+			// Exact matches should come first
+			const exactMatches = result.slice(0, 3)
+			expect(exactMatches.length).toBeGreaterThanOrEqual(3)
+
+			// All exact matches should have basename "readme" (case-insensitive)
+			exactMatches.forEach((item) => {
+				const basename = item.value?.split("/").pop()?.toLowerCase()
+				expect(basename).toBe("readme")
+			})
+
+			// Verify exact matches include all case variations
+			const basenames = exactMatches.map((item) => item.value?.split("/").pop())
+			expect(basenames).toContain("README.md")
+			expect(basenames).toContain("readme.txt")
+			expect(basenames).toContain("Readme.ts")
+		})
+
+		it("should include prefix matches after exact matches", () => {
+			const result = getContextMenuOptions("read", null, tieredTestItems, [])
+
+			const prefixMatches = result.filter((item) => {
+				const basename = item.value?.split("/").pop()?.toLowerCase()
+				return basename?.startsWith("read") && basename !== "read"
+			})
+
+			// Should have prefix matches
+			expect(prefixMatches.length).toBeGreaterThan(0)
+
+			// Prefix matches should include files starting with "read"
+			const prefixBasenames = prefixMatches.map((item) => item.value?.split("/").pop())
+			expect(prefixBasenames).toContain("README.md")
+			expect(prefixBasenames).toContain("readme.txt")
+			expect(prefixBasenames).toContain("Readme.ts")
+			expect(prefixBasenames).toContain("reader.ts")
+		})
+
+		it("should include substring matches after prefix matches", () => {
+			const result = getContextMenuOptions("read", null, tieredTestItems, [])
+
+			// Find substring matches (contain "read" but don't start with it)
+			const substringMatches = result.filter((item) => {
+				const basename = item.value?.split("/").pop()?.toLowerCase()
+				return basename?.includes("read") && !basename?.startsWith("read")
+			})
+
+			// Should have substring matches
+			expect(substringMatches.length).toBeGreaterThan(0)
+
+			// Substring matches should include files with "read" in the middle
+			const substringBasenames = substringMatches.map((item) => item.value?.split("/").pop())
+			expect(substringBasenames).toContain("ThreadReader.ts")
+			expect(substringBasenames).toContain("XXXreadYYY.js")
+		})
+
+		it("should maintain priority order: exact > prefix > substring > fuzzy", () => {
+			const result = getContextMenuOptions("read", null, tieredTestItems, [])
+
+			// Find indices of different match types
+			const exactIndex = result.findIndex((item) => item.value?.split("/").pop()?.toLowerCase() === "read")
+			const prefixIndex = result.findIndex((item) => {
+				const basename = item.value?.split("/").pop()?.toLowerCase()
+				return basename?.startsWith("read") && basename !== "read"
+			})
+			const substringIndex = result.findIndex((item) => {
+				const basename = item.value?.split("/").pop()?.toLowerCase()
+				return basename?.includes("read") && !basename?.startsWith("read")
+			})
+
+			// Verify ordering: exact < prefix < substring
+			if (exactIndex !== -1 && prefixIndex !== -1) {
+				expect(exactIndex).toBeLessThan(prefixIndex)
+			}
+			if (prefixIndex !== -1 && substringIndex !== -1) {
+				expect(prefixIndex).toBeLessThan(substringIndex)
+			}
+		})
+
+		it("should be case-insensitive for all matching tiers", () => {
+			// Test with lowercase query
+			const lowerResult = getContextMenuOptions("readme", null, tieredTestItems, [])
+			const lowerBasenames = lowerResult.map((item) => item.value?.split("/").pop())
+
+			// Test with uppercase query
+			const upperResult = getContextMenuOptions("README", null, tieredTestItems, [])
+			const upperBasenames = upperResult.map((item) => item.value?.split("/").pop())
+
+			// Should return same results regardless of case
+			expect(lowerBasenames).toEqual(upperBasenames)
+		})
+
+		it("should deduplicate results across all tiers", () => {
+			const result = getContextMenuOptions("read", null, tieredTestItems, [])
+
+			// Get all values
+			const values = result.map((item) => item.value)
+
+			// Check for duplicates
+			const uniqueValues = new Set(values)
+			expect(values.length).toBe(uniqueValues.size)
+		})
+
+		it("should handle mixed case in filenames correctly", () => {
+			const mixedCaseItems: ContextMenuQueryItem[] = [
+				{ type: ContextMenuOptionType.File, value: "/src/MyFile.ts", label: "MyFile.ts" },
+				{ type: ContextMenuOptionType.File, value: "/src/myfile.ts", label: "myfile.ts" },
+				{ type: ContextMenuOptionType.File, value: "/src/MYFILE.ts", label: "MYFILE.ts" },
+				{ type: ContextMenuOptionType.File, value: "/src/MyFileComponent.tsx", label: "MyFileComponent.tsx" },
+			]
+
+			const result = getContextMenuOptions("myfile", null, mixedCaseItems, [])
+
+			// Should match all case variations
+			const basenames = result.map((item) => item.value?.split("/").pop())
+			expect(basenames).toContain("MyFile.ts")
+			expect(basenames).toContain("myfile.ts")
+			expect(basenames).toContain("MYFILE.ts")
+		})
+
+		it("should return NoResults when no matches found in any tier", () => {
+			const result = getContextMenuOptions("zzzzzzzz", null, tieredTestItems, [])
+
+			expect(result).toHaveLength(1)
+			expect(result[0].type).toBe(ContextMenuOptionType.NoResults)
+		})
+
+		it("should handle folders in tiered matching", () => {
+			const result = getContextMenuOptions("readme", null, tieredTestItems, [])
+
+			// Should include folder matches
+			const folderMatches = result.filter((item) => item.type === ContextMenuOptionType.Folder)
+			expect(folderMatches.length).toBeGreaterThan(0)
+
+			// Folder should be matched by name
+			const folder = folderMatches.find((item) => item.value === "/readme-folder")
+			expect(folder).toBeDefined()
+		})
+
+		it("should combine queryItems and dynamicSearchResults in tiered matching", () => {
+			const dynamicResults: SearchResult[] = [
+				{ path: "dynamic/README.md", type: "file", label: "README.md" },
+				{ path: "dynamic/ThreadReader.ts", type: "file", label: "ThreadReader.ts" },
+			]
+
+			const result = getContextMenuOptions("readme", null, tieredTestItems, dynamicResults)
+
+			// Should include results from both sources
+			const basenames = result.map((item) => item.value?.split("/").pop())
+
+			// From queryItems
+			expect(basenames).toContain("README.md")
+			expect(basenames).toContain("readme.txt")
+
+			// From dynamicSearchResults
+			expect(basenames).toContain("README.md") // May be duplicate, should be deduped
+		})
+
+		it("should handle empty query correctly", () => {
+			const result = getContextMenuOptions("", null, tieredTestItems, [])
+
+			// Empty query should return the 3 main options
+			expect(result).toHaveLength(3)
+			expect(result.map((item) => item.type)).toEqual([
+				ContextMenuOptionType.Folder,
+				ContextMenuOptionType.File,
+				ContextMenuOptionType.Image,
+			])
+		})
+	})
 })
 
 describe("shouldShowContextMenu", () => {

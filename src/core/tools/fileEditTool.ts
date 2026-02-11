@@ -94,7 +94,7 @@ export async function fileEditTool(
 				await cline.diffViewProvider.saveDirectly(
 					relPath,
 					newString ?? "",
-					!isPreventFocusDisruptionEnabled,
+					false,
 					diagnosticsEnabled,
 					writeDelayMs,
 				)
@@ -167,13 +167,7 @@ export async function fileEditTool(
 		cline.diffViewProvider.editType = fileExists ? "modify" : "create"
 		cline.diffViewProvider.originalContent = originalContent
 
-		await cline.diffViewProvider.saveDirectly(
-			relPath,
-			newContent,
-			!isPreventFocusDisruptionEnabled,
-			diagnosticsEnabled,
-			writeDelayMs,
-		)
+		await cline.diffViewProvider.saveDirectly(relPath, newContent, false, diagnosticsEnabled, writeDelayMs)
 
 		const sayMessageProps: ClineSayTool = {
 			tool: "fileEdit",
