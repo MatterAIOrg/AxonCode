@@ -5,7 +5,7 @@ import { listFiles } from "../../services/glob/list-files"
 import { ClineProvider } from "../../core/webview/ClineProvider"
 import { toRelativePath, getWorkspacePath } from "../../utils/path"
 
-const MAX_INITIAL_FILES = 1_000
+const MAX_INITIAL_FILES = 2_000
 
 // Note: this is not a drop-in replacement for listFiles at the start of tasks, since that will be done for Desktops when there is no workspace selected
 class WorkspaceTracker {

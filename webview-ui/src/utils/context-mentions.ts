@@ -148,8 +148,6 @@ export function getContextMenuOptions(
 		]
 	}
 
-	const lowerQuery = query.toLowerCase()
-
 	// Convert search results to queryItems format first
 	const searchResultItems = dynamicSearchResults.map((result) => {
 		const formattedPath = result.path.startsWith("/") ? result.path : `/${result.path}`
@@ -178,84 +176,24 @@ export function getContextMenuOptions(
 	// Helper to get basename from path for filename matching
 	const getItemBasename = (item: ContextMenuQueryItem): string => {
 		if (!item.value) return ""
-		return item.value.split("/").pop()?.toLowerCase() || item.value.toLowerCase()
+		return item.value.split("/").pop() || item.value
 	}
 
-	// Helper to get basename without extension for matching
-	const getBasenameWithoutExtension = (item: ContextMenuQueryItem): string => {
-		if (!item.value) return ""
-		const basename = item.value.split("/").pop() || item.value
-		// Remove extension (everything after last dot)
-		const lastDotIndex = basename.lastIndexOf(".")
-		return lastDotIndex > 0 ? basename.slice(0, lastDotIndex).toLowerCase() : basename.toLowerCase()
-	}
-
-	// Tier 1: Exact filename matches (case-insensitive)
-	// e.g., searching "readme" matches "README.md" (basename without extension)
-	const exactMatches: ContextMenuQueryItem[] = []
-	const matchedKeys = new Set<string>()
-
-	for (const item of allSearchItems) {
-		if (item.type !== ContextMenuOptionType.File && item.type !== ContextMenuOptionType.Folder) continue
-
-		const basename = getItemBasename(item)
-		const basenameWithoutExt = getBasenameWithoutExtension(item)
-		const key = getItemKey(item)
-
-		// Match if basename equals query OR basename without extension equals query
-		if (basename === lowerQuery || basenameWithoutExt === lowerQuery) {
-			if (!matchedKeys.has(key)) {
-				exactMatches.push(item)
-				matchedKeys.add(key)
-			}
-		}
-	}
-
-	// Tier 2: Prefix matches (basename starts with query)
-	// e.g., searching "read" matches "README.md", "Readme.txt"
-	const prefixMatches: ContextMenuQueryItem[] = []
-
-	for (const item of allSearchItems) {
-		if (item.type !== ContextMenuOptionType.File && item.type !== ContextMenuOptionType.Folder) continue
-
-		const basename = getItemBasename(item)
-		const basenameWithoutExt = getBasenameWithoutExtension(item)
-		const key = getItemKey(item)
-
-		// Match if basename starts with query OR basename without extension starts with query
-		if (!matchedKeys.has(key) && (basename.startsWith(lowerQuery) || basenameWithoutExt.startsWith(lowerQuery))) {
-			prefixMatches.push(item)
-			matchedKeys.add(key)
-		}
-	}
-
-	// Tier 3: Substring matches (basename contains query anywhere)
-	// e.g., searching "read" matches "ThreadReader.ts", "XXXreadYYY.js"
-	const substringMatches: ContextMenuQueryItem[] = []
-
-	for (const item of allSearchItems) {
-		if (item.type !== ContextMenuOptionType.File && item.type !== ContextMenuOptionType.Folder) continue
-
-		const basename = getItemBasename(item)
-		const basenameWithoutExt = getBasenameWithoutExtension(item)
-		const key = getItemKey(item)
-
-		// Match if basename contains query OR basename without extension contains query
-		if (!matchedKeys.has(key) && (basename.includes(lowerQuery) || basenameWithoutExt.includes(lowerQuery))) {
-			substringMatches.push(item)
-			matchedKeys.add(key)
-		}
-	}
-
-	// Tier 4: Fuzzy matches (excluding already matched items)
+	// Prepare items for fuzzy search - prioritize filename in search string
 	const searchableItems = allSearchItems
-		.filter((item) => !matchedKeys.has(getItemKey(item)))
-		.map((item) => ({
-			original: item,
-			searchStr: [item.value, item.label, item.description].filter(Boolean).join(" "),
-		}))
+		.filter((item) => item.type === ContextMenuOptionType.File || item.type === ContextMenuOptionType.Folder)
+		.map((item) => {
+			const basename = getItemBasename(item)
+			// Search string: basename first (highest priority), then full path
+			const searchStr = `${basename} ${item.value}`
+			return {
+				original: item,
+				searchStr,
+			}
+		})
 
-	// Initialize fzf instance for fuzzy search (case-insensitive by using lowercase)
+	// Initialize fzf instance for fuzzy search
+	// Use case-insensitive matching and prioritize filename matches
 	const fzf = new Fzf(searchableItems, {
 		selector: (item) => item.searchStr,
 		casing: "case-insensitive",
@@ -264,13 +202,9 @@ export function getContextMenuOptions(
 	// Get fuzzy matching items
 	const fuzzyMatches = query ? fzf.find(query).map((result) => result.item.original) : []
 
-	// Combine results in priority order:
-	// 1. Exact matches, 2. Prefix matches, 3. Substring matches, 4. Fuzzy matches
-	const allItems = [...exactMatches, ...prefixMatches, ...substringMatches, ...fuzzyMatches]
-
-	// Final deduplication pass (shouldn't be needed but ensures uniqueness)
+	// Deduplicate results
 	const seen = new Set<string>()
-	const deduped = allItems.filter((item) => {
+	const deduped = fuzzyMatches.filter((item) => {
 		const key = getItemKey(item)
 		if (seen.has(key)) return false
 		seen.add(key)
