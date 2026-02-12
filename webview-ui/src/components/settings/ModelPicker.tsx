@@ -170,7 +170,7 @@ export const ModelPicker = ({
 	return (
 		<>
 			<div>
-				<label className="block font-medium mb-1">{t("settings:modelPicker.label")}</label>
+				<label className="block font-semibold mb-2 mt-2">{t("settings:modelPicker.label")}</label>
 				<Popover open={open} onOpenChange={onOpenChange}>
 					<PopoverTrigger asChild>
 						<Button
