@@ -1,5 +1,21 @@
 # Changelog
 
+## [v5.4.0] - 2026-02-12
+
+### Added
+
+- Open plan in editor functionality for better plan management
+- Better fuzzy search for improved file context matching
+
+### Changed
+
+- Cleaner chat interface with improved UI
+- Better diff view for edit tool
+- Edit tool improvements with context search enhancements
+- Minor UI update to task header
+
+---
+
 ## [v5.3.4] - 2026-02-03
 
 ### Fixed
@@ -63,6 +79,38 @@
 - Enhanced assistant message presentation with skill support
 - Improved code index manager with skill-related functionality
 - Updated dependencies in package.json
+
+---
+
+## [v5.2.9] - 2026-01-27
+
+### Changed
+
+- Minor update to system prompt for long running command tool
+
+---
+
+## [v5.2.8] - 2026-01-27
+
+### Fixed
+
+- Minor patch in line diff counter logic
+
+---
+
+## [v5.2.7] - 2026-01-27
+
+### Changed
+
+- Minor update to system prompt for long running command tool
+
+---
+
+## [v5.2.6] - 2026-01-21
+
+### Changed
+
+- Minor update to system prompt for long running command tool
 
 ---
 
