@@ -102,7 +102,7 @@ GitHubDiffView.displayName = "GitHubDiffView"
 
 // Unified diff view component
 const UnifiedDiffView = memo(({ diff }: { diff: string }) => {
-	const lines = diff.split("\n")
+	const lines = diff ? diff.split("\n") : []
 
 	return (
 		<div className="font-mono text-xs w-full">

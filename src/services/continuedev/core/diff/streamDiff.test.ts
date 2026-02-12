@@ -59,8 +59,8 @@ async function expectDiff(file: string) {
 	const normalized = testFileContents.replace(/\r\n/g, "\n")
 
 	const [oldText, newText, expectedDiff] = normalized.split("\n---\n").map((s) => s.replace(/^\n+/, "").trimEnd())
-	const oldLines = oldText.split("\n")
-	const newLines = newText.split("\n")
+	const oldLines = oldText ? oldText.split("\n") : []
+	const newLines = newText ? newText.split("\n") : []
 	const { streamDiffs } = await collectDiffs(oldLines, newLines)
 	const displayedDiff = displayDiff(streamDiffs)
 
