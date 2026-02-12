@@ -148,28 +148,9 @@ export function getContextMenuOptions(
 		]
 	}
 
-	// const lowerQuery = query.toLowerCase()
-	const suggestions: ContextMenuQueryItem[] = []
-
-	const searchableItems = queryItems.map((item) => ({
-		original: item,
-		searchStr: [item.value, item.label, item.description].filter(Boolean).join(" "),
-	}))
-
-	// Initialize fzf instance for fuzzy search
-	const fzf = new Fzf(searchableItems, {
-		selector: (item) => item.searchStr,
-	})
-
-	// Get fuzzy matching items
-	const matchingItems = query ? fzf.find(query).map((result) => result.item.original) : []
-
-	// Convert search results to queryItems format
+	// Convert search results to queryItems format first
 	const searchResultItems = dynamicSearchResults.map((result) => {
-		// Ensure paths start with / for consistency
 		const formattedPath = result.path.startsWith("/") ? result.path : `/${result.path}`
-
-		// For display purposes, we don't escape spaces in the label or description
 		const displayPath = formattedPath
 		const displayName = result.label || getBasename(result.path)
 
@@ -181,19 +162,50 @@ export function getContextMenuOptions(
 		}
 	})
 
-	const allItems = [...suggestions, ...matchingItems, ...searchResultItems]
+	// Combine all items to search through
+	const allSearchItems = [...queryItems, ...searchResultItems]
 
-	// Remove duplicates - normalize paths by ensuring all have leading slashes
-	const seen = new Set()
-	const deduped = allItems.filter((item) => {
-		// Normalize paths for deduplication by ensuring leading slashes
-		const normalizedValue = item.value
-		let key = ""
+	// Helper to get normalized key for deduplication
+	const getItemKey = (item: ContextMenuQueryItem): string => {
 		if (item.type === ContextMenuOptionType.File || item.type === ContextMenuOptionType.Folder) {
-			key = normalizedValue!
-		} else {
-			key = `${item.type}-${normalizedValue}`
+			return item.value!
 		}
+		return `${item.type}-${item.value}`
+	}
+
+	// Helper to get basename from path for filename matching
+	const getItemBasename = (item: ContextMenuQueryItem): string => {
+		if (!item.value) return ""
+		return item.value.split("/").pop() || item.value
+	}
+
+	// Prepare items for fuzzy search - prioritize filename in search string
+	const searchableItems = allSearchItems
+		.filter((item) => item.type === ContextMenuOptionType.File || item.type === ContextMenuOptionType.Folder)
+		.map((item) => {
+			const basename = getItemBasename(item)
+			// Search string: basename first (highest priority), then full path
+			const searchStr = `${basename} ${item.value}`
+			return {
+				original: item,
+				searchStr,
+			}
+		})
+
+	// Initialize fzf instance for fuzzy search
+	// Use case-insensitive matching and prioritize filename matches
+	const fzf = new Fzf(searchableItems, {
+		selector: (item) => item.searchStr,
+		casing: "case-insensitive",
+	})
+
+	// Get fuzzy matching items
+	const fuzzyMatches = query ? fzf.find(query).map((result) => result.item.original) : []
+
+	// Deduplicate results
+	const seen = new Set<string>()
+	const deduped = fuzzyMatches.filter((item) => {
+		const key = getItemKey(item)
 		if (seen.has(key)) return false
 		seen.add(key)
 		return true

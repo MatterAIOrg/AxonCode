@@ -46,6 +46,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	dismissedNotificationIds: string[] // kilocode_change
 	yoloMode?: boolean // kilocode_change
 	setYoloMode: (value: boolean) => void // kilocode_Change
+	diffViewMode?: "unified" | "side-by-side" // GitHub PR diff view mode
+	setDiffViewMode: (value: "unified" | "side-by-side") => void // Setter for diff view mode
 	didHydrateState: boolean
 	showWelcome: boolean
 	theme: any
@@ -703,6 +705,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setIncludeTaskHistoryInEnhance,
 		codeReviewSettings: state.codeReviewSettings,
 		setCodeReviewSettings: (value) => setState((prevState) => ({ ...prevState, codeReviewSettings: value })),
+		setDiffViewMode: (value) => setState((prevState) => ({ ...prevState, diffViewMode: value })),
 	}
 
 	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>

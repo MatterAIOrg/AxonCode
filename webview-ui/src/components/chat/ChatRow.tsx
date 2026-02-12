@@ -19,6 +19,7 @@ import { vscode } from "@src/utils/vscode"
 
 import CodeAccordian, { extractFirstLineNumberFromDiff } from "../common/CodeAccordian"
 import ImageBlock from "../common/ImageBlock"
+import GitHubDiffView from "./GitHubDiffView"
 import MarkdownBlock from "../common/MarkdownBlock"
 import Thumbnails from "../common/Thumbnails"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
@@ -54,6 +55,7 @@ import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } from "./ContextCondenseRow"
 import { McpExecution } from "./McpExecution"
 import { FastApplyChatDisplay } from "./kilocode/FastApplyChatDisplay" // kilocode_change
+import { PlayIcon } from "@/utils/customIcons"
 
 interface ChatRowProps {
 	message: ClineMessage
@@ -93,7 +95,7 @@ const headerStyle: React.CSSProperties = {
 	flexShrink: 0,
 }
 
-// Build a minimal unified diff for fileEdit when backend doesn't supply one
+// Build a GitHub-style unified diff for fileEdit when backend doesn't supply one
 const buildFileEditDiff = (tool: ClineSayTool): string | undefined => {
 	const path = tool.path || "file"
 	const oldText = (tool.search ?? "").trimEnd()
@@ -101,17 +103,28 @@ const buildFileEditDiff = (tool: ClineSayTool): string | undefined => {
 
 	if (!oldText && !newText) return undefined
 
+	const oldLines = oldText.split(/\r?\n/)
+	const newLines = newText.split(/\r?\n/)
+
 	const lines: string[] = []
 	lines.push(`--- a/${path}`)
 	lines.push(`+++ b/${path}`)
-	lines.push(`@@`)
 
-	if (oldText) {
-		lines.push(...oldText.split(/\r?\n/).map((line) => `-${line}`))
+	// Calculate hunk header with line numbers
+	const oldStart = 1
+	const oldCount = oldLines.length
+	const newStart = 1
+	const newCount = newLines.length
+	lines.push(`@@ -${oldStart},${oldCount} +${newStart},${newCount} @@`)
+
+	// Add old lines with - prefix
+	for (const line of oldLines) {
+		lines.push(`-${line}`)
 	}
 
-	if (newText) {
-		lines.push(...newText.split(/\r?\n/).map((line) => `+${line}`))
+	// Add new lines with + prefix
+	for (const line of newLines) {
+		lines.push(`+${line}`)
 	}
 
 	return lines.join("\n")
@@ -523,7 +536,7 @@ export const ChatRowContent = ({
 					})
 				}
 				return (
-					<div className={`flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start`}>
+					<div className={`flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start w-full`}>
 						<div style={headerStyle} className="">
 							{tool.isProtected ? (
 								<span
@@ -540,59 +553,17 @@ export const ChatRowContent = ({
 										: t("chat:fileOperations.wantsToEdit")}
 							</span>
 						</div>
-						<div className="">
-							<CodeAccordian
-								path={undefined} // custom headerContent handles display/jump
-								code={fileEditDiff ?? tool.content ?? tool.replace ?? ""}
-								language={fileEditDiff ? "diff" : getLanguageFromPath(tool.path || "") || "log"}
-								headerContent={
-									<div className="flex items-center gap-2 w-full">
-										{tool.isProtected ? (
-											<span
-												className="codicon codicon-lock"
-												style={{
-													color: "var(--vscode-editorWarning-foreground)",
-													marginBottom: "-1.5px",
-												}}
-											/>
-										) : null}
-										{tool.path ? (
-											<span
-												className="cursor-pointer"
-												role="button"
-												tabIndex={0}
-												title={tool.path + (firstLineNumber ? `:${firstLineNumber}` : "")}
-												aria-label={tool.path}
-												data-mention={tool.path}
-												onClick={(e) => {
-													e.stopPropagation()
-													openFileWithLine()
-												}}
-												onKeyDown={(e) => {
-													if (e.key === "Enter" || e.key === " ") {
-														e.preventDefault()
-														e.stopPropagation()
-														openFileWithLine()
-													}
-												}}>
-												<span>{tool.path.split("/").pop() || tool.path}</span>
-											</span>
-										) : null}
-										{diffStats ? (
-											<span className="text-xs text-vscode-descriptionForeground flex gap-1">
-												<span style={{ color: "var(--vscode-charts-green)" }}>
-													+{diffStats.added}
-												</span>
-												<span style={{ color: "var(--vscode-charts-red)" }}>
-													-{diffStats.removed}
-												</span>
-											</span>
-										) : null}
-									</div>
-								}
+						<div className="w-full">
+							<GitHubDiffView
+								diff={fileEditDiff ?? tool.content ?? tool.replace ?? ""}
+								filePath={tool.path}
+								isProtected={tool.isProtected}
+								isOutsideWorkspace={tool.isOutsideWorkspace}
+								diffStats={diffStats}
 								isLoading={message.partial}
 								isExpanded={isExpanded}
 								onToggleExpand={handleToggleExpand}
+								onOpenFile={openFileWithLine}
 							/>
 							{
 								// kilocode_change start
@@ -611,29 +582,46 @@ export const ChatRowContent = ({
 						</div>
 						<div className="">
 							<PlanFileIndicator filename={tool.filename || "plan.md"} isActive={true} />
-							<CodeAccordian
-								path={undefined}
-								code={tool.content ?? ""}
-								language="markdown"
-								isLoading={message.partial}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggleExpand}
-							/>
+							{isExpanded ? (
+								<MarkdownBlock markdown={tool.content ?? ""} />
+							) : (
+								<CodeAccordian
+									path={undefined}
+									code={tool.content ?? ""}
+									language="markdown"
+									isLoading={message.partial}
+									isExpanded={isExpanded}
+									onToggleExpand={handleToggleExpand}
+								/>
+							)}
 							{!message.partial && (
-								<VSCodeButton
-									onClick={() => {
-										vscode.postMessage({
-											type: "implementPlan",
-											payload: {
-												planFile: tool.filename || "plan.md",
-												planContent: tool.content || "",
-											},
-										})
-									}}
-									className="mt-2">
-									<span className="codicon codicon-play mr-1" />
-									Implement
-								</VSCodeButton>
+								<div className="flex gap-2 mt-2">
+									<VSCodeButton
+										onClick={() => {
+											vscode.postMessage({
+												type: "implementPlan",
+												payload: {
+													planFile: tool.filename || "plan.md",
+													planContent: tool.content || "",
+												},
+											})
+										}}>
+										<PlayIcon className="w-4 h-4 mr-1 rtl:-scale-x-100" />
+										Implement
+									</VSCodeButton>
+									<VSCodeButton
+										onClick={() => {
+											vscode.postMessage({
+												type: "openPlanFile",
+												payload: {
+													planFile: tool.filename || "plan.md",
+												},
+											})
+										}}>
+										<span className="codicon codicon-open-preview mr-1" />
+										Open in Editor
+									</VSCodeButton>
+								</div>
 							)}
 						</div>
 					</div>

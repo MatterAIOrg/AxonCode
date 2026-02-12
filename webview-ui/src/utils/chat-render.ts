@@ -105,7 +105,7 @@ export const renderMentionChip = (
 
 	// Extract line number from meta parts if available
 	const lineInfo = parts.meta.find((m) => m.startsWith("L"))
-	const lineHtml = lineInfo ? `<span class="mention-chip__line">${escapeHtml(lineInfo)}</span>` : ""
+	const lineHtml = lineInfo ? `<span class="mention-chip__line">#${escapeHtml(lineInfo)}</span>` : ""
 
 	return `<span class="mention-chip" data-mention-value="${mentionValue}" aria-label="${label}">${iconHtml}<span class="mention-chip__primary">${escapedPrimary}</span>${lineHtml}</span>`
 }
