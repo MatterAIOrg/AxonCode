@@ -19,11 +19,14 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 	SelectSeparator, // kilocode_change
+	StandardTooltip, // kilocode_change
 } from "@src/components/ui"
 import { useEscapeKey } from "@src/hooks/useEscapeKey"
 import { cn } from "@src/lib/utils"
+import { vscode } from "@src/utils/vscode" // kilocode_change
 
 import { ApiErrorMessage } from "./ApiErrorMessage"
+import { Alert02Icon } from "@/utils/customIcons"
 
 type ModelIdKey = keyof Pick<
 	ProviderSettings,
@@ -57,6 +60,9 @@ interface ModelPickerProps {
 	) => void
 	organizationAllowList: OrganizationAllowList
 	errorMessage?: string
+	// kilocode_change: pro models support
+	proModelIds?: string[]
+	proModelsEnabled?: boolean
 }
 
 export const ModelPicker = ({
@@ -69,6 +75,9 @@ export const ModelPicker = ({
 	setApiConfigurationField,
 	// organizationAllowList, // kilocode_change: unused
 	errorMessage,
+	// kilocode_change: pro models support
+	proModelIds = [],
+	proModelsEnabled = true,
 }: ModelPickerProps) => {
 	const { t } = useAppTranslation()
 
@@ -94,6 +103,12 @@ export const ModelPicker = ({
 				return
 			}
 
+			// kilocode_change: prevent selection of pro models when not enabled
+			const isProModel = proModelIds.includes(modelId)
+			if (isProModel && !proModelsEnabled) {
+				return
+			}
+
 			setOpen(false)
 			setApiConfigurationField(modelIdKey, modelId)
 
@@ -105,7 +120,7 @@ export const ModelPicker = ({
 			// Delay to ensure the popover is closed before setting the search value.
 			selectTimeoutRef.current = setTimeout(() => setSearchValue(""), 100)
 		},
-		[modelIdKey, setApiConfigurationField],
+		[modelIdKey, setApiConfigurationField, proModelIds, proModelsEnabled],
 	)
 
 	const onOpenChange = useCallback((open: boolean) => {
@@ -203,6 +218,10 @@ export const ModelPicker = ({
 										const previousModelWasPreferred = Number.isInteger(
 											models?.[modelIds[i - 1]]?.preferredIndex,
 										)
+										// kilocode_change: check if this is a pro model that's disabled
+										const isProModel = proModelIds.includes(model)
+										const isProModelDisabled = isProModel && !proModelsEnabled
+
 										return (
 											<Fragment key={model}>
 												{!isPreferred && previousModelWasPreferred ? <SelectSeparator /> : null}
@@ -210,10 +229,38 @@ export const ModelPicker = ({
 													value={model}
 													onSelect={onSelect}
 													data-testid={`model-option-${model}`}
-													className={cn(isPreferred ? "font-semibold" : "")}>
+													className={cn(
+														isPreferred ? "font-semibold" : "",
+														isProModelDisabled ? "opacity-60 cursor-not-allowed" : "",
+													)}>
 													<span className="truncate" title={model}>
 														{model}
 													</span>
+													{isProModelDisabled && (
+														<StandardTooltip
+															content={
+																<div className="flex flex-col gap-2 text-[13px] p-2">
+																	<span className="font-semibold">
+																		Pro models are only available on the Paid Plan
+																	</span>
+																	<button
+																		className="text-[var(--color-matterai-green)] hover:underline text-left"
+																		onClick={(e) => {
+																			e.stopPropagation()
+																			vscode.postMessage({
+																				type: "openExternal",
+																				url: "https://app.matterai.so/ai-coding-agent",
+																			})
+																		}}>
+																		Upgrade your plan here →
+																	</button>
+																</div>
+															}>
+															<span className="flex items-center">
+																<Alert02Icon className="size-4 text-yellow-500" />
+															</span>
+														</StandardTooltip>
+													)}
 													<Check
 														className={cn(
 															"size-4 p-0.5 ml-auto",

@@ -1,4 +1,3 @@
-import { useMemo } from "react"
 import {
 	type ProviderName,
 	type ProviderSettings,
@@ -323,22 +322,20 @@ export const useProviderModels = (apiConfiguration?: ProviderSettings) => {
 				})
 			: FALLBACK_MODELS
 
-	// kilocode_change start: Filter out axon-code-2-pro if beta models are not enabled
-	const filteredModels = useMemo(() => {
-		if (!betaModelsEnabled) {
-			// Filter out axon-code-2-pro when beta models are not enabled
-			const { "axon-code-2-pro": _, ...rest } = models as ModelRecord
-			return rest
-		}
-		return models
-	}, [models, betaModelsEnabled])
+	// kilocode_change start: Always show all models including axon-code-2-pro
+	// Pro models are marked as disabled if betaModelsEnabled is false
+	const proModelIds = ["axon-code-2-pro"]
+	const proModelsEnabled = betaModelsEnabled
 	// kilocode_change end
 
 	return {
 		provider,
-		providerModels: filteredModels as ModelRecord,
+		providerModels: models as ModelRecord,
 		providerDefaultModel: defaultModel,
 		isLoading: routerModels.isLoading,
 		isError: routerModels.isError,
+		// kilocode_change: pro models support
+		proModelIds,
+		proModelsEnabled,
 	}
 }

@@ -9,8 +9,6 @@ import { ModelPicker } from "../../../settings/ModelPicker"
 import { OrganizationSelector } from "../../common/OrganizationSelector"
 import { getKiloCodeBackendSignInUrl } from "../../helpers"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { useMemo } from "react"
-import type { ModelRecord } from "@roo/api"
 
 type KiloCodeProps = {
 	apiConfiguration: ProviderSettings
@@ -40,16 +38,12 @@ export const KiloCode = ({
 	const { t } = useAppTranslation()
 	const { betaModelsEnabled } = useExtensionState()
 
-	// Filter out axon-code-2-pro if beta models are not enabled
-	const filteredModels = useMemo(() => {
-		const models = routerModels?.["kilocode-openrouter"] ?? {}
-		if (!betaModelsEnabled) {
-			// Filter out axon-code-2-pro when beta models are not enabled
-			const { "axon-code-2-pro": _, ...rest } = models as ModelRecord
-			return rest
-		}
-		return models
-	}, [routerModels, betaModelsEnabled])
+	// Always show all models including axon-code-2-pro
+	// The model will be marked as disabled if betaModelsEnabled is false
+	const models = routerModels?.["kilocode-openrouter"] ?? {}
+
+	// List of pro model IDs that require paid plan
+	const proModelIds = ["axon-code-2-pro"]
 
 	// const handleInputChange = useCallback(
 	// 	<K extends keyof ProviderSettings, E>(
@@ -126,11 +120,13 @@ export const KiloCode = ({
 				apiConfiguration={apiConfiguration}
 				setApiConfigurationField={setApiConfigurationField}
 				defaultModelId={kilocodeDefaultModel}
-				models={filteredModels}
+				models={models}
 				modelIdKey="kilocodeModel"
 				serviceName="Axon Code"
 				serviceUrl={getAppUrl()}
 				organizationAllowList={organizationAllowList}
+				proModelIds={proModelIds}
+				proModelsEnabled={betaModelsEnabled}
 			/>
 		</>
 	)
