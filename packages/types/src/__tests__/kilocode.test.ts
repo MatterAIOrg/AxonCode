@@ -258,8 +258,8 @@ describe("URL functions", () => {
 			expect(getKiloUrlFromToken("https://api.matterai.so/organizations/123/defaults", prodToken)).toBe(
 				"https://api.matterai.so/organizations/123/defaults",
 			)
-			expect(getKiloUrlFromToken("https://api.matterai.so/v1/web/", prodToken)).toBe(
-				"https://api.matterai.so/v1/web/",
+			expect(getKiloUrlFromToken("https://api2.matterai.so/v1/web/", prodToken)).toBe(
+				"https://api2.matterai.so/v1/web/",
 			)
 			expect(getKiloUrlFromToken("https://api.matterai.so/users/notifications", prodToken)).toBe(
 				"https://api.matterai.so/users/notifications",
