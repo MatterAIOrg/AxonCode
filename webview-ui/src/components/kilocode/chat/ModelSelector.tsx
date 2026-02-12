@@ -1,12 +1,12 @@
 import { DropdownOption, DropdownOptionType, SelectDropdown, StandardTooltip } from "@/components/ui"
 import { usePreferredModels } from "@/components/ui/hooks/kilocode/usePreferredModels"
-import { Alert02Icon } from "@/utils/customIcons"
+import { Alert02Icon, Brain01Icon } from "@/utils/customIcons"
 import { OPENROUTER_DEFAULT_PROVIDER_NAME, type ProviderSettings } from "@roo-code/types"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
 import { useMemo } from "react"
-import { getModelCredits, prettyModelName } from "../../../utils/prettyModelName"
+import { prettyModelName } from "../../../utils/prettyModelName"
 import { useProviderModels } from "../hooks/useProviderModels"
 import { getModelIdKey, getSelectedModelId } from "../hooks/useSelectedModel"
 
@@ -32,9 +32,9 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 		const missingModelIds = modelsIds.indexOf(selectedModelId) >= 0 ? [] : [selectedModelId]
 		return missingModelIds.concat(modelsIds).map((modelId) => {
 			const baseLabel = providerModels[modelId]?.displayName ?? prettyModelName(modelId)
-			const credits = getModelCredits(modelId)
-			const label = credits ? `${baseLabel} ${credits}` : baseLabel
-
+			// const credits = getModelCredits(modelId)
+			// const label = credits ? `${baseLabel} ${credits}` : baseLabel
+			const label = baseLabel
 			// kilocode_change: Check if this is a pro model that's disabled
 			const isProModel = proModelIds?.includes(modelId)
 			const isProModelDisabled = isProModel && !proModelsEnabled
@@ -72,10 +72,11 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 
 	const renderItem = (option: DropdownOption & { isProModelDisabled?: boolean }) => {
 		return (
-			<div className="flex items-center justify-start gap-2 flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
+			<div className="flex items-center justify-start gap-1 flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
 				<div className="">
 					<div>{option.label}</div>
 				</div>
+				<Brain01Icon className="size-3.5 text-white" />
 				{option.isProModelDisabled && (
 					<StandardTooltip
 						content={
@@ -95,7 +96,7 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 							</div>
 						}>
 						<span className="flex items-center">
-							<Alert02Icon className="size-4 text-yellow-500" />
+							<Alert02Icon className="size-4 ml-1 text-yellow-500" />
 						</span>
 					</StandardTooltip>
 				)}
