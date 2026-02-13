@@ -15,7 +15,7 @@ Kilo Code是一款VS Code扩展，可将AI编程助手直接集成到编辑器�
 
 :::tip
 
-若已安装VS Code：[点击此处直接安装Kilo Code](vscode:extension/kilocode.Kilo-Code)
+若已安装VS Code：[点击此处直接安装Kilo Code](vscode:extension/matterai.axon-code)
 
 :::
 
@@ -36,7 +36,7 @@ Kilo Code是一款VS Code扩展，可将AI编程助手直接集成到编辑器�
 
 :::tip
 
-若已安装Cursor：[点击此处直接安装Kilo Code](cursor:extension/kilocode.Kilo-Code)
+若已安装Cursor：[点击此处直接安装Kilo Code](cursor:extension/matterai.axon-code)
 
 :::
 

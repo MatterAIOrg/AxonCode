@@ -15,7 +15,7 @@ Axon Code is a VS Code extension that brings AI-powered coding assistance direct
 
 :::tip
 
-If you already have VS Code installed: [Click here to install Axon Code](vscode:extension/kilocode.Kilo-Code)
+If you already have VS Code installed: [Click here to install Axon Code](vscode:extension/matterai.axon-code)
 
 :::
 
@@ -36,7 +36,7 @@ After installation, find the Axon Code icon (<img src="/docs/img/matterai-ic.svg
 
 :::tip
 
-If you already have Cursor installed: [Click here to install Axon Code](cursor:extension/kilocode.Kilo-Code)
+If you already have Cursor installed: [Click here to install Axon Code](cursor:extension/matterai.axon-code)
 
 :::
 

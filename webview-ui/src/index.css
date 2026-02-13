@@ -215,12 +215,9 @@
 	/* Code Block Styles */
 	pre,
 	code {
-		font-family: "Consolas", "Monaco", "Courier New", monospace;
-		font-size: 0.9em;
-		color: var(--color-matterai-green);
-		background-color: var(--vscode-input-background);
-		padding: 0.2em 0.4em;
-		border-radius: 3px;
+		background-color: var(--vscode-input-background) !important;
+		padding-left: 0.1rem;
+		padding-right: 0.1rem;
 	}
 
 	/* Search result highlighting */

@@ -24,14 +24,23 @@ vi.mock("vscode", () => ({
 			fsPath: path.join(__dirname, "..", "..", "..", ...pathSegments),
 		})),
 	},
+	env: {
+		appName: "Visual Studio Code",
+	},
+	window: {
+		showInformationMessage: vi.fn().mockResolvedValue(undefined),
+	},
 }))
 
 // Import after mocking
 import { showSystemNotification } from "../index"
 import * as os from "os"
+import * as vscode from "vscode"
 
 const mockedExeca = vi.mocked(execa)
 const mockedPlatform = vi.mocked(os.platform)
+const mockedGetExtension = vi.mocked(vscode.extensions.getExtension)
+const mockedShowInformationMessage = vi.mocked(vscode.window.showInformationMessage)
 
 describe("showSystemNotification", () => {
 	beforeEach(() => {
@@ -66,15 +75,15 @@ describe("showSystemNotification", () => {
 				"Tink",
 				"-appIcon",
 				expectedIconPath,
+				"-activate",
+				"com.microsoft.VSCode",
 			])
 			expect(mockedExeca).toHaveBeenCalledTimes(1)
 		})
 
-		it("should fall back to osascript when terminal-notifier fails", async () => {
-			// First call (terminal-notifier) fails
+		it("should fall back to VS Code notification when terminal-notifier fails", async () => {
+			// terminal-notifier fails
 			mockedExeca.mockRejectedValueOnce(new Error("terminal-notifier not found"))
-			// Second call (osascript) succeeds
-			mockedExeca.mockResolvedValueOnce({} as any)
 
 			await showSystemNotification({
 				title: "Test Title",
@@ -83,8 +92,8 @@ describe("showSystemNotification", () => {
 			})
 
 			const expectedIconPath = path.join(__dirname, "..", "..", "..", "assets", "icons", "matterai-ic.png")
-			expect(mockedExeca).toHaveBeenCalledTimes(2)
-			expect(mockedExeca).toHaveBeenNthCalledWith(1, "terminal-notifier", [
+			expect(mockedExeca).toHaveBeenCalledTimes(1)
+			expect(mockedExeca).toHaveBeenCalledWith("terminal-notifier", [
 				"-message",
 				"Test Message",
 				"-title",
@@ -95,11 +104,11 @@ describe("showSystemNotification", () => {
 				"Tink",
 				"-appIcon",
 				expectedIconPath,
+				"-activate",
+				"com.microsoft.VSCode",
 			])
-			expect(mockedExeca).toHaveBeenNthCalledWith(2, "osascript", [
-				"-e",
-				'display notification "Test Message" with title "Test Title" subtitle "Test Subtitle" sound name "Tink"',
-			])
+			// Should fall back to VS Code notification
+			expect(mockedShowInformationMessage).toHaveBeenCalledWith("Test Title: Test Subtitle: Test Message")
 		})
 
 		it("should handle terminal-notifier with minimal options", async () => {
@@ -119,6 +128,8 @@ describe("showSystemNotification", () => {
 				"Tink",
 				"-appIcon",
 				expectedIconPath,
+				"-activate",
+				"com.microsoft.VSCode",
 			])
 		})
 
@@ -140,6 +151,8 @@ describe("showSystemNotification", () => {
 				"Tink",
 				"-appIcon",
 				expectedIconPath,
+				"-activate",
+				"com.microsoft.VSCode",
 			])
 		})
 
@@ -164,14 +177,14 @@ describe("showSystemNotification", () => {
 				"Tink",
 				"-appIcon",
 				expectedIconPath,
+				"-activate",
+				"com.microsoft.VSCode",
 			])
 		})
 
-		it("should fall back to osascript and escape quotes properly", async () => {
+		it("should fall back to VS Code notification and handle quotes properly", async () => {
 			// terminal-notifier fails
 			mockedExeca.mockRejectedValueOnce(new Error("not found"))
-			// osascript succeeds
-			mockedExeca.mockResolvedValueOnce({} as any)
 
 			await showSystemNotification({
 				title: 'Title with "quotes"',
@@ -179,22 +192,22 @@ describe("showSystemNotification", () => {
 				message: 'Message with "quotes"',
 			})
 
-			expect(mockedExeca).toHaveBeenNthCalledWith(2, "osascript", [
-				"-e",
-				'display notification "Message with \\"quotes\\"" with title "Title with \\"quotes\\"" subtitle "Subtitle with \\"quotes\\"" sound name "Tink"',
-			])
+			// Should fall back to VS Code notification with escaped quotes
+			expect(mockedShowInformationMessage).toHaveBeenCalledWith(
+				'Title with \\"quotes\\": Subtitle with \\"quotes\\": Message with \\"quotes\\"',
+			)
 		})
 
-		it("should throw error when both terminal-notifier and osascript fail", async () => {
-			// Both calls fail
+		it("should fall back to VS Code notification when terminal-notifier fails repeatedly", async () => {
+			// terminal-notifier fails
 			mockedExeca.mockRejectedValue(new Error("Command failed"))
 
 			await showSystemNotification({
 				message: "Test Message",
 			})
 
-			// Should not throw but log error to console
-			expect(console.error).toHaveBeenCalledWith("Could not show system notification", expect.any(Error))
+			// Should fall back to VS Code notification
+			expect(mockedShowInformationMessage).toHaveBeenCalledWith("Axon Code: Test Message")
 		})
 	})
 
@@ -279,6 +292,8 @@ describe("showSystemNotification", () => {
 				"Tink",
 				"-appIcon",
 				expectedIconPath,
+				"-activate",
+				"com.microsoft.VSCode",
 			])
 		})
 	})

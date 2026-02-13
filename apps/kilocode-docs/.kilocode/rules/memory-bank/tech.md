@@ -110,7 +110,7 @@ npx docusaurus build
 
 ### VS Code Marketplace
 
-- **Extension URL**: https://marketplace.visualstudio.com/items?itemName=kilocode.kilo-code
+- **Extension URL**: https://marketplace.visualstudio.com/items?itemName=matterai.axon-code
 - **Open VSX**: https://open-vsx.org/extension/kilocode/kilo-code
 
 ## Deployment Architecture

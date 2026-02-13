@@ -37,7 +37,7 @@
 	},
 	"link.item.label.VS Code Marketplace": {
 		"message": "VS Code 扩展市场",
-		"description": "The label of footer link with label=VS Code Marketplace linking to https://marketplace.visualstudio.com/items?itemName=kilocode.kilo-code"
+		"description": "The label of footer link with label=VS Code Marketplace linking to https://marketplace.visualstudio.com/items?itemName=matterai.axon-code"
 	},
 	"link.item.label.Open VSX Registry": {
 		"message": "Open VSX Registry",
