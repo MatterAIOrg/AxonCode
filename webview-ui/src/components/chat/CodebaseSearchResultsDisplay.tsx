@@ -19,7 +19,7 @@ const CodebaseSearchResultsDisplay: React.FC<CodebaseSearchResultsDisplayProps> 
 		<div className="flex flex-col gap-1">
 			<div
 				onClick={() => setCodebaseSearchResultsExpanded(!codebaseSearchResultsExpanded)}
-				className="cursor-pointer flex items-center justify-between px-2 py-2 border bg-[var(--vscode-editor-background)] border-[var(--vscode-editorGroup-border)] rounded-lg">
+				className="cursor-pointer flex items-center justify-between px-2 py-1.5 bg-[var(--vscode-editor-background)]  rounded-lg">
 				<span>
 					<Trans
 						i18nKey="chat:codebaseSearch.didSearch"

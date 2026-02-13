@@ -1472,7 +1472,6 @@ export const ChatRowContent = ({
 							</div> */}
 							<div
 								className={cn(
-									"mb-1",
 									"rounded-lg whitespace-pre-wrap",
 									"border border-[var(--color-matterai-border)]",
 									"bg-[var(--color-matterai-background-dark)]",
