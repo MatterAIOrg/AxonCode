@@ -99,7 +99,9 @@ export const KiloCode = ({
 	const usagePercentage =
 		profileData?.usagePercentage !== undefined
 			? profileData.usagePercentage
-			: profileData?.usedCredits !== undefined && profileData?.totalCredits !== undefined
+			: profileData?.usedCredits !== undefined &&
+				  profileData?.totalCredits !== undefined &&
+				  profileData.totalCredits > 0
 				? (profileData.usedCredits / profileData.totalCredits) * 100
 				: null
 

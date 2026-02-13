@@ -1776,23 +1776,28 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			const scrollerRect = scroller.getBoundingClientRect()
 			const threshold = scrollerRect.top + stickyHeight
 
+			// Find the first rendered item to determine our position relative to the virtual list
+			const firstRenderedEl = scroller.querySelector("[data-item-index]")
+			const firstRenderedIndex = firstRenderedEl
+				? parseInt(firstRenderedEl.getAttribute("data-item-index") || "0", 10)
+				: 0
+
 			let bestIndex: number | null = null
-			let passedRenderedRegion = false
 
 			for (const idx of userFeedbackIndices) {
 				const el = scroller.querySelector(`[data-item-index="${idx}"]`) as HTMLElement | null
 
 				if (!el) {
-					if (passedRenderedRegion) {
-						// Past the rendered region — below viewport, stop
+					if (idx < firstRenderedIndex) {
+						// Not in DOM and index is lower than first rendered -> Above viewport
+						bestIndex = idx
+						continue
+					} else {
+						// Not in DOM and index is higher -> Below viewport
 						break
 					}
-					// Not yet in rendered region — above viewport (scrolled past)
-					bestIndex = idx
-					continue
 				}
 
-				passedRenderedRegion = true
 				const elTop = el.getBoundingClientRect().top
 				if (elTop <= threshold) {
 					bestIndex = idx
