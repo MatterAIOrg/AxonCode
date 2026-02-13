@@ -38,7 +38,7 @@ type KiloCodeModel = {
 }
 
 const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
-	auto: {
+	"axon-auto": {
 		id: "axon-auto",
 		name: "Auto",
 		description: "Auto is a model that automatically selects the best model for the task",

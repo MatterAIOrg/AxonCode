@@ -1,6 +1,6 @@
 // Hardcoded credits information for Axon models
 const AXON_MODEL_CREDITS: Record<string, string> = {
-	auto: "(0.25x)",
+	"axon-auto": "(0.25x)",
 	"axon-code": "(0.5x)",
 	"axon-code-2": "(1x)",
 	"axon-code-2-pro": "(1.5x)",

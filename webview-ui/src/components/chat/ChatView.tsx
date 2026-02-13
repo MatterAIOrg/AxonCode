@@ -2326,7 +2326,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 											<div className="flex flex-col gap-1">
 												<div className="flex flex-row gap-2 items-start">
 													<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-														Setup Automated PR Reviews
+														Setup Agentic PR Reviews
 													</p>
 													<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
 														<img
