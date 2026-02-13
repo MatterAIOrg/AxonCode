@@ -247,7 +247,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 				</div>
 			</TabHeader>
 
-			<TabContent className="px-2 py-0">
+			<TabContent className="px-2 py-2">
 				<Virtuoso
 					className="flex-1 overflow-y-scroll"
 					data={tasks}
@@ -268,7 +268,6 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							isSelected={selectedTaskIds.includes(item.id)}
 							onToggleSelection={toggleTaskSelection}
 							onDelete={setDeleteTaskId}
-							className="m-2"
 						/>
 					)}
 				/>

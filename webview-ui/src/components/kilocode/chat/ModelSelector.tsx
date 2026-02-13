@@ -1,13 +1,14 @@
-import { useMemo } from "react"
-import { SelectDropdown, DropdownOptionType } from "@/components/ui"
+import { DropdownOption, DropdownOptionType, SelectDropdown, StandardTooltip } from "@/components/ui"
+import { usePreferredModels } from "@/components/ui/hooks/kilocode/usePreferredModels"
+import { Alert02Icon, Brain01Icon } from "@/utils/customIcons"
 import { OPENROUTER_DEFAULT_PROVIDER_NAME, type ProviderSettings } from "@roo-code/types"
-import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
-import { prettyModelName, getModelCredits } from "../../../utils/prettyModelName"
+import { vscode } from "@src/utils/vscode"
+import { useMemo } from "react"
+import { prettyModelName } from "../../../utils/prettyModelName"
 import { useProviderModels } from "../hooks/useProviderModels"
 import { getModelIdKey, getSelectedModelId } from "../hooks/useSelectedModel"
-import { usePreferredModels } from "@/components/ui/hooks/kilocode/usePreferredModels"
 
 interface ModelSelectorProps {
 	currentApiConfigName?: string
@@ -17,7 +18,8 @@ interface ModelSelectorProps {
 
 export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallbackText }: ModelSelectorProps) => {
 	const { t } = useAppTranslation()
-	const { provider, providerModels, providerDefaultModel, isLoading, isError } = useProviderModels(apiConfiguration)
+	const { provider, providerModels, providerDefaultModel, isLoading, isError, proModelIds, proModelsEnabled } =
+		useProviderModels(apiConfiguration)
 	const selectedModelId = getSelectedModelId({
 		provider,
 		apiConfiguration,
@@ -30,15 +32,22 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 		const missingModelIds = modelsIds.indexOf(selectedModelId) >= 0 ? [] : [selectedModelId]
 		return missingModelIds.concat(modelsIds).map((modelId) => {
 			const baseLabel = providerModels[modelId]?.displayName ?? prettyModelName(modelId)
-			const credits = getModelCredits(modelId)
-			const label = credits ? `${baseLabel} ${credits}` : baseLabel
+			// const credits = getModelCredits(modelId)
+			// const label = credits ? `${baseLabel} ${credits}` : baseLabel
+			const label = baseLabel
+			// kilocode_change: Check if this is a pro model that's disabled
+			const isProModel = proModelIds?.includes(modelId)
+			const isProModelDisabled = isProModel && !proModelsEnabled
+
 			return {
 				value: modelId,
 				label,
 				type: DropdownOptionType.ITEM,
+				disabled: isProModelDisabled,
+				isProModelDisabled,
 			}
 		})
-	}, [modelsIds, providerModels, selectedModelId])
+	}, [modelsIds, providerModels, selectedModelId, proModelIds, proModelsEnabled])
 
 	const disabled = isLoading || isError
 
@@ -59,6 +68,40 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 				openRouterSpecificProvider: OPENROUTER_DEFAULT_PROVIDER_NAME,
 			},
 		})
+	}
+
+	const renderItem = (option: DropdownOption & { isProModelDisabled?: boolean }) => {
+		return (
+			<div className="flex items-center justify-start gap-1 flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
+				<div className="">
+					<div>{option.label}</div>
+				</div>
+				<Brain01Icon className="size-3.5 text-white" />
+				{option.isProModelDisabled && (
+					<StandardTooltip
+						content={
+							<div className="flex flex-col gap-2 text-[13px] p-2">
+								<span className="font-semibold">Pro models are only available on the Paid Plan</span>
+								<button
+									className="text-[var(--color-matterai-green)] hover:underline text-left"
+									onClick={(e) => {
+										e.stopPropagation()
+										vscode.postMessage({
+											type: "openExternal",
+											url: "https://app.matterai.so/ai-coding-agent",
+										})
+									}}>
+									Upgrade your plan here →
+								</button>
+							</div>
+						}>
+						<span className="flex items-center">
+							<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+						</span>
+					</StandardTooltip>
+				)}
+			</div>
+		)
 	}
 
 	if (isLoading) {
@@ -83,6 +126,7 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			)}
 			triggerIcon={true}
 			itemClassName="group"
+			renderItem={renderItem}
 		/>
 	)
 }

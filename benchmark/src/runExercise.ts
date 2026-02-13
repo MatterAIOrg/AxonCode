@@ -28,7 +28,7 @@ export async function run() {
 	 * Activate the extension.
 	 */
 
-	const extension = vscode.extensions.getExtension<RooCodeAPI>("kilocode.Kilo-Code")
+	const extension = vscode.extensions.getExtension<RooCodeAPI>("matterai.axon-code")
 
 	if (!extension) {
 		throw new Error("Extension not found.")

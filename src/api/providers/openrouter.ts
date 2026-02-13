@@ -228,14 +228,12 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 				this.customRequestOptions(metadata), // kilocode_change
 			)
 		} catch (error) {
-			// kilocode_change start
 			if (this.providerName == "KiloCode" && isAnyRecognizedKiloCodeError(error)) {
 				throw error
 			}
 			const err = new Error(makeOpenRouterErrorReadable(error)) as any
 			err.status = error?.status || error?.code
 			throw err
-			// kilocode_change end
 		}
 
 		let lastUsage: CompletionUsage | undefined = undefined
@@ -243,7 +241,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		try {
 			let fullContent = ""
-			let fullReasoning = "" // kilocode_change: variable kept for structural integrity if needed, but unused logs removed
 
 			let isThinking = false
 

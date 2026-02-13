@@ -9,8 +9,8 @@ import { ModelPicker } from "../../../settings/ModelPicker"
 import { OrganizationSelector } from "../../common/OrganizationSelector"
 import { getKiloCodeBackendSignInUrl } from "../../helpers"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { useMemo } from "react"
-import type { ModelRecord } from "@roo/api"
+import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
+import { useEffect, useRef, useState } from "react"
 
 type KiloCodeProps = {
 	apiConfiguration: ProviderSettings
@@ -38,18 +38,79 @@ export const KiloCode = ({
 	kilocodeDefaultModel,
 }: KiloCodeProps) => {
 	const { t } = useAppTranslation()
-	const { betaModelsEnabled } = useExtensionState()
+	const { betaModelsEnabled, clineMessages } = useExtensionState()
 
-	// Filter out axon-code-2-pro if beta models are not enabled
-	const filteredModels = useMemo(() => {
-		const models = routerModels?.["kilocode-openrouter"] ?? {}
-		if (!betaModelsEnabled) {
-			// Filter out axon-code-2-pro when beta models are not enabled
-			const { "axon-code-2-pro": _, ...rest } = models as ModelRecord
-			return rest
+	// Profile data state for usage info
+	const [profileData, setProfileData] = useState<ProfileData | null>(null)
+	const previousMessagesRef = useRef<string>("")
+
+	// Fetch profile data on mount if token exists
+	useEffect(() => {
+		if (apiConfiguration?.kilocodeToken) {
+			vscode.postMessage({ type: "fetchProfileDataRequest" })
 		}
-		return models
-	}, [routerModels, betaModelsEnabled])
+	}, [apiConfiguration?.kilocodeToken])
+
+	// Listen for profile data response
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent<WebviewMessage>) => {
+			const message = event.data
+			if (message.type === "profileDataResponse") {
+				const payload = message.payload as any
+				if (payload?.success && payload.data) {
+					setProfileData(payload.data)
+				}
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => {
+			window.removeEventListener("message", handleMessage)
+		}
+	}, [])
+
+	// Watch for new assistant responses and fetch updated profile data
+	useEffect(() => {
+		if (!apiConfiguration?.kilocodeToken || !clineMessages) return
+
+		const currentMessagesHash = JSON.stringify(
+			clineMessages.map((msg) => ({
+				type: msg.type,
+				say: msg.say,
+				partial: msg.partial,
+				ts: msg.ts,
+			})),
+		)
+
+		if (previousMessagesRef.current !== currentMessagesHash) {
+			const hasNewAssistantResponse = clineMessages.some(
+				(msg) => msg.type === "say" && (msg.say === "text" || msg.say === "completion_result") && !msg.partial,
+			)
+
+			if (hasNewAssistantResponse && previousMessagesRef.current !== "") {
+				vscode.postMessage({ type: "fetchProfileDataRequest" })
+			}
+
+			previousMessagesRef.current = currentMessagesHash
+		}
+	}, [clineMessages, apiConfiguration?.kilocodeToken])
+
+	// Calculate usage percentage from profile data
+	const usagePercentage =
+		profileData?.usagePercentage !== undefined
+			? profileData.usagePercentage
+			: profileData?.usedCredits !== undefined &&
+				  profileData?.totalCredits !== undefined &&
+				  profileData.totalCredits > 0
+				? (profileData.usedCredits / profileData.totalCredits) * 100
+				: null
+
+	// Always show all models including axon-code-2-pro
+	// The model will be marked as disabled if betaModelsEnabled is false
+	const models = routerModels?.["kilocode-openrouter"] ?? {}
+
+	// List of pro model IDs which require paid plan
+	const proModelIds = ["axon-code-2-pro"]
 
 	// const handleInputChange = useCallback(
 	// 	<K extends keyof ProviderSettings, E>(
@@ -78,28 +139,54 @@ export const KiloCode = ({
 	return (
 		<>
 			<div>
-				<label className="block font-medium -mb-2">{t("kilocode:settings.provider.account")}</label>
+				<label className="block font-bold text-lg">{t("kilocode:settings.provider.account")}</label>
 			</div>
 			{!hideKiloCodeButton &&
 				(apiConfiguration.kilocodeToken ? (
-					<div>
-						<Button
-							variant="secondary"
-							onClick={async () => {
-								setApiConfigurationField("kilocodeToken", "")
+					<div className="space-y-3">
+						{/* Usage info */}
+						{profileData && (
+							<div className="space-y-2">
+								<div>
+									<div className="text-md font-medium text-[var(--vscode-foreground)]">
+										Current Plan
+									</div>
+									<div className="mt-1 text-md text-[var(--vscode-descriptionForeground)]">
+										{profileData.plan?.toLocaleUpperCase()}
+									</div>
+								</div>
+								<div>
+									<div className="text-md font-medium text-[var(--vscode-foreground)]">
+										Monthly Credits
+									</div>
+									<div className="mt-1 text-md text-[var(--vscode-descriptionForeground)]">
+										${(profileData.remainingCredits || 0).toFixed(1)} / $
+										{(profileData.totalCredits || 0).toFixed(1)} remaining (
+										{usagePercentage !== null
+											? `${usagePercentage.toFixed(0)}% used`
+											: "loading..."}
+										)
+									</div>
+								</div>
+								{profileData.remainingReviews !== undefined && (
+									<div>
+										<div className="text-md font-medium text-[var(--vscode-foreground)]">
+											Monthly Reviews
+										</div>
+										<div className="mt-1 text-md text-[var(--vscode-descriptionForeground)]">
+											{profileData.remainingReviews.toFixed(0)} reviews remaining
+										</div>
+									</div>
+								)}
+							</div>
+						)}
 
-								vscode.postMessage({
-									type: "upsertApiConfiguration",
-									text: currentApiConfigName,
-									apiConfiguration: {
-										...apiConfiguration,
-										kilocodeToken: "",
-										kilocodeOrganizationId: undefined,
-									},
-								})
-							}}>
-							{t("kilocode:settings.provider.logout")}
-						</Button>
+						{/* Manage plan button */}
+						<VSCodeButtonLink
+							href="https://app.matterai.so/ai-coding-agent"
+							className="text-[var(--color-matterai-green)]! text-sm! hover:underline!">
+							Manage/Upgrade plan
+						</VSCodeButtonLink>
 					</div>
 				) : (
 					<VSCodeButtonLink
@@ -126,12 +213,37 @@ export const KiloCode = ({
 				apiConfiguration={apiConfiguration}
 				setApiConfigurationField={setApiConfigurationField}
 				defaultModelId={kilocodeDefaultModel}
-				models={filteredModels}
+				models={models}
 				modelIdKey="kilocodeModel"
 				serviceName="Axon Code"
 				serviceUrl={getAppUrl()}
 				organizationAllowList={organizationAllowList}
+				proModelIds={proModelIds}
+				proModelsEnabled={betaModelsEnabled}
 			/>
+
+			{!hideKiloCodeButton && apiConfiguration.kilocodeToken ? (
+				<Button
+					className="mt-24 w-fit"
+					variant="destructive"
+					onClick={async () => {
+						setApiConfigurationField("kilocodeToken", "")
+
+						vscode.postMessage({
+							type: "upsertApiConfiguration",
+							text: currentApiConfigName,
+							apiConfiguration: {
+								...apiConfiguration,
+								kilocodeToken: "",
+								kilocodeOrganizationId: undefined,
+							},
+						})
+					}}>
+					{t("kilocode:settings.provider.logout")}
+				</Button>
+			) : (
+				<></>
+			)}
 		</>
 	)
 }

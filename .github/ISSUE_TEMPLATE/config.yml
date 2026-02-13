@@ -7,7 +7,7 @@ contact_links:
       url: https://github.com/MatterAIOrg/AxonCode/discussions/categories/2-design-improvements
       about: Suggestions for better design (where the current UI/UX is not clear).
     - name: Leave a Review
-      url: https://marketplace.visualstudio.com/items?itemName=kilocode.Kilo-Code&ssr=false#review-details
+      url: https://marketplace.visualstudio.com/items?itemName=matterai.axon-code&ssr=false#review-details
       about: Enjoying Axon Code? Leave a review here!
     - name: Join our Discord
       url: https://discord.gg/fJU5DvanU3

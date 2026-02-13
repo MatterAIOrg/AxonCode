@@ -1,8 +1,35 @@
+import { ChatSpark01Icon, Copy01Icon, Tick02Icon, TickDouble02Icon } from "@/utils/customIcons"
 import { vscode } from "@/utils/vscode"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useMemo, useState } from "react"
 import { getIconForFilePath, getIconUrlByName } from "vscode-material-icons"
 import MarkdownBlock from "../common/MarkdownBlock"
+import { MatterProgressIndicator } from "./ProgressIndicator"
+
+const LOADING_STATES = ["Analyzing...", "Digesting...", "Reviewing...", "Thinking..."]
+
+const AnimatedLoadingText: React.FC = () => {
+	const [currentIndex, setCurrentIndex] = useState(0)
+	const [opacity, setOpacity] = useState(1)
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setOpacity(0)
+			setTimeout(() => {
+				setCurrentIndex((prev) => (prev + 1) % LOADING_STATES.length)
+				setOpacity(1)
+			}, 300)
+		}, 3000)
+
+		return () => clearInterval(interval)
+	}, [])
+
+	return (
+		<span className="text-xs transition-opacity duration-300 ease-in-out" style={{ opacity }}>
+			{LOADING_STATES[currentIndex]}
+		</span>
+	)
+}
 
 interface FileChange {
 	relPath: string
@@ -80,6 +107,7 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
 		vscode.postMessage({
 			type: "openFile",
 			text: comment.path,
+			values: { line: comment.startLine },
 		})
 	}
 
@@ -155,7 +183,7 @@ ${comment.suggestion}`
 			},
 		})
 		// We can't close the panel directly from here as state is in parent,
-		// but typically "Apply All" implies we are done with this review session.
+		// but typically "Fix All" implies we are done with this review session.
 		// For now, we just apply.
 		// If we want to close, we should call onClose(), but maybe user wants to see confirmation.
 		// Let's just apply for now.
@@ -235,8 +263,8 @@ ${comment.suggestion}
 					{fileChanges.length > 0 && isLoading && (
 						<VSCodeButton appearance="primary" disabled={true}>
 							<div className="flex items-center gap-1">
-								<span className="codicon codicon-loading codicon-spin mr-1" />
-								<span className="text-xs">Analyzing...</span>
+								<MatterProgressIndicator />
+								<AnimatedLoadingText />
 							</div>
 						</VSCodeButton>
 					)}
@@ -351,10 +379,10 @@ ${comment.suggestion}
 					{/* Review Header */}
 					<div className="flex items-center justify-between px-3 py-2 bg-vscode-editorWidget-background border-b border-vscode-editorWidget-border">
 						<div className="flex items-center gap-2">
-							<span className="codicon codicon-comment-discussion text-vscode-foreground" />
-							<span className="text-sm font-medium text-vscode-foreground">Review Results</span>
+							<ChatSpark01Icon className="size-4 text-white" />
+							<span className="text-md font-medium text-vscode-foreground">Review Results</span>
 							{codeReviewResult.reviewComments?.length > 0 && (
-								<span className="text-xs px-1.5 py-0.5 rounded-full bg-vscode-badge-background text-vscode-badge-foreground">
+								<span className="text-xs font-bold w-5 h-5 flex items-center justify-center rounded-xs bg-[var(--color-matterai-chip-blue)] border border-[var(--color-matterai-blue)] text-vscode-badge-foreground">
 									{codeReviewResult.reviewComments.length}
 								</span>
 							)}
@@ -364,18 +392,16 @@ ${comment.suggestion}
 								{hasKilocodeToken ? (
 									<div className="flex gap-1">
 										<VSCodeButton appearance="secondary" onClick={handleCopyAllPrompts}>
-											<span className={`codicon codicon-copy`} />
+											<Copy01Icon className="size-4" />
 										</VSCodeButton>
 										<VSCodeButton appearance="secondary" onClick={handleApplyAllFixes}>
-											<span className={`codicon codicon-check-all mr-1`} />
-											Apply All
+											<TickDouble02Icon className="size-4 mr-1" />
+											Fix All
 										</VSCodeButton>
 									</div>
 								) : (
-									<VSCodeButton
-										appearance="secondary"
-										onClick={handleCopyAllPrompts}>
-										<span className="codicon codicon-copy mr-1" />
+									<VSCodeButton appearance="secondary" onClick={handleCopyAllPrompts}>
+										<Copy01Icon className="size-4 mr-1" />
 										{copyButtonText}
 									</VSCodeButton>
 								)}
@@ -385,7 +411,7 @@ ${comment.suggestion}
 
 					{/* Review Summary */}
 					{codeReviewResult.reviewBody && (
-						<div className="px-3 py-2.5 text-sm text-vscode-foreground whitespace-pre-wrap bg-vscode-editor-background border-b border-vscode-editorWidget-border">
+						<div className="px-3 py-2.5 text-md font-semibold text-vscode-foreground whitespace-pre-wrap bg-vscode-editor-background border-b border-vscode-editorWidget-border">
 							{codeReviewResult.reviewBody}
 						</div>
 					)}
@@ -401,8 +427,8 @@ ${comment.suggestion}
 										className="px-3 py-2.5 border-b border-vscode-editorWidget-border last:border-b-0 hover:bg-vscode-list-hoverBackground">
 										<div className="flex items-center justify-between mb-1.5">
 											<button
-												className="flex items-center gap-1.5 text-xs hover:underline cursor-pointer bg-transparent border-none p-0"
-												style={{ color: "var(--vscode-textLink-foreground)" }}
+												className="flex items-center gap-1.5 text-sm hover:underline cursor-pointer bg-transparent border-none p-0"
+												style={{ color: "var(--color-matterai-green)" }}
 												onClick={() => handleCommentClick(comment)}>
 												{commentFileIconUrl ? (
 													<img src={commentFileIconUrl} className="w-3.5 h-3.5" alt="" />
@@ -418,20 +444,20 @@ ${comment.suggestion}
 													<VSCodeButton
 														appearance="primary"
 														onClick={() => handleCopyPrompt(comment)}>
-														<span className={`codicon codicon-copy`} />
+														<Copy01Icon className="size-4" />
 													</VSCodeButton>
 													<VSCodeButton
 														appearance="primary"
 														onClick={() => handleApplyFix(index)}>
-														<span className={`codicon codicon-check mr-1`} />
-														Apply
+														<Tick02Icon className="size-4 mr-1" />
+														Fix Issue
 													</VSCodeButton>
 												</div>
 											) : (
 												<VSCodeButton
 													appearance="primary"
 													onClick={() => handleCopyPrompt(comment)}>
-													<span className="codicon codicon-copy mr-1" />
+													<Copy01Icon className="size-4 mr-1" />
 													Copy
 												</VSCodeButton>
 											)}

@@ -8,6 +8,30 @@ interface NotificationOptions {
 	message: string
 }
 
+/**
+ * Get the bundle ID for the current VS Code-based editor
+ * Used to activate the correct app when clicking notifications
+ */
+function getEditorBundleId(): string {
+	const appName = vscode.env.appName.toLowerCase()
+
+	// Map editor names to their bundle IDs
+	if (appName.includes("cursor")) {
+		return "com.todesktop.230313mzl4w4u92"
+	}
+	if (appName.includes("insiders")) {
+		return "com.microsoft.VSCodeInsiders"
+	}
+	if (appName.includes("vscodium")) {
+		return "com.visualstudio.code.oss"
+	}
+	if (appName.includes("windsurf")) {
+		return "com.codeium.windsurf"
+	}
+	// Default to VS Code
+	return "com.microsoft.VSCode"
+}
+
 async function showMacOSNotification(options: NotificationOptions): Promise<void> {
 	const { title, subtitle = "", message } = options
 
@@ -23,25 +47,26 @@ async function showMacOSNotification(options: NotificationOptions): Promise<void
 		args.push("-sound", "Tink")
 
 		// Add Axon Code logo
-		const extensionUri = vscode.extensions.getExtension(`kilocode.kilo-code`)!.extensionUri
-		const iconPath = vscode.Uri.joinPath(extensionUri, "assets", "icons", "matterai-ic.png").fsPath
-		args.push("-appIcon", iconPath)
+		const extensionUri = vscode.extensions.getExtension(`matterai.axon-code`)?.extensionUri
+		if (extensionUri) {
+			const iconPath = vscode.Uri.joinPath(extensionUri, "assets", "icons", "matterai-ic.png").fsPath
+			args.push("-appIcon", iconPath)
+		}
+
+		// Activate the editor when notification is clicked
+		args.push("-activate", getEditorBundleId())
 
 		await execa("terminal-notifier", args)
 		return
 	} catch (error) {
-		// If terminal-notifier fails, fall back to osascript
-		// This could be because terminal-notifier is not installed or other error
+		// If terminal-notifier fails, fall back to VS Code notification
+		// This ensures clicking the notification brings focus to the IDE
 	}
 
-	// Fallback to osascript
-	const script = `display notification "${message}" with title "${title}" subtitle "${subtitle}" sound name "Tink"`
-
-	try {
-		await execa("osascript", ["-e", script])
-	} catch (error) {
-		throw new Error(`Failed to show macOS notification: ${error}`)
-	}
+	// Fallback to VS Code's built-in notification (keeps focus in IDE)
+	const fullMessage = subtitle ? `${subtitle}: ${message}` : message
+	const notificationTitle = title || "Axon Code"
+	await vscode.window.showInformationMessage(`${notificationTitle}: ${fullMessage}`)
 }
 
 async function showWindowsNotification(options: NotificationOptions): Promise<void> {
