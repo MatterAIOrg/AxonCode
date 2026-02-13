@@ -64,6 +64,7 @@ import { ChatTextArea } from "./ChatTextArea"
 import { showSystemNotification } from "@/kilocode/helpers" // kilocode_change
 import BottomControls from "../kilocode/BottomControls" // kilocode_change
 import KiloTaskHeader from "../kilocode/KiloTaskHeader" // kilocode_change
+import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 // import ProfileViolationWarning from "./ProfileViolationWarning" kilocode_change: unused
@@ -257,6 +258,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const autoApproveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const userRespondedRef = useRef<boolean>(false)
 	const [currentFollowUpTs, setCurrentFollowUpTs] = useState<number | null>(null)
+	// kilocode_change start: Sticky user message state
+	const [stickyMessageIndex, setStickyMessageIndex] = useState<number | null>(null)
+	const stickyHeaderRef = useRef<HTMLDivElement | null>(null)
+	const virtuosoScrollerRef = useRef<HTMLElement | null>(null)
+	const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0)
+	// kilocode_change end
 	const [iconsBaseUri] = useState(() => {
 		const w = window as any
 		return w.ICONS_BASE_URI || ""
@@ -1743,6 +1750,83 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [])
 	//kilocode_change
 
+	// kilocode_change start: Pixel-perfect sticky user message tracking via scroll events
+	// Pre-compute indices of user_feedback messages for the scroll handler
+	const userFeedbackIndices = useMemo(() => {
+		const indices: number[] = []
+		groupedMessages.forEach((msg, i) => {
+			if (!Array.isArray(msg) && msg.type === "say" && msg.say === "user_feedback") {
+				indices.push(i)
+			}
+		})
+		return indices
+	}, [groupedMessages])
+
+	useEffect(() => {
+		const scroller = virtuosoScrollerRef.current
+		if (!scroller) return
+
+		const handleScroll = () => {
+			if (userFeedbackIndices.length === 0) {
+				setStickyMessageIndex(null)
+				return
+			}
+
+			const stickyHeight = stickyHeaderRef.current?.offsetHeight ?? 40
+			const scrollerRect = scroller.getBoundingClientRect()
+			const threshold = scrollerRect.top + stickyHeight
+
+			let bestIndex: number | null = null
+			let passedRenderedRegion = false
+
+			for (const idx of userFeedbackIndices) {
+				const el = scroller.querySelector(`[data-item-index="${idx}"]`) as HTMLElement | null
+
+				if (!el) {
+					if (passedRenderedRegion) {
+						// Past the rendered region — below viewport, stop
+						break
+					}
+					// Not yet in rendered region — above viewport (scrolled past)
+					bestIndex = idx
+					continue
+				}
+
+				passedRenderedRegion = true
+				const elTop = el.getBoundingClientRect().top
+				if (elTop <= threshold) {
+					bestIndex = idx
+				} else {
+					// Below the threshold, everything after will be too
+					break
+				}
+			}
+
+			setStickyMessageIndex(bestIndex)
+		}
+
+		scroller.addEventListener("scroll", handleScroll, { passive: true })
+		handleScroll() // Initial check
+		return () => scroller.removeEventListener("scroll", handleScroll)
+	}, [userFeedbackIndices])
+
+	// Track sticky header height with ResizeObserver so list items don't hide behind it
+	useEffect(() => {
+		const el = stickyHeaderRef.current
+		if (!el) {
+			setStickyHeaderHeight(0)
+			return
+		}
+
+		const updateHeight = () => setStickyHeaderHeight(el.offsetHeight)
+		updateHeight()
+
+		const observer = new ResizeObserver(updateHeight)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [task?.ts]) // re-run when task mounts/changes
+	// kilocode_change end
+
 	// Effect to handle showing the checkpoint warning after a delay
 	useEffect(() => {
 		// Only show the warning when there's a task but no visible messages yet
@@ -2174,7 +2258,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						todos={latestTodos}
 						title={(task as any)?.title}
 					/>
-					{/* kilocode_change start */}
 
 					{hasSystemPromptOverride && (
 						<div className="px-3">
@@ -2335,7 +2418,19 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			{task && (
 				<>
-					<div className="grow flex" ref={scrollContainerRef}>
+					<div className="grow flex flex-col relative" ref={scrollContainerRef}>
+						{/* kilocode_change: Sticky user message - positioned outside Virtuoso for true sticky behavior */}
+						<div
+							ref={stickyHeaderRef}
+							className="absolute top-0 left-0 right-0 z-10 px-3 py-0.5 pointer-events-none">
+							<div className="pointer-events-auto">
+								<StickyUserMessage
+									task={task}
+									messages={groupedMessages}
+									stickyIndex={stickyMessageIndex}
+								/>
+							</div>
+						</div>
 						<Virtuoso
 							ref={virtuosoRef}
 							key={task.ts}
@@ -2344,6 +2439,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							increaseViewportBy={{ top: 400, bottom: 400 }} // kilocode_change: use more modest numbers to see if they reduce gray screen incidence
 							data={groupedMessages}
 							itemContent={itemContent}
+							// kilocode_change: Spacer at top of list so items don't hide behind the sticky header
+							components={{
+								Header: () => <div style={{ height: stickyHeaderHeight }} />,
+							}}
 							atBottomStateChange={(isAtBottom: boolean) => {
 								setIsAtBottom(isAtBottom)
 								if (isAtBottom) {
@@ -2353,6 +2452,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							}}
 							atBottomThreshold={10}
 							initialTopMostItemIndex={groupedMessages.length - 1}
+							// kilocode_change: Capture scroller element for pixel-perfect sticky tracking
+							scrollerRef={(ref) => {
+								if (ref instanceof HTMLElement) {
+									virtuosoScrollerRef.current = ref
+								}
+							}}
 						/>
 					</div>
 					<div className={`flex-initial min-h-0 ${!areButtonsVisible ? "mb-1" : ""}`}>

@@ -152,6 +152,7 @@
 	--color-matterai-chip-blue: #8bf4f720;
 	--color-matterai-yellow: #fff0ac;
 	--color-matterai-blue-dark: #1a3b59;
+	--color-matterai-background-dark: #15181c;
 }
 
 @layer base {

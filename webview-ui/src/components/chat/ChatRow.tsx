@@ -59,6 +59,7 @@ import { PlayIcon } from "@/utils/customIcons"
 
 interface ChatRowProps {
 	message: ClineMessage
+	messageIndex?: number // kilocode_change: for sticky message tracking
 	lastModifiedMessage?: ClineMessage
 	isExpanded: boolean
 	isLast: boolean
@@ -144,6 +145,7 @@ const computeDiffStats = (diff?: string | null) => {
 
 export const ChatRowContent = ({
 	message,
+	messageIndex, // kilocode_change: for sticky message tracking
 	lastModifiedMessage,
 	isExpanded,
 	isLast,
@@ -1463,17 +1465,17 @@ export const ChatRowContent = ({
 					)
 				case "user_feedback":
 					return (
-						<div className="group">
+						<div className="group" data-user-feedback="true" data-message-index={messageIndex}>
 							{/* <div style={headerStyle}>
 								<User className="w-4 shrink-0" aria-label="User icon" />
 								<span style={{}}>{t("chat:feedback.youSaid")}</span>
 							</div> */}
 							<div
 								className={cn(
-									"mb-2",
-									"mr-2",
+									"mb-1",
 									"rounded-lg whitespace-pre-wrap",
-									"bg-vscode-editor-background",
+									"border border-[var(--color-matterai-border)]",
+									"bg-[var(--color-matterai-background-dark)]",
 									isEditing ? "overflow-visible" : "overflow-hidden", // kilocode_change
 									isEditing ? "text-vscode-editor-foreground" : "cursor-text p-1",
 								)}>
@@ -1501,7 +1503,7 @@ export const ChatRowContent = ({
 										<div className="flex-grow">
 											<ReadOnlyChatText
 												value={message.text || ""}
-												className="px-2 py-1 wrap-anywhere rounded-lg transition-colors hover:bg-vscode-editor-hover-highlight"
+												className="px-1 py-1 wrap-anywhere rounded-lg transition-colors hover:bg-vscode-editor-hover-highlight"
 												onClick={() => {
 													if (!isStreaming) {
 														handleEditClick()
