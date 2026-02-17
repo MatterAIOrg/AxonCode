@@ -123,7 +123,7 @@ export const StyledPre = styled.div<{
 	pre,
 	code {
 		/* Undefined wordwrap defaults to true (pre-wrap) behavior. */
-		background-color: var(--vscode-textCodeBlock-background) !important;
+		background-color: bg-vscode-editor-background !important;
 		white-space: ${({ wordwrap }) => (wordwrap === "false" ? "pre" : "pre-wrap")};
 		word-break: ${({ wordwrap }) => (wordwrap === "false" ? "normal" : "normal")};
 		overflow-wrap: ${({ wordwrap }) => (wordwrap === "false" ? "normal" : "break-word")};

@@ -431,7 +431,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		if ("error" in response) {
 			const error = response.error as { message?: string; code?: number }
-			const err = new Error(`OpenRouter API Error ${error?.code}: ${error?.message}`) as any
+			const err = new Error(`MatterAI API Error ${error?.code}: ${error?.message}`) as any
 			err.status = error?.code
 			throw err
 		}
@@ -458,7 +458,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		if (!apiKey) {
 			return {
 				success: false,
-				error: "OpenRouter API key is required for image generation",
+				error: "MatterAI API key is required for image generation",
 			}
 		}
 

@@ -1434,10 +1434,6 @@ export const ChatRowContent = ({
 											type: "openInBrowser",
 											url: "https://app.matterai.so/billing?tab=axon-code",
 										})
-									}}
-									style={{
-										width: "100%",
-										maxWidth: "200px",
 									}}>
 									Purchase / Upgrade Plan
 								</VSCodeButton>

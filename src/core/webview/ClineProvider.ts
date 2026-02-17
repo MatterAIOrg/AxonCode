@@ -301,10 +301,11 @@ export class ClineProvider
 			this.log("CloudService not ready, deferring cloud profile sync")
 		}
 
-		// Multi-window synchronization: refresh secrets when window gains focus
+		// Multi-window synchronization: refresh secrets and global state when window gains focus
 		const windowStateDisposable = vscode.window.onDidChangeWindowState(async (e) => {
 			if (e.focused && this.contextProxy.isInitialized) {
 				await this.contextProxy.refreshSecrets()
+				await this.contextProxy.refreshGlobalState()
 				await this.postStateToWebview()
 			}
 		})

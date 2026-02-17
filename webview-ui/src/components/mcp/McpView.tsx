@@ -289,7 +289,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 					display: "flex",
 					alignItems: "center",
 					padding: "8px",
-					background: "var(--vscode-textCodeBlock-background)",
+					background: "bg-vscode-editor-background",
 					cursor: isExpandable ? "pointer" : "default",
 					borderRadius: isExpanded || isExpandable ? "4px" : "4px 4px 0 0",
 					opacity: server.disabled ? 0.6 : 1,
@@ -366,7 +366,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 				? isExpanded && (
 						<div
 							style={{
-								background: "var(--vscode-textCodeBlock-background)",
+								background: "bg-vscode-editor-background",
 								padding: "0 10px 10px 10px",
 								fontSize: "13px",
 								borderRadius: "0 0 4px 4px",
@@ -520,7 +520,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 						<div
 							style={{
 								fontSize: "13px",
-								background: "var(--vscode-textCodeBlock-background)",
+								background: "bg-vscode-editor-background",
 								borderRadius: "0 0 4px 4px",
 								width: "100%",
 							}}>

@@ -77,7 +77,7 @@ const StyledMarkdown = styled.div`
 		padding: 0.5em;
 		overflow-x: auto;
 		overflow-y: hidden;
-		background-color: var(--vscode-textCodeBlock-background);
+		background-color: bg-vscode-editor-background;
 		border-radius: 3px;
 	}
 
