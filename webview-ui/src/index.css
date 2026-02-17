@@ -498,13 +498,6 @@ vscode-text-field::part(input) {
 	min-height: 16px;
 }
 
-vscode-button {
-	border-radius: 0.5rem;
-	border: 1px solid var(--vscode-input-border);
-	background-color: var(--vscode-input-background);
-	max-width: fit-content;
-}
-
 /**
  * VSCodeButton Global Overrides
  * 
@@ -513,12 +506,36 @@ vscode-button {
  * 
  * Example:
 
- * 
+ 
  * Or use CSS custom properties to override specific parts:
  * vscode-button::part(control) {
  *   /* your styles here *\/
  * }
  */
+
+vscode-button[appearance="primary"]::part(control) {
+	color: var(--vscode-button-foreground) !important;
+	background: var(--vscode-button-background) !important;
+}
+
+vscode-button[appearance="primary"]:hover::part(control) {
+	color: var(--vscode-button-foreground) !important;
+	background: var(--vscode-button-background) !important;
+}
+
+vscode-button[appearance="icon"]::part(control) {
+	color: var(--vscode-button-secondaryForeground) !important;
+	background: var(--vscode-button-secondaryBackground) !important;
+}
+
+vscode-button[appearance="secondary"]::part(control) {
+	color: var(--vscode-button-secondaryForeground) !important;
+	background: var(--vscode-button-secondaryBackground) !important;
+}
+
+vscode-button[appearance="secondary"]:hover::part(control) {
+	background: var(--vscode-button-secondaryHoverBackground) !important;
+}
 
 /**
  * @shadcn/ui Overrides / Hacks

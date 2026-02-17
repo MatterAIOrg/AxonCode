@@ -1,5 +1,28 @@
 # Changelog
 
+## [v5.4.1] - 2026-02-13
+
+### Added
+
+- Sticky user messages for better chat navigation
+- Pro model info display in settings
+- Custom icons utility for improved UI components
+
+### Changed
+
+- Updated profile page with usage data
+- Streamlined model names and auto model selection
+- Improved codebase indexing tool UI
+- Enhanced task history list
+- Updated notifications integration
+- UI updates for code reviews
+
+### Fixed
+
+- Fixed file path bug in code reviews
+
+---
+
 ## [v5.4.0] - 2026-02-12
 
 ### Added

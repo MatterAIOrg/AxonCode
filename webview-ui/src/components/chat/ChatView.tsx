@@ -2361,25 +2361,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 												<div className="flex flex-row gap-2">
 													<div className="self-start mt-1">
 														<VSCodeButtonLink
-															variant="secondary"
-															href="https://app.matterai.so/get-started"
-															style={{
-																background: "var(--color-matterai-chip-blue)",
-																border: "1px solid var(--color-matterai-blue)",
-																borderRadius: "6px",
-																color: "var(--color-secondary-foreground)",
-															}}>
+															appearance="primary"
+															href="https://app.matterai.so/get-started">
 															Get Started for free
 														</VSCodeButtonLink>
 													</div>
 													<div className="self-start mt-1">
 														<VSCodeButtonLink
-															variant="secondary"
-															href="https://docs.matterai.so/quickstart-ai-code-review-agent"
-															style={{
-																borderRadius: "6px",
-																color: "var(--color-secondary-foreground)",
-															}}>
+															appearance="secondary"
+															href="https://docs.matterai.so/quickstart-ai-code-review-agent">
 															View Demo
 														</VSCodeButtonLink>
 													</div>
@@ -2505,10 +2495,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1"}`}>
 					<VSCodeButton
 						appearance="secondary"
-						style={{
-							border: "1px solid var(--color-matterai-border)",
-						}}
-						className="flex w-full min-w-full border border-[var(--color-matterai-border)] rounded-lg"
+						className="flex w-full min-w-full rounded-md"
 						onClick={() => {
 							setShowSourceControl(true)
 							// If there's an error, automatically retry when opening

@@ -105,7 +105,7 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 
 	public override async fetchModel() {
 		if (!this.options.kilocodeToken) {
-			throw new Error("KiloCode token + baseUrl is required to fetch models")
+			throw new Error("Your authentication token is expired, please login again")
 		}
 
 		const [models, defaultModel] = await Promise.all([
