@@ -1,5 +1,3 @@
-import React, { useState } from "react"
-import { Trans } from "react-i18next"
 import {
 	VSCodeButton,
 	VSCodeCheckbox,
@@ -8,29 +6,29 @@ import {
 	VSCodePanelTab,
 	VSCodePanelView,
 } from "@vscode/webview-ui-toolkit/react"
+import React, { useState } from "react"
+import { Trans } from "react-i18next"
 
 import { McpServer } from "@roo/mcp"
 
-import { vscode } from "@src/utils/vscode"
-import { useExtensionState } from "@src/context/ExtensionStateContext"
-import { useAppTranslation } from "@src/i18n/TranslationContext"
 import {
-	Button,
 	Dialog,
 	DialogContent,
-	DialogHeader,
-	DialogTitle,
 	DialogDescription,
 	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 	ToggleSwitch,
-	// StandardTooltip, // kilocode_change: not used
 } from "@src/components/ui"
+import { useExtensionState } from "@src/context/ExtensionStateContext"
+import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { buildDocLink } from "@src/utils/docLinks"
+import { vscode } from "@src/utils/vscode"
 
 import { Tab, TabContent, TabHeader } from "../common/Tab"
 
-import McpToolRow from "./McpToolRow"
 import McpResourceRow from "./McpResourceRow"
+import McpToolRow from "./McpToolRow"
 // import McpEnabledToggle from "./McpEnabledToggle" // kilocode_change not used
 import { McpErrorRow } from "./McpErrorRow"
 
@@ -56,7 +54,9 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 			{/*  kilocode_change: display header conditionally */}
 			<TabHeader style={{ display: hideHeader ? "none" : "flex" }} className="flex justify-between items-center">
 				<h3 className="text-vscode-foreground m-0">{t("mcp:title")}</h3>
-				<Button onClick={onDone}>{t("mcp:done")}</Button>
+				<VSCodeButton appearance="primary" onClick={onDone}>
+					{t("mcp:done")}
+				</VSCodeButton>
 			</TabHeader>
 
 			<TabContent>
@@ -133,33 +133,33 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 								gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
 								gap: "10px",
 							}}>
-							<Button
-								variant="secondary"
+							<VSCodeButton
+								appearance="secondary"
 								style={{ width: "100%" }}
 								onClick={() => {
 									vscode.postMessage({ type: "openMcpSettings" })
 								}}>
 								<span className="codicon codicon-edit" style={{ marginRight: "6px" }}></span>
 								{t("mcp:editGlobalMCP")}
-							</Button>
-							<Button
-								variant="secondary"
+							</VSCodeButton>
+							<VSCodeButton
+								appearance="secondary"
 								style={{ width: "100%" }}
 								onClick={() => {
 									vscode.postMessage({ type: "openProjectMcpSettings" })
 								}}>
 								<span className="codicon codicon-edit" style={{ marginRight: "6px" }}></span>
 								{t("mcp:editProjectMCP")}
-							</Button>
-							<Button
-								variant="secondary"
+							</VSCodeButton>
+							<VSCodeButton
+								appearance="secondary"
 								style={{ width: "100%" }}
 								onClick={() => {
 									vscode.postMessage({ type: "refreshAllMcpServers" })
 								}}>
 								<span className="codicon codicon-refresh" style={{ marginRight: "6px" }}></span>
 								{t("mcp:refreshMCP")}
-							</Button>
+							</VSCodeButton>
 							{/* kilocode_change
 							<StandardTooltip content={t("mcp:marketplace")}>
 								<Button
@@ -289,7 +289,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 					display: "flex",
 					alignItems: "center",
 					padding: "8px",
-					background: "var(--vscode-textCodeBlock-background)",
+					background: "bg-vscode-editor-background",
 					cursor: isExpandable ? "pointer" : "default",
 					borderRadius: isExpanded || isExpandable ? "4px" : "4px 4px 0 0",
 					opacity: server.disabled ? 0.6 : 1,
@@ -320,21 +320,19 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 				<div
 					style={{ display: "flex", alignItems: "center", marginRight: "8px" }}
 					onClick={(e) => e.stopPropagation()}>
-					<Button
-						variant="ghost"
-						size="icon"
+					<VSCodeButton
+						appearance="secondary"
 						onClick={() => setShowDeleteConfirm(true)}
 						style={{ marginRight: "8px" }}>
 						<span className="codicon codicon-trash" style={{ fontSize: "14px" }}></span>
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
+					</VSCodeButton>
+					<VSCodeButton
+						appearance="secondary"
 						onClick={handleRestart}
 						disabled={server.status === "connecting"}
 						style={{ marginRight: "8px" }}>
 						<span className="codicon codicon-refresh" style={{ fontSize: "14px" }}></span>
-					</Button>
+					</VSCodeButton>
 				</div>
 				<div
 					style={{
@@ -366,7 +364,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 				? isExpanded && (
 						<div
 							style={{
-								background: "var(--vscode-textCodeBlock-background)",
+								background: "bg-vscode-editor-background",
 								padding: "0 10px 10px 10px",
 								fontSize: "13px",
 								borderRadius: "0 0 4px 4px",
@@ -520,7 +518,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 						<div
 							style={{
 								fontSize: "13px",
-								background: "var(--vscode-textCodeBlock-background)",
+								background: "bg-vscode-editor-background",
 								borderRadius: "0 0 4px 4px",
 								width: "100%",
 							}}>
@@ -562,12 +560,12 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="secondary" onClick={() => setShowDeleteConfirm(false)}>
+						<VSCodeButton appearance="secondary" onClick={() => setShowDeleteConfirm(false)}>
 							{t("mcp:deleteDialog.cancel")}
-						</Button>
-						<Button variant="default" onClick={handleDelete}>
+						</VSCodeButton>
+						<VSCodeButton appearance="secondary" onClick={handleDelete}>
 							{t("mcp:deleteDialog.delete")}
-						</Button>
+						</VSCodeButton>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

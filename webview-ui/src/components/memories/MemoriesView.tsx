@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect } from "react"
-import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { Button } from "@/components/ui"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { Tab, TabHeader, TabContent } from "../common/Tab"
@@ -86,7 +86,9 @@ const MemoriesView = ({ onDone }: MemoriesViewProps) => {
 						<span className="codicon codicon-book" />
 						{t("memories:title")}
 					</h3>
-					<Button onClick={onDone}>{t("memories:done")}</Button>
+					<VSCodeButton appearance="primary" onClick={onDone}>
+						{t("memories:done")}
+					</VSCodeButton>
 				</div>
 				<div className="flex flex-col gap-2">
 					<VSCodeTextField

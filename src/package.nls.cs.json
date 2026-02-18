@@ -46,14 +46,5 @@
 	"settings.apiRequestTimeout.description": "Maximální doba v sekundách čekání na odpovědi API (0 = bez časového limitu, 1-86400s, výchozí: 600s). Vyšší hodnoty se doporučují pro lokální poskytovatele jako LM Studio a Ollama, kteří mohou potřebovat více času na zpracování.",
 	"settings.newTaskRequireTodos.description": "Vyžadovat parametr todos při vytváření nových úkolů pomocí nástroje new_task",
 	"settings.codeIndex.embeddingBatchSize.description": "Velikost dávky pro operace vkládání během indexování kódu. Upravte toto podle limitů vašeho poskytovatele API. Výchozí je 60.",
-	"ghost.input.title": "Stiskněte 'Enter' pro potvrzení nebo 'Escape' pro zrušení",
-	"ghost.input.placeholder": "Popište, co chcete udělat...",
-	"ghost.commands.generateSuggestions": "Axon Code: Generovat Navrhované Úpravy",
-	"ghost.commands.displaySuggestions": "Zobrazit Navrhované Úpravy",
-	"ghost.commands.cancelSuggestions": "Zrušit Navrhované Úpravy",
-	"ghost.commands.applyCurrentSuggestion": "Použít Aktuální Navrženou Úpravu",
-	"ghost.commands.applyAllSuggestions": "Použít Všechny Navrhované Úpravy",
-	"ghost.commands.goToNextSuggestion": "Přejít na Další Návrh",
-	"ghost.commands.goToPreviousSuggestion": "Přejít na Předchozí Návrh",
 	"command.memories.title": "Paměti"
 }

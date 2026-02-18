@@ -263,6 +263,23 @@ export class ContextProxy {
 		await Promise.all(promises)
 	}
 
+	/**
+	 * Refresh global state from storage and update cache
+	 * This is useful when you need to ensure the cache has the latest values
+	 * across multiple windows (e.g., for enterprise settings like codeReviewSettings)
+	 */
+	async refreshGlobalState(): Promise<void> {
+		for (const key of GLOBAL_STATE_KEYS) {
+			try {
+				this.stateCache[key] = this.originalContext.globalState.get(key)
+			} catch (error) {
+				logger.error(
+					`Error refreshing global state ${key}: ${error instanceof Error ? error.message : String(error)}`,
+				)
+			}
+		}
+	}
+
 	private getAllSecretState(): SecretState {
 		return Object.fromEntries([
 			...SECRET_STATE_KEYS.map((key) => [key, this.getSecret(key as SecretStateKey)]),

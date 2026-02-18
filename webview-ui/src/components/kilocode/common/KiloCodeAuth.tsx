@@ -1,10 +1,10 @@
 import React from "react"
-import { ButtonLink } from "./ButtonLink"
 // import { ButtonSecondary } from "./ButtonSecondary"
-import Logo from "./Logo"
+import { VSCodeButtonLink } from "@/components/common/VSCodeButtonLink"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { getKiloCodeBackendSignUpUrl } from "../helpers"
-import { useExtensionState } from "@/context/ExtensionStateContext"
+import Logo from "./Logo"
 
 interface KiloCodeAuthProps {
 	onManualConfigClick?: () => void
@@ -33,8 +33,9 @@ const KiloCodeAuth: React.FC<KiloCodeAuthProps> = ({ onManualConfigClick, classN
 				{t("kilocode:welcome.introText2")}
 			</p>
 
-			<div className="w-full flex flex-col gap-4">
-				<ButtonLink
+			<div className="w-full flex flex-col gap-2">
+				<VSCodeButtonLink
+					appearance="primary"
 					href={getKiloCodeBackendSignUpUrl(uriScheme, uiKind, kiloCodeWrapperProperties)}
 					onClick={() => {
 						if (uiKind === "Web" && onManualConfigClick) {
@@ -42,9 +43,11 @@ const KiloCodeAuth: React.FC<KiloCodeAuthProps> = ({ onManualConfigClick, classN
 						}
 					}}>
 					{t("kilocode:welcome.ctaButton")}
-				</ButtonLink>
+				</VSCodeButtonLink>
 
-				<ButtonLink href="https://matterai.so">{t("kilocode:welcome.exploreMatterAI")}</ButtonLink>
+				<VSCodeButtonLink appearance="secondary" href="https://matterai.so">
+					{t("kilocode:welcome.exploreMatterAI")}
+				</VSCodeButtonLink>
 
 				{/* {!!onManualConfigClick && (
 					<ButtonSecondary onClick={() => onManualConfigClick && onManualConfigClick()}>

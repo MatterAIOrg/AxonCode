@@ -243,7 +243,7 @@ classes at build time based on the @theme */
 --color-vscode-scrollbar-slider-hover-background: var(--vscode-scrollbar-slider-hover-background);
 --color-vscode-scrollbar-slider-active-background: var(--vscode-scrollbar-slider-active-background);
 --color-vscode-button-border: var(--vscode-button-border);
---color-vscode-button-icon-background: var(--vscode-button-icon-background);
+--color-vscode-button-icon-background: var(--vscode-button-secondary-background);
 --color-vscode-button-icon-corner-radius: var(--vscode-button-icon-corner-radius);
 --color-vscode-button-icon-outline-offset: var(--vscode-button-icon-outline-offset);
 --color-vscode-button-icon-hover-background: var(--vscode-button-icon-hover-background);

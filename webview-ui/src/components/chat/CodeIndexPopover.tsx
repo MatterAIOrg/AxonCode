@@ -624,7 +624,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 								{/* kilocode_change start */}
 								{currentSettings.codebaseIndexEnabled && indexingStatus.systemStatus === "Indexing" && (
 									<VSCodeButton
-										appearance="secondary"
+										appearance="primary"
 										onClick={handleCancelIndexing}
 										disabled={saveStatus === "saving"}>
 										{t("settings:codeIndex.cancelIndexingButton")}
@@ -635,6 +635,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 									(indexingStatus.systemStatus === "Error" ||
 										indexingStatus.systemStatus === "Standby") && (
 										<VSCodeButton
+											appearance="primary"
 											onClick={() => vscode.postMessage({ type: "startIndexing" })}
 											disabled={saveStatus === "saving" || hasUnsavedChanges}>
 											{t("settings:codeIndex.startIndexingButton")}
@@ -675,6 +676,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 
 							<VSCodeButton
 								onClick={handleSaveSettings}
+								appearance="secondary"
 								disabled={!hasUnsavedChanges || saveStatus === "saving"}>
 								{saveStatus === "saving"
 									? t("settings:codeIndex.saving")

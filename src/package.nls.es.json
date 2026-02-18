@@ -46,14 +46,5 @@
 	"settings.apiRequestTimeout.description": "Tiempo máximo en segundos de espera para las respuestas de la API (0 = sin tiempo de espera, 1-86400s, por defecto: 600s). Se recomiendan valores más altos para proveedores locales como LM Studio y Ollama que puedan necesitar más tiempo de procesamiento.",
 	"settings.newTaskRequireTodos.description": "Requerir el parámetro todos al crear nuevas tareas con la herramienta new_task",
 	"settings.codeIndex.embeddingBatchSize.description": "El tamaño del lote para operaciones de embedding durante la indexación de código. Ajusta esto según los límites de tu proveedor de API. Por defecto es 60.",
-	"ghost.input.title": "Presiona 'Enter' para confirmar o 'Escape' para cancelar",
-	"ghost.input.placeholder": "Describe lo que quieres hacer...",
-	"ghost.commands.generateSuggestions": "Axon Code: Generar Ediciones Sugeridas",
-	"ghost.commands.displaySuggestions": "Mostrar Ediciones Sugeridas",
-	"ghost.commands.cancelSuggestions": "Cancelar Ediciones Sugeridas",
-	"ghost.commands.applyCurrentSuggestion": "Aplicar Edición Sugerida Actual",
-	"ghost.commands.applyAllSuggestions": "Aplicar Todas las Ediciones Sugeridas",
-	"ghost.commands.goToNextSuggestion": "Ir a la Siguiente Sugerencia",
-	"ghost.commands.goToPreviousSuggestion": "Ir a la Sugerencia Anterior",
 	"command.memories.title": "Memorias"
 }

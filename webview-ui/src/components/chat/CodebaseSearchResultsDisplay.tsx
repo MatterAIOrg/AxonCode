@@ -16,7 +16,7 @@ const CodebaseSearchResultsDisplay: React.FC<CodebaseSearchResultsDisplayProps> 
 	const [codebaseSearchResultsExpanded, setCodebaseSearchResultsExpanded] = useState(false)
 
 	return (
-		<div className="flex flex-col gap-1">
+		<div className="flex flex-col gap-1 mb-1">
 			<div
 				onClick={() => setCodebaseSearchResultsExpanded(!codebaseSearchResultsExpanded)}
 				className="cursor-pointer flex items-center justify-between px-2 py-1.5 bg-[var(--vscode-editor-background)]  rounded-lg">

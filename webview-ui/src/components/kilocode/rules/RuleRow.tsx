@@ -24,7 +24,7 @@ const RuleRow: React.FC<{
 	return (
 		<div className="mb-2.5">
 			<div
-				className={`flex items-center p-2 rounded bg-[var(--vscode-textCodeBlock-background)] h-[18px] ${
+				className={`flex items-center p-2 rounded bg-vscode-editor-background h-[18px] ${
 					enabled ? "opacity-100" : "opacity-60"
 				}`}>
 				<span

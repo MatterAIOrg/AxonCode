@@ -18,6 +18,7 @@ import { extractPatternsFromCommand } from "../../utils/command-parser"
 import { parseCommand } from "../../utils/command-validation"
 import CodeBlock from "../kilocode/common/CodeBlock" // kilocode_change
 import { CommandPatternSelector } from "./CommandPatternSelector"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 
 interface CommandPattern {
 	pattern: string
@@ -197,22 +198,20 @@ export const CommandExecution = ({
 						{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && (
 							<div className="flex flex-row items-center gap-2">
 								<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
-									<Button
-										variant="default"
-										size="sm"
+									<VSCodeButton
+										appearance="primary"
 										disabled={!enableButtons}
 										onClick={() => onPrimaryButtonClick && onPrimaryButtonClick()}>
 										{primaryButtonText || t("chat:runCommand.title")}
-									</Button>
+									</VSCodeButton>
 								</StandardTooltip>
 								<StandardTooltip content={secondaryButtonText || t("chat:reject.tooltip")}>
-									<Button
-										variant="secondary"
-										size="sm"
+									<VSCodeButton
+										appearance="secondary"
 										disabled={!enableButtons}
 										onClick={() => onSecondaryButtonClick && onSecondaryButtonClick()}>
 										{secondaryButtonText || t("chat:reject.title")}
-									</Button>
+									</VSCodeButton>
 								</StandardTooltip>
 							</div>
 						)}
