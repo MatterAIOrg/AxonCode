@@ -2492,10 +2492,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			)}
 
 			{!task && (
-				<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1"}`}>
+				<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1.5"}`}>
 					<VSCodeButton
 						appearance="secondary"
-						className="flex w-full min-w-full rounded-md"
+						className="flex w-full min-w-full"
 						onClick={() => {
 							setShowSourceControl(true)
 							// If there's an error, automatically retry when opening

@@ -182,9 +182,7 @@ export const KiloCode = ({
 						)}
 
 						{/* Manage plan button */}
-						<VSCodeButtonLink
-							href="https://app.matterai.so/ai-coding-agent"
-							className="text-[var(--color-matterai-green)]! text-sm! hover:underline!">
+						<VSCodeButtonLink appearance="primary" href="https://app.matterai.so/ai-coding-agent">
 							Manage/Upgrade plan
 						</VSCodeButtonLink>
 					</div>

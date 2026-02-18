@@ -46,14 +46,5 @@
 	"settings.apiRequestTimeout.description": "等待 API 响应的最长时间（秒）（0 = 无超时，1-86400秒，默认值：600秒）。对于像 LM Studio 和 Ollama 这样可能需要更多处理时间的本地提供商，建议使用更高的值。",
 	"settings.newTaskRequireTodos.description": "使用 new_task 工具创建新任务时需要 todos 参数",
 	"settings.codeIndex.embeddingBatchSize.description": "代码索引期间嵌入操作的批处理大小。根据 API 提供商的限制调整此设置。默认值为 60。",
-	"ghost.input.title": "Axon Code 幽灵写手",
-	"ghost.input.placeholder": "描述您想要编程的内容...",
-	"ghost.commands.generateSuggestions": "Axon Code：生成建议编辑",
-	"ghost.commands.displaySuggestions": "显示建议编辑",
-	"ghost.commands.cancelSuggestions": "取消建议编辑",
-	"ghost.commands.applyCurrentSuggestion": "应用当前建议编辑",
-	"ghost.commands.applyAllSuggestions": "应用所有建议编辑",
-	"ghost.commands.goToNextSuggestion": "转到下一个建议",
-	"ghost.commands.goToPreviousSuggestion": "转到上一个建议",
 	"command.memories.title": "记忆"
 }

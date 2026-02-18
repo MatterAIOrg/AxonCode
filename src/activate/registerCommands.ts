@@ -130,11 +130,6 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 
 		visibleProvider.postMessageToWebview({ type: "action", action: "promptsButtonClicked" })
 	},
-	popoutButtonClicked: () => {
-		TelemetryService.instance.captureTitleButtonClicked("popout")
-
-		return openClineInNewTab({ context, outputChannel })
-	},
 	openInNewTab: () => openClineInNewTab({ context, outputChannel }),
 	settingsButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)

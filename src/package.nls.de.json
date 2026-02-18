@@ -46,14 +46,5 @@
 	"settings.apiRequestTimeout.description": "Maximale Wartezeit in Sekunden auf API-Antworten (0 = kein Timeout, 1-86400s, Standard: 600s). Höhere Werte werden für lokale Anbieter wie LM Studio und Ollama empfohlen, die möglicherweise mehr Verarbeitungszeit benötigen.",
 	"settings.newTaskRequireTodos.description": "Todos-Parameter beim Erstellen neuer Aufgaben mit dem new_task-Tool erfordern",
 	"settings.codeIndex.embeddingBatchSize.description": "Die Batch-Größe für Embedding-Operationen während der Code-Indexierung. Passe dies an die Limits deines API-Anbieters an. Standard ist 60.",
-	"ghost.input.title": "Axon Code Geisterschreiber",
-	"ghost.input.placeholder": "Beschreiben Sie, was Sie programmieren möchten...",
-	"ghost.commands.generateSuggestions": "Axon Code: Vorgeschlagene Bearbeitungen Generieren",
-	"ghost.commands.displaySuggestions": "Vorgeschlagene Bearbeitungen Anzeigen",
-	"ghost.commands.cancelSuggestions": "Vorgeschlagene Bearbeitungen Abbrechen",
-	"ghost.commands.applyCurrentSuggestion": "Aktuelle Vorgeschlagene Bearbeitung Anwenden",
-	"ghost.commands.applyAllSuggestions": "Alle Vorgeschlagenen Bearbeitungen Anwenden",
-	"ghost.commands.goToNextSuggestion": "Zur Nächsten Vorgeschlagenen Bearbeitung",
-	"ghost.commands.goToPreviousSuggestion": "Zur Vorherigen Vorgeschlagenen Bearbeitung",
 	"command.memories.title": "Erinnerungen"
 }

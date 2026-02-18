@@ -23,6 +23,36 @@
 
 @plugin "tailwindcss-animate";
 
+@layer components {
+	/* VSCodeButton Global Overrides */
+	vscode-button[appearance="primary"],
+	vscode-button[appearance="primary"]::part(control),
+	vscode-button[appearance="primary"]:hover,
+	vscode-button[appearance="primary"]:hover::part(control) {
+		color: var(--vscode-button-foreground) !important;
+		border-radius: 6px !important;
+		border: none !important;
+		background: var(--vscode-button-background) !important;
+	}
+
+	vscode-button[appearance="icon"]::part(control) {
+		color: var(--vscode-button-secondaryForeground) !important;
+		background: var(--vscode-button-secondaryBackground) !important;
+	}
+
+	vscode-button[appearance="secondary"],
+	vscode-button[appearance="secondary"]::part(control) {
+		border-radius: 6px !important;
+		color: var(--vscode-button-secondaryForeground) !important;
+		border: 0.5px solid var(--vscode-button-border) !important;
+		background: var(--vscode-button-secondaryBackground) !important;
+	}
+
+	vscode-button[appearance="secondary"]:hover::part(control) {
+		background: var(--vscode-button-secondaryHoverBackground) !important;
+	}
+}
+
 @theme {
 	--font-display: var(--vscode-font-family);
 
@@ -133,7 +163,7 @@
 	--color-vscode-widget-border: var(--vscode-widget-border);
 	--color-vscode-widget-shadow: var(--vscode-widget-shadow);
 
-	--color-vscode-textLink-foreground: var(--vscode-textLink-foreground);
+	--color-vscode-textLink-foreground: var(--vscode-tfextLink-foreground);
 
 	--color-vscode-textCodeBlock-background: var(--vscode-textCodeBlock-background);
 
@@ -215,7 +245,7 @@
 	/* Code Block Styles */
 	pre,
 	code {
-		background-color: var(--vscode-input-background) !important;
+		background-color: var(--vscode-editor-background) !important;
 		padding-left: 0.1rem;
 		padding-right: 0.1rem;
 	}
@@ -496,45 +526,6 @@ vscode-text-field::part(input) {
 .vscrui-checkbox svg {
 	min-width: 16px;
 	min-height: 16px;
-}
-
-/**
- * VSCodeButton Global Overrides
- * 
- * To override default classes for all VSCodeButton components globally,
- * add CSS rules here targeting the vscode-button web component.
- * 
- * Example:
-
- 
- * Or use CSS custom properties to override specific parts:
- * vscode-button::part(control) {
- *   /* your styles here *\/
- * }
- */
-
-vscode-button[appearance="primary"]::part(control) {
-	color: var(--vscode-button-foreground) !important;
-	background: var(--vscode-button-background) !important;
-}
-
-vscode-button[appearance="primary"]:hover::part(control) {
-	color: var(--vscode-button-foreground) !important;
-	background: var(--vscode-button-background) !important;
-}
-
-vscode-button[appearance="icon"]::part(control) {
-	color: var(--vscode-button-secondaryForeground) !important;
-	background: var(--vscode-button-secondaryBackground) !important;
-}
-
-vscode-button[appearance="secondary"]::part(control) {
-	color: var(--vscode-button-secondaryForeground) !important;
-	background: var(--vscode-button-secondaryBackground) !important;
-}
-
-vscode-button[appearance="secondary"]:hover::part(control) {
-	background: var(--vscode-button-secondaryHoverBackground) !important;
 }
 
 /**

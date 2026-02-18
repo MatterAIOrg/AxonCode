@@ -4,7 +4,7 @@ import { DeleteTaskDialog } from "./DeleteTaskDialog"
 import { BatchDeleteTaskDialog } from "./BatchDeleteTaskDialog"
 import { Virtuoso } from "react-virtuoso"
 
-import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import {
 	Button,
@@ -102,17 +102,19 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									? `${t("history:exitSelectionMode")}`
 									: `${t("history:enterSelectionMode")}`
 							}>
-							<Button
-								variant={isSelectionMode ? "default" : "secondary"}
+							<VSCodeButton
+								appearance={isSelectionMode ? "primary" : "secondary"}
 								onClick={toggleSelectionMode}
 								data-testid="toggle-selection-mode-button">
 								<span
 									className={`codicon ${isSelectionMode ? "codicon-check-all" : "codicon-checklist"} mr-1`}
 								/>
 								{isSelectionMode ? t("history:exitSelection") : t("history:selectionMode")}
-							</Button>
+							</VSCodeButton>
 						</StandardTooltip>
-						<Button onClick={onDone}>{t("history:done")}</Button>
+						<VSCodeButton appearance="primary" onClick={onDone}>
+							{t("history:done")}
+						</VSCodeButton>
 					</div>
 				</div>
 				<div className="flex flex-col gap-2">

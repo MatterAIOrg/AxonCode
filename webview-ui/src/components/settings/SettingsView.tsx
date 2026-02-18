@@ -1,7 +1,6 @@
 import {
 	AlertTriangle,
 	Bell, // kilocode_change
-	Bot,
 	CheckCheck,
 	CircleUserRound,
 	GitPullRequest,
@@ -56,7 +55,6 @@ import { SectionHeader } from "./SectionHeader"
 import { SetCachedStateField } from "./types"
 // import ApiConfigManager from "./ApiConfigManager"
 import deepEqual from "fast-deep-equal" // kilocode_change
-import { GhostServiceSettingsView } from "../kilocode/settings/GhostServiceSettings" // kilocode_change
 import McpView from "../kilocodeMcp/McpView" // kilocode_change
 import { About } from "./About"
 import ApiOptions from "./ApiOptions"
@@ -66,6 +64,7 @@ import { BrowserSettings } from "./BrowserSettings"
 import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewSettings"
 // import { ContextManagementSettings } from "./ContextManagementSettings"
 // import { DisplaySettings } from "./DisplaySettings" // kilocode_change
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { LanguageSettings } from "./LanguageSettings"
 import { NotificationSettings } from "./NotificationSettings"
 import { Section } from "./Section"
@@ -90,7 +89,6 @@ const sectionNames = [
 	"slashCommands",
 	"browser",
 	// "checkpoints",
-	"ghost", // kilocode_change
 	// "display", // kilocode_change
 	"notifications",
 	// "contextManagement",
@@ -119,7 +117,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		currentApiConfigName,
 		// listApiConfigMeta,
 		uriScheme,
-		kiloCodeWrapperProperties, // kilocode_change
 		settingsImportedAt,
 	} = extensionState
 
@@ -587,7 +584,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "browser", icon: SquareMousePointer },
 			// { id: "checkpoints", icon: MapPinCheck },
 			// { id: "display", icon: Monitor }, // kilocode_change
-			...(kiloCodeWrapperProperties?.kiloCodeWrapped ? [] : [{ id: "ghost" as const, icon: Bot }]), // kilocode_change
 			{ id: "notifications", icon: Bell },
 			// { id: "contextManagement", icon: Database },
 			{ id: "terminal", icon: SquareTerminal },
@@ -598,7 +594,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "mcp", icon: Server },
 			{ id: "about", icon: Info },
 		],
-		[kiloCodeWrapperProperties?.kiloCodeWrapped], // kilocode_change
+		[], // kilocode_change
 	)
 	// Update target section logic to set active tab
 	useEffect(() => {
@@ -655,14 +651,14 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 									? t("settings:header.saveButtonTooltip")
 									: t("settings:header.nothingChangedTooltip")
 						}>
-						<Button
-							variant={isSettingValid ? "default" : "secondary"}
+						<VSCodeButton
+							appearance={isSettingValid ? "primary" : "secondary"}
 							className={!isSettingValid ? "!border-vscode-errorForeground" : ""}
 							onClick={handleSubmit}
 							disabled={!isChangeDetected || !isSettingValid}
 							data-testid="save-button">
 							{t("settings:common.save")}
-						</Button>
+						</VSCodeButton>
 					</StandardTooltip>
 					<StandardTooltip content={t("settings:header.doneButtonTooltip")}>
 						<Button variant="secondary" onClick={() => checkUnsaveChanges(onDone)}>
@@ -705,9 +701,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 									<span className="tab-label">
 										{id === "mcp"
 											? t(`kilocode:settings.sections.mcp`)
-											: id === "ghost"
-												? t(`kilocode:ghost.title`)
-												: t(`settings:sections.${id}`)}
+											: t(`settings:sections.${id}`)}
 									</span>
 								</div>
 							</TabTrigger>
@@ -726,9 +720,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 											<p className="m-0">
 												{id === "mcp"
 													? t(`kilocode:settings.sections.mcp`)
-													: id === "ghost"
-														? t(`kilocode:ghost.title`)
-														: t(`settings:sections.${id}`)}
+													: t(`settings:sections.${id}`)}
 											</p>
 										</TooltipContent>
 									</Tooltip>
@@ -854,12 +846,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							setCachedStateField={setCachedStateField}
 						/>
 					)} */}
-					{activeTab === "ghost" && (
-						<GhostServiceSettingsView
-							ghostServiceSettings={ghostServiceSettings}
-							setCachedStateField={setCachedStateField}
-						/>
-					)}
 					{/* kilocode_change end display section */}
 
 					{/* Notifications Section */}

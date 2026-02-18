@@ -46,14 +46,5 @@
 	"settings.apiRequestTimeout.description": "เวลาสูงสุดเป็นวินาทีที่จะรอการตอบสนอง API (0 = ไม่มีการหมดเวลา, 1-86400 วินาที, ค่าเริ่มต้น: 600 วินาที) แนะนำค่าที่สูงขึ้นสำหรับผู้ให้บริการในเครื่องเช่น LM Studio และ Ollama ที่อาจต้องการเวลาในการประมวลผลมากขึ้น",
 	"settings.newTaskRequireTodos.description": "ต้องการพารามิเตอร์ todos เมื่อสร้างงานใหม่ด้วยเครื่องมือ new_task",
 	"settings.codeIndex.embeddingBatchSize.description": "ขนาดแบตช์สำหรับการดำเนินการฝังตัวระหว่างการสร้างดัชนีโค้ด ปรับค่านี้ตามขีดจำกัดของผู้ให้บริการ API ของคุณ ค่าเริ่มต้นคือ 60",
-	"ghost.input.title": "กด 'Enter' เพื่อยืนยันหรือ 'Escape' เพื่อยกเลิก",
-	"ghost.input.placeholder": "อธิบายสิ่งที่คุณต้องการทำ...",
-	"ghost.commands.generateSuggestions": "Axon Code: สร้างข้อเสนอแนะการแก้ไข",
-	"ghost.commands.displaySuggestions": "แสดงข้อเสนอแนะการแก้ไข",
-	"ghost.commands.cancelSuggestions": "ยกเลิกข้อเสนอแนะการแก้ไข",
-	"ghost.commands.applyCurrentSuggestion": "ใช้ข้อเสนอแนะการแก้ไขปัจจุบัน",
-	"ghost.commands.applyAllSuggestions": "ใช้ข้อเสนอแนะการแก้ไขทั้งหมด",
-	"ghost.commands.goToNextSuggestion": "ไปยังข้อเสนอแนะถัดไป",
-	"ghost.commands.goToPreviousSuggestion": "ไปยังข้อเสนอแนะก่อนหน้า",
 	"command.memories.title": "ความทรงจำ"
 }

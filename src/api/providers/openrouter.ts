@@ -219,14 +219,9 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		addNativeToolCallsToParams(requestOptions, this.options, metadata)
 
-		// kilocode_change: logs removed
-
 		let stream
 		try {
-			stream = await this.client.chat.completions.create(
-				requestOptions,
-				this.customRequestOptions(metadata), // kilocode_change
-			)
+			stream = await this.client.chat.completions.create(requestOptions, this.customRequestOptions(metadata))
 		} catch (error) {
 			if (this.providerName == "KiloCode" && isAnyRecognizedKiloCodeError(error)) {
 				throw error
