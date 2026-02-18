@@ -563,7 +563,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 						<VSCodeButton appearance="secondary" onClick={() => setShowDeleteConfirm(false)}>
 							{t("mcp:deleteDialog.cancel")}
 						</VSCodeButton>
-						<VSCodeButton appearance="default" onClick={handleDelete}>
+						<VSCodeButton appearance="secondary" onClick={handleDelete}>
 							{t("mcp:deleteDialog.delete")}
 						</VSCodeButton>
 					</DialogFooter>
