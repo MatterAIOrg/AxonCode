@@ -430,34 +430,45 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 		const entry = this.getPendingEdits().get(readablePath)
 		if (!entry || entry.edits.length === 0) return []
 
-		const line = Math.max(0, entry.diffAnchor.start.line)
-		const anchor = new vscode.Range(line, 0, line, 0)
+		const lenses: vscode.CodeLens[] = []
 
-		// Show edit count in the title if there are multiple edits
-		const editCount = entry.edits.length
-		const titleSuffix = editCount > 1 ? ` (${editCount} edits)` : ""
+		// Create a separate CodeLens for each edit at its own line
+		for (const edit of entry.edits) {
+			const line = Math.max(0, edit.diffAnchor.start.line)
+			const anchor = new vscode.Range(line, 0, line, 0)
 
-		return [
-			new vscode.CodeLens(anchor, {
-				title: `Accept${titleSuffix}`,
-				command: ACCEPT_COMMAND,
-				arguments: [entry.relPath],
-			}),
-			new vscode.CodeLens(anchor, {
-				title: "Reject",
-				command: REJECT_COMMAND,
-				arguments: [entry.relPath],
-			}),
-			new vscode.CodeLens(anchor, {
-				title: "Next",
-				command: NEXT_COMMAND,
-				arguments: [],
-			}),
-			new vscode.CodeLens(anchor, {
-				title: "Accept all",
-				command: ACCEPT_ALL_COMMAND,
-				arguments: [],
-			}),
-		]
+			lenses.push(
+				new vscode.CodeLens(anchor, {
+					title: "Accept",
+					command: ACCEPT_COMMAND,
+					arguments: [entry.relPath],
+				}),
+				new vscode.CodeLens(anchor, {
+					title: "Reject",
+					command: REJECT_COMMAND,
+					arguments: [entry.relPath],
+				}),
+				new vscode.CodeLens(anchor, {
+					title: "Next",
+					command: NEXT_COMMAND,
+					arguments: [],
+				}),
+			)
+		}
+
+		// Add "Accept all" at the first edit's location
+		if (entry.edits.length > 0) {
+			const firstLine = Math.max(0, entry.edits[0].diffAnchor.start.line)
+			const anchor = new vscode.Range(firstLine, 0, firstLine, 0)
+			lenses.push(
+				new vscode.CodeLens(anchor, {
+					title: "Accept all",
+					command: ACCEPT_ALL_COMMAND,
+					arguments: [],
+				}),
+			)
+		}
+
+		return lenses
 	}
 }

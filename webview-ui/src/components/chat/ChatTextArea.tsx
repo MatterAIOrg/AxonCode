@@ -1471,10 +1471,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					"overflow-hidden",
 					"rounded-xl",
 					isFocused
-						? "border border-[var(--color-matterai-border)]"
+						? "border border-[var(--vscode-activityBar-border)]"
 						: isDraggingOver
-							? "border-2 border-dashed border-[var(--color-matterai-border)]"
-							: "border border-[var(--color-matterai-border)]",
+							? "border-2 border-dashed border-[var(--vscode-activityBar-border)]"
+							: "border border-[var(--vscode-activityBar-border)]",
 					isDraggingOver
 						? "bg-[color-mix(in_srgb,var(--vscode-input-background)_95%,white)]"
 						: "bg-vscode-input-background",
@@ -1691,10 +1691,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					"mr-auto",
 					"box-border",
 				)}
-				style={{
-					boxShadow:
-						"0 -4px 6px -1px rgba(0, 0, 0, 80%), 0 -2px 4px -1px rgba(0, 0, 0, 0.06), 0 -10px 15px -3px rgba(0, 0, 0, 0.1), 0 -4px 6px -2px rgba(0, 0, 0, 0.05)",
-				}}>
+				style={{}}>
 				{/* Pinned file review actions (not a chat row) */}
 				{!isEditMode && (
 					<div className="px-0.5">
@@ -1772,7 +1769,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"drop-shadow-md",
 									"rounded-xl",
 									"border",
-									"border-[var(--color-matterai-border)]",
+									"border-[var(--vscode-activityBar-border)]",
 									"outline-none",
 								)}>
 								<ContextMenu

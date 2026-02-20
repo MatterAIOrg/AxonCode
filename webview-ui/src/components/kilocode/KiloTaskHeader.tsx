@@ -34,14 +34,13 @@ const KiloTaskHeader = ({
 			<div
 				className={cn("py-1 flex flex-col relative z-1")}
 				style={{
-					boxShadow:
-						"0 4px 6px -1px rgba(0, 0, 0, 80%), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+					boxShadow: "rgb(18 18 18 / 88%) 0px 7px 29px 0px",
 					position: "relative",
 					zIndex: 1,
 				}}>
 				{/* Title with close button */}
 				<div className="flex justify-between items-center gap-2">
-					<div className="px-2 py-1 flex items-center gap-2 min-w-0 bg-[var(--color-matterai-background-dark)] rounded-md border border-[var(--color-matterai-border)] outline-none">
+					<div className="px-2 py-1 flex items-center gap-2 min-w-0 bg-[var(--vscode-editor-background)] rounded-md border border-[var(--vscode-activityBar-border)] outline-none">
 						<span className="font-bold text-sm truncate">{title || "New task"}</span>
 					</div>
 					<button

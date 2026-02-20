@@ -122,10 +122,10 @@ export const KiloModeSelector = ({
 			triggerClassName={cn(
 				`w-full
 				
-				${(allModes.find((m) => m.slug === value)?.slug ?? defaultModeSlug) === "plan" ? "bg-[var(--color-matterai-blue-dark)]" : "bg-[var(--color-matterai-border)]"}
+				${(allModes.find((m) => m.slug === value)?.slug ?? defaultModeSlug) === "plan" ? "bg-[var(--color-matterai-blue-dark)]" : "bg-[var(--vscode-editor-background)]"}
 				rounded-md 
 				border-none 
-				hover:bg-[var(--color-matterai-blue)]`,
+				hover:bg-[var(--vscode-activityBar-border)]`,
 				triggerClassName,
 			)}
 		/>
