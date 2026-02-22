@@ -20,7 +20,7 @@ type PendingFileEdit = {
 
 const highlightDecorationType = vscode.window.createTextEditorDecorationType({
 	isWholeLine: true,
-	backgroundColor: new vscode.ThemeColor("editor.hoverHighlightBackground"),
+	backgroundColor: new vscode.ThemeColor("diffEditor.insertedLineBackground"),
 })
 
 const ACCEPT_COMMAND = "axon-code.fileEdit.accept"
@@ -56,11 +56,16 @@ export class FileEditReviewController implements vscode.Disposable {
 			vscode.window.onDidChangeActiveTextEditor(() => this.refreshDecorations()),
 			vscode.window.onDidChangeVisibleTextEditors(() => this.refreshDecorations()),
 			vscode.workspace.onDidCloseTextDocument((doc) => this.handleDocumentClosed(doc)),
-			vscode.commands.registerCommand(ACCEPT_COMMAND, (arg?: any) => this.handleAccept(arg)),
+			vscode.commands.registerCommand(ACCEPT_COMMAND, (arg?: any, index?: number) =>
+				this.handleAccept(arg, index),
+			),
 			vscode.commands.registerCommand(ACCEPT_ALL_COMMAND, () => this.handleAcceptAll()),
-			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any) => this.handleReject(arg)),
+			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any, index?: number) =>
+				this.handleReject(arg, index),
+			),
 			vscode.commands.registerCommand(REJECT_ALL_COMMAND, () => this.handleRejectAll()),
 			vscode.commands.registerCommand(NEXT_COMMAND, () => this.handleReviewNext()),
+			vscode.commands.registerCommand("axon-code.fileEdit.deletedLine", () => {}), // no-op command so VS Code doesn't strip it
 		)
 	}
 
@@ -196,7 +201,7 @@ export class FileEditReviewController implements vscode.Disposable {
 		}
 	}
 
-	async handleAccept(arg?: any) {
+	async handleAccept(arg?: any, index?: number) {
 		// Arg can be a CommentThread if triggered from menu, or relPath if triggered programmatically
 		let entry: PendingFileEdit | undefined
 
@@ -223,18 +228,27 @@ export class FileEditReviewController implements vscode.Disposable {
 			return
 		}
 
-		// Accept means we keep the changes. Just clean up all edits for this file.
-		this.clearEntry(entry)
-		this.refreshDecorations()
+		if (typeof index === "number" && index >= 0 && index < entry.edits.length) {
+			entry.edits.splice(index, 1)
+			if (entry.edits.length === 0) {
+				this.clearEntry(entry)
+			}
+			this.refreshDecorations()
+			this.codeLensEmitter.fire()
+		} else {
+			// Accept means we keep the changes. Just clean up all edits for this file.
+			this.clearEntry(entry)
+			this.refreshDecorations()
 
-		// If we just accepted the current file, try to go to the next one
-		if (this.reviewQueue.length > 0) {
-			// Optional: auto-advance behavior?
-			// this.handleReviewNext()
+			// If we just accepted the current file, try to go to the next one
+			if (this.reviewQueue.length > 0) {
+				// Optional: auto-advance behavior?
+				// this.handleReviewNext()
+			}
 		}
 	}
 
-	async handleReject(arg?: any) {
+	async handleReject(arg?: any, index?: number) {
 		let entry: PendingFileEdit | undefined
 
 		if (arg && (arg as vscode.CommentThread).uri) {
@@ -260,16 +274,33 @@ export class FileEditReviewController implements vscode.Disposable {
 			return
 		}
 
-		// Reject means we restore the original content (first edit's original content)
-		await fs.writeFile(entry.absolutePath, entry.originalContent, "utf-8")
-		// Force reload/save not strictly needed as file watcher handles it,
-		// but ensures editor updates
+		if (typeof index === "number" && index >= 0 && index < entry.edits.length) {
+			const edit = entry.edits[index]
+			// Restore the original content for this particular edit
+			// Since we don't have a reliable way of isolating patch applications,
+			// writing the originalContent of the edit will revert to before THIS edit.
+			// (Note: this effectively undoes subsequent edits too, as we revert the whole document
+			// to the state before this edit, but it is necessary for correctly rejecting).
+			await fs.writeFile(entry.absolutePath, edit.originalContent, "utf-8")
 
-		this.clearEntry(entry)
-		this.refreshDecorations()
+			entry.edits.splice(index)
+			if (entry.edits.length === 0) {
+				this.clearEntry(entry)
+			}
+			this.refreshDecorations()
+			this.codeLensEmitter.fire()
+		} else {
+			// Reject means we restore the original content (first edit's original content)
+			await fs.writeFile(entry.absolutePath, entry.originalContent, "utf-8")
+			// Force reload/save not strictly needed as file watcher handles it,
+			// but ensures editor updates
 
-		if (this.reviewQueue.length > 0) {
-			// Optional: auto-advance
+			this.clearEntry(entry)
+			this.refreshDecorations()
+
+			if (this.reviewQueue.length > 0) {
+				// Optional: auto-advance
+			}
 		}
 	}
 
@@ -363,23 +394,32 @@ export class FileEditReviewController implements vscode.Disposable {
 	}
 
 	private refreshDecorations() {
-		// We still use highlight decorations; accept/reject is provided via CodeLens.
 		for (const editor of vscode.window.visibleTextEditors) {
 			const readableEditorPath = getReadablePath(this.cwd, path.relative(this.cwd, editor.document.uri.fsPath))
 			const entry = this.pendingEdits.get(readableEditorPath)
 
-			const highlightDecorations: vscode.DecorationOptions[] = []
+			const addedLineDecorations: vscode.DecorationOptions[] = []
 
 			if (entry && entry.edits.length > 0) {
-				// Show decorations for all edits in this file
 				for (const edit of entry.edits) {
-					highlightDecorations.push({
-						range: edit.diffAnchor,
-					})
+					const diffResult = myersDiff(edit.originalContent, edit.newContent)
+					let lineNum = 0
+					for (const diffLine of diffResult) {
+						if (diffLine.type === "old") {
+							// Skipped here — deleted lines are shown via CodeLens view zones
+						} else {
+							if (diffLine.type === "new") {
+								addedLineDecorations.push({
+									range: new vscode.Range(lineNum, 0, lineNum, 0),
+								})
+							}
+							lineNum++
+						}
+					}
 				}
 			}
 
-			editor.setDecorations(highlightDecorationType, highlightDecorations)
+			editor.setDecorations(highlightDecorationType, addedLineDecorations)
 		}
 	}
 
@@ -430,34 +470,88 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 		const entry = this.getPendingEdits().get(readablePath)
 		if (!entry || entry.edits.length === 0) return []
 
-		const line = Math.max(0, entry.diffAnchor.start.line)
-		const anchor = new vscode.Range(line, 0, line, 0)
+		const lenses: vscode.CodeLens[] = []
 
-		// Show edit count in the title if there are multiple edits
-		const editCount = entry.edits.length
-		const titleSuffix = editCount > 1 ? ` (${editCount} edits)` : ""
+		for (let i = 0; i < entry.edits.length; i++) {
+			const edit = entry.edits[i]
 
-		return [
-			new vscode.CodeLens(anchor, {
-				title: `Accept${titleSuffix}`,
-				command: ACCEPT_COMMAND,
-				arguments: [entry.relPath],
-			}),
-			new vscode.CodeLens(anchor, {
-				title: "Reject",
-				command: REJECT_COMMAND,
-				arguments: [entry.relPath],
-			}),
-			new vscode.CodeLens(anchor, {
-				title: "Next",
-				command: NEXT_COMMAND,
-				arguments: [],
-			}),
-			new vscode.CodeLens(anchor, {
-				title: "Accept all",
-				command: ACCEPT_ALL_COMMAND,
-				arguments: [],
-			}),
-		]
+			// --- Deleted-line CodeLens view zones ---
+			// Walk the diff: for each hunk of removed lines, emit one CodeLens per
+			// removed line anchored at the first following new/same line. The
+			// codelensWidget in axon-ide renders 'axon-code.fileEdit.deletedLine'
+			// commands as full-width styled spans inside the CodeLens view zone,
+			// giving the correct "no line number, red phantom line" look.
+			const diffResult = myersDiff(edit.originalContent, edit.newContent)
+			let newFileLineNum = 0
+			let pendingRemovals: string[] = []
+
+			const flushRemovals = (atLine: number) => {
+				for (const removedLine of pendingRemovals) {
+					const anchor = new vscode.Range(atLine, 0, atLine, 0)
+					const displayText = removedLine === "" ? " " : removedLine
+					lenses.push(
+						new vscode.CodeLens(anchor, {
+							// Prefix with $$DELETED_LINE$$ so the renderer can reliably detect it
+							// even if the command ID metadata is stripped or changed during IPC.
+							title: `$$DELETED_LINE$$${displayText}`,
+							command: "axon-code.fileEdit.deletedLine",
+							arguments: [displayText],
+						}),
+					)
+				}
+				pendingRemovals = []
+			}
+
+			for (const diffLine of diffResult) {
+				if (diffLine.type === "old") {
+					pendingRemovals.push(diffLine.line)
+				} else {
+					if (pendingRemovals.length > 0) {
+						flushRemovals(newFileLineNum)
+					}
+					newFileLineNum++
+				}
+			}
+			// Trailing removals (deletion at end of file)
+			if (pendingRemovals.length > 0 && newFileLineNum > 0) {
+				flushRemovals(newFileLineNum - 1)
+			}
+
+			// --- Accept / Reject / Next buttons ---
+			const btnLine = Math.max(0, edit.diffAnchor.start.line)
+			const btnAnchor = new vscode.Range(btnLine, 0, btnLine, 0)
+			lenses.push(
+				new vscode.CodeLens(btnAnchor, {
+					title: "Accept",
+					command: ACCEPT_COMMAND,
+					arguments: [entry.relPath, i],
+				}),
+				new vscode.CodeLens(btnAnchor, {
+					title: "Reject",
+					command: REJECT_COMMAND,
+					arguments: [entry.relPath, i],
+				}),
+				new vscode.CodeLens(btnAnchor, {
+					title: "Next",
+					command: NEXT_COMMAND,
+					arguments: [],
+				}),
+			)
+		}
+
+		// Add "Accept all" at the first edit's location
+		if (entry.edits.length > 0) {
+			const firstLine = Math.max(0, entry.edits[0].diffAnchor.start.line)
+			const anchor = new vscode.Range(firstLine, 0, firstLine, 0)
+			lenses.push(
+				new vscode.CodeLens(anchor, {
+					title: "Accept all",
+					command: ACCEPT_ALL_COMMAND,
+					arguments: [],
+				}),
+			)
+		}
+
+		return lenses
 	}
 }
