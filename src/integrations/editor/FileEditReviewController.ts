@@ -283,7 +283,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			// to the state before this edit, but it is necessary for correctly rejecting).
 			await fs.writeFile(entry.absolutePath, edit.originalContent, "utf-8")
 
-			entry.edits.splice(index, 1)
+			entry.edits.splice(index)
 			if (entry.edits.length === 0) {
 				this.clearEntry(entry)
 			}
