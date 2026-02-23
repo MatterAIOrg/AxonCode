@@ -163,7 +163,7 @@
 			},
 			"protected": {
 				"label": "Korumalı dosyaları dahil et",
-				"description": "Axon Code'nun korumalı dosyaları (.kilocodeignore ve .kilocode/ yapılandırma dosyaları gibi) onay gerektirmeden oluşturmasına ve düzenlemesine izin ver."
+				"description": "Axon Code'nun korumalı dosyaları (.kilocodeignore ve .orbital/ yapılandırma dosyaları gibi) onay gerektirmeden oluşturmasına ve düzenlemesine izin ver."
 			}
 		},
 		"browser": {

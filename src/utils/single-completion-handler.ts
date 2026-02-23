@@ -22,16 +22,16 @@ export async function singleCompletionHandler(apiConfiguration: ProviderSettings
 
 	// Check if handler supports single completions
 	if (!("completePrompt" in handler)) {
-		// kilocode_change start - stream responses for handlers without completePrompt
+		// forked_change start - stream responses for handlers without completePrompt
 		// throw new Error("The selected API provider does not support prompt enhancement")
 		return await streamResponseFromHandler(handler, promptText)
-		// kilocode_change end
+		// forked_change end
 	}
 
 	return (handler as SingleCompletionHandler).completePrompt(promptText)
 }
 
-// kilocode_change start - Stream responses using createMessage
+// forked_change start - Stream responses using createMessage
 async function streamResponseFromHandler(handler: ApiHandler, promptText: string): Promise<string> {
 	const stream = handler.createMessage("", [{ role: "user", content: [{ type: "text", text: promptText }] }])
 
@@ -43,4 +43,4 @@ async function streamResponseFromHandler(handler: ApiHandler, promptText: string
 	}
 	return response
 }
-// kilocode_change end - streamResponseFromHandler
+// forked_change end - streamResponseFromHandler

@@ -74,7 +74,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 					/>
 				</div>
 
-				{/* kilocode_change start */}
+				{/* forked_change start */}
 				<div>
 					<Trans
 						i18nKey="settings:footer.support"
@@ -83,7 +83,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 						}}
 					/>
 				</div>
-				{/* kilocode_change end */}
+				{/* forked_change end */}
 
 				<div className="flex flex-wrap items-center gap-2 mt-2">
 					<Button onClick={() => vscode.postMessage({ type: "exportSettings" })} className="w-28">
@@ -104,7 +104,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 				</div>
 
 				{
-					// kilocode_change start
+					// forked_change start
 					process.env.NODE_ENV === "development" && (
 						<div className="flex flex-wrap items-center gap-2 mt-2">
 							<Button
@@ -117,7 +117,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 							</Button>
 						</div>
 					)
-					// kilocode_change end
+					// forked_change end
 				}
 			</Section>
 		</div>

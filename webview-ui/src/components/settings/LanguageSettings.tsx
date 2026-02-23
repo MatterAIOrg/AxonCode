@@ -18,11 +18,11 @@ type LanguageSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	setCachedStateField: SetCachedStateField<"language">
 }
 
-// kilocode_change start: sort languages
+// forked_change start: sort languages
 function getSortedLanguages() {
 	return Object.entries(LANGUAGES).toSorted((a, b) => a[0].localeCompare(b[0]))
 }
-// kilocode_change end
+// forked_change end
 
 export const LanguageSettings = ({ language, setCachedStateField, className, ...props }: LanguageSettingsProps) => {
 	const { t } = useAppTranslation()

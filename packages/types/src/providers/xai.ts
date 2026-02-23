@@ -28,7 +28,7 @@ export const xaiModels = {
 		cacheReadsPrice: 0.75,
 		description: "xAI's Grok-4 model with 256K context window",
 	},
-	// kilocode_change start
+	// forked_change start
 	"grok-4-fast": {
 		maxTokens: 30_000,
 		contextWindow: 2_000_000,
@@ -77,7 +77,7 @@ export const xaiModels = {
 			},
 		],
 	},
-	// kilocode_change end
+	// forked_change end
 	"grok-3": {
 		maxTokens: 8192,
 		contextWindow: 131072,

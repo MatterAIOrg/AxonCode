@@ -407,7 +407,7 @@ export class OpenAiNativeHandler extends BaseProvider implements SingleCompletio
 					} else if (block.type === "image") {
 						const image = block as Anthropic.Messages.ImageBlockParam
 						// Format image with proper data URL - images are always input_image
-						// kilocode_change start
+						// forked_change start
 						let imageUrl: string
 						if (image.source.type === "base64") {
 							// Base64ImageSource has media_type and data
@@ -416,7 +416,7 @@ export class OpenAiNativeHandler extends BaseProvider implements SingleCompletio
 							// URLImageSource only has url
 							imageUrl = image.source.url
 						}
-						// kilocode_change end
+						// forked_change end
 						content.push({ type: "input_image", image_url: imageUrl })
 					}
 				}
@@ -451,7 +451,7 @@ export class OpenAiNativeHandler extends BaseProvider implements SingleCompletio
 					content.push({ type: "input_text", text: (block as any).text })
 				} else if (block.type === "image") {
 					const image = block as Anthropic.Messages.ImageBlockParam
-					// kilocode_change start
+					// forked_change start
 					let imageUrl: string
 					if (image.source.type === "base64") {
 						// Base64ImageSource has media_type and data
@@ -460,7 +460,7 @@ export class OpenAiNativeHandler extends BaseProvider implements SingleCompletio
 						// URLImageSource only has url
 						imageUrl = image.source.url
 					}
-					// kilocode_change end
+					// forked_change end
 					content.push({ type: "input_image", image_url: imageUrl })
 				}
 			}

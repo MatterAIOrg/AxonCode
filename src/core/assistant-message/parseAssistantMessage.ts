@@ -27,7 +27,7 @@ export function parseAssistantMessage(assistantMessage: string): AssistantMessag
 				// Don't trim content parameters to preserve newlines, but strip first and last newline only
 				let paramValue = currentParamValue.slice(0, -paramClosingTag.length).trim()
 
-				// kilocode_change start
+				// forked_change start
 				if (currentToolUse.name === "execute_command" && currentParamName === "command") {
 					// Some models XML encode ampersands in the <command></command> tag, some don't
 					// to minimize chances of unintended consequences, we only XML decode &amp; for now
@@ -35,7 +35,7 @@ export function parseAssistantMessage(assistantMessage: string): AssistantMessag
 					// We know it's not a perfect solution and in corner cases can make things worse, but let's try this for now.
 					paramValue = paramValue.replaceAll("&amp;", "&")
 				}
-				// kilocode_change end
+				// forked_change end
 
 				currentToolUse.params[currentParamName] =
 					currentParamName === "content"

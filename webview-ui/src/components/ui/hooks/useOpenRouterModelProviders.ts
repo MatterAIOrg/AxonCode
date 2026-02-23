@@ -255,7 +255,7 @@ type UseOpenRouterModelProvidersOptions = Omit<
 	"queryKey" | "queryFn"
 >
 
-// kilocode_change start: baseUrl, apiKey, organizationId
+// forked_change start: baseUrl, apiKey, organizationId
 export const useOpenRouterModelProviders = (
 	modelId?: string,
 	baseUrl?: string,
@@ -268,4 +268,4 @@ export const useOpenRouterModelProviders = (
 		queryFn: () => (modelId ? getOpenRouterProvidersForModel(modelId, baseUrl, apiKey) : {}),
 		...options,
 	})
-// kilocode_change end
+// forked_change end

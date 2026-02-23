@@ -151,10 +151,10 @@ export const globalSettingsSchema = z.object({
 	fuzzyMatchThreshold: z.number().optional(),
 	experiments: experimentsSchema.optional(),
 
-	// kilocode_change start: Morph fast apply
+	// forked_change start: Morph fast apply
 	morphApiKey: z.string().optional(),
 	fastApplyModel: fastApplyModelSchema.optional(),
-	// kilocode_change end
+	// forked_change end
 
 	codebaseIndexModels: codebaseIndexModelsSchema.optional(),
 	codebaseIndexConfig: codebaseIndexConfigSchema.optional(),
@@ -231,10 +231,10 @@ export const SECRET_STATE_KEYS = [
 	"deepInfraApiKey",
 	"codeIndexOpenAiKey",
 	"codeIndexQdrantApiKey",
-	// kilocode_change start
+	// forked_change start
 	"kilocodeToken",
 	"syntheticApiKey",
-	// kilocode_change end
+	// forked_change end
 	"codebaseIndexOpenAiCompatibleApiKey",
 	"codebaseIndexGeminiApiKey",
 	"codebaseIndexMistralApiKey",

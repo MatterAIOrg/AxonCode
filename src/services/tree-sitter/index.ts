@@ -29,7 +29,7 @@ export function setMinComponentLines(value: number): void {
 	currentMinComponentLines = value
 }
 
-// kilocode_change start
+// forked_change start
 function shouldSkipMinLines(lineCount: number, capture: QueryCapture, language: string) {
 	if (METHOD_CAPTURE.includes(capture.name)) {
 		// In object-oriented programming languages, method signatures are only one line and should not be ignored.
@@ -37,7 +37,7 @@ function shouldSkipMinLines(lineCount: number, capture: QueryCapture, language: 
 	}
 	return lineCount < getMinComponentLines()
 }
-// kilocode_change end
+// forked_change end
 
 const extensions = [
 	"tla",

@@ -35,7 +35,7 @@ export const handleUri = async (uri: vscode.Uri) => {
 			}
 			break
 		}
-		// kilocode_change start
+		// forked_change start
 		case "/axoncode/profile": {
 			await visibleProvider.postMessageToWebview({
 				type: "action",
@@ -46,7 +46,7 @@ export const handleUri = async (uri: vscode.Uri) => {
 			})
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 		case "/requesty": {
 			const code = query.get("code")
 			if (code) {

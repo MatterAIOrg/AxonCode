@@ -9,7 +9,7 @@ interface LaunchConfig {
 
 /**
  * Checks for launch configuration and runs the task immediately if found.
- * Reads .kilocode/launchConfig.json from the workspace root.
+ * Reads .orbital/launchConfig.json from the workspace root.
  */
 export async function checkAndRunAutoLaunchingTask(context: vscode.ExtensionContext): Promise<void> {
 	if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
@@ -17,7 +17,7 @@ export async function checkAndRunAutoLaunchingTask(context: vscode.ExtensionCont
 	}
 
 	const workspaceFolderUri = vscode.workspace.workspaceFolders[0].uri
-	const configPath = vscode.Uri.joinPath(workspaceFolderUri, ".kilocode", "launchConfig.json")
+	const configPath = vscode.Uri.joinPath(workspaceFolderUri, ".orbital", "launchConfig.json")
 
 	try {
 		const configContent = await vscode.workspace.fs.readFile(configPath)

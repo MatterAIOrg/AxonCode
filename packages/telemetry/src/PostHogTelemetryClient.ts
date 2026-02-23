@@ -97,7 +97,7 @@ export class PostHogTelemetryClient extends BaseTelemetryClient {
 		await this.client.shutdown()
 	}
 
-	// kilocode_change start
+	// forked_change start
 	public override async captureException(error: Error, properties?: Record<string | number, unknown>): Promise<void> {
 		if (this.isTelemetryEnabled()) {
 			let providerProperties = {}
@@ -154,5 +154,5 @@ export class PostHogTelemetryClient extends BaseTelemetryClient {
 			}
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 }

@@ -37,11 +37,11 @@ import { getUseSkillDescription } from "./use-skill"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 import { discoverSkills } from "../../tools/skills"
 
-// kilocode_change start: Morph fast apply
+// forked_change start: Morph fast apply
 import { isFastApplyAvailable } from "../../tools/editFileTool"
 import { getEditFileDescription } from "./edit-file"
 import { type ClineProviderState } from "../../webview/ClineProvider"
-// kilocode_change end
+// forked_change end
 
 // Map of tool names to their description functions
 const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined | Promise<string>> = {
@@ -147,7 +147,7 @@ export async function getToolDescriptionsForMode(
 		tools.delete("codebase_search")
 	}
 
-	// kilocode_change start: Morph fast apply
+	// forked_change start: Morph fast apply
 	if (isFastApplyAvailable(clineProviderState)) {
 		// When Morph is enabled, disable traditional editing tools
 		const traditionalEditingTools = [
@@ -161,7 +161,7 @@ export async function getToolDescriptionsForMode(
 	} else {
 		tools.delete("edit_file")
 	}
-	// kilocode_change end
+	// forked_change end
 
 	// Conditionally exclude update_todo_list if disabled in settings
 	if (settings?.todoListEnabled === false) {

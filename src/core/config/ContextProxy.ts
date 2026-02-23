@@ -287,7 +287,7 @@ export class ContextProxy {
 		])
 	}
 
-	// kilocode_change start
+	// forked_change start
 	/**
 	 * WorkspaceState
 	 */
@@ -298,7 +298,7 @@ export class ContextProxy {
 	async getWorkspaceState(context: vscode.ExtensionContext, key: string) {
 		return await context.workspaceState.get(key)
 	}
-	// kilocode_change end
+	// forked_change end
 
 	/**
 	 * GlobalSettings

@@ -18,7 +18,7 @@ export const useTaskSearch = () => {
 	const [lastNonRelevantSort, setLastNonRelevantSort] = useState<SortOption | null>("newest")
 	const [showAllWorkspaces, setShowAllWorkspaces] = useState(false)
 
-	// kilocode_change start
+	// forked_change start
 	const [requestedPageIndex, setRequestedPageIndex] = useState(0)
 	const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 	const { data } = useTaskHistory(
@@ -31,7 +31,7 @@ export const useTaskSearch = () => {
 		},
 		taskHistoryVersion,
 	)
-	// kilocode_change end
+	// forked_change end
 
 	useEffect(() => {
 		if (searchQuery && sortOption !== "mostRelevant" && !lastNonRelevantSort) {
@@ -43,18 +43,18 @@ export const useTaskSearch = () => {
 		}
 	}, [searchQuery, sortOption, lastNonRelevantSort])
 
-	// kilocode_change start: logic moved to src/core/kilocode/webview/getTaskHistory.ts
+	// forked_change start: logic moved to src/core/kilocode/webview/getTaskHistory.ts
 	//const presentableTasks = useMemo(() => {
 	//	const taskHistory = data?.historyItems ?? [] // kilocode_change
 	//	let tasks = taskHistory.filter((item) => item.ts && item.task)
 	//	if (!showAllWorkspaces) {
 	//		tasks = tasks.filter((item) => item.workspace === cwd)
 	//	}
-	//	// kilocode_change start
+	//	// forked_change start
 	//	if (showFavoritesOnly) {
 	//		tasks = tasks.filter((item) => item.isFavorited)
 	//	}
-	//	// kilocode_change end
+	//	// forked_change end
 	//	return tasks
 	//}, [data, showAllWorkspaces, showFavoritesOnly, cwd]) // kilocode_change
 	//
@@ -104,7 +104,7 @@ export const useTaskSearch = () => {
 	//		}
 	//	})
 	//}, [presentableTasks, searchQuery, fzf, sortOption])
-	// kilocode_change end
+	// forked_change end
 
 	return {
 		tasks: data?.historyItems ?? [], // kilocode_change
@@ -116,13 +116,13 @@ export const useTaskSearch = () => {
 		setLastNonRelevantSort,
 		showAllWorkspaces,
 		setShowAllWorkspaces,
-		// kilocode_change start
+		// forked_change start
 		data,
 		taskHistoryFullLength,
 		showFavoritesOnly,
 		setShowFavoritesOnly,
 		requestedPageIndex,
 		setRequestedPageIndex,
-		// kilocode_change end
+		// forked_change end
 	}
 }

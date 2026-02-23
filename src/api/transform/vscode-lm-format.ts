@@ -75,7 +75,7 @@ export function convertToVsCodeLmMessages(
 											return new vscode.LanguageModelTextPart(
 												// kilocode_change begin support type==url
 												`[Image (${part.source?.type || "Unknown source-type"}): ${part.source?.type === "url" ? "URL" : part.source?.media_type || "unknown media-type"} not supported by VSCode LM API]`,
-												// kilocode_change end
+												// forked_change end
 											)
 										}
 										return new vscode.LanguageModelTextPart(part.text)
@@ -90,7 +90,7 @@ export function convertToVsCodeLmMessages(
 							return new vscode.LanguageModelTextPart(
 								// kilocode_change begin support type==url
 								`[Image (${part.source?.type || "Unknown source-type"}): ${part.source?.type === "url" ? "URL" : part.source?.media_type || "unknown media-type"} not supported by VSCode LM API]`,
-								// kilocode_change end
+								// forked_change end
 							)
 						}
 						return new vscode.LanguageModelTextPart(part.text)

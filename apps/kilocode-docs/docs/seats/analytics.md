@@ -87,9 +87,9 @@ For example, if the following were in your `.git/config`:
 
 The project name would be `example-repo`.
 
-You can also manually override the project name in the `.kilocode/config.json` file in your project.
+You can also manually override the project name in the `.orbital/config.json` file in your project.
 
-To set the project identifier to `my-project`, create a `.kilocode/config.json` file with the following contents:
+To set the project identifier to `my-project`, create a `.orbital/config.json` file with the following contents:
 
 ```json
 {

@@ -55,11 +55,11 @@
 		"title": "モード固有のカスタム指示（オプション）",
 		"resetToDefault": "デフォルトにリセット",
 		"description": "{{modeName}}モードに特化した行動ガイドラインを追加します。",
-		"loadFromFile": "{{mode}}モード固有のカスタム指示は、ワークスペースの<span>.kilocode/rules-{{slug}}/</span>フォルダまたはグローバル<0>.kilocode/rules-{{slug}}/</0>からも読み込むことができます（.kilocoderules-{{slug}}と.clinerules-{{slug}}は非推奨で、まもなく動作しなくなります）。"
+		"loadFromFile": "{{mode}}モード固有のカスタム指示は、ワークスペースの<span>.orbital/rules-{{slug}}/</span>フォルダまたはグローバル<0>.orbital/rules-{{slug}}/</0>からも読み込むことができます（.kilocoderules-{{slug}}と.clinerules-{{slug}}は非推奨で、まもなく動作しなくなります）。"
 	},
 	"exportMode": {
 		"title": "モードをエクスポート",
-		"description": ".kilocode/rules-{{slug}}/フォルダのルールを組み合わせて、共有可能なYAMLファイルにこのモードをエクスポートします。元のファイルは変更されません。",
+		"description": ".orbital/rules-{{slug}}/フォルダのルールを組み合わせて、共有可能なYAMLファイルにこのモードをエクスポートします。元のファイルは変更されません。",
 		"exporting": "エクスポート中..."
 	},
 	"importMode": {
@@ -68,11 +68,11 @@
 		"importing": "インポート中...",
 		"global": {
 			"label": "グローバルレベル",
-			"description": "すべてのプロジェクトで利用可能。エクスポートされたモードにルールファイルが含まれていた場合、グローバルの.kilocode/rules-{slug}/フォルダに再作成されます。"
+			"description": "すべてのプロジェクトで利用可能。エクスポートされたモードにルールファイルが含まれていた場合、グローバルの.orbital/rules-{slug}/フォルダに再作成されます。"
 		},
 		"project": {
 			"label": "プロジェクトレベル",
-			"description": "このワークスペースでのみ利用可能。エクスポートされたモードにルールファイルが含まれていた場合、.kilocode/rules-{slug}/フォルダに再作成されます。"
+			"description": "このワークスペースでのみ利用可能。エクスポートされたモードにルールファイルが含まれていた場合、.orbital/rules-{slug}/フォルダに再作成されます。"
 		}
 	},
 	"advanced": {
@@ -81,7 +81,7 @@
 	"globalCustomInstructions": {
 		"title": "すべてのモードのカスタム指示",
 		"description": "これらの指示はすべてのモードに適用されます。モード固有の指示で強化できる基本的な動作セットを提供します。<0>詳細はこちら</0>",
-		"loadFromFile": "指示は、ワークスペースの<span>.kilocode/rules/</span>フォルダまたはグローバル<0>.kilocode/rules/</0>からも読み込むことができます（.kilocoderulesと.clinerulesは非推奨で、まもなく動作しなくなります）。"
+		"loadFromFile": "指示は、ワークスペースの<span>.orbital/rules/</span>フォルダまたはグローバル<0>.orbital/rules/</0>からも読み込むことができます（.kilocoderulesと.clinerulesは非推奨で、まもなく動作しなくなります）。"
 	},
 	"systemPrompt": {
 		"preview": "システムプロンプトのプレビュー",
@@ -160,7 +160,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "詳細設定：システムプロンプトの上書き",
-		"description": "<2>⚠️ 警告：</2> この高度な機能は安全対策をバイパスします。<1>使用前にこれを読んでください！</1>ワークスペースの<span>.kilocode/system-prompt-{{slug}}</span>にファイルを作成することで、デフォルトのシステムプロンプトを上書きします。"
+		"description": "<2>⚠️ 警告：</2> この高度な機能は安全対策をバイパスします。<1>使用前にこれを読んでください！</1>ワークスペースの<span>.orbital/system-prompt-{{slug}}</span>にファイルを作成することで、デフォルトのシステムプロンプトを上書きします。"
 	},
 	"createModeDialog": {
 		"title": "新しいモードを作成",

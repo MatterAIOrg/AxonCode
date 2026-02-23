@@ -34,7 +34,7 @@ export const NotificationSettings = ({
 }: NotificationSettingsProps) => {
 	const { t } = useAppTranslation()
 
-	// kilocode_change start
+	// forked_change start
 	const onTestNotificationClick = () => {
 		vscode.postMessage({
 			type: "showSystemNotification",
@@ -45,7 +45,7 @@ export const NotificationSettings = ({
 			alwaysAllow: true,
 		})
 	}
-	// kilocode_change end
+	// forked_change end
 
 	return (
 		<div {...props}>
@@ -123,7 +123,7 @@ export const NotificationSettings = ({
 					</div>
 				)}
 
-				{/* kilocode_change start */}
+				{/* forked_change start */}
 				<div>
 					<VSCodeCheckbox
 						checked={systemNotificationsEnabled}
@@ -144,7 +144,7 @@ export const NotificationSettings = ({
 						</Button>
 					</div>
 				)}
-				{/* kilocode_change end */}
+				{/* forked_change end */}
 			</Section>
 		</div>
 	)

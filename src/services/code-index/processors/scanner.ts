@@ -46,7 +46,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 		this.batchSegmentThreshold = BATCH_SEGMENT_THRESHOLD
 	}
 
-	// kilocode_change start
+	// forked_change start
 	/**
 	 * Request cooperative cancellation of any in-flight scanning work.
 	 * The scanDirectory and batch operations periodically check this flag
@@ -59,7 +59,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 	public get isCancelled(): boolean {
 		return this._cancelled
 	}
-	// kilocode_change end
+	// forked_change end
 
 	/**
 	 * Recursively scans a directory for code blocks in supported files.
@@ -75,10 +75,10 @@ export class DirectoryScanner implements IDirectoryScanner {
 		onBlocksIndexed?: (indexedCount: number) => void,
 		onFileParsed?: (fileBlockCount: number) => void,
 	): Promise<{ stats: { processed: number; skipped: number }; totalBlockCount: number }> {
-		// kilocode_change start
+		// forked_change start
 		// reset cooperative cancel flag on new full scan
 		this._cancelled = false
-		// kilocode_change end
+		// forked_change end
 
 		const directoryPath = directory
 		// Capture workspace context at scan start
@@ -134,21 +134,21 @@ export class DirectoryScanner implements IDirectoryScanner {
 		// Process all files in parallel with concurrency control
 		const parsePromises = supportedPaths.map((filePath) =>
 			parseLimiter(async () => {
-				// kilocode_change start
+				// forked_change start
 				// Early exit if cancellation requested
 				if (this._cancelled) {
 					return
 				}
-				// kilocode_change end
+				// forked_change end
 
 				try {
 					// Check file size
 					const stats = await stat(filePath)
-					// kilocode_change start
+					// forked_change start
 					if (this._cancelled) {
 						return
 					}
-					// kilocode_change end
+					// forked_change end
 
 					if (stats.size > MAX_FILE_SIZE_BYTES) {
 						skippedCount++ // Skip large files
@@ -160,11 +160,11 @@ export class DirectoryScanner implements IDirectoryScanner {
 						.readFile(vscode.Uri.file(filePath))
 						.then((buffer) => Buffer.from(buffer).toString("utf-8"))
 
-					// kilocode_change start
+					// forked_change start
 					if (this._cancelled) {
 						return
 					}
-					// kilocode_change end
+					// forked_change end
 
 					// Calculate current hash
 					const currentFileHash = createHash("sha256").update(content).digest("hex")
@@ -182,11 +182,11 @@ export class DirectoryScanner implements IDirectoryScanner {
 					// File is new or changed - parse it using the injected parser function
 					const blocks = await this.codeParser.parseFile(filePath, { content, fileHash: currentFileHash })
 
-					// kilocode_change start
+					// forked_change start
 					if (this._cancelled) {
 						return
 					}
-					// kilocode_change end
+					// forked_change end
 
 					const fileBlockCount = blocks.length
 					onFileParsed?.(fileBlockCount)
@@ -202,12 +202,12 @@ export class DirectoryScanner implements IDirectoryScanner {
 							if (trimmedContent) {
 								const release = await mutex.acquire()
 								try {
-									// kilocode_change start
+									// forked_change start
 									if (this._cancelled) {
 										// Abort adding more items if cancelled
 										break
 									}
-									// kilocode_change end
+									// forked_change end
 									currentBatchBlocks.push(block)
 									currentBatchTexts.push(trimmedContent)
 									addedBlocksFromFile = true
@@ -221,11 +221,11 @@ export class DirectoryScanner implements IDirectoryScanner {
 											await Promise.race(activeBatchPromises)
 										}
 
-										// kilocode_change start
+										// forked_change start
 										if (this._cancelled) {
 											break
 										}
-										// kilocode_change end
+										// forked_change end
 
 										// Copy current batch data and clear accumulators
 										const batchBlocks = [...currentBatchBlocks]
@@ -337,7 +337,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 			}
 		}
 
-		// kilocode_change start
+		// forked_change start
 		// Short-circuit if cancelled before handling deletions
 		if (this._cancelled) {
 			return {
@@ -350,7 +350,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 		} else {
 			await Promise.all(activeBatchPromises)
 		}
-		// kilocode_change end
+		// forked_change end
 
 		// Handle deleted files
 		const oldHashes = this.cacheManager.getAllHashes()
@@ -415,7 +415,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 		onError?: (error: Error) => void,
 		onBlocksIndexed?: (indexedCount: number) => void,
 	): Promise<void> {
-		// kilocode_change start
+		// forked_change start
 		// Respect cooperative cancellation
 		if (this._cancelled || batchBlocks.length === 0) return
 
@@ -427,7 +427,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 		console.debug(
 			`[DirectoryScanner] Starting to process batch of ${batchBlocks.length} blocks in workspace ${scanWorkspace}`,
 		)
-		// kilocode_change end
+		// forked_change end
 
 		let attempts = 0
 		let success = false
@@ -436,13 +436,13 @@ export class DirectoryScanner implements IDirectoryScanner {
 		while (attempts < MAX_BATCH_RETRIES && !success) {
 			attempts++
 
-			// kilocode_change start
+			// forked_change start
 			if (this._cancelled) return
 
 			console.debug(
 				`[DirectoryScanner] Processing batch attempt ${attempts}/${MAX_BATCH_RETRIES} for ${batchBlocks.length} blocks`,
 			)
-			// kilocode_change end
+			// forked_change end
 
 			try {
 				// --- Deletion Step ---
@@ -454,20 +454,20 @@ export class DirectoryScanner implements IDirectoryScanner {
 							.map((info) => info.filePath),
 					),
 				]
-				// kilocode_change start
+				// forked_change start
 				console.debug(
 					`[DirectoryScanner] Identified ${uniqueFilePaths.length} modified files to delete points for`,
 				)
-				// kilocode_change end
+				// forked_change end
 
 				if (uniqueFilePaths.length > 0) {
 					try {
 						await this.qdrantClient.deletePointsByMultipleFilePaths(uniqueFilePaths)
-						// kilocode_change start
+						// forked_change start
 						console.debug(
 							`[DirectoryScanner] Successfully deleted points for ${uniqueFilePaths.length} files`,
 						)
-						// kilocode_change end
+						// forked_change end
 					} catch (deleteError: any) {
 						const errorStatus =
 							deleteError?.status || deleteError?.response?.status || deleteError?.statusCode
@@ -545,11 +545,11 @@ export class DirectoryScanner implements IDirectoryScanner {
 				console.debug("[DirectoryScanner] Completed updating file hashes in cache") // kilocode_change
 
 				success = true
-				// kilocode_change start
+				// forked_change start
 				console.debug(
 					`[DirectoryScanner] Successfully processed batch of ${batchBlocks.length} blocks after ${attempts} attempt(s)`,
 				)
-				// kilocode_change end
+				// forked_change end
 			} catch (error) {
 				lastError = error as Error
 				console.error(

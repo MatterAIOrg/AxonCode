@@ -49,7 +49,7 @@ export function convertToMistralMessages(anthropicMessages: Anthropic.Messages.M
 											part.source.type === "url"
 												? part.source.url
 												: `data:${part.source.media_type};base64,${part.source.data}`,
-										// kilocode_change end
+										// forked_change end
 									},
 								}
 							}

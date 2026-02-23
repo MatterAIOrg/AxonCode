@@ -192,12 +192,12 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 				unboundApiKey: "unbound-key",
 				litellmApiKey: "litellm-key",
 				litellmBaseUrl: "http://localhost:4000",
-				// kilocode_change start
+				// forked_change start
 				chutesApiKey: "chutes-key",
 				geminiApiKey: "gemini-key",
 				googleGeminiBaseUrl: "https://gemini.example.com",
 				ovhCloudAiEndpointsApiKey: "ovhcloud-key",
-				// kilocode_change end
+				// forked_change end
 			},
 		})
 	})
@@ -230,14 +230,14 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 		expect(mockGetModels).toHaveBeenCalledWith({ provider: "requesty", apiKey: "requesty-key" })
 		expect(mockGetModels).toHaveBeenCalledWith({ provider: "glama" })
 		expect(mockGetModels).toHaveBeenCalledWith({ provider: "unbound", apiKey: "unbound-key" })
-		// kilocode_change start
+		// forked_change start
 		expect(mockGetModels).toHaveBeenCalledWith({ provider: "chutes", apiKey: "chutes-key" })
 		expect(mockGetModels).toHaveBeenCalledWith({
 			provider: "gemini",
 			apiKey: "gemini-key",
 			baseUrl: "https://gemini.example.com",
 		})
-		// kilocode_change end
+		// forked_change end
 		expect(mockGetModels).toHaveBeenCalledWith({ provider: "vercel-ai-gateway" })
 		expect(mockGetModels).toHaveBeenCalledWith({
 			provider: "litellm",
@@ -316,10 +316,10 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 				requestyApiKey: "requesty-key",
 				glamaApiKey: "glama-key",
 				unboundApiKey: "unbound-key",
-				// kilocode_change start
+				// forked_change start
 				ovhCloudAiEndpointsApiKey: "ovhcloud-key",
 				chutesApiKey: "chutes-key",
-				// kilocode_change end
+				// forked_change end
 				// Missing litellm config
 			},
 		})
@@ -436,14 +436,14 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 			values: { provider: "unbound" },
 		})
 
-		// kilocode_change start
+		// forked_change start
 		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
 			success: false,
 			error: "Chutes API error",
 			values: { provider: "chutes" },
 		})
-		// kilocode_change end
+		// forked_change end
 
 		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
@@ -481,14 +481,14 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 			values: { provider: "openrouter" },
 		})
 
-		// kilocode_change start
+		// forked_change start
 		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
 			success: false,
 			error: "Gemini API error",
 			values: { provider: "gemini" },
 		})
-		// kilocode_change end
+		// forked_change end
 
 		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
@@ -511,7 +511,7 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 			values: { provider: "unbound" },
 		})
 
-		// kilocode_change start
+		// forked_change start
 		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
 			success: false,
@@ -532,7 +532,7 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 			error: "Vercel AI Gateway error",
 			values: { provider: "vercel-ai-gateway" },
 		})
-		// kilocode_change end
+		// forked_change end
 
 		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
@@ -548,14 +548,14 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 			values: { provider: "litellm" },
 		})
 
-		// kilocode_change start
+		// forked_change start
 		expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
 			success: false,
 			error: "OVHcloud AI Endpoints error",
 			values: { provider: "ovhcloud" },
 		})
-		// kilocode_change end
+		// forked_change end
 	})
 
 	it("prefers config values over message values for LiteLLM", async () => {

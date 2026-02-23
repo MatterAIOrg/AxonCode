@@ -18,12 +18,12 @@ export interface MarketplaceListViewProps {
 	allTags: string[]
 	filteredTags: string[]
 	filterByType?: "mcp" | "mode"
-	// kilocode_change start
+	// forked_change start
 	headerMessage?: {
 		translationKey: string
 		onLinkClick: () => void
 	}
-	// kilocode_change end
+	// forked_change end
 }
 
 export function MarketplaceListView({
@@ -31,7 +31,7 @@ export function MarketplaceListView({
 	allTags,
 	filteredTags,
 	filterByType,
-	headerMessage, // kilocode_change start
+	headerMessage, // forked_change start
 }: MarketplaceListViewProps) {
 	const [state, manager] = useStateManager(stateManager)
 	const { t } = useAppTranslation()
@@ -52,7 +52,7 @@ export function MarketplaceListView({
 
 	return (
 		<>
-			{/* kilocode_change start - headerMessage */}
+			{/* forked_change start - headerMessage */}
 			{headerMessage && (
 				<div className="mb-4">
 					<p className="text-sm text-vscode-descriptionForeground">
@@ -70,7 +70,7 @@ export function MarketplaceListView({
 					</p>
 				</div>
 			)}
-			{/* kilocode_change end - headerMessage */}
+			{/* forked_change end - headerMessage */}
 
 			<div className="mb-4">
 				<div className="relative">

@@ -214,7 +214,7 @@ export const ContextManagementSettings = ({
 						{t("settings:contextManagement.maxReadFile.description")}
 					</div>
 				</div>
-				{/*kilocode_change start*/}
+				{/*forked_change start*/}
 				<div>
 					<VSCodeCheckbox
 						checked={allowVeryLargeReads}
@@ -227,7 +227,7 @@ export const ContextManagementSettings = ({
 						{t("kilocode:settings.contextManagement.allowVeryLargeReads.description")}
 					</div>
 				</div>
-				{/*kilocode_change end*/}
+				{/*forked_change end*/}
 
 				<div>
 					<div className="flex flex-col gap-2">

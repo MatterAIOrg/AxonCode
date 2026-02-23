@@ -55,11 +55,11 @@
 		"title": "模式專屬自訂指令（選用）",
 		"resetToDefault": "重設為預設值",
 		"description": "為 {{modeName}} 模式新增專屬的行為指南。",
-		"loadFromFile": "{{mode}}模式的特定自訂指令也可以從工作區中的<span>.kilocode/rules-{{slug}}/</span>資料夾或全域<0>.kilocode/rules-{{slug}}/</0>載入（.kilocoderules-{{slug}}和.clinerules-{{slug}}已棄用，即將停止運作）。"
+		"loadFromFile": "{{mode}}模式的特定自訂指令也可以從工作區中的<span>.orbital/rules-{{slug}}/</span>資料夾或全域<0>.orbital/rules-{{slug}}/</0>載入（.kilocoderules-{{slug}}和.clinerules-{{slug}}已棄用，即將停止運作）。"
 	},
 	"exportMode": {
 		"title": "匯出模式",
-		"description": "將此模式與 .kilocode/rules-{{slug}}/ 資料夾中的規則匯出，並合併成一個可分享的 YAML 檔案。原始檔案將維持不變。",
+		"description": "將此模式與 .orbital/rules-{{slug}}/ 資料夾中的規則匯出，並合併成一個可分享的 YAML 檔案。原始檔案將維持不變。",
 		"exporting": "正在匯出..."
 	},
 	"importMode": {
@@ -68,11 +68,11 @@
 		"importing": "匯入中...",
 		"global": {
 			"label": "全域層級",
-			"description": "適用於所有專案。如果匯出的模式包含規則檔案，這些檔案將在全域的 .kilocode/rules-{slug}/ 資料夾中重新建立。"
+			"description": "適用於所有專案。如果匯出的模式包含規則檔案，這些檔案將在全域的 .orbital/rules-{slug}/ 資料夾中重新建立。"
 		},
 		"project": {
 			"label": "專案層級",
-			"description": "僅在此工作區可用。如果匯出的模式包含規則檔案，則將在 .kilocode/rules-{slug}/ 資料夾中重新建立這些檔案。"
+			"description": "僅在此工作區可用。如果匯出的模式包含規則檔案，則將在 .orbital/rules-{slug}/ 資料夾中重新建立這些檔案。"
 		}
 	},
 	"advanced": {
@@ -81,7 +81,7 @@
 	"globalCustomInstructions": {
 		"title": "所有模式的自訂指令",
 		"description": "這些指令適用於所有模式。它們提供了一套可透過下方特定模式指令強化的基本行為。<0>了解更多</0>",
-		"loadFromFile": "指令也可以從工作區中的<span>.kilocode/rules/</span>資料夾或全域<0>.kilocode/rules/</0>載入（.kilocoderules和.clinerules已棄用，即將停止運作）。"
+		"loadFromFile": "指令也可以從工作區中的<span>.orbital/rules/</span>資料夾或全域<0>.orbital/rules/</0>載入（.kilocoderules和.clinerules已棄用，即將停止運作）。"
 	},
 	"systemPrompt": {
 		"preview": "預覽系統提示詞",
@@ -160,7 +160,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "進階：覆寫系統提示詞",
-		"description": "<2>⚠️ 警告：</2> 此進階功能會繞過安全措施。<1>使用前請詳閱！</1>透過在 <span>.kilocode/system-prompt-{{slug}}</span> 建立檔案來覆寫預設的系統提示詞。"
+		"description": "<2>⚠️ 警告：</2> 此進階功能會繞過安全措施。<1>使用前請詳閱！</1>透過在 <span>.orbital/system-prompt-{{slug}}</span> 建立檔案來覆寫預設的系統提示詞。"
 	},
 	"createModeDialog": {
 		"title": "建立新模式",

@@ -57,12 +57,12 @@ export interface ExtensionStateContextType extends ExtensionState {
 	currentTaskTodos?: TodoItem[] // Initial todos for the current task
 	filePaths: string[]
 	openedTabs: Array<{ label: string; isActive: boolean; path?: string }>
-	// kilocode_change start
+	// forked_change start
 	globalRules: ClineRulesToggles
 	localRules: ClineRulesToggles
 	globalWorkflows: ClineRulesToggles
 	localWorkflows: ClineRulesToggles
-	// kilocode_change start
+	// forked_change start
 	commands: Command[]
 	organizationAllowList: OrganizationAllowList
 	organizationSettingsVersion: number
@@ -346,12 +346,12 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 	const [mcpMarketplaceCatalog, setMcpMarketplaceCatalog] = useState<McpMarketplaceCatalog>({ items: [] }) // kilocode_change
 	const [currentCheckpoint, setCurrentCheckpoint] = useState<string>()
 	const [extensionRouterModels, setExtensionRouterModels] = useState<RouterModels | undefined>(undefined)
-	// kilocode_change start
+	// forked_change start
 	const [globalRules, setGlobalRules] = useState<ClineRulesToggles>({})
 	const [localRules, setLocalRules] = useState<ClineRulesToggles>({})
 	const [globalWorkflows, setGlobalWorkflows] = useState<ClineRulesToggles>({})
 	const [localWorkflows, setLocalWorkflows] = useState<ClineRulesToggles>({})
-	// kilocode_change end
+	// forked_change end
 	const [marketplaceItems, setMarketplaceItems] = useState<any[]>([])
 	const [alwaysAllowFollowupQuestions, setAlwaysAllowFollowupQuestions] = useState(false) // Add state for follow-up questions auto-approve
 	const [followupAutoApproveTimeoutMs, setFollowupAutoApproveTimeoutMs] = useState<number | undefined>(undefined) // Will be set from global settings
@@ -534,12 +534,12 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		currentCheckpoint,
 		filePaths,
 		openedTabs,
-		// kilocode_change start
+		// forked_change start
 		globalRules,
 		localRules,
 		globalWorkflows,
 		localWorkflows,
-		// kilocode_change end
+		// forked_change end
 		commands,
 		soundVolume: state.soundVolume,
 		ttsSpeed: state.ttsSpeed,
@@ -617,7 +617,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setCustomSupportPrompts: (value) => setState((prevState) => ({ ...prevState, customSupportPrompts: value })),
 		setEnhancementApiConfigId: (value) =>
 			setState((prevState) => ({ ...prevState, enhancementApiConfigId: value })),
-		// kilocode_change start
+		// forked_change start
 		markNotificationAsDismissed: (notificationId) => {
 			setState((prevState) => {
 				return {
@@ -636,7 +636,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setHoveringTaskTimeline: (value) => setState((prevState) => ({ ...prevState, hoveringTaskTimeline: value })),
 		setShowTimestamps: (value) => setState((prevState) => ({ ...prevState, showTimestamps: value })),
 		setYoloMode: (value) => setState((prevState) => ({ ...prevState, yoloMode: value })), // kilocode_change
-		// kilocode_change end
+		// forked_change end
 		setAutoApprovalEnabled: (value) => setState((prevState) => ({ ...prevState, autoApprovalEnabled: value })),
 		setCustomModes: (value) => setState((prevState) => ({ ...prevState, customModes: value })),
 		setMaxOpenTabsContext: (value) => setState((prevState) => ({ ...prevState, maxOpenTabsContext: value })),
@@ -679,11 +679,11 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setCustomCondensingPrompt: (value) =>
 			setState((prevState) => ({ ...prevState, customCondensingPrompt: value })),
 		setProfileThresholds: (value) => setState((prevState) => ({ ...prevState, profileThresholds: value })),
-		// kilocode_change start
+		// forked_change start
 		setSystemNotificationsEnabled: (value) =>
 			setState((prevState) => ({ ...prevState, systemNotificationsEnabled: value })),
 		dismissedNotificationIds: state.dismissedNotificationIds || [], // kilocode_change
-		// kilocode_change end
+		// forked_change end
 		alwaysAllowUpdateTodoList: state.alwaysAllowUpdateTodoList,
 		setAlwaysAllowUpdateTodoList: (value) => {
 			setState((prevState) => ({ ...prevState, alwaysAllowUpdateTodoList: value }))

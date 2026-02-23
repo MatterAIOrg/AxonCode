@@ -16,11 +16,11 @@ vi.mock("vscode", () => ({
 			get: vi.fn(),
 		})),
 	},
-	// kilocode_change start
+	// forked_change start
 	window: {
 		createTextEditorDecorationType: vi.fn(() => ({ dispose: vi.fn() })),
 	},
-	// kilocode_change end
+	// forked_change end
 }))
 
 // Mock Package module

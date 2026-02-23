@@ -172,16 +172,16 @@ export function getModelParams({
 		return {
 			format,
 			...params,
-			// kilocode_change start
+			// forked_change start
 			reasoning: shouldDisableReasoning(modelId, reasoningEffort)
 				? { enabled: false }
 				: getOpenRouterReasoning({ model, reasoningBudget, reasoningEffort, settings }),
-			// kilocode_change end
+			// forked_change end
 		}
 	}
 }
 
-// kilocode_change start
+// forked_change start
 function shouldDisableReasoning(modelId: string, reasoningEffort: ReasoningEffortWithMinimal | undefined) {
 	const supportsReasoningToggle =
 		modelId.startsWith("deepseek/deepseek-v3.1") ||
@@ -190,4 +190,4 @@ function shouldDisableReasoning(modelId: string, reasoningEffort: ReasoningEffor
 		modelId.startsWith("z-ai/glm-4.6")
 	return supportsReasoningToggle && reasoningEffort === "minimal"
 }
-// kilocode_change end
+// forked_change end

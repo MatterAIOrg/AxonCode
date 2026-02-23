@@ -96,7 +96,7 @@ export function MarketplaceView({ stateManager, onDone, targetTab, hideHeader = 
 	// Memoize filtered tags
 	const filteredTags = useMemo(() => allTags, [allTags])
 
-	// kilocode_change start - Header messages for each tab
+	// forked_change start - Header messages for each tab
 	const modesHeaderMessage = useMemo(
 		() => ({
 			translationKey: "kilocode:marketplace.modes.description",
@@ -115,7 +115,7 @@ export function MarketplaceView({ stateManager, onDone, targetTab, hideHeader = 
 		}),
 		[],
 	)
-	// kilocode_change end - Header messages for each tab
+	// forked_change end - Header messages for each tab
 
 	return (
 		<TooltipProvider delayDuration={300}>

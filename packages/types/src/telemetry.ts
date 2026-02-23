@@ -19,7 +19,7 @@ export type TelemetrySetting = z.infer<typeof telemetrySettingsSchema>
  */
 
 export enum TelemetryEventName {
-	// kilocode_change start
+	// forked_change start
 	COMMIT_MSG_GENERATED = "Commit Message Generated",
 	INLINE_ASSIST_QUICK_TASK = "Inline Assist Quick Task",
 	INLINE_ASSIST_AUTO_TASK = "Inline Assist Auto Task",
@@ -35,7 +35,7 @@ export enum TelemetryEventName {
 	CREATE_ORGANIZATION_LINK_CLICKED = "Create Organization Link Clicked",
 	SUGGESTION_BUTTON_CLICKED = "Suggestion Button Clicked",
 	NO_ASSISTANT_MESSAGES = "No Assistant Messages",
-	// kilocode_change end
+	// forked_change end
 
 	TASK_CREATED = "Task Created",
 	TASK_RESTARTED = "Task Reopened",
@@ -149,11 +149,11 @@ export const taskPropertiesSchema = z.object({
 			pending: z.number(),
 		})
 		.optional(),
-	// kilocode_change start
+	// forked_change start
 	currentTaskSize: z.number().optional(),
 	taskHistorySize: z.number().optional(),
 	toolStyle: toolUseStylesSchema.optional(),
-	// kilocode_change end
+	// forked_change end
 })
 
 export type TaskProperties = z.infer<typeof taskPropertiesSchema>
@@ -191,14 +191,14 @@ export type TelemetryEvent = {
 export const rooCodeTelemetryEventSchema = z.discriminatedUnion("type", [
 	z.object({
 		type: z.enum([
-			// kilocode_change start
+			// forked_change start
 			TelemetryEventName.COMMIT_MSG_GENERATED, // kilocode_change
 			TelemetryEventName.INLINE_ASSIST_QUICK_TASK, // kilocode_change
 			TelemetryEventName.INLINE_ASSIST_AUTO_TASK, // kilocode_change
 			TelemetryEventName.INLINE_ASSIST_ACCEPT_SUGGESTION, // kilocode_change
 			TelemetryEventName.INLINE_ASSIST_REJECT_SUGGESTION, // kilocode_change
 			TelemetryEventName.WEBVIEW_MEMORY_USAGE, // kilocode_change
-			// kilocode_change end
+			// forked_change end
 
 			TelemetryEventName.TASK_CREATED,
 			TelemetryEventName.TASK_RESTARTED,
@@ -298,10 +298,10 @@ export interface TelemetryClient {
 
 	setProvider(provider: TelemetryPropertiesProvider): void
 	capture(options: TelemetryEvent): Promise<void>
-	// kilocode_change start
+	// forked_change start
 	captureException(error: Error, properties?: Record<string | number, unknown>): void
 	updateIdentity(kilocodeToken: string): Promise<void>
-	// kilocode_change end
+	// forked_change end
 	updateTelemetryState(isOptedIn: boolean): void
 	isTelemetryEnabled(): boolean
 	shutdown(): Promise<void>

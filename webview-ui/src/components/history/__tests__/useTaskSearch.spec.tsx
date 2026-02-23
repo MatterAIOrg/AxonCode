@@ -14,7 +14,7 @@ vi.mock("@/utils/highlight", () => ({
 
 import { useExtensionState } from "@/context/ExtensionStateContext"
 
-// kilocode_change start
+// forked_change start
 import { useTaskHistory } from "@/kilocode/hooks/useTaskHistory"
 import { getTaskHistory } from "@roo/kilocode/getTaskHistory"
 import { TaskHistoryRequestPayload } from "@roo/WebviewMessage"
@@ -31,7 +31,7 @@ function kiloCodeSetUpUseTaskHistoryMock(taskHistory: Partial<HistoryItem>[], cw
 		}),
 	)
 }
-// kilocode_change end
+// forked_change end
 
 const mockUseExtensionState = useExtensionState as ReturnType<typeof vi.fn>
 

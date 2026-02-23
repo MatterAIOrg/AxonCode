@@ -180,7 +180,7 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 
 					<AutoApproveToggle {...toggles} onToggle={onAutoApproveToggle} />
 
-					{/* kilocode_change start */}
+					{/* forked_change start */}
 					<div className="flex gap-2 w-full justify-stretch mb-2">
 						<MaxRequestsInput
 							allowedMaxRequests={allowedMaxRequests ?? undefined}
@@ -191,7 +191,7 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 							onValueChange={(value) => setAllowedMaxCost(value)}
 						/>
 					</div>
-					{/* kilocode_change end */}
+					{/* forked_change end */}
 				</div>
 			)}
 

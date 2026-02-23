@@ -43,7 +43,7 @@ interface MainThreadSecretStateShape : Disposable {
 
 /**
  * Implementation of the secret state management service.
- * Stores secrets in ~/.kilocode/secrets.json file.
+ * Stores secrets in ~/.orbital/secrets.json file.
  */
 class MainThreadSecretState : MainThreadSecretStateShape {
     private val logger = Logger.getInstance(MainThreadSecretState::class.java)

@@ -1,6 +1,6 @@
 # Memory Bank
 
-I am an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively. I MUST read ALL memory bank files at the start of EVERY task - this is not optional. The memory bank files are located in `.kilocode/rules/memory-bank` folder.
+I am an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively. I MUST read ALL memory bank files at the start of EVERY task - this is not optional. The memory bank files are located in `.orbital/rules/memory-bank` folder.
 
 When I start a task, I will include `[Memory Bank: Active]` at the beginning of my response if I successfully read the memory bank files, or `[Memory Bank: Missing]` if the folder doesn't exist or is empty. If memory bank is missing, I will warn the user about potential issues and suggest initialization.
 
@@ -152,7 +152,7 @@ Example task entry:
 
 In the beginning of EVERY task I MUST read ALL memory bank files - this is not optional.
 
-The memory bank files are located in `.kilocode/rules/memory-bank` folder. If the folder doesn't exist or is empty, I will warn user about potential issues with the memory bank. I will include `[Memory Bank: Active]` at the beginning of my response if I successfully read the memory bank files, or `[Memory Bank: Missing]` if the folder doesn't exist or is empty. If memory bank is missing, I will warn the user about potential issues and suggest initialization. I should briefly summarize my understanding of the project to confirm alignment with the user's expectations, like:
+The memory bank files are located in `.orbital/rules/memory-bank` folder. If the folder doesn't exist or is empty, I will warn user about potential issues with the memory bank. I will include `[Memory Bank: Active]` at the beginning of my response if I successfully read the memory bank files, or `[Memory Bank: Missing]` if the folder doesn't exist or is empty. If memory bank is missing, I will warn the user about potential issues and suggest initialization. I should briefly summarize my understanding of the project to confirm alignment with the user's expectations, like:
 
 "[Memory Bank: Active] I understand we're building a React inventory system with barcode scanning. Currently implementing the scanner component that needs to work with the backend API."
 
@@ -180,4 +180,4 @@ REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is
 
 If I detect inconsistencies between memory bank files, I should prioritize brief.md and note any discrepancies to the user.
 
-IMPORTANT: I MUST read ALL memory bank files at the start of EVERY task - this is not optional. The memory bank files are located in `.kilocode/rules/memory-bank` folder.
+IMPORTANT: I MUST read ALL memory bank files at the start of EVERY task - this is not optional. The memory bank files are located in `.orbital/rules/memory-bank` folder.

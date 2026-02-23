@@ -21,14 +21,14 @@ import { ImageGenerationSettings } from "./ImageGenerationSettings"
 type ExperimentalSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	experiments: Experiments
 	setExperimentEnabled: SetExperimentEnabled
-	// kilocode_change start
+	// forked_change start
 	morphApiKey?: string
 	fastApplyModel?: string
 	setCachedStateField: SetCachedStateField<"morphApiKey" | "fastApplyModel">
 	kiloCodeImageApiKey?: string
 	setKiloCodeImageApiKey?: (apiKey: string) => void
 	currentProfileKilocodeToken?: string
-	// kilocode_change end
+	// forked_change end
 	apiConfiguration?: any
 	setApiConfigurationField?: any
 	openRouterImageApiKey?: string
@@ -47,14 +47,14 @@ export const ExperimentalSettings = ({
 	setOpenRouterImageApiKey,
 	setImageGenerationSelectedModel,
 	className,
-	// kilocode_change start
+	// forked_change start
 	morphApiKey,
 	fastApplyModel, // kilocode_change: Fast Apply model selection
 	setCachedStateField,
 	setKiloCodeImageApiKey,
 	kiloCodeImageApiKey,
 	currentProfileKilocodeToken,
-	// kilocode_change end
+	// forked_change end
 	...props
 }: ExperimentalSettingsProps) => {
 	const { t } = useAppTranslation()
@@ -85,7 +85,7 @@ export const ExperimentalSettings = ({
 								/>
 							)
 						}
-						// kilocode_change start
+						// forked_change start
 						if (config[0] === "MORPH_FAST_APPLY") {
 							const enabled =
 								experiments[EXPERIMENT_IDS[config[0] as keyof typeof EXPERIMENT_IDS]] ?? false
@@ -112,7 +112,7 @@ export const ExperimentalSettings = ({
 								</React.Fragment>
 							)
 						}
-						// kilocode_change end
+						// forked_change end
 						if (
 							config[0] === "IMAGE_GENERATION" &&
 							setOpenRouterImageApiKey &&

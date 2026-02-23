@@ -179,7 +179,7 @@ export async function generateImageTool(
 			}
 
 			// Create a temporary OpenRouter handler with minimal options
-			// kilocode_change start
+			// forked_change start
 			const openRouterHandler = openRouterApiKey
 				? new OpenRouterHandler({})
 				: new KilocodeOpenrouterHandler({
@@ -190,19 +190,19 @@ export async function generateImageTool(
 								? cline.apiConfiguration.kilocodeOrganizationId
 								: undefined,
 					})
-			// kilocode_change end
+			// forked_change end
 
 			// Call the generateImage method with the explicit API key and optional input image
 			const result = await openRouterHandler.generateImage(
 				prompt,
 				selectedModel,
-				// kilocode_change start
+				// forked_change start
 				openRouterApiKey ||
 					kiloCodeApiKey ||
 					(() => {
 						throw new Error("Unreachable because of earlier check.")
 					})(),
-				// kilocode_change end
+				// forked_change end
 				inputImageData,
 				cline.taskId, // kilocode_change
 			)

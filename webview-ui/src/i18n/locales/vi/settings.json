@@ -162,7 +162,7 @@
 			},
 			"protected": {
 				"label": "Bao gồm các tệp được bảo vệ",
-				"description": "Cho phép Axon Code tạo và chỉnh sửa các tệp được bảo vệ (như .kilocodeignore và các tệp cấu hình .kilocode/) mà không yêu cầu phê duyệt."
+				"description": "Cho phép Axon Code tạo và chỉnh sửa các tệp được bảo vệ (như .kilocodeignore và các tệp cấu hình .orbital/) mà không yêu cầu phê duyệt."
 			}
 		},
 		"browser": {

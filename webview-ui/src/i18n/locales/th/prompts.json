@@ -55,11 +55,11 @@
 		"title": "คำแนะนำเฉพาะโหมด (ไม่บังคับ)",
 		"resetToDefault": "รีเซ็ตเป็นค่าเริ่มต้น",
 		"description": "เพิ่มแนวทางพฤติกรรมเฉพาะสำหรับโหมด {{modeName}}",
-		"loadFromFile": "คำแนะนำเฉพาะสำหรับโหมด {{mode}} สามารถโหลดจากโฟลเดอร์ <span>.kilocode/rules/</span> ใน workspace ของคุณ (.kilocoderules-{{slug}} เลิกใช้แล้วและจะหยุดทำงานเร็วๆ นี้)"
+		"loadFromFile": "คำแนะนำเฉพาะสำหรับโหมด {{mode}} สามารถโหลดจากโฟลเดอร์ <span>.orbital/rules/</span> ใน workspace ของคุณ (.kilocoderules-{{slug}} เลิกใช้แล้วและจะหยุดทำงานเร็วๆ นี้)"
 	},
 	"exportMode": {
 		"title": "ส่งออกโหมด",
-		"description": "ส่งออกโหมดนี้พร้อมกับกฎจากโฟลเดอร์ .kilocode/rules-{{slug}}/ รวมเป็นไฟล์ YAML ที่แชร์ได้ ไฟล์ต้นฉบับจะไม่เปลี่ยนแปลง",
+		"description": "ส่งออกโหมดนี้พร้อมกับกฎจากโฟลเดอร์ .orbital/rules-{{slug}}/ รวมเป็นไฟล์ YAML ที่แชร์ได้ ไฟล์ต้นฉบับจะไม่เปลี่ยนแปลง",
 		"exporting": "กำลังส่งออก..."
 	},
 	"importMode": {
@@ -68,11 +68,11 @@
 		"importing": "กำลังนำเข้า...",
 		"global": {
 			"label": "ระดับ Global",
-			"description": "ใช้ได้ในทุกโปรเจ็กต์ หากโหมดที่ส่งออกมีไฟล์กฎ จะถูกสร้างใหม่ในโฟลเดอร์ .kilocode/rules-{slug}/ ระดับ global"
+			"description": "ใช้ได้ในทุกโปรเจ็กต์ หากโหมดที่ส่งออกมีไฟล์กฎ จะถูกสร้างใหม่ในโฟลเดอร์ .orbital/rules-{slug}/ ระดับ global"
 		},
 		"project": {
 			"label": "ระดับโปรเจ็กต์",
-			"description": "ใช้ได้เฉพาะใน workspace นี้ หากโหมดที่ส่งออกมีไฟล์กฎ จะถูกสร้างใหม่ในโฟลเดอร์ .kilocode/rules-{slug}/"
+			"description": "ใช้ได้เฉพาะใน workspace นี้ หากโหมดที่ส่งออกมีไฟล์กฎ จะถูกสร้างใหม่ในโฟลเดอร์ .orbital/rules-{slug}/"
 		}
 	},
 	"advanced": {
@@ -81,7 +81,7 @@
 	"globalCustomInstructions": {
 		"title": "คำแนะนำสำหรับทุกโหมด",
 		"description": "คำแนะนำเหล่านี้ใช้กับทุกโหมด ให้ชุดพฤติกรรมพื้นฐานที่สามารถเสริมด้วยคำแนะนำเฉพาะโหมดด้านล่าง <0>เรียนรู้เพิ่มเติม</0>",
-		"loadFromFile": "คำแนะนำสามารถโหลดจากโฟลเดอร์ <span>.kilocode/rules/</span> ใน workspace ของคุณ (.kilocoderules เลิกใช้แล้วและจะหยุดทำงานเร็วๆ นี้)"
+		"loadFromFile": "คำแนะนำสามารถโหลดจากโฟลเดอร์ <span>.orbital/rules/</span> ใน workspace ของคุณ (.kilocoderules เลิกใช้แล้วและจะหยุดทำงานเร็วๆ นี้)"
 	},
 	"systemPrompt": {
 		"preview": "ดูตัวอย่าง System Prompt",
@@ -160,7 +160,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "ขั้นสูง: แทนที่ System Prompt",
-		"description": "<2>⚠️ คำเตือน:</2> ฟีเจอร์ขั้นสูงนี้ข้ามการป้องกัน <1>อ่านนี่ก่อนใช้!</1>แทนที่ system prompt เริ่มต้นโดยสร้างไฟล์ที่ <span>.kilocode/system-prompt-{{slug}}</span>"
+		"description": "<2>⚠️ คำเตือน:</2> ฟีเจอร์ขั้นสูงนี้ข้ามการป้องกัน <1>อ่านนี่ก่อนใช้!</1>แทนที่ system prompt เริ่มต้นโดยสร้างไฟล์ที่ <span>.orbital/system-prompt-{{slug}}</span>"
 	},
 	"createModeDialog": {
 		"title": "สร้างโหมดใหม่",

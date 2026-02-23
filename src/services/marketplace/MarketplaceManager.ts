@@ -252,7 +252,7 @@ export class MarketplaceManager {
 			}
 
 			// Check modes in .roomodes
-			const projectModesPath = path.join(workspaceFolder.uri.fsPath, ".kilocodemodes")
+			const projectModesPath = path.join(workspaceFolder.uri.fsPath, ".orbitalmodes")
 			try {
 				const content = await fs.readFile(projectModesPath, "utf-8")
 				const data = yaml.parse(content)
@@ -269,8 +269,8 @@ export class MarketplaceManager {
 				// File doesn't exist or can't be read, skip
 			}
 
-			// Check MCPs in .roo/mcp.json
-			const projectMcpPath = path.join(workspaceFolder.uri.fsPath, ".kilocode", "mcp.json")
+			// Check MCPs in .orbital/mcp.json
+			const projectMcpPath = path.join(workspaceFolder.uri.fsPath, ".orbital", "mcp.json")
 			try {
 				const content = await fs.readFile(projectMcpPath, "utf-8")
 				const data = JSON.parse(content)

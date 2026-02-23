@@ -9,9 +9,9 @@ Workflows 通过为 Axon Code 定义分步指令来自动化重复性任务。�
 
 ## 创建工作流
 
-工作流是存储在 `.kilocode/workflows/` 中的 markdown 文件：
-- **全局工作流**：`~/.kilocode/workflows/`（在所有项目中可用）
-- **项目工作流**：`[project]/.kilocode/workflows/`（项目特定）
+工作流是存储在 `.orbital/workflows/` 中的 markdown 文件：
+- **全局工作流**：`~/.orbital/workflows/`（在所有项目中可用）
+- **项目工作流**：`[project]/.orbital/workflows/`（项目特定）
 
 ### 基本设置
 
@@ -59,7 +59,7 @@ Workflows 通过为 Axon Code 定义分步指令来自动化重复性任务。�
 
 让我们逐步创建一个用于提交拉取请求的工作流。此工作流处理从代码审查到部署通知的整个过程。
 
-在您的 `.kilocode/workflows` 目录中创建一个名为 `submit-pr.md` 的文件：
+在您的 `.orbital/workflows` 目录中创建一个名为 `submit-pr.md` 的文件：
 
 ```markdown
 # 提交 PR 工作流

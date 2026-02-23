@@ -41,13 +41,13 @@ export const BatchDeleteTaskDialog = ({ taskIds, ...props }: BatchDeleteTaskDial
 					<AlertDialogTitle>{t("history:deleteTasks")}</AlertDialogTitle>
 					<AlertDialogDescription className="text-vscode-foreground">
 						<div className="mb-2">{t("history:confirmDeleteTasks", { count: taskIds.length })}</div>
-						{/* kilocode_change start */}
+						{/* forked_change start */}
 						{hasFavoritedTasks && (
 							<div className="text-yellow-500 mb-2">
 								{t("history:deleteTasksFavoritedWarning", { count: favoritedTasks.length })}
 							</div>
 						)}
-						{/* kilocode_change end */}
+						{/* forked_change end */}
 						<div className="text-vscode-editor-foreground bg-vscode-editor-background p-2 rounded text-sm">
 							{t("history:deleteTasksWarning")}
 						</div>

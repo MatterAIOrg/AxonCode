@@ -55,11 +55,11 @@
 		"title": "Mode-specific Custom Instructions (optional)",
 		"resetToDefault": "Reset to default",
 		"description": "Add behavioral guidelines specific to {{modeName}} mode.",
-		"loadFromFile": "Custom instructions specific to {{mode}} mode can also be loaded from the <span>.kilocode/rules-{{slug}}/</span> folder in your workspace or from the global <0>.kilocode/rules-{{slug}}/</0> (.kilocoderules-{{slug}} and .clinerules-{{slug}} are deprecated and will stop working soon)."
+		"loadFromFile": "Custom instructions specific to {{mode}} mode can also be loaded from the <span>.orbital/rules-{{slug}}/</span> folder in your workspace or from the global <0>.orbital/rules-{{slug}}/</0> (.kilocoderules-{{slug}} and .clinerules-{{slug}} are deprecated and will stop working soon)."
 	},
 	"exportMode": {
 		"title": "Export Mode",
-		"description": "Export this mode with rules from the .kilocode/rules-{{slug}}/ folder combined into a shareable YAML file. The original files remain unchanged.",
+		"description": "Export this mode with rules from the .orbital/rules-{{slug}}/ folder combined into a shareable YAML file. The original files remain unchanged.",
 		"exporting": "Exporting..."
 	},
 	"importMode": {
@@ -68,11 +68,11 @@
 		"importing": "Importing...",
 		"global": {
 			"label": "Global Level",
-			"description": "Available across all projects. If the exported mode contained rules files, they will be recreated in the global .kilocode/rules-{slug}/ folder."
+			"description": "Available across all projects. If the exported mode contained rules files, they will be recreated in the global .orbital/rules-{slug}/ folder."
 		},
 		"project": {
 			"label": "Project Level",
-			"description": "Only available in this workspace. If the exported mode contained rules files, they will be recreated in .kilocode/rules-{slug}/ folder."
+			"description": "Only available in this workspace. If the exported mode contained rules files, they will be recreated in .orbital/rules-{slug}/ folder."
 		}
 	},
 	"advanced": {
@@ -81,7 +81,7 @@
 	"globalCustomInstructions": {
 		"title": "Custom Instructions for All Modes",
 		"description": "These instructions apply to all modes. They provide a base set of behaviors that can be enhanced by mode-specific instructions below. <0>Learn more</0>",
-		"loadFromFile": "Instructions can also be loaded from the <span>.kilocode/rules/</span> folder in your workspace or from the global <0>.kilocode/rules/</0> (.kilocoderules and .clinerules are deprecated and will stop working soon)."
+		"loadFromFile": "Instructions can also be loaded from the <span>.orbital/rules/</span> folder in your workspace or from the global <0>.orbital/rules/</0> (.kilocoderules and .clinerules are deprecated and will stop working soon)."
 	},
 	"systemPrompt": {
 		"preview": "Preview System Prompt",
@@ -160,7 +160,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "Advanced: Override System Prompt",
-		"description": "<2>⚠️ Warning:</2> This advanced feature bypasses safeguards. <1>READ THIS BEFORE USING!</1>Override the default system prompt by creating a file at <span>.kilocode/system-prompt-{{slug}}</span>."
+		"description": "<2>⚠️ Warning:</2> This advanced feature bypasses safeguards. <1>READ THIS BEFORE USING!</1>Override the default system prompt by creating a file at <span>.orbital/system-prompt-{{slug}}</span>."
 	},
 	"createModeDialog": {
 		"title": "Create New Mode",

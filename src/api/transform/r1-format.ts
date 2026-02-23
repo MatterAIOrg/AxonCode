@@ -40,7 +40,7 @@ export function convertToR1Format(messages: AnthropicMessage[]): Message[] {
 								part.source.type === "url"
 									? part.source.url
 									: `data:${part.source.media_type};base64,${part.source.data}`,
-							// kilocode_change end
+							// forked_change end
 						},
 					})
 				}

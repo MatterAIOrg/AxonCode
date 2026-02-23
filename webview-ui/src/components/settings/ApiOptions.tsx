@@ -10,12 +10,12 @@ import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { validateApiConfigurationExcludingModelErrors } from "@src/utils/validate"
 import { vscode } from "@src/utils/vscode"
-// kilocode_change start
+// forked_change start
 //import {
 //	useOpenRouterModelProviders,
 //	OPENROUTER_DEFAULT_PROVIDER_NAME,
 //} from "@src/components/ui/hooks/useOpenRouterModelProviders"
-// kilocode_change start
+// forked_change start
 
 // import { ModelPicker } from "./ModelPicker" // kilocode_change
 import { KiloCode } from "../kilocode/settings/providers/KiloCode" // kilocode_change
@@ -106,7 +106,7 @@ const ApiOptions = ({
 		info: selectedModelInfo,
 	} = useSelectedModel(apiConfiguration)
 
-	// kilocode_change start: queryKey, chutesApiKey, gemini
+	// forked_change start: queryKey, chutesApiKey, gemini
 	const { data: routerModels } = useRouterModels({
 		openRouterBaseUrl: apiConfiguration?.openRouterBaseUrl,
 		openRouterApiKey: apiConfiguration?.openRouterApiKey,
@@ -125,7 +125,7 @@ const ApiOptions = ({
 	//			apiConfiguration.openRouterModelId in routerModels.openrouter,
 	//	},
 	//)
-	// kilocode_change end
+	// forked_change end
 
 	// Update `apiModelId` whenever `selectedModelId` changes.
 	useEffect(() => {
@@ -296,10 +296,10 @@ const ApiOptions = ({
 	// 			openai: { field: "openAiModelId" },
 	// 			ollama: { field: "ollamaModelId" },
 	// 			lmstudio: { field: "lmStudioModelId" },
-	// 			// kilocode_change start
+	// 			// forked_change start
 	// 			kilocode: { field: "kilocodeModel", default: kilocodeDefaultModel },
 	// 			"gemini-cli": { field: "apiModelId", default: geminiCliDefaultModelId },
-	// 			// kilocode_change end
+	// 			// forked_change end
 	// 		}
 
 	// 		const config = PROVIDER_MODEL_CONFIG[value]
@@ -326,7 +326,7 @@ const ApiOptions = ({
 	// 		return undefined
 	// 	}
 
-	// 	// kilocode_change start
+	// 	// forked_change start
 	// 	// Providers that don't have documentation pages yet
 	// 	const excludedProviders = ["gemini-cli", "moonshot", "chutes", "cerebras", "litellm", "zai", "qwen-code"]
 
@@ -334,7 +334,7 @@ const ApiOptions = ({
 	// 	if (excludedProviders.includes(selectedProvider)) {
 	// 		return undefined
 	// 	}
-	// 	// kilocode_change end
+	// 	// forked_change end
 
 	// 	// Get the URL slug - use custom mapping if available, otherwise use the provider key.
 	// 	const slugs: Record<string, string> = {
@@ -350,7 +350,7 @@ const ApiOptions = ({
 	// }, [selectedProvider])
 
 	// Convert providers to SearchableSelect options
-	// kilocode_change start: no organizationAllowList
+	// forked_change start: no organizationAllowList
 	// const providerOptions = useMemo(
 	// 	() =>
 	// 		PROVIDERS.map(({ value, label }) => {
@@ -358,7 +358,7 @@ const ApiOptions = ({
 	// 		}),
 	// 	[],
 	// )
-	// kilocode_change end
+	// forked_change end
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -387,7 +387,7 @@ const ApiOptions = ({
 
 			{errorMessage && <ApiErrorMessage errorMessage={errorMessage} />}
 
-			{/* kilocode_change start */}
+			{/* forked_change start */}
 			{selectedProvider === "kilocode" && (
 				<KiloCode
 					apiConfiguration={apiConfiguration}
@@ -402,7 +402,7 @@ const ApiOptions = ({
 					kilocodeDefaultModel={kilocodeDefaultModel}
 				/>
 			)}
-			{/* kilocode_change end */}
+			{/* forked_change end */}
 
 			<ThinkingBudget
 				key={`${selectedProvider}-${selectedModelId}`}
@@ -421,7 +421,7 @@ const ApiOptions = ({
 			)}
 			{/* 
 			{
-				// kilocode_change start
+				// forked_change start
 				(selectedProvider === "kilocode" || selectedProvider === "openrouter") &&
 				(apiConfiguration.kilocodeOrganizationId ? (
 					<KiloProviderRoutingManagedByOrganization
@@ -434,7 +434,7 @@ const ApiOptions = ({
 						kilocodeDefaultModel={kilocodeDefaultModel}
 					/>
 				))
-				// kilocode_change end
+				// forked_change end
 			} */}
 
 			{/* {!fromWelcomeView && (
@@ -472,7 +472,7 @@ const ApiOptions = ({
 							}
 							onChange={(value) => setApiConfigurationField("consecutiveMistakeLimit", value)}
 						/>
-						kilocode_change start
+						forked_change start
 						selectedProvider === "openrouter" &&
 							openRouterModelProviders &&
 							Object.keys(openRouterModelProviders).length > 0 && (
@@ -515,7 +515,7 @@ const ApiOptions = ({
 									</div>
 								</div>
 							)
-							kilocode_change end
+							forked_change end
 					</CollapsibleContent>
 				</Collapsible>
 			)} */}

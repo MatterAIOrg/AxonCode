@@ -95,13 +95,13 @@ export const generateSystemPrompt = async (provider: ClineProvider, message: Web
 				.getConfiguration("kilo-code")
 				.get<boolean>("newTaskRequireTodos", false),
 		},
-		// kilocode_change start
+		// forked_change start
 		undefined,
 		undefined,
 		getActiveToolUseStyle(apiConfiguration),
 		state,
 		taskHistory, // kilocode_change: Chat memories
-		// kilocode_change end
+		// forked_change end
 	)
 
 	return systemPrompt

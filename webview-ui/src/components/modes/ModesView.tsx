@@ -213,11 +213,11 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 		return customModes?.find(findMode) || modes.find(findMode)
 	}, [visualMode, customModes, modes])
 
-	// kilocode_change start
+	// forked_change start
 	const isOrganizationMode = useMemo(() => {
 		return getCurrentMode()?.source === "organization"
 	}, [getCurrentMode])
-	// kilocode_change end
+	// forked_change end
 
 	// Check if the current mode has rules to export
 	const checkRulesDirectory = useCallback((slug: string) => {
@@ -749,9 +749,9 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 
 				{/* Name section */}
 				<div className="mb-5">
-					{isOrganizationMode && <OrganizationModeWarning />} {/* kilocode_change start */}
+					{isOrganizationMode && <OrganizationModeWarning />} {/* forked_change start */}
 					{/* Only show name and delete for custom modes that are not organization modes */}
-					{/* kilocode_change end */}
+					{/* forked_change end */}
 					{visualMode && findModeBySlug(visualMode, customModes) && !isOrganizationMode && (
 						<div className="flex gap-3 mb-4">
 							<div className="flex-1">
@@ -1028,11 +1028,11 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 							{/* kilocode_change */}
 							{(!findModeBySlug(visualMode, customModes) || isOrganizationMode) && (
 								<div className="text-sm text-vscode-descriptionForeground mb-2">
-									{/* kilocode_change start */}
+									{/* forked_change start */}
 									{isOrganizationMode
 										? t("prompts:organizationMode.cannotEdit")
 										: t("prompts:tools.builtInModesText")}
-									{/* kilocode_change end */}
+									{/* forked_change end */}
 								</div>
 							)}
 							{isToolsEditMode && findModeBySlug(visualMode, customModes) ? (
@@ -1187,7 +1187,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 												// Open or create an empty file
 												vscode.postMessage({
 													type: "openFile",
-													text: `./.kilocode/rules-${currentMode.slug}/rules.md`,
+													text: `./.orbital/rules-${currentMode.slug}/rules.md`,
 													values: {
 														create: true,
 														content: "",
@@ -1316,7 +1316,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 
 															vscode.postMessage({
 																type: "openFile",
-																text: `./.kilocode/system-prompt-${currentMode.slug}`, // kilocode_change
+																text: `./.orbital/system-prompt-${currentMode.slug}`, // kilocode_change
 																values: {
 																	create: true,
 																	content: "",
@@ -1385,7 +1385,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 										onClick={() =>
 											vscode.postMessage({
 												type: "openFile",
-												text: "./.kilocode/rules/rules.md",
+												text: "./.orbital/rules/rules.md",
 												values: {
 													create: true,
 													content: "",

@@ -29,10 +29,10 @@ const MAX_READ_FILE_LINES = 1000
 
 export function getReadFileToolDescription(blockName: string, blockParams: any): string {
 	// Handle both single file_path and multiple files via args
-	// kilocode_change start
+	// forked_change start
 	if (blockParams.files && Array.isArray(blockParams.files)) {
 		return getNativeReadFileToolDescription(blockName, parseNativeFiles(blockParams.files))
-		// kilocode_change end
+		// forked_change end
 	} else if (blockParams.file_path) {
 		// New single file format with file_path
 		return `[${blockName} '${blockParams.file_path}']`
@@ -142,11 +142,11 @@ export async function readFileTool(
 
 	const fileEntries: FileEntry[] = []
 
-	// kilocode_change start
+	// forked_change start
 	// Handle native JSON format first (from OpenAI-style tool calls)
 	if (nativeFiles && Array.isArray(nativeFiles)) {
 		fileEntries.push(...parseNativeFiles(nativeFiles))
-		// kilocode_change end
+		// forked_change end
 	} else if (newFilePath) {
 		// Handle new single file_path format with optional offset/limit
 		const fileEntry: FileEntry = {
@@ -524,13 +524,13 @@ export async function readFileTool(
 				// Handle normal file read
 				const content = await extractTextFromFile(fullPath)
 
-				// kilocode_change start: limit output size based on token count
+				// forked_change start: limit output size based on token count
 				const blockResult = await blockFileReadWhenTooLarge(cline, relPath, content)
 				if (blockResult) {
 					updateFileResult(relPath, blockResult)
 					continue
 				}
-				// kilocode_change end
+				// forked_change end
 
 				// kilocode_change: Return raw content without path header
 				let fileOutput = totalLines > 0 ? content : `(empty file: ${relPath})`

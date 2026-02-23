@@ -3,7 +3,7 @@ import path from "path"
 
 import { hasAnyToggles, loadEnabledRules } from "./kilo"
 
-// kilocode_change start
+// forked_change start
 let vscodeAPI: typeof import("vscode") | undefined
 try {
 	vscodeAPI = require("vscode")
@@ -14,7 +14,7 @@ try {
 }
 
 let hasShownNonKilocodeRulesMessage = false
-// kilocode_change end
+// forked_change end
 
 import { Dirent } from "fs"
 
@@ -155,11 +155,11 @@ async function readTextFilesFromDirectory(dirPath: string): Promise<Array<{ file
 							return null
 						}
 
-						// kilocode_change start
+						// forked_change start
 						if (stats.size > 0 && (await isBinaryFile(resolvedPath))) {
 							return null
 						}
-						// kilocode_change end
+						// forked_change end
 
 						const content = await safeReadFile(resolvedPath)
 						// Use resolvedPath for display to maintain existing behavior
@@ -230,18 +230,18 @@ export async function loadRuleFiles(cwd: string): Promise<string> {
 	}
 
 	// Fall back to existing behavior for legacy .roorules/.clinerules files
-	const ruleFiles = [".kilocoderules", ".roorules", ".clinerules"]
+	const ruleFiles = [".orbitalrules", ".roorules", ".clinerules"]
 
 	for (const file of ruleFiles) {
 		const content = await safeReadFile(path.join(cwd, file))
 		if (content) {
-			if (file !== ".kilocoderules" && vscodeAPI && !hasShownNonKilocodeRulesMessage) {
-				// kilocode_change: show message to move to .kilocode/rules/
+			if (file !== ".orbitalrules" && vscodeAPI && !hasShownNonKilocodeRulesMessage) {
+				// kilocode_change: show message to move to .orbital/rules/
 				vscodeAPI.window.showWarningMessage(
-					`Loading non-Kilocode rules from ${file}, consider moving to .kilocode/rules/`,
+					`Loading non-Orbital rules from ${file}, consider moving to .orbital/rules/`,
 				)
 				hasShownNonKilocodeRulesMessage = true
-			} // kilocode_change end
+			} // forked_change end
 			return `\n# Rules from ${file}:\n${content}\n`
 		}
 	}
@@ -307,7 +307,7 @@ export async function addCustomInstructions(
 		globalRulesToggleState?: ClineRulesToggles
 		settings?: SystemPromptSettings
 	} = {},
-	// kilocode_change end
+	// forked_change end
 ): Promise<string> {
 	const sections = []
 
@@ -337,7 +337,7 @@ export async function addCustomInstructions(
 			usedRuleFile = `rules-${mode} directories`
 		} else {
 			// Fall back to existing behavior for legacy files
-			const rooModeRuleFile = `.kilocoderules-${mode}`
+			const rooModeRuleFile = `.orbitalrules-${mode}`
 			modeRuleContent = await safeReadFile(path.join(cwd, rooModeRuleFile))
 			if (modeRuleContent) {
 				usedRuleFile = rooModeRuleFile
@@ -368,7 +368,7 @@ export async function addCustomInstructions(
 
 	// Add mode-specific rules first if they exist
 	if (modeRuleContent && modeRuleContent.trim()) {
-		if (usedRuleFile.includes(path.join(".kilocode", `rules-${mode}`))) {
+		if (usedRuleFile.includes(path.join(".orbital", `rules-${mode}`))) {
 			rules.push(modeRuleContent.trim())
 		} else {
 			rules.push(`# Rules from ${usedRuleFile}:\n${modeRuleContent}`)
@@ -387,7 +387,7 @@ export async function addCustomInstructions(
 		}
 	}
 
-	// kilocode_change start: rule toggles
+	// forked_change start: rule toggles
 	if (hasAnyToggles(options.localRulesToggleState) || hasAnyToggles(options.globalRulesToggleState)) {
 		const genericRuleContent =
 			(
@@ -409,7 +409,7 @@ export async function addCustomInstructions(
 			rules.push(genericRuleContent)
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	if (rules.length > 0) {
 		sections.push(`Rules:\n\n${rules.join("\n\n")}`)

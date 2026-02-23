@@ -44,7 +44,7 @@ export const usePromptHistory = ({
 	const [tempInput, setTempInput] = useState("")
 	const [promptHistory, setPromptHistory] = useState<string[]>([])
 
-	// kilocode_change start
+	// forked_change start
 	const { data } = useTaskHistory(
 		{
 			workspace: "current",
@@ -54,7 +54,7 @@ export const usePromptHistory = ({
 		},
 		taskHistoryVersion,
 	)
-	// kilocode_change end
+	// forked_change end
 
 	// Initialize prompt history with hybrid approach: conversation messages if in task, otherwise task history
 	const filteredPromptHistory = useMemo(() => {

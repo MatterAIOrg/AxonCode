@@ -162,7 +162,7 @@
 			},
 			"protected": {
 				"label": "보호된 파일 포함",
-				"description": "Kilo Code가 보호된 파일(.kilocodeignore 및 .kilocode/ 구성 파일 등)을 승인 없이 생성하고 편집할 수 있도록 허용합니다."
+				"description": "Kilo Code가 보호된 파일(.kilocodeignore 및 .orbital/ 구성 파일 등)을 승인 없이 생성하고 편집할 수 있도록 허용합니다."
 			}
 		},
 		"browser": {

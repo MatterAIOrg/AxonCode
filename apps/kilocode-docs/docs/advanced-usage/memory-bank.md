@@ -35,7 +35,7 @@ When Memory Bank is active, Axon Code begins each task with `[Memory Bank: Activ
 
 ## How Memory Bank Works
 
-Memory Bank is built on Axon Code's [Custom Rules](/advanced-usage/custom-rules) feature, providing a specialized framework for project documentation. Memory Bank files are standard markdown files stored in `.kilocode/rules/memory-bank` folder within your project repository. They're not hidden or proprietary - they're regular documentation files that both you and Axon Code can access.
+Memory Bank is built on Axon Code's [Custom Rules](/advanced-usage/custom-rules) feature, providing a specialized framework for project documentation. Memory Bank files are standard markdown files stored in `.orbital/rules/memory-bank` folder within your project repository. They're not hidden or proprietary - they're regular documentation files that both you and Axon Code can access.
 
 At the start of every task, Axon Code reads all Memory Bank files to build a comprehensive understanding of your project. This happens automatically without requiring any action from you. Axon Code then indicates successful Memory Bank activation with `[Memory Bank: Active]` at the beginning of its response, followed by a brief summary of its understanding of your project.
 
@@ -120,9 +120,9 @@ Example: Adding support for new AI models, implementing API endpoints, or any ta
 
 ### First-Time Setup
 
-1. Create a `.kilocode/rules/memory-bank/` folder in your project
-2. Write a basic project brief in `.kilocode/rules/memory-bank/brief.md`
-3. Create a file `.kilocode/rules/memory-bank-instructions.md` and paste there [this document](pathname:///downloads/memory-bank.md)
+1. Create a `.orbital/rules/memory-bank/` folder in your project
+2. Write a basic project brief in `.orbital/rules/memory-bank/brief.md`
+3. Create a file `.orbital/rules/memory-bank-instructions.md` and paste there [this document](pathname:///downloads/memory-bank.md)
 4. Switch to `Architect` mode
 5. Check if a best available AI model is selected, don't use "lightweight" models
 6. Ask Axon Code to "initialize memory bank"
@@ -157,7 +157,7 @@ The initialization step is critically important as it establishes the foundation
     - Documentation and comments
     - Dependencies and external integrations
     - Testing frameworks and patterns
-2. Create comprehensive memory bank files in the `.kilocode/rules/memory-bank` folder
+2. Create comprehensive memory bank files in the `.orbital/rules/memory-bank` folder
 3. Provide a detailed summary of what it has understood about your project
 4. Ask you to verify the accuracy of the generated files
 
@@ -258,7 +258,7 @@ This ensures that even with imperfect documentation, Axon Code can still functio
 
 ### Where are the memory bank files stored?
 
-The Memory Bank files are regular markdown files stored in your project repository, typically in a `.kilocode/rules/memory-bank/` folder. They're not hidden system files - they're designed to be part of your project documentation.
+The Memory Bank files are regular markdown files stored in your project repository, typically in a `.orbital/rules/memory-bank/` folder. They're not hidden system files - they're designed to be part of your project documentation.
 
 ### How often should I update the memory bank?
 
@@ -278,7 +278,7 @@ Memory Bank works with all AI models, but more powerful models will create more 
 
 ### Can I use Memory Bank with multiple projects?
 
-Yes! Each project has its own Memory Bank in its `.kilocode/rules/memory-bank/` folder. Axon Code will automatically use the correct Memory Bank for each project.
+Yes! Each project has its own Memory Bank in its `.orbital/rules/memory-bank/` folder. Axon Code will automatically use the correct Memory Bank for each project.
 
 ### Doesn't Memory Bank use up my context window?
 

@@ -74,7 +74,7 @@
     3. Set `autoApproval.mcp.enabled: true` in config
 
     ```bash
-    cat > ~/.kilocode/cli/config.json <<EOF
+    cat > ~/.orbital/cli/config.json <<EOF
     {
       "version": "1.0.0",
       "autoApproval": {

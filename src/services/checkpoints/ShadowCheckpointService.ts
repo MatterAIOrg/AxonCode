@@ -15,7 +15,7 @@ import { t } from "../../i18n"
 import { CheckpointDiff, CheckpointResult, CheckpointEventMap } from "./types"
 import { getExcludePatterns } from "./excludes"
 
-// kilocode_change start
+// forked_change start
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
 import { stringifyError } from "../../shared/kilocode/errorUtils"
@@ -33,7 +33,7 @@ function showWarning(message: string) {
 		warningsShown.add(message)
 	}
 }
-// kilocode_change end
+// forked_change end
 
 export abstract class ShadowCheckpointService extends EventEmitter {
 	public readonly taskId: string

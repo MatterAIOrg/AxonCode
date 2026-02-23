@@ -162,7 +162,7 @@
 			},
 			"protected": {
 				"label": "Inclusief beschermde bestanden",
-				"description": "Sta Axon Code toe om beschermde bestanden (zoals .kilocodeignore en .kilocode/ configuratiebestanden) aan te maken en te bewerken zonder goedkeuring."
+				"description": "Sta Axon Code toe om beschermde bestanden (zoals .kilocodeignore en .orbital/ configuratiebestanden) aan te maken en te bewerken zonder goedkeuring."
 			}
 		},
 		"browser": {

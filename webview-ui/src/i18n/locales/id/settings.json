@@ -162,7 +162,7 @@
 			},
 			"protected": {
 				"label": "Sertakan file yang dilindungi",
-				"description": "Izinkan Axon Code membuat dan mengedit file yang dilindungi (seperti .kilocodeignore dan file konfigurasi .kilocode/) tanpa memerlukan persetujuan."
+				"description": "Izinkan Axon Code membuat dan mengedit file yang dilindungi (seperti .kilocodeignore dan file konfigurasi .orbital/) tanpa memerlukan persetujuan."
 			}
 		},
 		"browser": {

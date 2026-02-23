@@ -199,7 +199,7 @@ describe("webviewMessageHandler - Automatic Organization Switching", () => {
 
 			// Verify it was called with an object containing the organization ID
 			const callArgs = (refreshOrganizationModes as Mock).mock.calls[0]
-			expect(callArgs[0].apiConfiguration.kilocodeOrganizationId).toBe("org-1")
+			expect(callArgs[0].apiConfiguration.orbitalOrganizationId).toBe("org-1")
 			expect(callArgs[1]).toBe(mockProvider)
 		})
 

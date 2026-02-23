@@ -55,17 +55,17 @@
 		"title": "Moda özgü özel talimatlar (isteğe bağlı)",
 		"resetToDefault": "Varsayılana sıfırla",
 		"description": "{{modeName}} modu için özel davranış yönergeleri ekleyin.",
-		"loadFromFile": "{{mode}} moduna özgü özel talimatlar, çalışma alanınızdaki <span>.kilocode/rules-{{slug}}/</span> klasöründen veya global <0>.kilocode/rules-{{slug}}/</0> klasöründen de yüklenebilir (.kilocoderules-{{slug}} ve .clinerules-{{slug}} kullanımdan kaldırılmıştır ve yakında çalışmayı durduracaktır)."
+		"loadFromFile": "{{mode}} moduna özgü özel talimatlar, çalışma alanınızdaki <span>.orbital/rules-{{slug}}/</span> klasöründen veya global <0>.orbital/rules-{{slug}}/</0> klasöründen de yüklenebilir (.kilocoderules-{{slug}} ve .clinerules-{{slug}} kullanımdan kaldırılmıştır ve yakında çalışmayı durduracaktır)."
 	},
 	"exportMode": {
 		"title": "Modu Dışa Aktar",
-		"description": "Bu modu .kilocode/rules-{{slug}}/ klasöründeki kurallarla birlikte paylaşılabilir bir YAML dosyasına dışa aktar. Orijinal dosyalar değişmeden kalır.",
+		"description": "Bu modu .orbital/rules-{{slug}}/ klasöründeki kurallarla birlikte paylaşılabilir bir YAML dosyasına dışa aktar. Orijinal dosyalar değişmeden kalır.",
 		"exporting": "Dışa aktarılıyor..."
 	},
 	"globalCustomInstructions": {
 		"title": "Tüm Modlar için Özel Talimatlar",
 		"description": "Bu talimatlar tüm modlara uygulanır. Aşağıdaki moda özgü talimatlarla geliştirilebilen temel davranış seti sağlarlar. <0>Daha fazla bilgi edinin</0>",
-		"loadFromFile": "Talimatlar, çalışma alanınızdaki <span>.kilocode/rules/</span> klasöründen veya global <0>.kilocode/rules/</0> klasöründen de yüklenebilir (.kilocoderules ve .clinerules kullanımdan kaldırılmıştır ve yakında çalışmayı durduracaktır)."
+		"loadFromFile": "Talimatlar, çalışma alanınızdaki <span>.orbital/rules/</span> klasöründen veya global <0>.orbital/rules/</0> klasöründen de yüklenebilir (.kilocoderules ve .clinerules kullanımdan kaldırılmıştır ve yakında çalışmayı durduracaktır)."
 	},
 	"importMode": {
 		"selectLevel": "Bu modu nereye içe aktaracağınızı seçin:",
@@ -73,11 +73,11 @@
 		"importing": "İçe aktarılıyor...",
 		"global": {
 			"label": "Genel Seviye",
-			"description": "Tüm projelerde kullanılabilir. Dışa aktarılan mod kural dosyaları içeriyorsa, bunlar genel .kilocode/rules-{slug}/ klasöründe yeniden oluşturulur."
+			"description": "Tüm projelerde kullanılabilir. Dışa aktarılan mod kural dosyaları içeriyorsa, bunlar genel .orbital/rules-{slug}/ klasöründe yeniden oluşturulur."
 		},
 		"project": {
 			"label": "Proje Seviyesi",
-			"description": "Yalnızca bu çalışma alanında kullanılabilir. Dışa aktarılan mod kural dosyaları içeriyorsa, bunlar .kilocode/rules-{slug}/ klasöründe yeniden oluşturulur."
+			"description": "Yalnızca bu çalışma alanında kullanılabilir. Dışa aktarılan mod kural dosyaları içeriyorsa, bunlar .orbital/rules-{slug}/ klasöründe yeniden oluşturulur."
 		}
 	},
 	"systemPrompt": {
@@ -157,7 +157,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "Gelişmiş: Sistem Promptunu Geçersiz Kıl",
-		"description": "<2>⚠️ Uyarı:</2> Bu gelişmiş özellik güvenlik önlemlerini atlar. <1>KULLANMADAN ÖNCE BUNU OKUYUN!</1>Çalışma alanınızda <span>.kilocode/system-prompt-{{slug}}</span> adresinde bir dosya oluşturarak varsayılan sistem istemini geçersiz kılın."
+		"description": "<2>⚠️ Uyarı:</2> Bu gelişmiş özellik güvenlik önlemlerini atlar. <1>KULLANMADAN ÖNCE BUNU OKUYUN!</1>Çalışma alanınızda <span>.orbital/system-prompt-{{slug}}</span> adresinde bir dosya oluşturarak varsayılan sistem istemini geçersiz kılın."
 	},
 	"createModeDialog": {
 		"title": "Yeni Mod Oluştur",

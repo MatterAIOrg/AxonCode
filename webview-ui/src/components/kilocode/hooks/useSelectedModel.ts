@@ -50,11 +50,11 @@ export const getModelIdKey = ({
 		case "kilocode": {
 			return "kilocodeModel"
 		}
-		// kilocode_change start
+		// forked_change start
 		case "ovhcloud": {
 			return "ovhCloudAiEndpointsModelId"
 		}
-		// kilocode_change end
+		// forked_change end
 		default: {
 			return "apiModelId"
 		}

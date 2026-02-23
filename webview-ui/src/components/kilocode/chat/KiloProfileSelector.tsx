@@ -105,12 +105,12 @@ export const KiloProfileSelector = ({
 					}
 				}}
 				contentClassName="max-h-[300px] overflow-y-auto"
-				// kilocode_change start - VSC Theme
+				// forked_change start - VSC Theme
 				triggerClassName={cn(
 					"w-full text-ellipsis overflow-hidden",
 					"bg-[var(--background)] border-[var(--vscode-input-border)] hover:bg-[var(--color-vscode-list-hoverBackground)]",
 				)}
-				// kilocode_change end
+				// forked_change end
 				itemClassName="group"
 				renderItem={({ type, value, label, pinned }) => {
 					if (type !== DropdownOptionType.ITEM) {

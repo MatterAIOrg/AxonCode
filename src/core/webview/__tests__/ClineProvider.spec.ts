@@ -183,14 +183,14 @@ vi.mock("vscode", () => ({
 		Development: 2,
 		Test: 3,
 	},
-	// kilocode_change start
+	// forked_change start
 	UIKind: {
 		1: "Desktop",
 		2: "Web",
 		Desktop: 1,
 		Web: 2,
 	},
-	// kilocode_change end
+	// forked_change end
 	version: "1.85.0",
 }))
 
@@ -526,11 +526,11 @@ describe("ClineProvider", () => {
 			taskHistoryVersion: 0, // kilocode_change
 			shouldShowAnnouncement: false,
 			apiConfiguration: {
-				// kilocode_change start
+				// forked_change start
 				apiProvider: "kilocode",
 				kilocodeModel: openRouterDefaultModelId,
 				kilocodeToken: "kilocode-token",
-				// kilocode_change end
+				// forked_change end
 			},
 			kilocodeDefaultModel: openRouterDefaultModelId,
 			customInstructions: undefined,
@@ -2347,13 +2347,13 @@ describe("Project MCP Settings", () => {
 		})
 
 		// Check that fs.mkdir was called with the correct path
-		expect(mockedFs.mkdir).toHaveBeenCalledWith("/test/workspace/.kilocode", { recursive: true })
+		expect(mockedFs.mkdir).toHaveBeenCalledWith("/test/workspace/.orbital", { recursive: true })
 
 		// Verify file was created with default content
 		expect(safeWriteJson).toHaveBeenCalledWith("/test/workspace/.roo/mcp.json", { mcpServers: {} })
 
 		// Check that openFile was called
-		expect(openFileSpy).toHaveBeenCalledWith("/test/workspace/.kilocode/mcp.json")
+		expect(openFileSpy).toHaveBeenCalledWith("/test/workspace/.orbital/mcp.json")
 	})
 
 	test("handles openProjectMcpSettings when workspace is not open", async () => {
@@ -2389,7 +2389,7 @@ describe("Project MCP Settings", () => {
 		// Verify error message was shown
 		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
 			// kilocode_change
-			expect.stringContaining("Failed to create or open .kilocode/mcp.json"),
+			expect.stringContaining("Failed to create or open .orbital/mcp.json"),
 		)
 	})
 })
@@ -2703,12 +2703,12 @@ describe("ClineProvider - Router Models", () => {
 				unboundApiKey: "unbound-key",
 				litellmApiKey: "litellm-key",
 				litellmBaseUrl: "http://localhost:4000",
-				// kilocode_change start
+				// forked_change start
 				chutesApiKey: "chutes-key",
 				geminiApiKey: "gemini-key",
 				googleGeminiBaseUrl: "https://gemini.example.com",
 				ovhCloudAiEndpointsApiKey: "ovhcloud-key",
-				// kilocode_change end
+				// forked_change end
 			},
 		} as any)
 
@@ -2734,13 +2734,13 @@ describe("ClineProvider - Router Models", () => {
 
 		// Verify getModels was called for each provider with correct options
 		expect(getModels).toHaveBeenCalledWith({ provider: "openrouter", apiKey: "openrouter-key" }) // kilocode_change: apiKey
-		// kilocode_change start
+		// forked_change start
 		expect(getModels).toHaveBeenCalledWith({
 			provider: "gemini",
 			apiKey: "gemini-key",
 			baseUrl: "https://gemini.example.com",
 		})
-		// kilocode_change end
+		// forked_change end
 		expect(getModels).toHaveBeenCalledWith({ provider: "requesty", apiKey: "requesty-key" })
 		expect(getModels).toHaveBeenCalledWith({ provider: "glama" })
 		expect(getModels).toHaveBeenCalledWith({ provider: "unbound", apiKey: "unbound-key" })
@@ -2788,12 +2788,12 @@ describe("ClineProvider - Router Models", () => {
 				unboundApiKey: "unbound-key",
 				litellmApiKey: "litellm-key",
 				litellmBaseUrl: "http://localhost:4000",
-				// kilocode_change start
+				// forked_change start
 				chutesApiKey: "chutes-key",
 				geminiApiKey: "gemini-key",
 				googleGeminiBaseUrl: "https://gemini.example.com",
 				ovhCloudAiEndpointsApiKey: "ovhcloud-key",
-				// kilocode_change end
+				// forked_change end
 			},
 		} as any)
 
@@ -2856,14 +2856,14 @@ describe("ClineProvider - Router Models", () => {
 			values: { provider: "unbound" },
 		})
 
-		// kilocode_change start
+		// forked_change start
 		expect(mockPostMessage).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
 			success: false,
 			error: "Chutes API error",
 			values: { provider: "chutes" },
 		})
-		// kilocode_change end
+		// forked_change end
 
 		expect(mockPostMessage).toHaveBeenCalledWith({
 			type: "singleRouterModelFetchResponse",
@@ -2898,10 +2898,10 @@ describe("ClineProvider - Router Models", () => {
 				requestyApiKey: "requesty-key",
 				glamaApiKey: "glama-key",
 				unboundApiKey: "unbound-key",
-				// kilocode_change start
+				// forked_change start
 				ovhCloudAiEndpointsApiKey: "ovhcloud-key",
 				chutesApiKey: "chutes-key",
-				// kilocode_change end
+				// forked_change end
 				// No litellm config
 			},
 		} as any)
@@ -2938,10 +2938,10 @@ describe("ClineProvider - Router Models", () => {
 				requestyApiKey: "requesty-key",
 				glamaApiKey: "glama-key",
 				unboundApiKey: "unbound-key",
-				// kilocode_change start
+				// forked_change start
 				ovhCloudAiEndpointsApiKey: "ovhcloud-key",
 				chutesApiKey: "chutes-key",
-				// kilocode_change end
+				// forked_change end
 				// No litellm config
 			},
 		} as any)

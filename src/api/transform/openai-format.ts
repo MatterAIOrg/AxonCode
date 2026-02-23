@@ -8,7 +8,7 @@ export function convertToOpenAiMessages(
 
 	for (const anthropicMessage of anthropicMessages) {
 		if (typeof anthropicMessage.content === "string") {
-			// kilocode_change start: Preserve reasoning fields for assistant messages with string content
+			// forked_change start: Preserve reasoning fields for assistant messages with string content
 			if (anthropicMessage.role === "assistant") {
 				const messageWithReasoning = anthropicMessage as typeof anthropicMessage & {
 					reasoning?: string
@@ -28,7 +28,7 @@ export function convertToOpenAiMessages(
 			} else {
 				openAiMessages.push({ role: anthropicMessage.role, content: anthropicMessage.content })
 			}
-			// kilocode_change end
+			// forked_change end
 		} else {
 			// image_url.url is base64 encoded image data
 			// ensure it contains the content-type of the image: data:image/png;base64,
@@ -111,7 +111,7 @@ export function convertToOpenAiMessages(
 											part.source.type === "url"
 												? part.source.url
 												: `data:${part.source.media_type};base64,${part.source.data}`,
-										// kilocode_change end
+										// forked_change end
 									},
 								}
 							}
@@ -159,7 +159,7 @@ export function convertToOpenAiMessages(
 					},
 				}))
 
-				// kilocode_change start: Preserve reasoning fields from the original message
+				// forked_change start: Preserve reasoning fields from the original message
 				// Some models (DeepSeek, OpenRouter, etc.) return reasoning/reasoning_content
 				// in their responses, and these should be passed through in subsequent API calls
 				const assistantMsg: OpenAI.Chat.ChatCompletionAssistantMessageParam = {
@@ -182,7 +182,7 @@ export function convertToOpenAiMessages(
 				}
 
 				openAiMessages.push(assistantMsg)
-				// kilocode_change end
+				// forked_change end
 			}
 		}
 	}

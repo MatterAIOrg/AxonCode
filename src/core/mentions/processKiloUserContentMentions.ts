@@ -89,7 +89,7 @@ export async function processKiloUserContentMentions({
 							...block,
 							text: processedText,
 						}
-						// kilocode_change end
+						// forked_change end
 					}
 
 					return block

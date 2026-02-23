@@ -5,14 +5,14 @@ import { ClaudeCodeMessage } from "./types"
 import readline from "readline"
 import { CLAUDE_CODE_DEFAULT_MAX_OUTPUT_TOKENS } from "@roo-code/types"
 import * as os from "os"
-// kilocode_change start
+// forked_change start
 import path from "node:path"
 import crypto from "node:crypto"
 import fs from "node:fs/promises"
 import { t } from "../../i18n"
 
 export const MAX_SYSTEM_PROMPT_LENGTH = 65536
-// kilocode_change end
+// forked_change end
 const cwd = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0)
 
 // Claude Code installation URL - can be easily updated if needed
@@ -33,7 +33,7 @@ type ProcessState = {
 	exitCode: number | null
 }
 
-// kilocode_change start
+// forked_change start
 async function generateTempSystemPrompt(options: ClaudeCodeOptions): Promise<string | undefined> {
 	const isWindows = os.platform() === "win32"
 	const isSystemPromptTooLong = options.systemPrompt.length > MAX_SYSTEM_PROMPT_LENGTH
@@ -52,7 +52,7 @@ async function unlinkTempSystemPrompt(systemPromptFile: string | undefined): Pro
 	}
 	await fs.unlink(systemPromptFile).catch(console.log)
 }
-// kilocode_change end
+// forked_change end
 
 export async function* runClaudeCode(
 	options: ClaudeCodeOptions & { maxOutputTokens?: number },
@@ -146,11 +146,11 @@ export async function* runClaudeCode(
 		if (!process.killed) {
 			process.kill()
 		}
-		// kilocode_change start
+		// forked_change start
 		if (systemPromptFile) {
 			await unlinkTempSystemPrompt(systemPromptFile)
 		}
-		// kilocode_change end
+		// forked_change end
 	}
 }
 
@@ -195,13 +195,13 @@ function runProcess({
 	const args = ["-p"]
 
 	// Pass system prompt as flag on non-Windows, via stdin on Windows (avoids cmd length limits)
-	// kilocode_change start
+	// forked_change start
 	if (systemPromptFile) {
 		args.push("--system-prompt-file", systemPromptFile)
 	} else {
 		args.push("--system-prompt", systemPrompt)
 	}
-	// kilocode_change end
+	// forked_change end
 
 	args.push(
 		"--verbose",

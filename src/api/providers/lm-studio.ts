@@ -36,10 +36,10 @@ export class LmStudioHandler extends BaseProvider implements SingleCompletionHan
 		this.client = new OpenAI({
 			baseURL: (this.options.lmStudioBaseUrl || "http://localhost:1234") + "/v1",
 			apiKey: "noop",
-			// kilocode_change start
+			// forked_change start
 			timeout: timeout,
 			fetch: fetchWithTimeout(timeout),
-			// kilocode_change end
+			// forked_change end
 		})
 	}
 
@@ -99,9 +99,9 @@ export class LmStudioHandler extends BaseProvider implements SingleCompletionHan
 			if (this.options.lmStudioSpeculativeDecodingEnabled && this.options.lmStudioDraftModelId) {
 				params.draft_model = this.options.lmStudioDraftModelId
 			}
-			// kilocode_change start: Add native tool call support when toolStyle is "json"
+			// forked_change start: Add native tool call support when toolStyle is "json"
 			addNativeToolCallsToParams(params, this.options, metadata)
-			// kilocode_change end
+			// forked_change end
 
 			let results
 			try {
@@ -122,9 +122,9 @@ export class LmStudioHandler extends BaseProvider implements SingleCompletionHan
 			for await (const chunk of results) {
 				const delta = chunk.choices[0]?.delta
 
-				// kilocode_change start: Handle native tool calls when toolStyle is "json"
+				// forked_change start: Handle native tool calls when toolStyle is "json"
 				yield* processNativeToolCallsFromDelta(delta, getActiveToolUseStyle(this.options))
-				// kilocode_change end
+				// forked_change end
 
 				if (delta?.content) {
 					assistantText += delta.content
@@ -152,11 +152,11 @@ export class LmStudioHandler extends BaseProvider implements SingleCompletionHan
 				outputTokens,
 			} as const
 		} catch (error) {
-			// kilocode_change start
+			// forked_change start
 			if (error.cause instanceof HeadersTimeoutError) {
 				throw new Error("Headers timeout", { cause: error })
 			}
-			// kilocode_change end
+			// forked_change end
 			throw new Error(
 				"Please check the LM Studio developer logs to debug what went wrong. You may need to load the model with a larger context length to work with Axon Code's prompts.",
 			)

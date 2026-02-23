@@ -126,7 +126,7 @@ export const AutoApproveSettings = ({
 				</div>
 			</SectionHeader>
 
-			{/* kilocode_change start */}
+			{/* forked_change start */}
 			{/* <Section>
 				<div>
 					<VSCodeCheckbox
@@ -179,7 +179,7 @@ export const AutoApproveSettings = ({
 					</div>
 				</Section>
 			)} */}
-			{/* kilocode_change end */}
+			{/* forked_change end */}
 
 			<Section>
 				<div className="space-y-4">

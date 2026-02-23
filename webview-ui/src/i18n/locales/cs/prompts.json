@@ -55,11 +55,11 @@
 		"title": "Vlastní instrukce pro režim (volitelné)",
 		"resetToDefault": "Obnovit výchozí",
 		"description": "Přidej pokyny pro chování specifické pro režim {{modeName}}.",
-		"loadFromFile": "Vlastní instrukce specifické pro režim {{mode}} lze také načíst ze složky <span>.kilocode/rules/</span> ve tvém pracovním prostoru (.kilocoderules-{{slug}} je zastaralé a brzy přestane fungovat)."
+		"loadFromFile": "Vlastní instrukce specifické pro režim {{mode}} lze také načíst ze složky <span>.orbital/rules/</span> ve tvém pracovním prostoru (.kilocoderules-{{slug}} je zastaralé a brzy přestane fungovat)."
 	},
 	"exportMode": {
 		"title": "Exportovat režim",
-		"description": "Exportuj tento režim s pravidly ze složky .kilocode/rules-{{slug}}/ zkombinovanými do sdílitelného YAML souboru. Původní soubory zůstanou nezměněny.",
+		"description": "Exportuj tento režim s pravidly ze složky .orbital/rules-{{slug}}/ zkombinovanými do sdílitelného YAML souboru. Původní soubory zůstanou nezměněny.",
 		"exporting": "Exportování..."
 	},
 	"importMode": {
@@ -68,11 +68,11 @@
 		"importing": "Importování...",
 		"global": {
 			"label": "Globální úroveň",
-			"description": "Dostupné napříč všemi projekty. Pokud exportovaný režim obsahoval soubory pravidel, budou znovu vytvořeny v globální složce .kilocode/rules-{slug}/."
+			"description": "Dostupné napříč všemi projekty. Pokud exportovaný režim obsahoval soubory pravidel, budou znovu vytvořeny v globální složce .orbital/rules-{slug}/."
 		},
 		"project": {
 			"label": "Úroveň projektu",
-			"description": "Dostupné pouze v tomto pracovním prostoru. Pokud exportovaný režim obsahoval soubory pravidel, budou znovu vytvořeny ve složce .kilocode/rules-{slug}/."
+			"description": "Dostupné pouze v tomto pracovním prostoru. Pokud exportovaný režim obsahoval soubory pravidel, budou znovu vytvořeny ve složce .orbital/rules-{slug}/."
 		}
 	},
 	"advanced": {
@@ -81,7 +81,7 @@
 	"globalCustomInstructions": {
 		"title": "Vlastní instrukce pro všechny režimy",
 		"description": "Tyto instrukce platí pro všechny režimy. Poskytují základní sadu chování, která může být rozšířena instrukcemi specifickými pro režim níže. <0>Zjistit více</0>",
-		"loadFromFile": "Instrukce lze také načíst ze složky <span>.kilocode/rules/</span> ve tvém pracovním prostoru (.kilocoderules je zastaralé a brzy přestane fungovat)."
+		"loadFromFile": "Instrukce lze také načíst ze složky <span>.orbital/rules/</span> ve tvém pracovním prostoru (.kilocoderules je zastaralé a brzy přestane fungovat)."
 	},
 	"systemPrompt": {
 		"preview": "Náhled System Prompt",
@@ -160,7 +160,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "Pokročilé: Přepsat System Prompt",
-		"description": "<2>⚠️ Varování:</2> Tato pokročilá funkce obchází bezpečnostní opatření. <1>PŘEČTI SI TOTO PŘED POUŽITÍM!</1>Přepiš výchozí system prompt vytvořením souboru v <span>.kilocode/system-prompt-{{slug}}</span>."
+		"description": "<2>⚠️ Varování:</2> Tato pokročilá funkce obchází bezpečnostní opatření. <1>PŘEČTI SI TOTO PŘED POUŽITÍM!</1>Přepiš výchozí system prompt vytvořením souboru v <span>.orbital/system-prompt-{{slug}}</span>."
 	},
 	"createModeDialog": {
 		"title": "Vytvořit nový režim",

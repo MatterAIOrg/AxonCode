@@ -150,11 +150,11 @@ describe("RooProtectedController", () => {
 			const patterns = RooProtectedController.getProtectedPatterns()
 
 			expect(patterns).toEqual([
-				".kilocodeignore",
-				".kilocodemodes",
-				".kilocoderules",
-				".kilocode/**",
-				".kilocodeprotected",
+				".orbitalignore",
+				".orbitalmodes",
+				".orbitalrules",
+				".orbital/**",
+				".orbitalprotected",
 				".rooignore",
 				".roomodes",
 				".roorules*",

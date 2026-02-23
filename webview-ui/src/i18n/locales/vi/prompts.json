@@ -55,17 +55,17 @@
 		"title": "Hướng dẫn tùy chỉnh dành riêng cho chế độ (tùy chọn)",
 		"resetToDefault": "Đặt lại về mặc định",
 		"description": "Thêm hướng dẫn hành vi dành riêng cho chế độ {{modeName}}.",
-		"loadFromFile": "Hướng dẫn tùy chỉnh cụ thể cho chế độ {{mode}} cũng có thể được tải từ thư mục <span>.kilocode/rules-{{slug}}/</span> trong không gian làm việc của bạn hoặc từ toàn cục <0>.kilocode/rules-{{slug}}/</0> (.kilocoderules-{{slug}} và .clinerules-{{slug}} đã lỗi thời và sẽ ngừng hoạt động sớm)."
+		"loadFromFile": "Hướng dẫn tùy chỉnh cụ thể cho chế độ {{mode}} cũng có thể được tải từ thư mục <span>.orbital/rules-{{slug}}/</span> trong không gian làm việc của bạn hoặc từ toàn cục <0>.orbital/rules-{{slug}}/</0> (.kilocoderules-{{slug}} và .clinerules-{{slug}} đã lỗi thời và sẽ ngừng hoạt động sớm)."
 	},
 	"exportMode": {
 		"title": "Xuất chế độ",
-		"description": "Xuất chế độ này với các quy tắc từ thư mục .kilocode/rules-{{slug}}/ được kết hợp thành tệp YAML có thể chia sẻ. Các tệp gốc vẫn không thay đổi.",
+		"description": "Xuất chế độ này với các quy tắc từ thư mục .orbital/rules-{{slug}}/ được kết hợp thành tệp YAML có thể chia sẻ. Các tệp gốc vẫn không thay đổi.",
 		"exporting": "Đang xuất..."
 	},
 	"globalCustomInstructions": {
 		"title": "Hướng dẫn tùy chỉnh cho tất cả các chế độ",
 		"description": "Những hướng dẫn này áp dụng cho tất cả các chế độ. Chúng cung cấp một bộ hành vi cơ bản có thể được nâng cao bởi hướng dẫn dành riêng cho chế độ bên dưới. <0>Tìm hiểu thêm</0>",
-		"loadFromFile": "Hướng dẫn cũng có thể được tải từ thư mục <span>.kilocode/rules/</span> trong không gian làm việc của bạn hoặc từ toàn cục <0>.kilocode/rules/</0> (.kilocoderules và .clinerules đã lỗi thời và sẽ ngừng hoạt động sớm)."
+		"loadFromFile": "Hướng dẫn cũng có thể được tải từ thư mục <span>.orbital/rules/</span> trong không gian làm việc của bạn hoặc từ toàn cục <0>.orbital/rules/</0> (.kilocoderules và .clinerules đã lỗi thời và sẽ ngừng hoạt động sớm)."
 	},
 	"importMode": {
 		"selectLevel": "Chọn nơi để nhập chế độ này:",
@@ -73,11 +73,11 @@
 		"importing": "Đang nhập...",
 		"global": {
 			"label": "Cấp độ toàn cục",
-			"description": "Có sẵn trong tất cả các dự án. Nếu chế độ đã xuất có chứa tệp quy tắc, chúng sẽ được tạo lại trong thư mục toàn cục .kilocode/rules-{slug}/."
+			"description": "Có sẵn trong tất cả các dự án. Nếu chế độ đã xuất có chứa tệp quy tắc, chúng sẽ được tạo lại trong thư mục toàn cục .orbital/rules-{slug}/."
 		},
 		"project": {
 			"label": "Cấp độ dự án",
-			"description": "Chỉ có sẵn trong không gian làm việc này. Nếu chế độ đã xuất có chứa tệp quy tắc, chúng sẽ được tạo lại trong thư mục .kilocode/rules-{slug}/."
+			"description": "Chỉ có sẵn trong không gian làm việc này. Nếu chế độ đã xuất có chứa tệp quy tắc, chúng sẽ được tạo lại trong thư mục .orbital/rules-{slug}/."
 		}
 	},
 	"systemPrompt": {

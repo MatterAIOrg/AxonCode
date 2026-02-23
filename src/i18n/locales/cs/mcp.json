@@ -3,7 +3,7 @@
 		"invalid_settings_format": "Neplatný formát JSON nastavení MCP. Ujisti se prosím, že tvoje nastavení odpovídají správnému formátu JSON.",
 		"invalid_settings_syntax": "Neplatný formát JSON nastavení MCP. Zkontroluj prosím svůj soubor nastavení na syntaktické chyby.",
 		"invalid_settings_validation": "Neplatný formát nastavení MCP: {{errorMessages}}",
-		"create_json": "Nepodařilo se vytvořit nebo otevřít .kilocode/mcp.json: {{error}}",
+		"create_json": "Nepodařilo se vytvořit nebo otevřít .orbital/mcp.json: {{error}}",
 		"failed_update_project": "Nepodařilo se aktualizovat servery MCP projektu",
 		"invalidJsonArgument": "Axon Code se pokusil použít {{toolName}} s neplatným argumentem JSON. Zkouším znovu...",
 		"refresh_after_disable": "Nepodařilo se obnovit připojení MCP po deaktivaci",

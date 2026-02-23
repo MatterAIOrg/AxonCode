@@ -12,10 +12,10 @@ import {
 	doubaoModels,
 	featherlessModels,
 	fireworksModels,
-	// kilocode_change start
+	// forked_change start
 	syntheticModels,
 	// geminiModels,
-	// kilocode_change end
+	// forked_change end
 	groqModels,
 	ioIntelligenceModels,
 	mistralModels,
@@ -48,12 +48,12 @@ export const dynamicProviders = [
 	"vercel-ai-gateway",
 	"huggingface",
 	"litellm",
-	// kilocode_change start
+	// forked_change start
 	"kilocode-openrouter",
 	"ovhcloud",
 	"chutes",
 	"gemini",
-	// kilocode_change end
+	// forked_change end
 	"deepinfra",
 	"io-intelligence",
 	"requesty",
@@ -144,12 +144,12 @@ export const providerNames = [
 	"openai-native",
 	"qwen-code",
 	"roo",
-	// kilocode_change start
+	// forked_change start
 	"kilocode",
 	"gemini-cli",
 	"virtual-quota-fallback",
 	"synthetic",
-	// kilocode_change end
+	// forked_change end
 	"sambanova",
 	"vertex",
 	"xai",
@@ -198,11 +198,11 @@ const baseProviderSettingsSchema = z.object({
 	// Model verbosity.
 	verbosity: verbosityLevelsSchema.optional(),
 
-	// kilocode_change start
+	// forked_change start
 	// Tool style - xml (legacy) or json (modern).
 	// Default to XML for anywhere not specified.
 	toolStyle: toolUseStylesSchema.optional(),
-	// kilocode_change end
+	// forked_change end
 })
 
 // Several of the providers share common model config properties.
@@ -227,10 +227,10 @@ const glamaSchema = baseProviderSettingsSchema.extend({
 	glamaApiKey: z.string().optional(),
 })
 
-// kilocode_change start
+// forked_change start
 export const openRouterProviderDataCollectionSchema = z.enum(["allow", "deny"])
 export const openRouterProviderSortSchema = z.enum(["price", "throughput", "latency"])
-// kilocode_change end
+// forked_change end
 
 const openRouterSchema = baseProviderSettingsSchema.extend({
 	openRouterApiKey: z.string().optional(),
@@ -238,11 +238,11 @@ const openRouterSchema = baseProviderSettingsSchema.extend({
 	openRouterBaseUrl: z.string().optional(),
 	openRouterSpecificProvider: z.string().optional(),
 	openRouterUseMiddleOutTransform: z.boolean().optional(),
-	// kilocode_change start
+	// forked_change start
 	openRouterProviderDataCollection: openRouterProviderDataCollectionSchema.optional(),
 	openRouterProviderSort: openRouterProviderSortSchema.optional(),
 	openRouterZdr: z.boolean().optional(),
-	// kilocode_change end
+	// forked_change end
 })
 
 const bedrockSchema = apiModelIdProviderModelSchema.extend({
@@ -318,12 +318,12 @@ const geminiSchema = apiModelIdProviderModelSchema.extend({
 	enableGrounding: z.boolean().optional(),
 })
 
-// kilocode_change start
+// forked_change start
 const geminiCliSchema = apiModelIdProviderModelSchema.extend({
 	geminiCliOAuthPath: z.string().optional(),
 	geminiCliProjectId: z.string().optional(),
 })
-// kilocode_change end
+// forked_change end
 
 const openAiNativeSchema = apiModelIdProviderModelSchema.extend({
 	openAiNativeApiKey: z.string().optional(),
@@ -411,7 +411,7 @@ const sambaNovaSchema = apiModelIdProviderModelSchema.extend({
 	sambaNovaApiKey: z.string().optional(),
 })
 
-// kilocode_change start
+// forked_change start
 const ovhcloudSchema = baseProviderSettingsSchema.extend({
 	ovhCloudAiEndpointsApiKey: z.string().optional(),
 	ovhCloudAiEndpointsModelId: z.string().optional(),
@@ -447,7 +447,7 @@ export const virtualQuotaFallbackProfileDataSchema = z.object({
 const virtualQuotaFallbackSchema = baseProviderSettingsSchema.extend({
 	profiles: z.array(virtualQuotaFallbackProfileDataSchema).optional(),
 })
-// kilocode_change end
+// forked_change end
 
 export const zaiApiLineSchema = z.enum(["international_coding", "china_coding"])
 
@@ -462,11 +462,11 @@ const fireworksSchema = apiModelIdProviderModelSchema.extend({
 	fireworksApiKey: z.string().optional(),
 })
 
-// kilocode_change start
+// forked_change start
 const syntheticSchema = apiModelIdProviderModelSchema.extend({
 	syntheticApiKey: z.string().optional(),
 })
-// kilocode_change end
+// forked_change end
 
 const featherlessSchema = apiModelIdProviderModelSchema.extend({
 	featherlessApiKey: z.string().optional(),
@@ -518,12 +518,12 @@ export const providerSettingsSchemaDiscriminated = z.discriminatedUnion("apiProv
 	humanRelaySchema.merge(z.object({ apiProvider: z.literal("human-relay") })),
 	fakeAiSchema.merge(z.object({ apiProvider: z.literal("fake-ai") })),
 	xaiSchema.merge(z.object({ apiProvider: z.literal("xai") })),
-	// kilocode_change start
+	// forked_change start
 	geminiCliSchema.merge(z.object({ apiProvider: z.literal("gemini-cli") })),
 	kilocodeSchema.merge(z.object({ apiProvider: z.literal("kilocode") })),
 	virtualQuotaFallbackSchema.merge(z.object({ apiProvider: z.literal("virtual-quota-fallback") })),
 	syntheticSchema.merge(z.object({ apiProvider: z.literal("synthetic") })),
-	// kilocode_change end
+	// forked_change end
 	groqSchema.merge(z.object({ apiProvider: z.literal("groq") })),
 	huggingFaceSchema.merge(z.object({ apiProvider: z.literal("huggingface") })),
 	chutesSchema.merge(z.object({ apiProvider: z.literal("chutes") })),
@@ -553,12 +553,12 @@ export const providerSettingsSchema = z.object({
 	...vsCodeLmSchema.shape,
 	...lmStudioSchema.shape,
 	...geminiSchema.shape,
-	// kilocode_change start
+	// forked_change start
 	...geminiCliSchema.shape,
 	...kilocodeSchema.shape,
 	...virtualQuotaFallbackSchema.shape,
 	...syntheticSchema.shape,
-	// kilocode_change end
+	// forked_change end
 	...openAiNativeSchema.shape,
 	...mistralSchema.shape,
 	...deepSeekSchema.shape,
@@ -747,7 +747,7 @@ export const MODELS_BY_PROVIDER: Record<
 		label: "Fireworks",
 		models: Object.keys(fireworksModels),
 	},
-	// kilocode_change start
+	// forked_change start
 	synthetic: {
 		id: "synthetic",
 		label: "Synthetic",
@@ -758,7 +758,7 @@ export const MODELS_BY_PROVIDER: Record<
 	//	label: "Google Gemini",
 	//	models: Object.keys(geminiModels),
 	//},
-	// kilocode_change end
+	// forked_change end
 	groq: { id: "groq", label: "Groq", models: Object.keys(groqModels) },
 	"io-intelligence": {
 		id: "io-intelligence",
@@ -809,11 +809,11 @@ export const MODELS_BY_PROVIDER: Record<
 	unbound: { id: "unbound", label: "Unbound", models: [] },
 	ovhcloud: { id: "ovhcloud", label: "OVHcloud AI Endpoints", models: [] }, // kilocode_change
 
-	// kilocode_change start
+	// forked_change start
 	kilocode: { id: "kilocode", label: "Kilocode", models: [] },
 	"kilocode-openrouter": { id: "kilocode-openrouter", label: "Kilocode", models: [] }, // temporarily needed to satisfy because we're using 2 inconsistent names apparently
 	"virtual-quota-fallback": { id: "virtual-quota-fallback", label: "Virtual Quota Fallback", models: [] },
-	// kilocode_change end
+	// forked_change end
 	deepinfra: { id: "deepinfra", label: "DeepInfra", models: [] },
 	"vercel-ai-gateway": { id: "vercel-ai-gateway", label: "Vercel AI Gateway", models: [] },
 

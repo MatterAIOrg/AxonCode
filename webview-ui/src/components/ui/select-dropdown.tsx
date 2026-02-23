@@ -91,9 +91,9 @@ export const SelectDropdown = React.memo(
 			// const searchInputRef = React.useRef<HTMLInputElement>(null)
 			const portalContainer = useRooPortal("roo-portal")
 
-			// kilocode_change start
+			// forked_change start
 			const TriggerIcon = triggerIcon === false ? null : triggerIcon === true ? CaretUpIcon : triggerIcon
-			// kilocode_change end
+			// forked_change end
 
 			// Memoize the selected option to prevent unnecessary calculations
 			const selectedOption = React.useMemo(
@@ -227,11 +227,11 @@ export const SelectDropdown = React.memo(
 							: "opacity-90 hover:opacity-100 hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)] cursor-pointer",
 						triggerClassName,
 					)}>
-					{/* kilocode_change start */}
+					{/* forked_change start */}
 					{TriggerIcon && <TriggerIcon className="pointer-events-none opacity-80 flex-shrink-0 size-3.5" />}
-					{/* kilocode_change end */}
+					{/* forked_change end */}
 
-					{/* kilocode_change start */}
+					{/* forked_change start */}
 					{selectedOption?.codicon &&
 						(() => {
 							const IconComponent = getIconComponent(selectedOption.codicon)
@@ -246,7 +246,7 @@ export const SelectDropdown = React.memo(
 								/>
 							)
 						})()}
-					{/* kilocode_change end */}
+					{/* forked_change end */}
 					<span className="truncate">{displayText}</span>
 				</PopoverTrigger>
 			)
@@ -336,7 +336,7 @@ export const SelectDropdown = React.memo(
 														renderItem(option)
 													) : (
 														<>
-															{/* kilocode_change start */}
+															{/* forked_change start */}
 															<div className="flex items-center flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
 																{option.codicon &&
 																	(() => {
@@ -367,7 +367,7 @@ export const SelectDropdown = React.memo(
 																		</div>
 																	)}
 																</div>
-																{/* kilocode_change end */}
+																{/* forked_change end */}
 																{/* {option.value === value && (
 																	<Check className="ml-1 size-4 p-0.5" />
 																)} */}

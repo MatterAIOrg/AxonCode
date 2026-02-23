@@ -200,13 +200,13 @@ export class CodeIndexOrchestrator {
 				await this.cacheManager.clearCacheFile()
 			}
 
-			// kilocode_change start
+			// forked_change start
 			if (this._cancelRequested) {
 				this._isProcessing = false
 				this.stateManager.setSystemState("Standby", t("embeddings:orchestrator.indexingCancelled"))
 				return
 			}
-			// kilocode_change end
+			// forked_change end
 
 			this.stateManager.setSystemState("Indexing", "Services ready. Starting workspace scan...")
 
@@ -243,7 +243,7 @@ export class CodeIndexOrchestrator {
 				throw new Error("Scan failed, is scanner initialized?")
 			}
 
-			// kilocode_change start
+			// forked_change start
 			if (this._cancelRequested || this.scanner.isCancelled) {
 				this._isProcessing = false
 				if (this.stateManager.state !== "Error") {
@@ -251,7 +251,7 @@ export class CodeIndexOrchestrator {
 				}
 				return
 			}
-			// kilocode_change end
+			// forked_change end
 
 			const { stats } = result
 
@@ -339,7 +339,7 @@ export class CodeIndexOrchestrator {
 		this._isProcessing = false
 	}
 
-	// kilocode_change start
+	// forked_change start
 	/**
 	 * Gracefully cancels any ongoing indexing work.
 	 * - Stops the watcher if active
@@ -363,7 +363,7 @@ export class CodeIndexOrchestrator {
 		// Clear processing flag
 		this._isProcessing = false
 	}
-	// kilocode_change end
+	// forked_change end
 
 	/**
 	 * Clears all index data by stopping the watcher, clearing the vector store,

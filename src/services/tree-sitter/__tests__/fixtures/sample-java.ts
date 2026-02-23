@@ -89,12 +89,12 @@ public class TestClassDefinition<T extends Comparable<T>>
         System.out.println(testInterfaceDefaultMethod(message, data));
     }
 
-    // kilocode_change start: method added
+    // forked_change start: method added
     @TestAnnotationDefinition(value="test")    
     void testMultipleAnnotationMethod(String message, T data) {
         System.out.println(testInterfaceDefaultMethod(message, data));
     }
-    // kilocode_change end
+    // forked_change end
 
     // Generic method test - at least 4 lines long
     public <R extends Comparable<R>> R testGenericMethodDefinition(

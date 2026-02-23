@@ -22,7 +22,7 @@ import { DEFAULT_HEADERS } from "./constants"
 import { addNativeToolCallsToParams, processNativeToolCallsFromDelta } from "./kilocode/nativeToolCallHelpers"
 import { verifyFinishReason } from "./kilocode/verifyFinishReason"
 
-// kilocode_change start
+// forked_change start
 type OpenRouterProviderParams = {
 	order?: string[]
 	only?: string[]
@@ -34,7 +34,7 @@ type OpenRouterProviderParams = {
 
 import { isAnyRecognizedKiloCodeError } from "../../shared/kilocode/errorUtils"
 import { safeJsonParse } from "../../shared/safeJsonParse"
-// kilocode_change end
+// forked_change end
 
 import { handleOpenAIError } from "./utils/openai-error-handler"
 
@@ -130,11 +130,11 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 	protected models: ModelRecord = {}
 	protected endpoints: ModelRecord = {}
 
-	// kilocode_change start property
+	// forked_change start property
 	protected get providerName(): "OpenRouter" | "KiloCode" {
 		return "OpenRouter" as const
 	}
-	// kilocode_change end
+	// forked_change end
 
 	constructor(options: ApiHandlerOptions) {
 		super()
@@ -146,7 +146,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		this.client = new OpenAI({ baseURL, apiKey, defaultHeaders: DEFAULT_HEADERS })
 	}
 
-	// kilocode_change start
+	// forked_change start
 	customRequestOptions(metadata?: ApiHandlerCreateMessageMetadata): { headers: Record<string, string> } | undefined {
 		const headers: Record<string, string> = {}
 
@@ -192,7 +192,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		}
 		return {}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	override async *createMessage(
 		systemPrompt: string,
@@ -249,11 +249,11 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 					throw err
 				}
 
-				// kilocode_change start
+				// forked_change start
 				if ("provider" in chunk && typeof chunk.provider === "string") {
 					inferenceProvider = chunk.provider
 				}
-				// kilocode_change end
+				// forked_change end
 
 				// Handle usage data which can be present even when choices is empty
 				if (chunk.usage) {
@@ -313,7 +313,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 					}
 				}
 
-				// kilocode_change start: Handle reasoning from API (both 'reasoning' and 'reasoning_content' keys)
+				// forked_change start: Handle reasoning from API (both 'reasoning' and 'reasoning_content' keys)
 				// Some models send 'reasoning', others send 'reasoning_content'
 				if ("reasoning" in delta && delta.reasoning) {
 					const reasoningText = (delta.reasoning as string | undefined) || ""
@@ -330,11 +330,11 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 						text: reasoningText,
 					}
 				}
-				// kilocode_change end
+				// forked_change end
 
 				// Handle native tool calls when toolStyle is "json"
 				yield* processNativeToolCallsFromDelta(delta, getActiveToolUseStyle(this.options))
-				// kilocode_change end
+				// forked_change end
 
 				// if (delta?.content) {
 				// 	yield { type: "text", text: delta.content }
@@ -357,10 +357,10 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 				outputTokens: lastUsage.completion_tokens || 0,
 				cacheReadTokens: lastUsage.prompt_tokens_details?.cached_tokens,
 				reasoningTokens: lastUsage.completion_tokens_details?.reasoning_tokens,
-				// kilocode_change start
+				// forked_change start
 				totalCost: this.getTotalCost(lastUsage),
 				inferenceProvider,
-				// kilocode_change end
+				// forked_change end
 			}
 		}
 	}
@@ -463,10 +463,10 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 				{
 					method: "POST",
 					headers: {
-						// kilocode_change start
+						// forked_change start
 						...DEFAULT_HEADERS,
 						...this.getCustomRequestHeaders(taskId),
-						// kilocode_change end
+						// forked_change end
 						Authorization: `Bearer ${apiKey}`,
 						"Content-Type": "application/json",
 					},
@@ -562,7 +562,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 	}
 }
 
-// kilocode_change start
+// forked_change start
 function makeOpenRouterErrorReadable(error: any) {
 	try {
 		const metadata = error?.error?.metadata as { raw?: string; provider_name?: string } | undefined
@@ -637,4 +637,4 @@ function makeOpenRouterErrorReadable(error: any) {
 		return "Provider error: An unexpected error occurred while processing the API response"
 	}
 }
-// kilocode_change end
+// forked_change end

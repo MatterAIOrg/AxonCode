@@ -225,7 +225,7 @@ export class CodeIndexManager {
 		}
 	}
 
-	// kilocode_change start
+	// forked_change start
 	/**
 	 * Cancel any active indexing activity immediately.
 	 */
@@ -237,7 +237,7 @@ export class CodeIndexManager {
 			this._orchestrator.cancelIndexing()
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	/**
 	 * Recovers from error state by clearing the error and resetting internal state.
@@ -379,7 +379,7 @@ export class CodeIndexManager {
 			rooIgnoreController,
 		)
 
-		// kilocode_change start
+		// forked_change start
 		// Only validate the embedder if it matches the currently configured provider
 		const config = this._configManager!.getConfig()
 		const shouldValidate = embedder.embedderInfo.name === config.embedderProvider
@@ -392,7 +392,7 @@ export class CodeIndexManager {
 				throw new Error(errorMessage)
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 
 		// (Re)Initialize orchestrator
 		this._orchestrator = new CodeIndexOrchestrator(

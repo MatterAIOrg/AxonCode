@@ -82,12 +82,12 @@ const App = () => {
 		telemetrySetting,
 		telemetryKey,
 		machineId,
-		// kilocode_change start: unused
+		// forked_change start: unused
 		// cloudUserInfo,
 		// cloudIsAuthenticated,
 		// cloudApiUrl,
 		// cloudOrganizations,
-		// kilocode_change end
+		// forked_change end
 		renderContext,
 		mdmCompliant,
 		apiConfiguration, // kilocode_change
@@ -162,7 +162,7 @@ const App = () => {
 					chatViewRef.current?.focusInput()
 					return
 				}
-				// kilocode_change end
+				// forked_change end
 
 				// Handle switchTab action with tab parameter
 				if (message.action === "switchTab" && message.tab) {
@@ -233,25 +233,25 @@ const App = () => {
 		}
 	}, [shouldShowAnnouncement, tab])
 
-	// kilocode_change start
+	// forked_change start
 	const telemetryDistinctId = useKiloIdentity(apiConfiguration?.kilocodeToken ?? "", machineId ?? "")
 	useEffect(() => {
 		if (didHydrateState) {
 			telemetryClient.updateTelemetryState(telemetrySetting, telemetryKey, telemetryDistinctId)
 
-			// kilocode_change start
+			// forked_change start
 			const memoryService = new MemoryService()
 			memoryService.start()
 			return () => memoryService.stop()
-			// kilocode_change end
+			// forked_change end
 		}
 	}, [telemetrySetting, telemetryKey, telemetryDistinctId, didHydrateState])
-	// kilocode_change end
+	// forked_change end
 
 	// Tell the extension that we are ready to receive messages.
 	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
 
-	// kilocode_change start: Fetch beta models availability on mount and when API config changes
+	// forked_change start: Fetch beta models availability on mount and when API config changes
 	useEffect(() => {
 		if (didHydrateState && apiConfiguration?.kilocodeToken) {
 			vscode.postMessage({ type: "fetchBetaModelsRequest" })

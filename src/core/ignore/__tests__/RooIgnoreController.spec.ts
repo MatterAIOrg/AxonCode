@@ -78,10 +78,10 @@ describe("RooIgnoreController", () => {
 
 	describe("initialization", () => {
 		/**
-		 * Tests the controller initialization when .kilocodeignore exists
+		 * Tests the controller initialization when .orbitalignore exists
 		 */
-		it("should load .kilocodeignore patterns on initialization when file exists", async () => {
-			// Setup mocks to simulate existing .kilocodeignore file
+		it("should load .orbitalignore patterns on initialization when file exists", async () => {
+			// Setup mocks to simulate existing .orbitalignore file
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockResolvedValue("node_modules\n.git\nsecrets.json")
 
@@ -89,8 +89,8 @@ describe("RooIgnoreController", () => {
 			await controller.initialize()
 
 			// Verify file was checked and read
-			expect(mockFileExists).toHaveBeenCalledWith(path.join(TEST_CWD, ".kilocodeignore"))
-			expect(mockReadFile).toHaveBeenCalledWith(path.join(TEST_CWD, ".kilocodeignore"), "utf8")
+			expect(mockFileExists).toHaveBeenCalledWith(path.join(TEST_CWD, ".orbitalignore"))
+			expect(mockReadFile).toHaveBeenCalledWith(path.join(TEST_CWD, ".orbitalignore"), "utf8")
 
 			// Verify content was stored
 			expect(controller.rooIgnoreContent).toBe("node_modules\n.git\nsecrets.json")
@@ -103,10 +103,10 @@ describe("RooIgnoreController", () => {
 		})
 
 		/**
-		 * Tests the controller behavior when .kilocodeignore doesn't exist
+		 * Tests the controller behavior when .orbitalignore doesn't exist
 		 */
-		it("should allow all access when .kilocodeignore doesn't exist", async () => {
-			// Setup mocks to simulate missing .kilocodeignore file
+		it("should allow all access when .orbitalignore doesn't exist", async () => {
+			// Setup mocks to simulate missing .orbitalignore file
 			mockFileExists.mockResolvedValue(false)
 
 			// Initialize controller
@@ -123,12 +123,12 @@ describe("RooIgnoreController", () => {
 		/**
 		 * Tests the file watcher setup
 		 */
-		it("should set up file watcher for .kilocodeignore changes", async () => {
+		it("should set up file watcher for .orbitalignore changes", async () => {
 			// Check that watcher was created with correct pattern
 			expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith(
 				expect.objectContaining({
 					base: TEST_CWD,
-					pattern: ".kilocodeignore",
+					pattern: ".orbitalignore",
 				}),
 			)
 
@@ -141,7 +141,7 @@ describe("RooIgnoreController", () => {
 		/**
 		 * Tests error handling during initialization
 		 */
-		it("should handle errors when loading .kilocodeignore", async () => {
+		it("should handle errors when loading .orbitalignore", async () => {
 			// Setup mocks to simulate error
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockRejectedValue(new Error("Test file read error"))
@@ -153,7 +153,7 @@ describe("RooIgnoreController", () => {
 			await controller.initialize()
 
 			// Verify error was logged
-			expect(consoleSpy).toHaveBeenCalledWith("Unexpected error loading .kilocodeignore:", expect.any(Error))
+			expect(consoleSpy).toHaveBeenCalledWith("Unexpected error loading .orbitalignore:", expect.any(Error))
 
 			// Cleanup
 			consoleSpy.mockRestore()
@@ -162,7 +162,7 @@ describe("RooIgnoreController", () => {
 
 	describe("validateAccess", () => {
 		beforeEach(async () => {
-			// Setup .kilocodeignore content
+			// Setup .orbitalignore content
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockResolvedValue("node_modules\n.git\nsecrets/**\n*.log")
 			await controller.initialize()
@@ -210,10 +210,10 @@ describe("RooIgnoreController", () => {
 		})
 
 		/**
-		 * Tests the default behavior when no .kilocodeignore exists
+		 * Tests the default behavior when no .orbitalignore exists
 		 */
-		it("should allow all access when no .kilocodeignore content", async () => {
-			// Create a new controller with no .kilocodeignore
+		it("should allow all access when no .orbitalignore content", async () => {
+			// Create a new controller with no .orbitalignore
 			mockFileExists.mockResolvedValue(false)
 			const emptyController = new RooIgnoreController(TEST_CWD)
 			await emptyController.initialize()
@@ -248,7 +248,7 @@ describe("RooIgnoreController", () => {
 
 	describe("validateCommand", () => {
 		beforeEach(async () => {
-			// Setup .kilocodeignore content
+			// Setup .orbitalignore content
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockResolvedValue("node_modules\n.git\nsecrets/**\n*.log")
 			await controller.initialize()
@@ -303,10 +303,10 @@ describe("RooIgnoreController", () => {
 		})
 
 		/**
-		 * Tests behavior when no .kilocodeignore exists
+		 * Tests behavior when no .orbitalignore exists
 		 */
-		it("should allow all commands when no .kilocodeignore exists", async () => {
-			// Create a new controller with no .kilocodeignore
+		it("should allow all commands when no .orbitalignore exists", async () => {
+			// Create a new controller with no .orbitalignore
 			mockFileExists.mockResolvedValue(false)
 			const emptyController = new RooIgnoreController(TEST_CWD)
 			await emptyController.initialize()
@@ -319,7 +319,7 @@ describe("RooIgnoreController", () => {
 
 	describe("filterPaths", () => {
 		beforeEach(async () => {
-			// Setup .kilocodeignore content
+			// Setup .orbitalignore content
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockResolvedValue("node_modules\n.git\nsecrets/**\n*.log")
 			await controller.initialize()
@@ -382,10 +382,10 @@ describe("RooIgnoreController", () => {
 
 	describe("getInstructions", () => {
 		/**
-		 * Tests instructions generation with .kilocodeignore
+		 * Tests instructions generation with .orbitalignore
 		 */
-		it("should generate formatted instructions when .kilocodeignore exists", async () => {
-			// Setup .kilocodeignore content
+		it("should generate formatted instructions when .orbitalignore exists", async () => {
+			// Setup .orbitalignore content
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockResolvedValue("node_modules\n.git\nsecrets/**")
 			await controller.initialize()
@@ -393,7 +393,7 @@ describe("RooIgnoreController", () => {
 			const instructions = controller.getInstructions()
 
 			// Verify instruction format
-			expect(instructions).toContain("# .kilocodeignore")
+			expect(instructions).toContain("# .orbitalignore")
 			expect(instructions).toContain(LOCK_TEXT_SYMBOL)
 			expect(instructions).toContain("node_modules")
 			expect(instructions).toContain(".git")
@@ -401,10 +401,10 @@ describe("RooIgnoreController", () => {
 		})
 
 		/**
-		 * Tests behavior when no .kilocodeignore exists
+		 * Tests behavior when no .orbitalignore exists
 		 */
-		it("should return undefined when no .kilocodeignore exists", async () => {
-			// Setup no .kilocodeignore
+		it("should return undefined when no .orbitalignore exists", async () => {
+			// Setup no .orbitalignore
 			mockFileExists.mockResolvedValue(false)
 			await controller.initialize()
 
@@ -437,10 +437,10 @@ describe("RooIgnoreController", () => {
 
 	describe("file watcher", () => {
 		/**
-		 * Tests behavior when .kilocodeignore is created
+		 * Tests behavior when .orbitalignore is created
 		 */
-		it("should reload .kilocodeignore when file is created", async () => {
-			// Setup initial state without .kilocodeignore
+		it("should reload .orbitalignore when file is created", async () => {
+			// Setup initial state without .orbitalignore
 			mockFileExists.mockResolvedValue(false)
 			await controller.initialize()
 
@@ -451,7 +451,7 @@ describe("RooIgnoreController", () => {
 			// Setup for the test
 			mockFileExists.mockResolvedValue(false) // Initially no file exists
 
-			// Create and initialize controller with no .kilocodeignore
+			// Create and initialize controller with no .orbitalignore
 			controller = new RooIgnoreController(TEST_CWD)
 			await controller.initialize()
 
@@ -462,7 +462,7 @@ describe("RooIgnoreController", () => {
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockResolvedValue("node_modules")
 
-			// Force reload of .kilocodeignore content manually
+			// Force reload of .orbitalignore content manually
 			await controller.initialize()
 
 			// Now verify content was updated
@@ -473,10 +473,10 @@ describe("RooIgnoreController", () => {
 		})
 
 		/**
-		 * Tests behavior when .kilocodeignore is changed
+		 * Tests behavior when .orbitalignore is changed
 		 */
-		it("should reload .kilocodeignore when file is changed", async () => {
-			// Setup initial state with .kilocodeignore
+		it("should reload .orbitalignore when file is changed", async () => {
+			// Setup initial state with .orbitalignore
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockResolvedValue("node_modules")
 			await controller.initialize()
@@ -501,10 +501,10 @@ describe("RooIgnoreController", () => {
 		})
 
 		/**
-		 * Tests behavior when .kilocodeignore is deleted
+		 * Tests behavior when .orbitalignore is deleted
 		 */
-		it("should reset when .kilocodeignore is deleted", async () => {
-			// Setup initial state with .kilocodeignore
+		it("should reset when .orbitalignore is deleted", async () => {
+			// Setup initial state with .orbitalignore
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockResolvedValue("node_modules")
 			await controller.initialize()

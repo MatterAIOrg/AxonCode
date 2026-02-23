@@ -30,10 +30,10 @@ import {
 	HuggingFaceHandler,
 	ChutesHandler,
 	LiteLLMHandler,
-	// kilocode_change start
+	// forked_change start
 	VirtualQuotaFallbackHandler,
 	GeminiCliHandler,
-	// kilocode_change end
+	// forked_change end
 	ClaudeCodeHandler,
 	QwenCodeHandler,
 	SambaNovaHandler,
@@ -48,9 +48,9 @@ import {
 	DeepInfraHandler,
 	OVHcloudAIEndpointsHandler, // kilocode_change
 } from "./providers"
-// kilocode_change start
+// forked_change start
 import { KilocodeOpenrouterHandler } from "./providers/kilocode-openrouter"
-// kilocode_change end
+// forked_change end
 import { NativeOllamaHandler } from "./providers/native-ollama"
 
 export interface SingleCompletionHandler {
@@ -75,7 +75,7 @@ export interface ApiHandlerCreateMessageMetadata {
 	 * @default true
 	 */
 	store?: boolean
-	// kilocode_change start
+	// forked_change start
 	/**
 	 * Array of allowed tools for the current mode when using JSON tool style.
 	 * This contains the full tool definitions (function schemas) that the model can use.
@@ -94,7 +94,7 @@ export interface ApiHandlerCreateMessageMetadata {
 	 * @kilocode-only
 	 */
 	repo?: string
-	// kilocode_change end
+	// forked_change end
 }
 
 export interface ApiHandler {
@@ -121,7 +121,7 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 	const { apiProvider, ...options } = configuration
 
 	switch (apiProvider) {
-		// kilocode_change start
+		// forked_change start
 		case "kilocode":
 			return new KilocodeOpenrouterHandler(options)
 		case "kilocode-openrouter": // temp typing fix
@@ -130,7 +130,7 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			return new GeminiCliHandler(options)
 		case "virtual-quota-fallback":
 			return new VirtualQuotaFallbackHandler(options)
-		// kilocode_change end
+		// forked_change end
 		case "anthropic":
 			return new AnthropicHandler(options)
 		case "claude-code":
@@ -195,10 +195,10 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			return new ZAiHandler(options)
 		case "fireworks":
 			return new FireworksHandler(options)
-		// kilocode_change start
+		// forked_change start
 		case "synthetic":
 			return new SyntheticHandler(options)
-		// kilocode_change end
+		// forked_change end
 		case "io-intelligence":
 			return new IOIntelligenceHandler(options)
 		case "roo":
@@ -209,10 +209,10 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			return new FeatherlessHandler(options)
 		case "vercel-ai-gateway":
 			return new VercelAiGatewayHandler(options)
-		// kilocode_change start
+		// forked_change start
 		case "ovhcloud":
 			return new OVHcloudAIEndpointsHandler(options)
-		// kilocode_change end
+		// forked_change end
 		default:
 			apiProvider satisfies "gemini-cli" | undefined
 			return new AnthropicHandler(options)
