@@ -221,7 +221,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		alwaysAllowFollowupQuestions,
 		alwaysAllowUpdateTodoList,
 		followupAutoApproveTimeoutMs,
-		ghostServiceSettings, // kilocode_change
 		includeDiagnosticMessages,
 		maxDiagnosticMessages,
 		includeTaskHistoryInEnhance,
@@ -468,7 +467,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			vscode.postMessage({ type: "telemetrySetting", text: telemetrySetting })
 			vscode.postMessage({ type: "profileThresholds", values: profileThresholds })
 			vscode.postMessage({ type: "systemNotificationsEnabled", bool: systemNotificationsEnabled }) // kilocode_change
-			vscode.postMessage({ type: "ghostServiceSettings", values: ghostServiceSettings }) // kilocode_change
 			vscode.postMessage({ type: "morphApiKey", text: morphApiKey }) // kilocode_change
 			vscode.postMessage({ type: "fastApplyModel", text: fastApplyModel }) // kilocode_change: Fast Apply model selection
 			vscode.postMessage({ type: "openRouterImageApiKey", text: openRouterImageApiKey })

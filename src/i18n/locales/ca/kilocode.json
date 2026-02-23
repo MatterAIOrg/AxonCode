@@ -96,59 +96,6 @@
 			"generateButton": "Genera Missatge de Commit"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (desactivat)",
-				"tokenError": "S'ha d'establir un token vàlid per utilitzar Autocomplete",
-				"lastCompletion": "Últim suggeriment:",
-				"sessionTotal": "Cost total de la sessió:",
-				"provider": "Proveïdor:",
-				"model": "Model:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Analitzant el teu codi...",
-			"generating": "Generant edicions suggerides...",
-			"processing": "Processant edicions suggerides...",
-			"showing": "Mostrant edicions suggerides..."
-		},
-		"input": {
-			"title": "Axon Code: Tasca Ràpida",
-			"placeholder": "p. ex., 'refactoritza aquesta funció per ser més eficient'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Generar Edicions Suggerides",
-			"displaySuggestions": "Mostrar Edicions Suggerides",
-			"cancelSuggestions": "Cancel·lar Edicions Suggerides",
-			"applyCurrentSuggestion": "Aplicar Edició Suggerida Actual",
-			"applyAllSuggestions": "Aplicar Totes les Edicions Suggerides",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Edicions Suggerides"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "Puc ajudar-te amb tasques ràpides i edicions suggerides."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "El Axon Code Autocomplete està sent bloquejat per un conflicte amb GitHub Copilot. Per solucionar això, has de desactivar els suggeriments en línia de Copilot.",
-			"disableCopilot": "Desactivar Copilot",
-			"disableInlineAssist": "Desactivar Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Axon: Descriu l'ordre que vols generar",
 		"generatingProgress": "Axon: Generant ordre de terminal...",

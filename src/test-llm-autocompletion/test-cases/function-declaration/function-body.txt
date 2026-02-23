@@ -1,2 +1,0 @@
-# Description: Should complete function body opening
-function calculateSum(a, b) <<<AUTOCOMPLETE_HERE>>>

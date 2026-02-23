@@ -1,6 +1,0 @@
-# Description: Should complete promise rejection handling
-fetchUser(userId)
-	.then(user => {
-		return processUser(user);
-	})
-	.catch(<<<AUTOCOMPLETE_HERE>>>

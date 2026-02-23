@@ -1,5 +1,0 @@
-# Description: Should fix bug described in FIXME comment
-function divide(a, b) {
-  // FIXME: Handle division by zero<<<CURSOR>>>
-  return a / b;
-}

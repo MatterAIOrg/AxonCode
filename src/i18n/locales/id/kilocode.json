@@ -96,59 +96,6 @@
 			"generateButton": "Buat Pesan Commit"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (dinonaktifkan)",
-				"tokenError": "Token yang valid harus diatur untuk menggunakan Autocomplete",
-				"lastCompletion": "Saran terakhir:",
-				"sessionTotal": "Total biaya sesi:",
-				"provider": "Penyedia:",
-				"model": "Model:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Menganalisis kode Anda...",
-			"generating": "Menghasilkan suntingan yang disarankan...",
-			"processing": "Memproses suntingan yang disarankan...",
-			"showing": "Menampilkan suntingan yang disarankan..."
-		},
-		"input": {
-			"title": "Axon Code: Tugas Cepat",
-			"placeholder": "mis., 'refaktor fungsi ini agar lebih efisien'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Hasilkan Suntingan yang Disarankan",
-			"displaySuggestions": "Tampilkan Suntingan yang Disarankan",
-			"cancelSuggestions": "Batalkan Suntingan yang Disarankan",
-			"applyCurrentSuggestion": "Terapkan Suntingan yang Disarankan Saat Ini",
-			"applyAllSuggestions": "Terapkan Semua Suntingan yang Disarankan",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Suntingan yang Disarankan"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "Saya dapat membantu Anda dengan tugas cepat dan suntingan yang disarankan."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "Axon Code Autocomplete diblokir oleh konflik dengan GitHub Copilot. Untuk memperbaiki ini, Anda harus menonaktifkan saran inline Copilot.",
-			"disableCopilot": "Nonaktifkan Copilot",
-			"disableInlineAssist": "Nonaktifkan Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPlaceholder": "mis., matikan proses yang berjalan di port 3001, temukan file besar, dll",
 		"noActiveTerminal": "Axon: Tidak ada terminal aktif yang ditemukan. Silakan buka terminal terlebih dahulu.",

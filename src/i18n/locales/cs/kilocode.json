@@ -102,59 +102,6 @@
 		"noChanges": "Nelze zobrazit nové změny, nebyly nalezeny žádné změny.",
 		"error": "Nelze zobrazit nové změny, došlo k chybě."
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (zakázáno)",
-				"tokenError": "Pro použití Autocomplete musí být nastaven platný token",
-				"lastCompletion": "Poslední návrh:",
-				"sessionTotal": "Celkové náklady relace:",
-				"provider": "Poskytovatel:",
-				"model": "Model:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Analyzuji tvůj kód...",
-			"generating": "Generuji navrhované úpravy...",
-			"processing": "Zpracovávám navrhované úpravy...",
-			"showing": "Zobrazuji navrhované úpravy..."
-		},
-		"input": {
-			"title": "Axon Code: Rychlý úkol",
-			"placeholder": "např. 'refaktoruj tuto funkci, aby byla efektivnější'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Generovat navrhované úpravy",
-			"displaySuggestions": "Zobrazit navrhované úpravy",
-			"cancelSuggestions": "Zrušit navrhované úpravy",
-			"applyCurrentSuggestion": "Použít aktuální navrhovanou úpravu",
-			"applyAllSuggestions": "Použít všechny navrhované úpravy",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Navrhované úpravy"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "Mohu ti pomoci s rychlými úkoly a navrženými úpravami."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "Axon Code Autocomplete je blokováno konfliktem s GitHub Copilot. Pro vyřešení tohoto problému musíš zakázat inline návrhy Copilot.",
-			"disableCopilot": "Zakázat Copilot",
-			"disableInlineAssist": "Zakázat Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Axon: Popište příkaz, který chcete vygenerovat",
 		"noActiveTerminal": "Axon: Nebyl nalezen žádný aktivní terminál. Nejprve prosím otevřete terminál.",

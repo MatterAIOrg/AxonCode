@@ -1,2 +1,0 @@
-# Description: Should complete arrow function syntax
-const add = (a, b) <<<AUTOCOMPLETE_HERE>>>

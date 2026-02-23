@@ -102,59 +102,6 @@
 		"noChanges": "Nie można wyświetlić nowych zmian, nie znaleziono żadnych zmian.",
 		"error": "Nie można wyświetlić nowych zmian, wystąpił błąd."
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (wyłączone)",
-				"tokenError": "Aby używać Autocomplete, musi być ustawiony ważny token",
-				"lastCompletion": "Ostatnia sugestia:",
-				"sessionTotal": "Całkowity koszt sesji:",
-				"provider": "Dostawca:",
-				"model": "Model:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Analizuję twój kod...",
-			"generating": "Generuję sugerowane edycje...",
-			"processing": "Przetwarzam sugerowane edycje...",
-			"showing": "Wyświetlam sugerowane edycje..."
-		},
-		"input": {
-			"title": "Axon Code: Szybkie Zadanie",
-			"placeholder": "np. 'zrefaktoruj tę funkcję, aby była bardziej wydajna'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Generuj Sugerowane Edycje",
-			"displaySuggestions": "Wyświetl Sugerowane Edycje",
-			"cancelSuggestions": "Anuluj Sugerowane Edycje",
-			"applyCurrentSuggestion": "Zastosuj Bieżącą Sugerowaną Edycję",
-			"applyAllSuggestions": "Zastosuj Wszystkie Sugerowane Edycje",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Sugerowane Edycje"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "Mogę pomóc ci w szybkich zadaniach i sugerowanych edycjach."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "Axon Code Autocomplete jest blokowane przez konflikt z GitHub Copilot. Aby to naprawić, musisz wyłączyć sugestie inline Copilot.",
-			"disableCopilot": "Wyłącz Copilot",
-			"disableInlineAssist": "Wyłącz Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Axon: Opisz polecenie, które chcesz wygenerować",
 		"inputPlaceholder": "np. zakończ proces działający na porcie 3001, znajdź duże pliki, itp.",

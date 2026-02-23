@@ -1,4 +1,0 @@
-# Description: Should complete function call parameters
-function greet(name, <<<CURSOR>>>) {
-  console.log(`Hello ${name}!`);
-}

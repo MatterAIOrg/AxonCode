@@ -1,2 +1,0 @@
-# Description: Should complete Ruby array declaration
-arr = [1, 2, <<<AUTOCOMPLETE_HERE>>>

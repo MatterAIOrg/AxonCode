@@ -102,59 +102,6 @@
 		"noChanges": "无法显示新更改，未发现任何更改。",
 		"error": "无法显示新更改，发生错误。"
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete（已禁用）",
-				"tokenError": "必须设置有效 Token 才能使用 Autocomplete",
-				"lastCompletion": "最后建议:",
-				"sessionTotal": "会话总费用:",
-				"provider": "提供商:",
-				"model": "模型:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "正在分析你的代码...",
-			"generating": "正在生成建议编辑...",
-			"processing": "正在处理建议编辑...",
-			"showing": "正在显示建议编辑..."
-		},
-		"input": {
-			"title": "Axon Code: 快速任务",
-			"placeholder": "例如：'重构这个函数使其更高效'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: 生成建议编辑",
-			"displaySuggestions": "显示建议编辑",
-			"cancelSuggestions": "取消建议编辑",
-			"applyCurrentSuggestion": "应用当前建议编辑",
-			"applyAllSuggestions": "应用所有建议编辑",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: 建议编辑"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "我可以帮助你完成快速任务和建议编辑。"
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "Axon Code Autocomplete 被与 GitHub Copilot 的冲突阻止。要解决此问题，你必须禁用 Copilot 的内联建议。",
-			"disableCopilot": "禁用 Copilot",
-			"disableInlineAssist": "禁用 Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Kilo：描述您想要生成的命令",
 		"inputPlaceholder": "例如，终止在3001端口上运行的进程，查找大文件等",

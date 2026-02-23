@@ -166,22 +166,14 @@ vi.mock("../core/config/ContextProxy", () => ({
 		getInstance: vi.fn().mockResolvedValue({
 			getValue: vi.fn(),
 			setValue: vi.fn(),
-			getValues: vi.fn().mockReturnValue({
-				ghostServiceSettings: {
-					enabled: true,
-				},
-			}),
+			getValues: vi.fn().mockReturnValue({}),
 			getProviderSettings: vi.fn().mockReturnValue({}),
 		}),
 		get instance() {
 			return {
 				getValue: vi.fn(),
 				setValue: vi.fn(),
-				getValues: vi.fn().mockReturnValue({
-					ghostServiceSettings: {
-						enabled: true,
-					},
-				}),
+				getValues: vi.fn().mockReturnValue({}),
 				getProviderSettings: vi.fn().mockReturnValue({}),
 			}
 		},
@@ -246,20 +238,6 @@ vi.mock("../i18n", () => ({
 	t: vi.fn().mockImplementation((key, options = {}) => {
 		return `mocked-translation-${key}`
 	}),
-}))
-
-vi.mock("../services/ghost/GhostServiceManager", () => ({
-	GhostServiceManager: {
-		initialize: vi.fn().mockReturnValue({
-			load: vi.fn(),
-		}),
-		getInstance: vi.fn().mockReturnValue(null),
-		instance: null,
-	},
-}))
-
-vi.mock("../services/ghost", () => ({
-	registerGhostProvider: vi.fn(),
 }))
 
 vi.mock("../services/commit-message", () => ({

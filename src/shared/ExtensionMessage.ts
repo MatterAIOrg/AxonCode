@@ -368,7 +368,6 @@ export type ExtensionState = Pick<
 	| "commitMessageApiConfigId" // kilocode_change
 	| "terminalCommandApiConfigId" // kilocode_change
 	| "dismissedNotificationIds" // kilocode_change
-	| "ghostServiceSettings" // kilocode_change
 	| "condensingApiConfigId"
 	| "customCondensingPrompt"
 	| "codebaseIndexConfig"

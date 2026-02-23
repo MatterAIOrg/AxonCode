@@ -96,59 +96,6 @@
 			"generateButton": "Generar Mensaje de Commit"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (deshabilitado)",
-				"tokenError": "Se debe establecer un token válido para usar Autocomplete",
-				"lastCompletion": "Última sugerencia:",
-				"sessionTotal": "Costo total de la sesión:",
-				"provider": "Proveedor:",
-				"model": "Modelo:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Analizando tu código...",
-			"generating": "Generando ediciones sugeridas...",
-			"processing": "Procesando ediciones sugeridas...",
-			"showing": "Mostrando ediciones sugeridas..."
-		},
-		"input": {
-			"title": "Axon Code: Tarea Rápida",
-			"placeholder": "ej., 'refactoriza esta función para que sea más eficiente'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Generar Ediciones Sugeridas",
-			"displaySuggestions": "Mostrar Ediciones Sugeridas",
-			"cancelSuggestions": "Cancelar Ediciones Sugeridas",
-			"applyCurrentSuggestion": "Aplicar Edición Sugerida Actual",
-			"applyAllSuggestions": "Aplicar Todas las Ediciones Sugeridas",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Ediciones Sugeridas"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "Puedo ayudarte con tareas rápidas y ediciones sugeridas."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "El Axon Code Autocomplete está siendo bloqueado por un conflicto con GitHub Copilot. Para solucionarlo, debes desactivar las sugerencias en línea de Copilot.",
-			"disableCopilot": "Desactivar Copilot",
-			"disableInlineAssist": "Desactivar Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Axon: Describe el comando que quieres generar",
 		"noActiveTerminal": "Axon: No se encontró ningún terminal activo. Por favor abra un terminal primero.",
