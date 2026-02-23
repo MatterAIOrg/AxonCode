@@ -109,6 +109,7 @@ export async function fileEditTool(
 					useRegex: false,
 					ignoreCase: false,
 					replaceAll,
+					startLine: 1, // New file starts at line 1
 				}
 
 				await cline.say("tool" as any, JSON.stringify(sayMessageProps))
@@ -169,6 +170,9 @@ export async function fileEditTool(
 
 		await cline.diffViewProvider.saveDirectly(relPath, newContent, false, diagnosticsEnabled, writeDelayMs)
 
+		// Calculate the line number where the edit occurs
+		const editLineNumber = calculateEditLineNumber(originalContent, oldString ?? "")
+
 		const sayMessageProps: ClineSayTool = {
 			tool: "fileEdit",
 			path: readablePath,
@@ -179,6 +183,7 @@ export async function fileEditTool(
 			useRegex: false,
 			ignoreCase: false,
 			replaceAll,
+			startLine: editLineNumber,
 		}
 
 		await cline.say("tool" as any, JSON.stringify(sayMessageProps))
@@ -823,6 +828,22 @@ function levenshtein(a: string, b: string): number {
 
 function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+/**
+ * Calculate the 1-based line number where the edit occurs.
+ * Returns undefined if the old string is empty or not found.
+ */
+function calculateEditLineNumber(content: string, oldString: string): number | undefined {
+	if (!oldString || !content) return undefined
+
+	// Try to find the old string in the content
+	const index = content.indexOf(oldString)
+	if (index === -1) return undefined
+
+	// Count newlines before the match position to get the line number
+	const linesBefore = content.substring(0, index).split("\n")
+	return linesBefore.length // 1-based line number
 }
 
 const SINGLE_CANDIDATE_SIMILARITY_THRESHOLD = 0

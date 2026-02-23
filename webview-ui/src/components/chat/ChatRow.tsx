@@ -528,13 +528,13 @@ export const ChatRowContent = ({
 			case "fileEdit": {
 				const fileEditDiff = tool.diff ?? buildFileEditDiff(tool)
 				const diffStats = computeDiffStats(fileEditDiff)
-				// Extract first line number from diff for navigation
-				const firstLineNumber = extractFirstLineNumberFromDiff(fileEditDiff)
+				// Use startLine from tool if available, otherwise extract from diff
+				const editLineNumber = tool.startLine ?? extractFirstLineNumberFromDiff(fileEditDiff)
 				const openFileWithLine = () => {
 					vscode.postMessage({
 						type: "openFile",
 						text: "./" + tool.path,
-						values: firstLineNumber ? { line: firstLineNumber } : undefined,
+						values: editLineNumber ? { line: editLineNumber } : undefined,
 					})
 				}
 				return (
@@ -849,7 +849,13 @@ export const ChatRowContent = ({
 							<ToolUseBlock>
 								<ToolUseBlockHeader
 									className="group"
-									onClick={() => vscode.postMessage({ type: "openFile", text: tool.content })}>
+									onClick={() =>
+										vscode.postMessage({
+											type: "openFile",
+											text: "./" + tool.path,
+											values: tool.offset ? { line: tool.offset } : undefined,
+										})
+									}>
 									{tool.path?.startsWith(".") && <span>.</span>}
 									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
 										{fileName}
