@@ -142,7 +142,7 @@ const config: Config = {
 						from: ["/advanced-usage/mcp", "/mcp/overview"],
 					},
 					{
-						to: "/features/mcp/using-mcp-in-kilo-code",
+						to: "/orbital/features/mcp",
 						from: ["/mcp/using-mcp-in-kilo-code"],
 					},
 					{

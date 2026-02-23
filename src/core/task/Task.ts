@@ -624,7 +624,23 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	public getToolCallSignature(toolName: string, params: Record<string, unknown>): string {
 		// Ensure params is an object before sorting keys (defensive against null/undefined from LLM output)
 		const safeParams = params || {}
-		const sortedParams = JSON.stringify(safeParams, Object.keys(safeParams).sort())
+
+		// Recursively sort object keys at all levels for deterministic serialization
+		const sortObject = (obj: unknown): unknown => {
+			if (obj === null || typeof obj !== "object") return obj
+			if (Array.isArray(obj)) return obj.map(sortObject)
+			return Object.keys(obj as Record<string, unknown>)
+				.sort()
+				.reduce(
+					(acc, key) => {
+						acc[key] = sortObject((obj as Record<string, unknown>)[key])
+						return acc
+					},
+					{} as Record<string, unknown>,
+				)
+		}
+
+		const sortedParams = JSON.stringify(sortObject(safeParams))
 		return `${toolName}:${sortedParams}`
 	}
 

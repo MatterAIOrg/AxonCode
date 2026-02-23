@@ -220,7 +220,7 @@ When you need more capability than free models provide, these options deliver ex
 
 **Reduce system prompt size:**
 
-- [Disable MCP](/features/mcp/using-mcp-in-kilo-code) if not using external tools
+- [Disable MCP](/orbital/features/mcp) if not using external tools
 - Use focused custom modes
 - Minimize unnecessary context
 

@@ -44,6 +44,6 @@ MCP 为 AI 系统与外部工具服务的交互提供了标准化方式，使复
 准备好深入探索了吗？请查阅以下指南：
 
 - [MCP 概述](/features/mcp/overview) - 快速了解 MCP 文档结构
-- [在 Axon Code 中使用 MCP](/features/mcp/using-mcp-in-kilo-code) - 包含创建简单服务器的入门指导
+- [在 Axon Code 中使用 MCP](/orbital/features/mcp) - 包含创建简单服务器的入门指导
 - [MCP vs 传统 API](/features/mcp/mcp-vs-api) - 相比传统 API 的技术优势
 - [STDIO 与 SSE 传输协议](/features/mcp/server-transports) - 本地与云端部署模式对比
