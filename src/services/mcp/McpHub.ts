@@ -89,7 +89,7 @@ const createServerTypeSchema = () => {
 			args: z.array(z.string()).optional(),
 			cwd: z.string().default(() => vscode.workspace.workspaceFolders?.at(0)?.uri.fsPath ?? process.cwd()),
 			env: z.record(z.string()).optional(),
-			// Ensure no SSE fields are present
+			// Ensure no URL-based fields are present
 			url: z.undefined().optional(),
 			headers: z.undefined().optional(),
 		})
@@ -98,38 +98,20 @@ const createServerTypeSchema = () => {
 				type: "stdio" as const,
 			}))
 			.refine((data) => data.type === undefined || data.type === "stdio", { message: typeErrorMessage }),
-		// SSE config (has url field)
+		// URL-based config (sse or streamable-http) - defaults to streamable-http if type not specified
 		BaseConfigSchema.extend({
-			type: z.enum(["sse"]).optional(),
+			type: z.enum(["sse", "streamable-http"]).optional(),
 			url: z.string().url("URL must be a valid URL format"),
 			headers: z.record(z.string()).optional(),
 			// Ensure no stdio fields are present
 			command: z.undefined().optional(),
 			args: z.undefined().optional(),
 			env: z.undefined().optional(),
-		})
-			.transform((data) => ({
-				...data,
-				type: "sse" as const,
-			}))
-			.refine((data) => data.type === undefined || data.type === "sse", { message: typeErrorMessage }),
-		// StreamableHTTP config (has url field)
-		BaseConfigSchema.extend({
-			type: z.enum(["streamable-http"]).optional(),
-			url: z.string().url("URL must be a valid URL format"),
-			headers: z.record(z.string()).optional(),
-			// Ensure no stdio fields are present
-			command: z.undefined().optional(),
-			args: z.undefined().optional(),
-			env: z.undefined().optional(),
-		})
-			.transform((data) => ({
-				...data,
-				type: "streamable-http" as const,
-			}))
-			.refine((data) => data.type === undefined || data.type === "streamable-http", {
-				message: typeErrorMessage,
-			}),
+		}).transform((data) => ({
+			...data,
+			// Default to streamable-http if type not specified - connection code will auto-detect
+			type: (data.type || "streamable-http") as "sse" | "streamable-http",
+		})),
 	])
 }
 
