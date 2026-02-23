@@ -12,7 +12,7 @@ Anthropic is an AI safety and research company that builds reliable, interpretab
 
 1.  **Sign Up/Sign In:** Go to the [Anthropic Console](https://console.anthropic.com/). Create an account or sign in.
 2.  **Navigate to API Keys:** Go to the [API keys](https://console.anthropic.com/settings/keys) section.
-3.  **Create a Key:** Click "Create Key". Give your key a descriptive name (e.g., "Axon Code").
+3.  **Create a Key:** Click "Create Key". Give your key a descriptive name (e.g., "Orbital").
 4.  **Copy the Key:** **Important:** Copy the API key _immediately_. You will not be able to see it again. Store it securely.
 
 ## Supported Models

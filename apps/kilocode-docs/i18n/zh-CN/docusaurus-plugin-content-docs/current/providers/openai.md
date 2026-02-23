@@ -12,7 +12,7 @@ Axon Code 支持通过官方 OpenAI API 直接访问模型。
 
 1. **注册/登录:** 访问 [OpenAI 平台](https://platform.openai.com/)。创建账户或登录
 2. **导航到 API 密钥:** 前往 [API keys](https://platform.openai.com/api-keys) 页面
-3. **创建密钥:** 点击 "Create new secret key"。为密钥起一个描述性名称（如 "Axon Code"）
+3. **创建密钥:** 点击 "Create new secret key"。为密钥起一个描述性名称（如 "Orbital"）
 4. **复制密钥:** **重要:** 立即复制 API 密钥。之后将无法再次查看。请安全存储
 
 ## 支持的模型

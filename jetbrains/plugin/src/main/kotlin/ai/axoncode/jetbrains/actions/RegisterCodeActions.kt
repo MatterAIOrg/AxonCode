@@ -170,7 +170,7 @@ fun registerCodeAction(
                 userInput = Messages.showInputDialog(
                     project,
                     inputPrompt,
-                    "Axon Code",
+                    "Orbital",
                     null,
                     inputPlaceholder,
                     null,

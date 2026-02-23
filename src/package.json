@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "5.4.8",
+	"version": "5.4.9",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -46,7 +46,7 @@
 		"autonomous",
 		"ai",
 		"MatterAI",
-		"Axon Code"
+		"Orbital"
 	],
 	"activationEvents": [
 		"onLanguage",

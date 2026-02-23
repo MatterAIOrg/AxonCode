@@ -4,7 +4,7 @@
 		"task_placeholder": "Construir, encontrar, perguntar algo"
 	},
 	"extension": {
-		"name": "Axon Code",
+		"name": "Orbital",
 		"description": "Assistente de codificação de IA de código aberto para planejamento, construção e correção de código."
 	},
 	"number_format": {
@@ -151,7 +151,7 @@
 	"warnings": {
 		"no_terminal_content": "Nenhum conteúdo do terminal selecionado",
 		"missing_task_files": "Os arquivos desta tarefa estão faltando. Deseja removê-la da lista de tarefas?",
-		"auto_import_failed": "Falha ao importar automaticamente as configurações do Axon Code: {{error}}"
+		"auto_import_failed": "Falha ao importar automaticamente as configurações do Orbital: {{error}}"
 	},
 	"info": {
 		"no_changes": "Nenhuma alteração encontrada.",

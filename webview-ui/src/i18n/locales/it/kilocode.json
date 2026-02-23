@@ -93,7 +93,7 @@
 			"label": "Attiva notifiche di sistema",
 			"description": "Quando abilitato, Axon Code invierà notifiche di sistema per eventi importanti come il completamento di attività o errori.",
 			"testButton": "Testa notifica",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "Questa è una notifica di test da Axon Code."
 		},
 		"terminal": {
@@ -271,7 +271,7 @@
 	"toolCallStyle": {
 		"title": "Stile Chiamata Strumenti",
 		"description": "Scegli come formattare le chiamate agli strumenti nel prompt di sistema. JSON è attualmente sperimentale e destinato principalmente agli utenti interessati a contribuire al suo sviluppo.",
-		"automatic": "Lascia decidere a Kilo",
+		"automatic": "Lascia decidere a Orbital",
 		"xml": "XML",
 		"json": "JSON (sperimentale)"
 	},

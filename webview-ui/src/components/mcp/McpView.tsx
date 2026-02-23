@@ -31,6 +31,7 @@ import McpResourceRow from "./McpResourceRow"
 import McpToolRow from "./McpToolRow"
 // import McpEnabledToggle from "./McpEnabledToggle" // kilocode_change not used
 import { McpErrorRow } from "./McpErrorRow"
+import { Delete01Icon, Refresh04Icon } from "@/utils/customIcons"
 
 type McpViewProps = {
 	onDone: () => void
@@ -69,7 +70,7 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 					}}>
 					<Trans i18nKey="mcp:description">
 						<VSCodeLink
-							href={buildDocLink("features/mcp/using-mcp-in-kilo-code", "mcp_settings")}
+							href={buildDocLink("orbital/features/mcp", "mcp_settings")}
 							style={{ display: "inline" }}>
 							Learn More
 						</VSCodeLink>
@@ -98,10 +99,7 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 								}}>
 								<Trans i18nKey="mcp:enableServerCreation.description">
 									<VSCodeLink
-										href={buildDocLink(
-											"features/mcp/using-mcp-in-kilo-code#how-to-use-kilo-code-to-create-an-mcp-server",
-											"mcp_server_creation",
-										)}
+										href={buildDocLink("orbital/features/mcp", "mcp_server_creation")}
 										style={{ display: "inline" }}>
 										Learn about server creation
 									</VSCodeLink>
@@ -113,7 +111,7 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 
 						{/* Server List */}
 						{servers.length > 0 && (
-							<div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+							<div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
 								{servers.map((server) => (
 									<ServerRow
 										key={`${server.name}-${server.source || "global"}`}
@@ -194,7 +192,7 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 							}}>
 							<VSCodeLink
 								href={buildDocLink(
-									"features/mcp/using-mcp-in-kilo-code#editing-mcp-settings-files",
+									"orbital/features/mcp",
 									"mcp_edit_settings",
 								)}
 								style={{ display: "inline" }}>
@@ -283,12 +281,13 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 	}
 
 	return (
-		<div style={{ marginBottom: "10px" }}>
+		<div>
 			<div
 				style={{
 					display: "flex",
 					alignItems: "center",
-					padding: "8px",
+					paddingTop: "4px",
+					paddingBottom: "4px",
 					background: "bg-vscode-editor-background",
 					cursor: isExpandable ? "pointer" : "default",
 					borderRadius: isExpanded || isExpandable ? "4px" : "4px 4px 0 0",
@@ -307,7 +306,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 						<span
 							style={{
 								marginLeft: "8px",
-								padding: "1px 6px",
+								padding: "2px 6px",
 								fontSize: "11px",
 								borderRadius: "4px",
 								background: "var(--vscode-badge-background)",
@@ -324,14 +323,14 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 						appearance="secondary"
 						onClick={() => setShowDeleteConfirm(true)}
 						style={{ marginRight: "8px" }}>
-						<span className="codicon codicon-trash" style={{ fontSize: "14px" }}></span>
+						<Delete01Icon className="size-3" />
 					</VSCodeButton>
 					<VSCodeButton
 						appearance="secondary"
 						onClick={handleRestart}
 						disabled={server.status === "connecting"}
 						style={{ marginRight: "8px" }}>
-						<span className="codicon codicon-refresh" style={{ fontSize: "14px" }}></span>
+						<Refresh04Icon className="size-3" />
 					</VSCodeButton>
 				</div>
 				<div

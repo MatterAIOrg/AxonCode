@@ -28,9 +28,10 @@ suite("Axon Code Task", function () {
 
 		assert.ok(
 			!!messages.find(
-				({ say, text }) => (say === "completion_result" || say === "text") && text?.includes("My name is Kilo"),
+				({ say, text }) =>
+					(say === "completion_result" || say === "text") && text?.includes("My name is Orbital"),
 			),
-			`Completion should include "My name is Kilo"`,
+			`Completion should include "My name is Orbital"`,
 		)
 	})
 })

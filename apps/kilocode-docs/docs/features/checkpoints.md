@@ -75,17 +75,17 @@ To compare your current workspace with a previous checkpoint:
 
 To restore a project to a previous checkpoint state:
 
-1. Locate the checkpoint in your chat history
-2. Click the checkpoint's `Restore Checkpoint` button
-   <img src="/docs/img/checkpoints/checkpoints-7.png" alt="Restore checkpoint button interface" width="100" />
-3. Choose one of these restoration options:
+1.  Locate the checkpoint in your chat history
+2.  Click the checkpoint's `Restore Checkpoint` button
+    <img src="/docs/img/checkpoints/checkpoints-7.png" alt="Restore checkpoint button interface" width="100" />
+3.  Choose one of these restoration options:
 
     <img src="/docs/img/checkpoints/checkpoints-4.png" alt="Restore checkpoint option" width="300" />
 
     - **Restore Files Only** - Reverts only workspace files to checkpoint state without modifying conversation history. Ideal for comparing alternative implementations while maintaining chat context, allowing you to seamlessly switch between different project states. This option does not require confirmation and lets you quickly switch between different implementations.
     - **Restore Files & Task** - Reverts both workspace files AND removes all subsequent conversation messages. Use when you want to completely reset both your code and conversation back to the checkpoint's point in time. This option requires confirmation in a dialog as it cannot be undone.
 
-           <img src="/docs/img/checkpoints/checkpoints-9.png" alt="Confirmation dialog for restoring checkpoint with files & task" width="300" />
+             <img src="/docs/img/checkpoints/checkpoints-9.png" alt="Confirmation dialog for restoring checkpoint with files & task" width="300" />
 
 ### Limitations and Considerations
 
@@ -113,7 +113,7 @@ The checkpoint system consists of:
 
 ### Restoration Process
 
-When restoration executes, Axon Code:
+When restoration executes, Orbital:
 
 - Performs a hard reset to the specified checkpoint commit
 - Copies all files from the shadow repository to your workspace

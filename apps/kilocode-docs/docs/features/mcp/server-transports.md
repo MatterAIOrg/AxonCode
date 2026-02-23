@@ -196,4 +196,4 @@ Some scenarios benefit from a hybrid approach:
 
 ## Configuring Transports in Axon Code
 
-For detailed information on configuring STDIO and SSE transports in Axon Code, including example configurations, see the [Understanding Transport Types](/features/mcp/using-mcp-in-kilo-code#understanding-transport-types) section in the Using MCP in Axon Code guide.
+For detailed information on configuring STDIO and SSE transports in Axon Code, including example configurations, see the [Understanding Transport Types](/orbital/features/mcp#understanding-transport-types) section in the Using MCP in Axon Code guide.

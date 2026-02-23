@@ -288,15 +288,16 @@ export async function presentAssistantMessage(cline: Task) {
 				break
 			}
 
-			// if (cline.didAlreadyUseTool) {
-			// 	// Ignore any content after a tool has already been used.
-			// 	pushToolResult_withToolUseId_kilocode({
-			// 		type: "text",
-			// 		text: `Tool [${block.name}] was not executed because a tool has already been used in this message. Only one tool may be used per message. You must assess the first tool's result before proceeding to use the next tool.`,
-			// 	})
-
-			// 	break
-			// }
+			// Check for duplicate tool calls (same name + same args) when the tool call is complete
+			// Only check/register when !block.partial to avoid registering partial streaming updates
+			// which would cause the final complete call to be incorrectly flagged as duplicate
+			if (!block.partial) {
+				const toolCallSignature = cline.getToolCallSignature(block.name, block.params)
+				if (cline.checkAndRegisterToolCall(toolCallSignature)) {
+					cline.didAlreadyUseTool = true
+					break
+				}
+			}
 
 			const pushToolResult = (content: ToolResponse) => {
 				// forked_change start

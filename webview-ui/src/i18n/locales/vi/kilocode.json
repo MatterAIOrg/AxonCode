@@ -93,7 +93,7 @@
 			"label": "Bật thông báo hệ thống",
 			"description": "Khi bật, Axon Code sẽ gửi thông báo hệ thống cho các sự kiện quan trọng như hoàn thành nhiệm vụ hoặc lỗi.",
 			"testButton": "Kiểm tra thông báo",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "Đây là thông báo kiểm tra từ Axon Code."
 		},
 		"terminal": {

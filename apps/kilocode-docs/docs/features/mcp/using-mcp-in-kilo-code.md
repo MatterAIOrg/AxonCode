@@ -186,7 +186,7 @@ When enabled, Axon Code will automatically approve this specific tool without pr
 Axon Code does not come with any pre-installed MCP servers. You'll need to find and install them separately.
 
 - **Community Repositories:** Check for community-maintained lists of MCP servers on GitHub
-- **Ask Axon Code:** You can ask Axon Code to help you find or even create MCP servers
+- **Ask Orbital:** You can ask Axon Code to help you find or even create MCP servers
 - **Build Your Own:** Create custom MCP servers using the SDK to extend Axon Code with your own tools
 
 For full SDK documentation, visit the [MCP GitHub repository](https://github.com/modelcontextprotocol/).

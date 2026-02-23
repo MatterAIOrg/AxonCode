@@ -86,7 +86,7 @@
 			"label": "Sistem bildirimlerini etkinleştir",
 			"description": "Etkinleştirildiğinde, Axon Code görev tamamlama veya hatalar gibi önemli olaylar için sistem bildirimleri gönderecektir.",
 			"testButton": "Bildirimi test et",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "Bu Axon Code'dan bir test bildirimidir."
 		},
 		"terminal": {

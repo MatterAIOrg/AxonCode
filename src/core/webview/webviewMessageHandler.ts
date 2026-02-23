@@ -1336,7 +1336,7 @@ export const webviewMessageHandler = async (
 					]
 				})
 
-				await vscode.commands.executeCommand("vscode.changes", "Axon Code: Changes Preview", changes)
+				await vscode.commands.executeCommand("vscode.changes", "Orbital: Changes Preview", changes)
 			} catch (error) {
 				provider.log(`Failed to open changes view: ${error instanceof Error ? error.message : "Unknown error"}`)
 			}

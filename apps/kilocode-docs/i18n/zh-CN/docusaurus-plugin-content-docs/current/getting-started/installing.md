@@ -23,7 +23,7 @@ Kilo Code是一款VS Code扩展，可将AI编程助手直接集成到编辑器�
 
 1. 打开VS Code
 2. 进入扩展面板：点击侧边栏扩展图标 或按 `Ctrl+Shift+X`（Windows/Linux） / `Cmd+Shift+X`（macOS）
-3. 搜索 "Axon Code"
+3. 搜索 "Orbital"
 4. 选择Kilo Code发布的扩展并点击**安装**
 5. 根据提示重新加载VS Code
 
@@ -44,7 +44,7 @@ Kilo Code是一款VS Code扩展，可将AI编程助手直接集成到编辑器�
 
 1. 打开Cursor
 2. 进入扩展面板：点击侧边栏扩展图标 或按 `Ctrl+Shift+X`（Windows/Linux） / `Cmd+Shift+X`（macOS）
-3. 搜索 "Axon Code"
+3. 搜索 "Orbital"
 4. 选择Kilo Code发布的扩展并点击**安装**
 5. 根据提示重新加载Cursor
 
@@ -59,7 +59,7 @@ Kilo Code是一款VS Code扩展，可将AI编程助手直接集成到编辑器�
 1. 打开编辑器
 2. 进入扩展视图（侧边栏图标或快捷键 `Ctrl+Shift-X` / `Cmd+Shift-X`）
 3. 编辑器应已预配置Open VSX注册表
-4. 搜索 "Axon Code"
+4. 搜索 "Orbital"
 5. 选择扩展并点击**安装**
 6. 根据提示重新加载编辑器
 
@@ -93,7 +93,7 @@ Kilo Code是一款VS Code扩展，可将AI编程助手直接集成到编辑器�
 - 重启VS Code
 - 检查扩展列表确认Kilo Code已启用
 - 尝试禁用后重新启用扩展
-- 在输出面板查看错误日志（查看 → 输出，选择"Axon Code"）
+- 在输出面板查看错误日志（查看 → 输出，选择"Orbital"）
 
 **安装问题**
 

@@ -68,7 +68,7 @@ _（其中 `@myFile.js:15:25` 表示通过“添加到上下文”添加的代�
 
 1.  **选择代码：** 选择您要处理的代码。
 2.  **打开命令面板：** 按 `Ctrl+Shift+P` (Windows/Linux) 或 `Cmd+Shift+P` (macOS)。
-3.  **键入命令：** 键入“Axon Code”以过滤命令，然后选择相关的代码操作（例如，“Axon Code: Explain Code”）。您也可以键入命令的开头，例如“Axon Code: Explain”，然后从过滤列表中选择。
+3.  **键入命令：** 键入“Axon Code”以过滤命令，然后选择相关的代码操作（例如，“Orbital: Explain Code”）。您也可以键入命令的开头，例如“Orbital: Explain”，然后从过滤列表中选择。
 4.  **审查和批准：** Axon Code 将在聊天面板中提出解决方案。审查提议的更改并批准或拒绝它们。
 
 ## 代码操作和当前任务

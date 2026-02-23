@@ -94,7 +94,7 @@ Choose the right model for your workflow:
 
 1. Open VS Code
 2. Navigate to Extensions (`Ctrl+Shift+X`)
-3. Search for "Axon Code"
+3. Search for "Orbital"
 4. Click Install
 
 ### JetBrains Plugin
@@ -102,7 +102,7 @@ Choose the right model for your workflow:
 1. Open JetBrains IDE
 2. Go to Settings/Preferences
 3. Navigate to Plugins
-4. Search for "Axon Code"
+4. Search for "Orbital"
 5. Install and restart IDE
 
 ### CLI Installation

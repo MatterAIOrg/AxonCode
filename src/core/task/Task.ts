@@ -326,6 +326,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	didRejectTool = false
 	didAlreadyUseTool = false
 	didCompleteReadingStream = false
+	// Track executed tool calls by their signature (name + args hash) to detect duplicates
+	private executedToolCallSignatures: Set<string> = new Set()
 	assistantMessageParser: AssistantMessageParser
 	private lastUsedInstructions?: string
 	private skipPrevResponseIdOnce: boolean = false
@@ -610,6 +612,50 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 
 		return this._taskMode
+	}
+
+	/**
+	 * Generate a unique signature for a tool call based on its name and arguments.
+	 * This is used to detect duplicate tool calls within the same streaming response.
+	 * @param toolName The name of the tool
+	 * @param params The tool parameters
+	 * @returns A string signature that uniquely identifies this tool call
+	 */
+	public getToolCallSignature(toolName: string, params: Record<string, unknown>): string {
+		// Ensure params is an object before sorting keys (defensive against null/undefined from LLM output)
+		const safeParams = params || {}
+
+		// Recursively sort object keys at all levels for deterministic serialization
+		const sortObject = (obj: unknown): unknown => {
+			if (obj === null || typeof obj !== "object") return obj
+			if (Array.isArray(obj)) return obj.map(sortObject)
+			return Object.keys(obj as Record<string, unknown>)
+				.sort()
+				.reduce(
+					(acc, key) => {
+						acc[key] = sortObject((obj as Record<string, unknown>)[key])
+						return acc
+					},
+					{} as Record<string, unknown>,
+				)
+		}
+
+		const sortedParams = JSON.stringify(sortObject(safeParams))
+		return `${toolName}:${sortedParams}`
+	}
+
+	/**
+	 * Check if a tool call with the given signature has already been executed.
+	 * If not, register it as executed.
+	 * @param signature The tool call signature to check
+	 * @returns true if this is a duplicate (already executed), false if it's new
+	 */
+	public checkAndRegisterToolCall(signature: string): boolean {
+		if (this.executedToolCallSignatures.has(signature)) {
+			return true // Duplicate detected
+		}
+		this.executedToolCallSignatures.add(signature)
+		return false // New tool call
 	}
 
 	static create(options: TaskOptions): [Task, Promise<void>] {
@@ -2159,6 +2205,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				this.userMessageContentReady = false
 				this.didRejectTool = false
 				this.didAlreadyUseTool = false
+				this.executedToolCallSignatures.clear()
 				this.presentAssistantMessageLocked = false
 				this.presentAssistantMessageHasPendingUpdates = false
 				this.assistantMessageParser.reset()

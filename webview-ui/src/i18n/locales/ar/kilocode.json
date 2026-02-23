@@ -88,7 +88,7 @@
 			"label": "تفعيل إشعارات النظام",
 			"description": "عند التفعيل، سيرسل Axon Code إشعارات النظام للأحداث المهمة مثل إكمال المهام أو الأخطاء.",
 			"testButton": "اختبار الإشعار",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "هذا إشعار اختباري من Axon Code."
 		},
 		"terminal": {

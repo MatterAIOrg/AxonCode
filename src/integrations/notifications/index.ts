@@ -65,7 +65,7 @@ async function showMacOSNotification(options: NotificationOptions): Promise<void
 
 	// Fallback to VS Code's built-in notification (keeps focus in IDE)
 	const fullMessage = subtitle ? `${subtitle}: ${message}` : message
-	const notificationTitle = title || "Axon Code"
+	const notificationTitle = title || "Orbital"
 	await vscode.window.showInformationMessage(`${notificationTitle}: ${fullMessage}`)
 }
 
@@ -90,7 +90,7 @@ async function showWindowsNotification(options: NotificationOptions): Promise<vo
     $xml = New-Object Windows.Data.Xml.Dom.XmlDocument
     $xml.LoadXml($template)
     $toast = [Windows.UI.Notifications.ToastNotification]::new($xml)
-    [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Axon Code").Show($toast)
+    [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Orbital").Show($toast)
     `
 
 	try {
@@ -115,7 +115,7 @@ async function showLinuxNotification(options: NotificationOptions): Promise<void
 
 export async function showSystemNotification(options: NotificationOptions): Promise<void> {
 	try {
-		const { title = "Axon Code", message } = options
+		const { title = "Orbital", message } = options
 
 		if (!message) {
 			throw new Error("Message is required")

@@ -12,7 +12,7 @@ Code Actions appear as a lightbulb icon (💡) in the editor gutter (the area to
 - Your cursor is on a line with a problem (error, warning, or hint).
 - You invoke them via command.
 
-Clicking the lightbulb, right-clicking and selecting "Axon Code", or using the keyboard shortcut (`Ctrl+.` or `Cmd+.` on macOS, by default), displays a menu of available actions.
+Clicking the lightbulb, right-clicking and selecting "Orbital", or using the keyboard shortcut (`Ctrl+.` or `Cmd+.` on macOS, by default), displays a menu of available actions.
 
 <Image src="/docs/img/code-actions/code-actions-1.png" alt="VS Code code actions in line with code" width="500" />
 
@@ -60,7 +60,7 @@ There are three main ways to use Axon Code's Code Actions:
 
 1.  **Select Code:** Select the code you want to work with.
 2.  **Right-Click:** Right-click on the selected code to open the context menu.
-3.  **Choose "Axon Code":** Select the "Axon Code" option from the context menu. A submenu will appear with the available Axon Code actions.
+3.  **Choose "Orbital":** Select the "Orbital" option from the context menu. A submenu will appear with the available Axon Code actions.
 4.  **Choose an Action:** Select the desired action from the submenu.
 5.  **Review and Approve:** Axon Code will propose a solution in the chat panel. Review the proposed changes and approve or reject them.
 
@@ -68,7 +68,7 @@ There are three main ways to use Axon Code's Code Actions:
 
 1.  **Select Code:** Select the code you want to work with.
 2.  **Open the Command Palette:** Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (macOS).
-3.  **Type a Command:** Type "Axon Code" to filter the commands, then choose the relevant code action (e.g., "Axon Code: Explain Code"). You can also type the start of the command, like "Axon Code: Explain", and select from the filtered list.
+3.  **Type a Command:** Type "Orbital" to filter the commands, then choose the relevant code action (e.g., "Orbital: Explain Code"). You can also type the start of the command, like "Orbital: Explain", and select from the filtered list.
 4.  **Review and Approve:** Axon Code will propose a solution in the chat panel. Review the proposed changes and approve or reject them.
 
 ## Code Actions and Current Task

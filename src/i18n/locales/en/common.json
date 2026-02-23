@@ -1,7 +1,7 @@
 {
 	"extension": {
-		"name": "Axon Code",
-		"description": "Open Source AI coding assistant for planning, building, and fixing code."
+		"name": "Orbital",
+		"description": "AI coding agent for planning, building, and fixing code with AI Code Review, by MatterAI"
 	},
 	"number_format": {
 		"thousand_suffix": "k",

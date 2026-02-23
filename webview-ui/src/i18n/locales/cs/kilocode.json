@@ -93,7 +93,7 @@
 			"label": "Povolit systémová oznámení",
 			"description": "Když je povoleno, Axon Code bude odesílat systémová oznámení pro důležité události jako dokončení úkolu nebo chyby.",
 			"testButton": "Otestovat oznámení",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "Toto je testovací oznámení z Axon Code."
 		},
 		"terminal": {

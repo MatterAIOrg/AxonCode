@@ -12,7 +12,7 @@ Anthropic 是一家专注于 AI 安全和研究的公司，致力于构建可靠
 
 1. **注册/登录:** 访问 [Anthropic 控制台](https://console.anthropic.com/)。创建账户或登录现有账户
 2. **导航至 API 密钥:** 进入 [API keys](https://console.anthropic.com/settings/keys) 页面
-3. **创建密钥:** 点击 "Create Key"。为密钥命名（如 "Axon Code"）
+3. **创建密钥:** 点击 "Create Key"。为密钥命名（如 "Orbital"）
 4. **复制密钥:** **重要:** 立即复制 API 密钥，之后将无法再次查看。请妥善保存
 
 ## 支持的模型

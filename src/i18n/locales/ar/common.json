@@ -1,6 +1,6 @@
 {
 	"extension": {
-		"name": "Axon Code",
+		"name": "Orbital",
 		"description": "أداة ذكاء اصطناعي مفتوحة المصدر تساعدك في تخطيط وبناء وتعديل الأكواد."
 	},
 	"number_format": {
@@ -152,7 +152,7 @@
 	"warnings": {
 		"no_terminal_content": "ما تم تحديد أي محتوى من الطرفية",
 		"missing_task_files": "ملفات المهمة ناقصة. تبي نحذفها من القائمة؟",
-		"auto_import_failed": "فشل الاستيراد التلقائي لإعدادات Axon Code: {{error}}"
+		"auto_import_failed": "فشل الاستيراد التلقائي لإعدادات Orbital: {{error}}"
 	},
 	"info": {
 		"no_changes": "ما تم العثور على تغييرات.",

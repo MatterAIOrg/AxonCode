@@ -12,7 +12,7 @@ Kilo Code支持通过DeepSeek API访问模型，包括`deepseek-chat`和`deepsee
 
 1. **注册/登录:** 访问[DeepSeek平台](https://platform.deepseek.com/)。创建账号或登录。
 2. **导航到API密钥:** 在平台的[API密钥](https://platform.deepseek.com/api_keys)部分找到你的API密钥。
-3. **创建密钥:** 点击"Create new API key"。为密钥起一个描述性名称(例如"Axon Code")。
+3. **创建密钥:** 点击"Create new API key"。为密钥起一个描述性名称(例如"Orbital")。
 4. **复制密钥:** **重要:** 立即复制API密钥，之后将无法再次查看。请安全存储。
 
 ## 支持的模型

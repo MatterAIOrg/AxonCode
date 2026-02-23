@@ -142,7 +142,7 @@ const config: Config = {
 						from: ["/advanced-usage/mcp", "/mcp/overview"],
 					},
 					{
-						to: "/features/mcp/using-mcp-in-kilo-code",
+						to: "/orbital/features/mcp",
 						from: ["/mcp/using-mcp-in-kilo-code"],
 					},
 					{
@@ -177,7 +177,7 @@ const config: Config = {
 	themeConfig: {
 		image: "img/matterai-ic.svg",
 		navbar: {
-			title: "Axon Code",
+			title: "Orbital",
 			logo: {
 				alt: "Axon Code Logo",
 				src: "img/matterai-ic.svg",

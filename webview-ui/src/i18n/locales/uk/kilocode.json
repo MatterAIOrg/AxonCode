@@ -93,7 +93,7 @@
 			"label": "Увімкнути системні сповіщення",
 			"description": "Коли увімкнено, Axon Code надсилатиме системні сповіщення про важливі події, такі як завершення завдання або помилки.",
 			"testButton": "Тестове сповіщення",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "Це тестове сповіщення від Axon Code."
 		},
 		"terminal": {

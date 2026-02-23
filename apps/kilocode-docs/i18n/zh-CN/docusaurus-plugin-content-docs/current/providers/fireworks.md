@@ -14,7 +14,7 @@ Fireworks AI 是一个高性能的 AI 模型运行平台，可以快速访问各
 
 1. **注册/登录：** 前往 [Fireworks AI](https://fireworks.ai/) 创建账户或登录。
 2. **导航到 API 密钥：** 登录后，在账户设置中进入 [API Keys 页面](https://app.fireworks.ai/settings/users/api-keys)。
-3. **创建密钥：** 点击 "Create API key" 并为您的密钥输入一个描述性名称（例如 "Axon Code"）。
+3. **创建密钥：** 点击 "Create API key" 并为您的密钥输入一个描述性名称（例如 "Orbital"）。
 4. **复制密钥：** _立即_ 复制 API 密钥并安全存储。您将无法再次查看它。
 
 ---

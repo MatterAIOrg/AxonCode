@@ -84,7 +84,7 @@ export class FileEditReviewController implements vscode.Disposable {
 		// const thread = this.commentController.createCommentThread(uri, diffAnchor, [])
 		// thread.canReply = false
 		// thread.collapsibleState = vscode.CommentThreadCollapsibleState.Expanded
-		// thread.label = "Axon Code"
+		// thread.label = "Orbital"
 		//
 		// // We don't necessarily need a comment body if the title actions are enough,
 		// // but a body explains what's happening.

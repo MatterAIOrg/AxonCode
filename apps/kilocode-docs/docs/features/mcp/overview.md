@@ -11,7 +11,7 @@ The Model Context Protocol (MCP) is a standard for extending Axon Code's capabil
 
 This documentation is organized into several sections:
 
-- [**Using MCP in Axon Code**](/features/mcp/using-mcp-in-kilo-code) - Comprehensive guide to configuring, enabling, and managing MCP servers with Axon Code. Includes server settings, tool approval, and troubleshooting.
+- [**Using MCP in Axon Code**](/orbital/features/mcp) - Comprehensive guide to configuring, enabling, and managing MCP servers with Axon Code. Includes server settings, tool approval, and troubleshooting.
 
 - [**What is MCP?**](/features/mcp/what-is-mcp) - Clear explanation of the Model Context Protocol, its client-server architecture, and how it enables AI systems to interact with external tools.
 

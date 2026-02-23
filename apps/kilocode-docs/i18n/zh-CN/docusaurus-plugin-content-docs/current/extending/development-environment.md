@@ -188,5 +188,5 @@ npm run check-types   # 运行 TypeScript 类型检查
 ### 调试技巧
 
 - 在代码中使用 `console.log()` 语句进行调试
-- 检查 VSCode 中的输出面板（View > Output）并从下拉菜单中选择 "Axon Code"
+- 检查 VSCode 中的输出面板（View > Output）并从下拉菜单中选择 "Orbital"
 - 对于 Webview 问题，请在 Webview 中使用浏览器开发者工具（右键点击 > "Inspect Element"）

@@ -24,8 +24,8 @@ SPDX-License-Identifier: Apache-2.0
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-        <h1>Axon AI Coding Agent | Code Reviews</h1>
-        <p>Open Source AI coding assistant for planning, building, and fixing code.</p>
+        <h1>Orbital AI Coding Agent | AI Code Reviews</h1>
+        <p>AI coding agent for planning, building, and fixing code with AI Code Review, by MatterAI</p>
    ]]></description>
    
    <!-- Change notes for the plugin -->
@@ -46,7 +46,7 @@ SPDX-License-Identifier: Apache-2.0
         <postStartupActivity implementation="so.matterai.jetbrains.plugin.WecoderPlugin"/>
         <editorFactoryListener implementation="so.matterai.jetbrains.editor.EditorListener"/>
         <toolWindow factoryClass="so.matterai.jetbrains.ui.RooToolWindowFactory"
-                    id="Axon Code"
+                    id="Orbital"
                     secondary="true"
                     icon="/icons/kilo-dark.svg"
                     anchor="right" />

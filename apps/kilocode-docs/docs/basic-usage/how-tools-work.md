@@ -31,7 +31,7 @@ _The tool approval interface shows Save/Reject buttons and Auto-approve options.
 
 **User:** Create a file named `greeting.js` that logs a greeting message
 
-**Axon Code:** (Proposes the `write_to_file` tool as shown in the image above)
+**Orbital:** (Proposes the `write_to_file` tool as shown in the image above)
 
 ```xml
 <write_to_file>
@@ -49,7 +49,7 @@ greet('World');
 
 **User:** (Clicks "Save" in the interface)
 
-**Axon Code:** (Confirms file creation)
+**Orbital:** (Confirms file creation)
 
 ## Tool Safety and Approval
 
