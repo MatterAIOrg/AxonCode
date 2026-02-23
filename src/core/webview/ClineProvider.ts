@@ -1954,7 +1954,6 @@ ${prompt}
 			organizationSettingsVersion,
 			maxConcurrentFileReads,
 			allowVeryLargeReads, // kilocode_change
-			ghostServiceSettings, // kilocode_changes
 			codeReviewSettings,
 			condensingApiConfigId,
 			customCondensingPrompt,
@@ -2115,12 +2114,6 @@ ${prompt}
 			cloudOrganizations,
 			sharingEnabled: sharingEnabled ?? false,
 			organizationAllowList,
-			// kilocode_change start
-			ghostServiceSettings: ghostServiceSettings ?? {
-				enableQuickInlineTaskKeybinding: true,
-				enableSmartInlineTaskKeybinding: true,
-			},
-			// kilocode_change end
 			organizationSettingsVersion,
 			condensingApiConfigId,
 			customCondensingPrompt,
@@ -2335,11 +2328,6 @@ ${prompt}
 			commitMessageApiConfigId: stateValues.commitMessageApiConfigId, // kilocode_change
 			terminalCommandApiConfigId: stateValues.terminalCommandApiConfigId, // kilocode_change
 			// kilocode_change start
-			ghostServiceSettings: stateValues.ghostServiceSettings ?? {
-				enableQuickInlineTaskKeybinding: true,
-				enableSmartInlineTaskKeybinding: true,
-			},
-			// kilocode_change end
 			experiments: stateValues.experiments ?? experimentDefault,
 			autoApprovalEnabled: stateValues.autoApprovalEnabled ?? true,
 			customModes,

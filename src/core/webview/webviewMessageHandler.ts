@@ -28,7 +28,6 @@ import {
 	type TelemetrySetting,
 	TelemetryEventName,
 	// kilocode_change start
-	ghostServiceSettingsSchema,
 	fastApplyModelSchema,
 	// kilocode_change end
 	UserSettingsConfig,
@@ -2699,18 +2698,6 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			break
 		// kilocode_change end - terminalCommandApiConfigId
-		// kilocode_change start - ghostServiceSettings
-		case "ghostServiceSettings":
-			if (!message.values) {
-				return
-			}
-			// Validate ghostServiceSettings structure
-			const ghostServiceSettings = ghostServiceSettingsSchema.parse(message.values)
-			await updateGlobalState("ghostServiceSettings", ghostServiceSettings)
-			await provider.postStateToWebview()
-			vscode.commands.executeCommand("axon-code.ghost.reload")
-			break
-		// kilocode_change end
 		case "codeReviewSettings": {
 			const values = message.values as CodeReviewSettings
 			const validated = codeReviewSettingsSchema.parse(values)
@@ -2949,7 +2936,6 @@ ${comment.suggestion}
 					await provider.providerSettingsManager.saveConfig(message.text, message.apiConfiguration)
 					const listApiConfig = await provider.providerSettingsManager.listConfig()
 					await updateGlobalState("listApiConfigMeta", listApiConfig)
-					vscode.commands.executeCommand("axon-code.ghost.reload") // kilocode_change: Reload ghost model when API provider settings change
 				} catch (error) {
 					provider.log(
 						`Error save api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,

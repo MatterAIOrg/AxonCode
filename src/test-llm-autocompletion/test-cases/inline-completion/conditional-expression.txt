@@ -1,4 +1,0 @@
-# Description: Should complete conditional expression
-function isValid(value) {
-  return value !== null && <<<CURSOR>>>;
-}

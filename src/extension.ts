@@ -42,7 +42,6 @@ import {
 	CodeActionProvider,
 } from "./activate"
 import { initializeI18n } from "./i18n"
-import { registerGhostProvider } from "./services/ghost" // kilocode_change
 import { registerMainThreadForwardingLogger } from "./utils/fowardingLogger" // kilocode_change
 import { getKiloCodeWrapperProperties } from "./core/kilocode/wrapper" // kilocode_change
 
@@ -318,10 +317,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// kilocode_change start - Axon Code specific registrations
 	const { kiloCodeWrapped } = getKiloCodeWrapperProperties()
-	if (!kiloCodeWrapped) {
-		// Only use ghost provider in VS Code
-		registerGhostProvider(context, provider)
-	} else {
+	if (kiloCodeWrapped) {
 		// Only foward logs in Jetbrains
 		registerMainThreadForwardingLogger(context)
 	}

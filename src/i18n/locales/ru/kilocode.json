@@ -91,59 +91,6 @@
 			"generateButtonTooltip": "Генерирует сообщение коммита с использованием ИИ для анализа изменений в вашем коде"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (отключено)",
-				"tokenError": "Для использования Autocomplete необходимо установить действительный токен",
-				"lastCompletion": "Последнее предложение:",
-				"sessionTotal": "Общая стоимость сессии:",
-				"provider": "Провайдер:",
-				"model": "Модель:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Анализирую твой код...",
-			"generating": "Генерирую предлагаемые правки...",
-			"processing": "Обрабатываю предлагаемые правки...",
-			"showing": "Показываю предлагаемые правки..."
-		},
-		"input": {
-			"title": "Axon Code: Быстрая Задача",
-			"placeholder": "напр., 'рефактори эту функцию для большей эффективности'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Генерировать Предлагаемые Правки",
-			"displaySuggestions": "Показать Предлагаемые Правки",
-			"cancelSuggestions": "Отменить Предлагаемые Правки",
-			"applyCurrentSuggestion": "Применить Текущую Предлагаемую Правку",
-			"applyAllSuggestions": "Применить Все Предлагаемые Правки",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Предлагаемые Правки"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "Я могу помочь тебе с быстрыми задачами и предлагаемыми правками."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "Axon Code Autocomplete блокируется конфликтом с GitHub Copilot. Чтобы исправить это, ты должен отключить встроенные предложения Copilot.",
-			"disableCopilot": "Отключить Copilot",
-			"disableInlineAssist": "Отключить Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Axon: Опишите команду, которую вы хотите сгенерировать",
 		"inputPlaceholder": "например, завершить процесс, работающий на порту 3001, найти большие файлы и т.д.",

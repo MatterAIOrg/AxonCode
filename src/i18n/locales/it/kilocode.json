@@ -96,59 +96,6 @@
 			"generateButtonTooltip": "Genera messaggi di commit utilizzando l'IA per analizzare le modifiche al tuo codice"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (disabilitato)",
-				"tokenError": "Deve essere impostato un token valido per usare Autocomplete",
-				"lastCompletion": "Ultimo suggerimento:",
-				"sessionTotal": "Costo totale della sessione:",
-				"provider": "Provider:",
-				"model": "Modello:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Analizzando il tuo codice...",
-			"generating": "Generando modifiche suggerite...",
-			"processing": "Elaborando modifiche suggerite...",
-			"showing": "Mostrando modifiche suggerite..."
-		},
-		"input": {
-			"title": "Axon Code: Attività Rapida",
-			"placeholder": "es., 'refactorizza questa funzione per renderla più efficiente'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Genera Modifiche Suggerite",
-			"displaySuggestions": "Mostra Modifiche Suggerite",
-			"cancelSuggestions": "Annulla Modifiche Suggerite",
-			"applyCurrentSuggestion": "Applica Modifica Suggerita Corrente",
-			"applyAllSuggestions": "Applica Tutte le Modifiche Suggerite",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Modifiche Suggerite"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "Posso aiutarti con attività rapide e modifiche suggerite."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "Il Axon Code Autocomplete è bloccato da un conflitto con GitHub Copilot. Per risolvere questo problema, devi disabilitare i suggerimenti in linea di Copilot.",
-			"disableCopilot": "Disabilita Copilot",
-			"disableInlineAssist": "Disabilita Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPlaceholder": "ad es., terminare il processo in esecuzione sulla porta 3001, trovare file di grandi dimensioni, ecc.",
 		"inputPrompt": "Axon: Descrivi il comando che vuoi generare",

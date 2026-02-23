@@ -1,4 +1,0 @@
-# Description: Should complete Ruby hash declaration
-user = {
-	name: 'John',
-	email: <<<AUTOCOMPLETE_HERE>>>

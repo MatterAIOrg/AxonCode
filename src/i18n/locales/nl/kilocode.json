@@ -96,59 +96,6 @@
 			"generateButtonTooltip": "Genereert commit-berichten met behulp van AI om je codewijzigingen te analyseren"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (uitgeschakeld)",
-				"tokenError": "Een geldig token moet worden ingesteld om Autocomplete te gebruiken",
-				"lastCompletion": "Laatste suggestie:",
-				"sessionTotal": "Totale sessiekosten:",
-				"provider": "Provider:",
-				"model": "Model:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Je code analyseren...",
-			"generating": "Voorgestelde bewerkingen genereren...",
-			"processing": "Voorgestelde bewerkingen verwerken...",
-			"showing": "Voorgestelde bewerkingen tonen..."
-		},
-		"input": {
-			"title": "Axon Code: Snelle Taak",
-			"placeholder": "bijv., 'refactor deze functie om efficiënter te zijn'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Voorgestelde Bewerkingen Genereren",
-			"displaySuggestions": "Voorgestelde Bewerkingen Tonen",
-			"cancelSuggestions": "Voorgestelde Bewerkingen Annuleren",
-			"applyCurrentSuggestion": "Huidige Voorgestelde Bewerking Toepassen",
-			"applyAllSuggestions": "Alle Voorgestelde Bewerkingen Toepassen",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Voorgestelde Bewerkingen"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "Ik kan je helpen met snelle taken en voorgestelde bewerkingen."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "De Axon Code Autocomplete wordt geblokkeerd door een conflict met GitHub Copilot. Om dit op te lossen, moet je Copilot's inline suggesties uitschakelen.",
-			"disableCopilot": "Copilot Uitschakelen",
-			"disableInlineAssist": "Autocomplete Uitschakelen"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Axon: Beschrijf het commando dat je wilt genereren",
 		"noActiveTerminal": "Axon: Geen actieve terminal gevonden. Open eerst een terminal.",

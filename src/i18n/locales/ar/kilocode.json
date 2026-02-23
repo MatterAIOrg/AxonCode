@@ -100,59 +100,6 @@
 			"generateButtonTooltip": "ينشئ رسالة الالتزام (commit message) باستخدام الذكاء الاصطناعي لتحليل تغييرات الكود الخاصة بك"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (معطل)",
-				"tokenError": "يجب تعيين رمز صالح لاستخدام الإكمال التلقائي",
-				"lastCompletion": "آخر اقتراح:",
-				"sessionTotal": "إجمالي تكلفة الجلسة:",
-				"provider": "المزود:",
-				"model": "النموذج:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "تحليل الكود الخاص بك...",
-			"generating": "إنشاء التعديلات المقترحة...",
-			"processing": "معالجة التعديلات المقترحة...",
-			"showing": "عرض التعديلات المقترحة..."
-		},
-		"input": {
-			"title": "Axon Code: مهمة سريعة",
-			"placeholder": "مثال، 'أعد هيكلة هذه الدالة لتكون أكثر كفاءة'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: إنشاء التعديلات المقترحة",
-			"displaySuggestions": "عرض التعديلات المقترحة",
-			"cancelSuggestions": "إلغاء التعديلات المقترحة",
-			"applyCurrentSuggestion": "تطبيق التعديل المقترح الحالي",
-			"applyAllSuggestions": "تطبيق جميع التعديلات المقترحة",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: التعديلات المقترحة"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "يمكنني مساعدتك في المهام السريعة والتعديلات المقترحة."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "يتم حظر Axon Code Autocomplete بسبب تعارض مع GitHub Copilot. لإصلاح هذا، يجب عليك تعطيل اقتراحات Copilot المضمنة.",
-			"disableCopilot": "تعطيل Copilot",
-			"disableInlineAssist": "تعطيل الإكمال التلقائي"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Axon: وصف الأمر الذي ترغب في توليده",
 		"generatingProgress": "Axon: جاري توليد الأمر الطرفي...",

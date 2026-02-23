@@ -96,59 +96,6 @@
 			"generateButtonTooltip": "Generates commit message using AI to analyze your code changes"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (disabled)",
-				"tokenError": "A valid token must be set to use Autocomplete",
-				"lastCompletion": "Last suggestion:",
-				"sessionTotal": "Session total cost:",
-				"provider": "Provider:",
-				"model": "Model:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "Analyzing your code...",
-			"generating": "Generating suggested edits...",
-			"processing": "Processing suggested edits...",
-			"showing": "Displaying suggested edits..."
-		},
-		"input": {
-			"title": "Axon Code: Quick Task",
-			"placeholder": "e.g., 'refactor this function to be more efficient'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: Generate Suggested Edits",
-			"displaySuggestions": "Display Suggested Edits",
-			"cancelSuggestions": "Cancel Suggested Edits",
-			"applyCurrentSuggestion": "Apply Current Suggested Edit",
-			"applyAllSuggestions": "Apply All Suggested Edits",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: Suggested Edits"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "I can help you with quick tasks and suggested edits."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "The Axon Code Autocomplete is being blocked by a conflict with GitHub Copilot. To fix this, you must disable Copilot's inline suggestions.",
-			"disableCopilot": "Disable Copilot",
-			"disableInlineAssist": "Disable Autocomplete"
-		}
-	},
 	"seeNewChanges": {
 		"title": "Showing new changes",
 		"checkpointsUnavailable": "Cannot show new changes, checkpoints are unavailable.",

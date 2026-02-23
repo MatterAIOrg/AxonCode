@@ -102,59 +102,6 @@
 		"noChanges": "ไม่สามารถแสดงการเปลี่ยนแปลงใหม่ได้ ไม่พบการเปลี่ยนแปลงใดๆ",
 		"error": "ไม่สามารถแสดงการเปลี่ยนแปลงใหม่ได้ เกิดข้อผิดพลาด"
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (ปิดใช้งาน)",
-				"tokenError": "ต้องตั้งค่าโทเค็นที่ถูกต้องเพื่อใช้ Autocomplete",
-				"lastCompletion": "คำแนะนำล่าสุด:",
-				"sessionTotal": "ค่าใช้จ่ายรวมของเซสชัน:",
-				"provider": "ผู้ให้บริการ:",
-				"model": "โมเดล:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "กำลังวิเคราะห์โค้ดของคุณ...",
-			"generating": "กำลังสร้างการแก้ไขที่แนะนำ...",
-			"processing": "กำลังประมวลผลการแก้ไขที่แนะนำ...",
-			"showing": "กำลังแสดงการแก้ไขที่แนะนำ..."
-		},
-		"input": {
-			"title": "Axon Code: งานด่วน",
-			"placeholder": "เช่น 'ปรับโครงสร้างฟังก์ชันนี้ให้มีประสิทธิภาพมากขึ้น'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: สร้างการแก้ไขที่แนะนำ",
-			"displaySuggestions": "แสดงการแก้ไขที่แนะนำ",
-			"cancelSuggestions": "ยกเลิกการแก้ไขที่แนะนำ",
-			"applyCurrentSuggestion": "ใช้การแก้ไขที่แนะนำปัจจุบัน",
-			"applyAllSuggestions": "ใช้การแก้ไขที่แนะนำทั้งหมด",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: การแก้ไขที่แนะนำ"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "ฉันสามารถช่วยคุณในงานด่วนและการแก้ไขที่แนะนำได้"
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "Axon Code Autocomplete ถูกบล็อกโดยความขัดแย้งกับ GitHub Copilot เพื่อแก้ไขปัญหานี้ คุณต้องปิดใช้งานคำแนะนำแบบอินไลน์ของ Copilot",
-			"disableCopilot": "ปิดใช้งาน Copilot",
-			"disableInlineAssist": "ปิดใช้งาน Autocomplete"
-		}
-	},
 	"terminalCommandGenerator": {
 		"inputPrompt": "Axon: อธิบายคำสั่งที่คุณต้องการสร้าง",
 		"noActiveTerminal": "Axon: ไม่พบเทอร์มินัลที่ใช้งานอยู่ กรุณาเปิดเทอร์มินัลก่อน",

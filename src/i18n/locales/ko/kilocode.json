@@ -96,59 +96,6 @@
 			"generateButton": "커밋 메시지 생성"
 		}
 	},
-	"ghost": {
-		"statusBar": {
-			"enabled": "$(sparkle) Axon Code Autocomplete",
-			"disabled": "$(circle-slash) Axon Code Autocomplete",
-			"warning": "$(warning) Axon Code Autocomplete",
-			"tooltip": {
-				"basic": "Axon Code Autocomplete",
-				"disabled": "Axon Code Autocomplete (비활성화됨)",
-				"tokenError": "Autocomplete를 사용하려면 유효한 토큰을 설정해야 합니다",
-				"lastCompletion": "마지막 제안:",
-				"sessionTotal": "세션 총 비용:",
-				"provider": "제공업체:",
-				"model": "모델:"
-			},
-			"cost": {
-				"zero": "$0.00",
-				"lessThanCent": "<$0.01"
-			}
-		},
-		"toggleMessage": "Axon Code Autocomplete {{status}}",
-		"progress": {
-			"title": "Axon Code",
-			"analyzing": "코드 분석 중...",
-			"generating": "제안된 편집 생성 중...",
-			"processing": "제안된 편집 처리 중...",
-			"showing": "제안된 편집 표시 중..."
-		},
-		"input": {
-			"title": "Axon Code: 빠른 작업",
-			"placeholder": "예: '이 함수를 더 효율적으로 리팩토링해줘'"
-		},
-		"commands": {
-			"generateSuggestions": "Axon Code: 제안된 편집 생성",
-			"displaySuggestions": "제안된 편집 표시",
-			"cancelSuggestions": "제안된 편집 취소",
-			"applyCurrentSuggestion": "현재 제안된 편집 적용",
-			"applyAllSuggestions": "모든 제안된 편집 적용",
-			"category": "Axon Code"
-		},
-		"codeAction": {
-			"title": "Axon Code: 제안된 편집"
-		},
-		"chatParticipant": {
-			"fullName": "Axon Code Agent",
-			"name": "Agent",
-			"description": "빠른 작업과 제안된 편집으로 도움을 드릴 수 있습니다."
-		},
-		"incompatibilityExtensionPopup": {
-			"message": "Axon Code Autocomplete가 GitHub Copilot과의 충돌로 인해 차단되고 있습니다. 이를 해결하려면 Copilot의 인라인 제안을 비활성화해야 합니다.",
-			"disableCopilot": "Copilot 비활성화",
-			"disableInlineAssist": "Autocomplete 비활성화"
-		}
-	},
 	"terminalCommandGenerator": {
 		"generatingProgress": "Axon: 터미널 명령어 생성 중...",
 		"noActiveTerminal": "Axon: 활성화된 터미널을 찾을 수 없습니다. 먼저 터미널을 열어주세요.",
