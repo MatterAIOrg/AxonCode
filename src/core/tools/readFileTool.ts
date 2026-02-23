@@ -341,13 +341,19 @@ export async function readFileTool(
 			const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
 			const isOutsideWorkspace = isPathOutsideWorkspace(fullPath)
 
+			// Get actual file line count for accurate limit display
+			const totalLines = await countFileLines(fullPath).catch(() => 0)
+			const effectiveLimit = fileResult.limit
+				? Math.min(fileResult.limit, MAX_READ_FILE_LINES)
+				: Math.min(totalLines, MAX_READ_FILE_LINES)
+
 			const completeMessage = JSON.stringify({
 				tool: "readFile",
 				path: getReadablePath(cline.cwd, relPath),
 				isOutsideWorkspace,
 				content: fullPath,
 				offset: fileResult.offset || 0,
-				limit: fileResult.limit || MAX_READ_FILE_LINES,
+				limit: effectiveLimit,
 			} satisfies ClineSayTool)
 
 			// kilocode_change: Auto-approve - show in UI and immediately approve
