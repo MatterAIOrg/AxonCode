@@ -208,9 +208,9 @@ export class McpHub {
 			config.type = "stdio"
 		}
 
-		// For url-based configs, type must be provided by the user
+		// For url-based configs without type, default to streamable-http (will be auto-detected later)
 		if (hasUrlFields && !config.type) {
-			throw new Error("Configuration with 'url' must explicitly specify 'type' as 'sse' or 'streamable-http'.")
+			config.type = "streamable-http" // Default, will be auto-detected in connectToServer
 		}
 
 		// Validate type if provided
@@ -649,18 +649,6 @@ export class McpHub {
 		this.setupFileWatcher(name, config, source)
 
 		try {
-			const client = new Client(
-				{
-					name: "Axon Code",
-					version: this.providerRef.deref()?.context.extension?.packageJSON?.version ?? "1.0.0",
-				},
-				{
-					capabilities: {},
-				},
-			)
-
-			let transport: StdioClientTransport | SSEClientTransport | StreamableHTTPClientTransport
-
 			// Inject variables to the config (environment, magic variables,...)
 			const configInjected = (await injectVariables(config, {
 				env: process.env,
@@ -684,7 +672,17 @@ export class McpHub {
 						? ["/c", configInjected.command, ...(configInjected.args || [])]
 						: configInjected.args
 
-				transport = new StdioClientTransport({
+				const client = new Client(
+					{
+						name: "Axon Code",
+						version: this.providerRef.deref()?.context.extension?.packageJSON?.version ?? "1.0.0",
+					},
+					{
+						capabilities: {},
+					},
+				)
+
+				const transport: StdioClientTransport = new StdioClientTransport({
 					command,
 					args,
 					cwd: configInjected.cwd,
@@ -742,114 +740,216 @@ export class McpHub {
 				} else {
 					console.error(`No stderr stream for ${name}`)
 				}
-			} else if (configInjected.type === "streamable-http") {
-				// Streamable HTTP connection
-				transport = new StreamableHTTPClientTransport(new URL(configInjected.url), {
-					requestInit: {
-						headers: configInjected.headers,
+
+				// Monkey-patch transport.start to no-op since we already started it
+				transport.start = async () => {}
+
+				// Create a connected connection for stdio
+				const connection: ConnectedMcpConnection = {
+					type: "connected",
+					server: {
+						name,
+						config: JSON.stringify(configInjected),
+						status: "connecting",
+						disabled: configInjected.disabled,
+						source,
+						projectPath:
+							source === "project" ? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath : undefined,
+						errorHistory: [],
 					},
-				})
+					client,
+					transport,
+				}
+				this.connections.push(connection)
 
-				// Set up Streamable HTTP specific error handling
-				transport.onerror = async (error) => {
-					console.error(`Transport error for "${name}" (streamable-http):`, error)
-					const connection = this.findConnection(name, source)
-					if (connection) {
-						connection.server.status = "disconnected"
-						this.appendErrorMessage(connection, error instanceof Error ? error.message : `${error}`)
-					}
-					await this.notifyWebviewOfServerChanges()
-				}
+				// Connect (this will automatically start the transport)
+				await client.connect(transport)
+				connection.server.status = "connected"
+				connection.server.error = ""
+				connection.server.instructions = client.getInstructions()
 
-				transport.onclose = async () => {
-					const connection = this.findConnection(name, source)
-					if (connection) {
-						connection.server.status = "disconnected"
-					}
-					await this.notifyWebviewOfServerChanges()
-				}
-			} else if (configInjected.type === "sse") {
-				// SSE connection
-				const sseOptions = {
-					requestInit: {
-						headers: configInjected.headers,
-					},
-				}
-				// Configure ReconnectingEventSource options
-				const reconnectingEventSourceOptions = {
-					max_retry_time: 5000, // Maximum retry time in milliseconds
-					withCredentials: configInjected.headers?.["Authorization"] ? true : false, // Enable credentials if Authorization header exists
-					fetch: (url: string | URL, init: RequestInit) => {
-						const headers = new Headers({ ...(init?.headers || {}), ...(configInjected.headers || {}) })
-						return fetch(url, {
-							...init,
-							headers,
-						})
-					},
-				}
-				global.EventSource = ReconnectingEventSource
-				transport = new SSEClientTransport(new URL(configInjected.url), {
-					...sseOptions,
-					eventSourceInit: reconnectingEventSourceOptions,
-				})
+				this.kiloNotificationService.connect(name, connection.client)
 
-				// Set up SSE specific error handling
-				transport.onerror = async (error) => {
-					console.error(`Transport error for "${name}":`, error)
-					const connection = this.findConnection(name, source)
-					if (connection) {
-						connection.server.status = "disconnected"
-						this.appendErrorMessage(connection, error instanceof Error ? error.message : `${error}`)
-					}
-					await this.notifyWebviewOfServerChanges()
+				// Initial fetch of tools and resources
+				connection.server.tools = await this.fetchToolsList(name, source)
+				connection.server.resources = await this.fetchResourcesList(name, source)
+				connection.server.resourceTemplates = await this.fetchResourceTemplatesList(name, source)
+			} else if (configInjected.type === "streamable-http" || configInjected.type === "sse") {
+				// URL-based connection (streamable-http or sse)
+				// Auto-detect the correct transport type if not explicitly set by user
+				let actualType = configInjected.type
+
+				// Try the configured/detected type first, then fallback to the other
+				const typesToTry: Array<"streamable-http" | "sse"> = [actualType as "streamable-http" | "sse"]
+				if (actualType === "streamable-http") {
+					typesToTry.push("sse")
+				} else {
+					typesToTry.push("streamable-http")
 				}
 
-				transport.onclose = async () => {
-					const connection = this.findConnection(name, source)
-					if (connection) {
-						connection.server.status = "disconnected"
+				let lastError: Error | null = null
+
+				for (const typeToTry of typesToTry) {
+					// Create a fresh client for each attempt
+					const client = new Client(
+						{
+							name: "Axon Code",
+							version: this.providerRef.deref()?.context.extension?.packageJSON?.version ?? "1.0.0",
+						},
+						{
+							capabilities: {},
+						},
+					)
+
+					let transport: SSEClientTransport | StreamableHTTPClientTransport
+					try {
+						if (typeToTry === "streamable-http") {
+							transport = new StreamableHTTPClientTransport(new URL(configInjected.url), {
+								requestInit: {
+									headers: configInjected.headers,
+								},
+							})
+
+							transport.onerror = async (error) => {
+								console.error(`Transport error for "${name}" (streamable-http):`, error)
+								const connection = this.findConnection(name, source)
+								if (connection) {
+									connection.server.status = "disconnected"
+									this.appendErrorMessage(
+										connection,
+										error instanceof Error ? error.message : `${error}`,
+									)
+								}
+								await this.notifyWebviewOfServerChanges()
+							}
+
+							transport.onclose = async () => {
+								const connection = this.findConnection(name, source)
+								if (connection) {
+									connection.server.status = "disconnected"
+								}
+								await this.notifyWebviewOfServerChanges()
+							}
+						} else {
+							// SSE connection
+							const sseOptions = {
+								requestInit: {
+									headers: configInjected.headers,
+								},
+							}
+							const reconnectingEventSourceOptions = {
+								max_retry_time: 5000,
+								withCredentials: configInjected.headers?.["Authorization"] ? true : false,
+								fetch: (url: string | URL, init: RequestInit) => {
+									const headers = new Headers({
+										...(init?.headers || {}),
+										...(configInjected.headers || {}),
+									})
+									return fetch(url, {
+										...init,
+										headers,
+									})
+								},
+							}
+							global.EventSource = ReconnectingEventSource
+							transport = new SSEClientTransport(new URL(configInjected.url), {
+								...sseOptions,
+								eventSourceInit: reconnectingEventSourceOptions,
+							})
+
+							transport.onerror = async (error) => {
+								console.error(`Transport error for "${name}" (sse):`, error)
+								const connection = this.findConnection(name, source)
+								if (connection) {
+									connection.server.status = "disconnected"
+									this.appendErrorMessage(
+										connection,
+										error instanceof Error ? error.message : `${error}`,
+									)
+								}
+								await this.notifyWebviewOfServerChanges()
+							}
+
+							transport.onclose = async () => {
+								const connection = this.findConnection(name, source)
+								if (connection) {
+									connection.server.status = "disconnected"
+								}
+								await this.notifyWebviewOfServerChanges()
+							}
+						}
+
+						// Update config with the type we're trying
+						configInjected.type = typeToTry
+
+						// Create a connected connection
+						const connection: ConnectedMcpConnection = {
+							type: "connected",
+							server: {
+								name,
+								config: JSON.stringify(configInjected),
+								status: "connecting",
+								disabled: configInjected.disabled,
+								source,
+								projectPath:
+									source === "project"
+										? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+										: undefined,
+								errorHistory: [],
+							},
+							client,
+							transport,
+						}
+						this.connections.push(connection)
+
+						// Try to connect
+						await client.connect(transport)
+
+						// Connection successful - update the type in config if it changed
+						if (typeToTry !== actualType) {
+							await this.updateServerTypeInConfig(name, typeToTry, source)
+						}
+
+						connection.server.status = "connected"
+						connection.server.error = ""
+						connection.server.instructions = client.getInstructions()
+
+						this.kiloNotificationService.connect(name, connection.client)
+
+						// Initial fetch of tools and resources
+						connection.server.tools = await this.fetchToolsList(name, source)
+						connection.server.resources = await this.fetchResourcesList(name, source)
+						connection.server.resourceTemplates = await this.fetchResourceTemplatesList(name, source)
+
+						// Success - exit the method
+						return
+					} catch (error) {
+						lastError = error instanceof Error ? error : new Error(`${error}`)
+						console.log(`Failed to connect to "${name}" with ${typeToTry}:`, error)
+
+						// Clean up failed connection
+						const failedConnection = this.findConnection(name, source)
+						if (failedConnection) {
+							this.connections = this.connections.filter((c) => c !== failedConnection)
+						}
+
+						// If this was the last type to try, throw the error
+						if (typeToTry === typesToTry[typesToTry.length - 1]) {
+							throw lastError
+						}
+						// Otherwise, continue to try the next type
 					}
-					await this.notifyWebviewOfServerChanges()
 				}
+
+				// Should not reach here, but throw last error if we do
+				if (lastError) {
+					throw lastError
+				}
+				return
 			} else {
 				// Should not happen if validateServerConfig is correct
 				throw new Error(`Unsupported MCP server type: ${(configInjected as any).type}`)
 			}
-
-			// Only override transport.start for stdio transports that have already been started
-			if (configInjected.type === "stdio") {
-				transport.start = async () => {}
-			}
-
-			// Create a connected connection
-			const connection: ConnectedMcpConnection = {
-				type: "connected",
-				server: {
-					name,
-					config: JSON.stringify(configInjected),
-					status: "connecting",
-					disabled: configInjected.disabled,
-					source,
-					projectPath: source === "project" ? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath : undefined,
-					errorHistory: [],
-				},
-				client,
-				transport,
-			}
-			this.connections.push(connection)
-
-			// Connect (this will automatically start the transport)
-			await client.connect(transport)
-			connection.server.status = "connected"
-			connection.server.error = ""
-			connection.server.instructions = client.getInstructions()
-
-			this.kiloNotificationService.connect(name, connection.client)
-
-			// Initial fetch of tools and resources
-			connection.server.tools = await this.fetchToolsList(name, source)
-			connection.server.resources = await this.fetchResourcesList(name, source)
-			connection.server.resourceTemplates = await this.fetchResourceTemplatesList(name, source)
 		} catch (error) {
 			// Update status with error
 			const connection = this.findConnection(name, source)
@@ -886,6 +986,60 @@ export class McpHub {
 
 		// Update current error display
 		connection.server.error = truncatedError
+	}
+
+	/**
+	 * Detects the correct transport type for a URL-based MCP server
+	 * by probing the endpoint. Returns 'streamable-http' or 'sse'.
+	 */
+	private async detectTransportType(url: string): Promise<"streamable-http" | "sse"> {
+		try {
+			// Try streamable-http first (POST to /mcp)
+			const mcpUrl = url.endsWith("/mcp") ? url : `${url}/mcp`
+			const response = await fetch(mcpUrl, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json, text/event-stream",
+				},
+				body: JSON.stringify({
+					jsonrpc: "2.0",
+					id: 1,
+					method: "initialize",
+					params: {
+						protocolVersion: "2024-11-05",
+						capabilities: {},
+						clientInfo: { name: "Axon Code", version: "1.0.0" },
+					},
+				}),
+			})
+
+			// If we get a successful response, it's streamable-http
+			if (response.ok) {
+				return "streamable-http"
+			}
+		} catch (error) {
+			console.log(`Streamable-http probe failed for ${url}:`, error)
+		}
+
+		// Fall back to SSE
+		return "sse"
+	}
+
+	/**
+	 * Updates the server config in the settings file with the detected type
+	 */
+	private async updateServerTypeInConfig(
+		serverName: string,
+		detectedType: "streamable-http" | "sse",
+		source: "global" | "project",
+	): Promise<void> {
+		try {
+			await this.updateServerConfig(serverName, { type: detectedType }, source)
+			console.log(`Updated server "${serverName}" type to "${detectedType}" in config`)
+		} catch (error) {
+			console.error(`Failed to update server type for "${serverName}":`, error)
+		}
 	}
 
 	/**
@@ -1055,8 +1209,8 @@ export class McpHub {
 			}
 		}
 
-		// Update or add servers
-		for (const [name, config] of Object.entries(newServers)) {
+		// Update or add servers in parallel to prevent slow servers from blocking others
+		const connectionPromises = Object.entries(newServers).map(async ([name, config]) => {
 			// Only consider connections that match the current source
 			const currentConnection = this.findConnection(name, source)
 
@@ -1066,7 +1220,7 @@ export class McpHub {
 				validatedConfig = this.validateServerConfig(config, name)
 			} catch (error) {
 				this.showErrorMessage(`Invalid configuration for MCP server "${name}"`, error)
-				continue
+				return
 			}
 
 			if (!currentConnection) {
@@ -1094,7 +1248,10 @@ export class McpHub {
 				}
 			}
 			// If server exists with same config, do nothing
-		}
+		})
+
+		// Wait for all connections to complete (success or failure)
+		await Promise.allSettled(connectionPromises)
 		await this.notifyWebviewOfServerChanges()
 		if (manageConnectingState) {
 			this.isConnecting = false
