@@ -93,7 +93,7 @@
 			"label": "Systembenachrichtigungen aktivieren",
 			"description": "Wenn aktiviert, sendet Axon Code Systembenachrichtigungen für wichtige Ereignisse wie Aufgabenabschluss oder Fehler.",
 			"testButton": "Benachrichtigung testen",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "Dies ist eine Testbenachrichtigung von Axon Code."
 		},
 		"terminal": {

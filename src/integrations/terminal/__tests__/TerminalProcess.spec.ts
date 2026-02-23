@@ -24,7 +24,7 @@ describe("TerminalProcess", () => {
 			shellIntegration: {
 				executeCommand: vi.fn(),
 			},
-			name: "Axon Code",
+			name: "Orbital",
 			processId: Promise.resolve(123),
 			creationOptions: {},
 			exitStatus: undefined,

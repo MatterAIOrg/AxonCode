@@ -99,7 +99,7 @@
 			"label": "Enable System Notifications",
 			"description": "When enabled, Axon Code will send system notifications for important events like task completion or errors.",
 			"testButton": "Test Notification",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "This is a test notification from Axon Code."
 		},
 		"terminal": {

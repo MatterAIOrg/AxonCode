@@ -93,7 +93,7 @@
 			"label": "システム通知を有効にする",
 			"description": "有効にすると、Kilo Codeはタスクの完了やエラーなどの重要なイベントについてシステム通知を送信します。",
 			"testButton": "通知をテスト",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "これはKilo Codeからのテスト通知です。"
 		},
 		"terminal": {

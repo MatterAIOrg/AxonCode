@@ -656,7 +656,7 @@ export class McpHub {
 
 				const client = new Client(
 					{
-						name: "Axon Code",
+						name: "Orbital",
 						version: this.providerRef.deref()?.context.extension?.packageJSON?.version ?? "1.0.0",
 					},
 					{
@@ -775,7 +775,7 @@ export class McpHub {
 					// Create a fresh client for each attempt
 					const client = new Client(
 						{
-							name: "Axon Code",
+							name: "Orbital",
 							version: this.providerRef.deref()?.context.extension?.packageJSON?.version ?? "1.0.0",
 						},
 						{
@@ -991,7 +991,7 @@ export class McpHub {
 					params: {
 						protocolVersion: "2024-11-05",
 						capabilities: {},
-						clientInfo: { name: "Axon Code", version: "1.0.0" },
+						clientInfo: { name: "Orbital", version: "1.0.0" },
 					},
 				}),
 			})

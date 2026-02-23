@@ -62,7 +62,7 @@ describe("OpenRouterHandler", () => {
 			apiKey: mockOptions.openRouterApiKey,
 			defaultHeaders: {
 				"HTTP-Referer": "https://matterai.so",
-				"X-Title": "Axon Code",
+				"X-Title": "Orbital",
 				"X-AxonCode-Version": Package.version,
 				"User-Agent": `Kilo-Code/${Package.version}`,
 			},

@@ -23,8 +23,8 @@ alternatively, you can:
 
 1. Open VS Code
 2. Access Extensions: Click the Extensions icon in the Side Bar or press `Ctrl+Shift+X` (Windows/Linux) or `Cmd+Shift+X` (macOS)
-3. Search for "Axon Code"
-4. Select "Axon Code" by Axon Code and click **Install**
+3. Search for "Orbital"
+4. Select "Orbital" by Axon Code and click **Install**
 5. Reload VS Code if prompted
 
 After installation, find the Axon Code icon (<img src="/docs/img/matterai-ic.svg" width="12" />) in the Side Bar to open the Axon Code panel.
@@ -44,8 +44,8 @@ alternatively, you can:
 
 1. Open Cursor
 2. Access Extensions: Click the Extensions icon in the Side Bar or press `Ctrl+Shift+X` (Windows/Linux) or `Cmd+Shift+X` (macOS)
-3. Search for "Axon Code"
-4. Select "Axon Code" by Axon Code and click **Install**
+3. Search for "Orbital"
+4. Select "Orbital" by Axon Code and click **Install**
 5. Reload Cursor if prompted
 
 After installation, find the Axon Code icon (<img src="/docs/img/matterai-ic.svg" width="12" />) in the Side Bar to open the Axon Code panel.
@@ -59,8 +59,8 @@ For VS Code-compatible editors like VSCodium, Gitpod, Eclipse Theia, and Windsur
 1. Open your editor
 2. Access the Extensions view (Side Bar icon or `Ctrl+Shift+X` / `Cmd+Shift+X`)
 3. Your editor should be pre-configured to use Open VSX Registry
-4. Search for "Axon Code"
-5. Select "Axon Code" and click **Install**
+4. Search for "Orbital"
+5. Select "Orbital" and click **Install**
 6. Reload the editor if prompted
 
 :::note
@@ -93,7 +93,7 @@ If you prefer to download and install the VSIX file directly:
 - Restart VS Code
 - Verify Axon Code is listed and enabled in Extensions
 - Try disabling and re-enabling the extension in Extensions
-- Check Output panel for errors (View → Output, select "Axon Code")
+- Check Output panel for errors (View → Output, select "Orbital")
 
 **Installation Problems**
 

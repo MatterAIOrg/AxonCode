@@ -86,7 +86,7 @@
 			"label": "Włącz powiadomienia systemowe",
 			"description": "Gdy włączone, Axon Code będzie wysyłać powiadomienia systemowe o ważnych wydarzeniach, takich jak zakończenie zadania lub błędy.",
 			"testButton": "Testuj powiadomienie",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "To jest testowe powiadomienie z Axon Code."
 		},
 		"terminal": {

@@ -7,7 +7,7 @@ import type { UserOrganization } from "../state/atoms/profile.js"
 
 /**
  * Normalize team name to lowercase with dashes
- * Example: "Axon Code" -> "kilo-code"
+ * Example: "Orbital" -> "kilo-code"
  */
 function normalizeTeamName(name: string): string {
 	return name

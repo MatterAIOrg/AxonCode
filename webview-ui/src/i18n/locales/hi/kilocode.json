@@ -86,7 +86,7 @@
 			"label": "सिस्टम नोटिफिकेशन सक्षम करें",
 			"description": "जब सक्षम हो, तो Axon Code महत्वपूर्ण घटनाओं जैसे कार्य पूर्णता या त्रुटियों के लिए सिस्टम नोटिफिकेशन भेजेगा।",
 			"testButton": "नोटिफिकेशन का परीक्षण करें",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "यह Axon Code से एक परीक्षण नोटिफिकेशन है।"
 		},
 		"terminal": {

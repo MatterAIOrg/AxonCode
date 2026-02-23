@@ -4,7 +4,7 @@
 		"task_placeholder": "Assistent de codificació de IA de codi obert per planificar, crear i corregir codi."
 	},
 	"extension": {
-		"name": "Axon Code",
+		"name": "Orbital",
 		"description": "Tot un equip de desenvolupadors d'IA al teu editor."
 	},
 	"number_format": {
@@ -151,7 +151,7 @@
 	"warnings": {
 		"no_terminal_content": "No s'ha seleccionat contingut de terminal",
 		"missing_task_files": "Els fitxers d'aquesta tasca falten. Vols eliminar-la de la llista de tasques?",
-		"auto_import_failed": "Ha fallat la importació automàtica de la configuració de Axon Code: {{error}}"
+		"auto_import_failed": "Ha fallat la importació automàtica de la configuració de Orbital: {{error}}"
 	},
 	"info": {
 		"no_changes": "No s'han trobat canvis.",

@@ -1,6 +1,6 @@
 {
 	"extension": {
-		"name": "Axon Code",
+		"name": "Orbital",
 		"description": "Помічник з кодування AI з відкритим кодом для планування, створення та виправлення коду."
 	},
 	"number_format": {
@@ -152,7 +152,7 @@
 	"warnings": {
 		"no_terminal_content": "Не вибрано вміст терміналу",
 		"missing_task_files": "Файли цього завдання відсутні. Хочеш видалити його зі списку завдань?",
-		"auto_import_failed": "Не вдалося автоматично імпортувати налаштування Axon Code: {{error}}"
+		"auto_import_failed": "Не вдалося автоматично імпортувати налаштування Orbital: {{error}}"
 	},
 	"info": {
 		"no_changes": "Змін не знайдено.",

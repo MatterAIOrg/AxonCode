@@ -128,7 +128,7 @@
 	},
 	"keywords": ["cli", "tui", "terminal", "ai", "assistant", "kilocode", "kilo", "ink"],
 	"author": {
-		"name": "Axon Code"
+		"name": "Orbital"
 	},
 	"homepage": "https://matterai.so/cli",
 	"bugs": {

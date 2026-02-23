@@ -12,7 +12,7 @@ Axon Code supports accessing models directly through the official OpenAI API.
 
 1.  **Sign Up/Sign In:** Go to the [OpenAI Platform](https://platform.openai.com/). Create an account or sign in.
 2.  **Navigate to API Keys:** Go to the [API keys](https://platform.openai.com/api-keys) page.
-3.  **Create a Key:** Click "Create new secret key". Give your key a descriptive name (e.g., "Axon Code").
+3.  **Create a Key:** Click "Create new secret key". Give your key a descriptive name (e.g., "Orbital").
 4.  **Copy the Key:** **Important:** Copy the API key _immediately_. You will not be able to see it again. Store it securely.
 
 ## Supported Models

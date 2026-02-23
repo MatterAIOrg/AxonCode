@@ -46,7 +46,7 @@ class ExtensionManager : Disposable {
 
         // Create extension identifier
         val name = packageJson.name
-        val publisher = "Axon Code"
+        val publisher = "Orbital"
         val extensionIdentifier = ExtensionIdentifier("$publisher.$name")
 
         // Create extension description
@@ -57,7 +57,7 @@ class ExtensionManager : Disposable {
             displayName = packageJson.displayName,
             description = packageJson.description,
             version = packageJson.version ?: "1.0.0",
-            publisher = "Axon Code",
+            publisher = "Orbital",
             main = packageJson.main ?: "./dist/extension.js",
             activationEvents = packageJson.activationEvents ?: listOf("onStartupFinished"),
             extensionLocation = URI.file(extensionPath),

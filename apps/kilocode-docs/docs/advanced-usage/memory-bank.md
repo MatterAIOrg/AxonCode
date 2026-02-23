@@ -185,7 +185,7 @@ You can direct Axon Code to focus on specific information sources by using comma
 
 #### Regular Task Execution
 
-At the beginning of every task, Axon Code:
+At the beginning of every task, Orbital:
 
 1. Reads ALL memory bank files
 2. Includes `[Memory Bank: Active]` at the beginning of its response

@@ -1,6 +1,6 @@
 {
 	"extension": {
-		"name": "Axon Code",
+		"name": "Orbital",
 		"description": "Trợ lý mã hóa AI nguồn mở để lập kế hoạch, xây dựng và sửa mã."
 	},
 	"number_format": {
@@ -147,7 +147,7 @@
 	"warnings": {
 		"no_terminal_content": "Không có nội dung terminal được chọn",
 		"missing_task_files": "Các tệp của nhiệm vụ này bị thiếu. Bạn có muốn xóa nó khỏi danh sách nhiệm vụ không?",
-		"auto_import_failed": "Không thể tự động nhập cài đặt Axon Code: {{error}}"
+		"auto_import_failed": "Không thể tự động nhập cài đặt Orbital: {{error}}"
 	},
 	"info": {
 		"no_changes": "Không tìm thấy thay đổi nào.",

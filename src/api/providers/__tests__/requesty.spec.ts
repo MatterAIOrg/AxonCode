@@ -59,7 +59,7 @@ describe("RequestyHandler", () => {
 			apiKey: mockOptions.requestyApiKey,
 			defaultHeaders: {
 				"HTTP-Referer": "https://matterai.so",
-				"X-Title": "Axon Code",
+				"X-Title": "Orbital",
 				"X-AxonCode-Version": Package.version,
 				"User-Agent": `Kilo-Code/${Package.version}`,
 			},
@@ -75,7 +75,7 @@ describe("RequestyHandler", () => {
 			apiKey: mockOptions.requestyApiKey,
 			defaultHeaders: {
 				"HTTP-Referer": "https://matterai.so",
-				"X-Title": "Axon Code",
+				"X-Title": "Orbital",
 				"X-AxonCode-Version": Package.version,
 				"User-Agent": `Kilo-Code/${Package.version}`,
 			},

@@ -93,7 +93,7 @@
 			"label": "시스템 알림 활성화",
 			"description": "활성화되면 Kilo Code는 작업 완료나 오류와 같은 중요한 이벤트에 대한 시스템 알림을 보냅니다.",
 			"testButton": "알림 테스트",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "이것은 Kilo Code의 테스트 알림입니다."
 		},
 		"terminal": {

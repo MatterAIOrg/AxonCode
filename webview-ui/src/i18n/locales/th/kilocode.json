@@ -54,7 +54,7 @@
 			"label": "เปิดใช้งานการแจ้งเตือนระบบ",
 			"description": "เมื่อเปิดใช้งาน Axon Code จะส่งการแจ้งเตือนระบบสำหรับเหตุการณ์สำคัญ เช่น การเสร็จสิ้นของงานหรือข้อผิดพลาด",
 			"testButton": "ทดสอบการแจ้งเตือน",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "นี่คือการแจ้งเตือนทดสอบจาก Axon Code"
 		},
 		"provider": {

@@ -100,7 +100,7 @@ describe("VercelAiGatewayHandler", () => {
 			// forked_change start
 			defaultHeaders: expect.objectContaining({
 				"HTTP-Referer": "https://matterai.so",
-				"X-Title": "Axon Code",
+				"X-Title": "Orbital",
 				"User-Agent": expect.stringContaining("Kilo-Code/"),
 			}),
 			// forked_change end

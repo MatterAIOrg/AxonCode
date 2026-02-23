@@ -2,4 +2,4 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-rootProject.name = "Axon Code"
+rootProject.name = "Orbital"

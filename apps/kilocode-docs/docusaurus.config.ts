@@ -177,7 +177,7 @@ const config: Config = {
 	themeConfig: {
 		image: "img/matterai-ic.svg",
 		navbar: {
-			title: "Axon Code",
+			title: "Orbital",
 			logo: {
 				alt: "Axon Code Logo",
 				src: "img/matterai-ic.svg",

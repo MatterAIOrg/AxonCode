@@ -123,7 +123,7 @@ export function generateBranchName(prompt: string): string {
 
 	// Add timestamp to ensure uniqueness
 	const timestamp = Date.now()
-	return `${sanitized || "kilo"}-${timestamp}`
+	return `${sanitized || "Orbital"}-${timestamp}`
 }
 
 /**

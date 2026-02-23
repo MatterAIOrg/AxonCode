@@ -4,7 +4,7 @@ Axon Code is an open-source project that welcomes contributions from developers 
 
 ## Ways to Contribute
 
-There are many ways to contribute to Axon Code:
+There are many ways to contribute to Orbital:
 
 1. **Code Contributions**: Implement new features or fix bugs
 2. **Documentation**: Improve existing docs or create new guides

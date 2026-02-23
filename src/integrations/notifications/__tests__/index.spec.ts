@@ -123,7 +123,7 @@ describe("showSystemNotification", () => {
 				"-message",
 				"Test Message",
 				"-title",
-				"Axon Code",
+				"Orbital",
 				"-sound",
 				"Tink",
 				"-appIcon",
@@ -207,7 +207,7 @@ describe("showSystemNotification", () => {
 			})
 
 			// Should fall back to VS Code notification
-			expect(mockedShowInformationMessage).toHaveBeenCalledWith("Axon Code: Test Message")
+			expect(mockedShowInformationMessage).toHaveBeenCalledWith("Orbital: Test Message")
 		})
 	})
 
@@ -287,7 +287,7 @@ describe("showSystemNotification", () => {
 				"-message",
 				"Test Message",
 				"-title",
-				"Axon Code",
+				"Orbital",
 				"-sound",
 				"Tink",
 				"-appIcon",

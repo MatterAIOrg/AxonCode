@@ -54,7 +54,7 @@
 			"label": "启用系统通知",
 			"description": "启用后 Axon Code 将发送系统通知，提醒任务完成或错误等重要事件。",
 			"testButton": "测试通知",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "这是来自 Axon Code 的测试通知。"
 		},
 		"provider": {

@@ -49,7 +49,7 @@
 			"label": "啟用系統通知",
 			"description": "啟用後 Axon Code 將發送系統通知，提醒工作完成或錯誤等重要事件。",
 			"testButton": "測試通知",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "這是來自 Axon Code 的測試通知。"
 		},
 		"provider": {

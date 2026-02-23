@@ -86,7 +86,7 @@
 			"label": "Aktifkan Notifikasi Sistem",
 			"description": "Saat diaktifkan, Axon Code akan mengirim notifikasi sistem untuk kejadian penting seperti penyelesaian tugas atau kesalahan.",
 			"testButton": "Uji Notifikasi",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "Ini adalah notifikasi uji dari Axon Code."
 		},
 		"terminal": {

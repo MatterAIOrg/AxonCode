@@ -86,7 +86,7 @@
 			"label": "Activar notificacions del sistema",
 			"description": "Quan està activat, Axon Code enviarà notificacions del sistema per a esdeveniments importants com la finalització de tasques o errors.",
 			"testButton": "Provar notificació",
-			"testTitle": "Axon Code",
+			"testTitle": "Orbital",
 			"testMessage": "Aquesta és una notificació de prova de Axon Code."
 		},
 		"terminal": {
