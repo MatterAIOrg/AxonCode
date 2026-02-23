@@ -299,7 +299,7 @@ export const ChatRowContent = ({
 		return [undefined, undefined, undefined]
 	}, [message.text, message.say])
 
-	// kilocode_change start: hide cost display check
+	// forked_change start: hide cost display check
 	const { hideCostBelowThreshold } = useExtensionState()
 	const shouldShowCost = useMemo(() => {
 		if (cost === undefined || cost === null || cost <= 0) return false
@@ -307,7 +307,7 @@ export const ChatRowContent = ({
 		const threshold = hideCostBelowThreshold ?? 0
 		return cost >= threshold
 	}, [cost, isExpanded, hideCostBelowThreshold])
-	// kilocode_change end: hide cost display check
+	// forked_change end: hide cost display check
 
 	// When resuming task, last wont be api_req_failed but a resume_task
 	// message, so api_req_started will show loading spinner. That's why we just
@@ -403,11 +403,11 @@ export const ChatRowContent = ({
 							<span style={{ color: errorColor }}>{t("chat:apiRequest.streamingFailed")}</span>
 						)
 					) : cost !== null && cost !== undefined ? (
-						// kilocode_change start: tooltip
+						// forked_change start: tooltip
 						<StandardTooltip content={inferenceProvider && `Inference Provider: ${inferenceProvider}`}>
 							<span style={{ color: normalColor }}>{t("chat:apiRequest.title")}</span>
 						</StandardTooltip>
-					) : // kilocode_change end
+					) : // forked_change end
 					apiRequestFailedMessage ? (
 						<span style={{ color: errorColor, marginTop: "3px", marginLeft: "-4px" }}>
 							{t("chat:apiRequest.failed")}
@@ -518,9 +518,9 @@ export const ChatRowContent = ({
 								}
 							/>
 							{
-								// kilocode_change start
+								// forked_change start
 								tool.fastApplyResult && <FastApplyChatDisplay fastApplyResult={tool.fastApplyResult} />
-								// kilocode_change end
+								// forked_change end
 							}
 						</div>
 					</>
@@ -528,13 +528,13 @@ export const ChatRowContent = ({
 			case "fileEdit": {
 				const fileEditDiff = tool.diff ?? buildFileEditDiff(tool)
 				const diffStats = computeDiffStats(fileEditDiff)
-				// Extract first line number from diff for navigation
-				const firstLineNumber = extractFirstLineNumberFromDiff(fileEditDiff)
+				// Use startLine from tool if available, otherwise extract from diff
+				const editLineNumber = tool.startLine ?? extractFirstLineNumberFromDiff(fileEditDiff)
 				const openFileWithLine = () => {
 					vscode.postMessage({
 						type: "openFile",
 						text: "./" + tool.path,
-						values: firstLineNumber ? { line: firstLineNumber } : undefined,
+						values: editLineNumber ? { line: editLineNumber } : undefined,
 					})
 				}
 				return (
@@ -568,9 +568,9 @@ export const ChatRowContent = ({
 								onOpenFile={openFileWithLine}
 							/>
 							{
-								// kilocode_change start
+								// forked_change start
 								tool.fastApplyResult && <FastApplyChatDisplay fastApplyResult={tool.fastApplyResult} />
-								// kilocode_change end
+								// forked_change end
 							}
 						</div>
 					</div>
@@ -795,9 +795,9 @@ export const ChatRowContent = ({
 								}
 							/>
 							{
-								// kilocode_change start
+								// forked_change start
 								tool.fastApplyResult && <FastApplyChatDisplay fastApplyResult={tool.fastApplyResult} />
-								// kilocode_change end
+								// forked_change end
 							}
 						</div>
 					</>
@@ -849,7 +849,13 @@ export const ChatRowContent = ({
 							<ToolUseBlock>
 								<ToolUseBlockHeader
 									className="group"
-									onClick={() => vscode.postMessage({ type: "openFile", text: tool.content })}>
+									onClick={() =>
+										vscode.postMessage({
+											type: "openFile",
+											text: "./" + tool.path,
+											values: tool.offset ? { line: tool.offset } : undefined,
+										})
+									}>
 									{tool.path?.startsWith(".") && <span>.</span>}
 									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
 										{fileName}
@@ -1336,12 +1342,12 @@ export const ChatRowContent = ({
 								}}>
 								<div style={{ display: "flex", alignItems: "center", gap: "10px", flexGrow: 1 }}>
 									{icon}
-									{/* kilocode_change start */}
+									{/* forked_change start */}
 									<div style={{ display: "flex", alignItems: "center", gap: "8px", flexGrow: 1 }}>
 										{title}
 										{/* {showTimestamps && <ChatTimestamps ts={message.ts} />} */}
 									</div>
-									{/* kilocode_change end */}
+									{/* forked_change end */}
 								</div>
 								<div
 									className="text-xs text-vscode-dropdown-foreground border-vscode-dropdown-border/50 border px-1.5 py-0.5 rounded-lg"
@@ -1349,7 +1355,7 @@ export const ChatRowContent = ({
 									${Number(cost || 0)?.toFixed(4)}
 								</div>
 								{
-									// kilocode_change start
+									// forked_change start
 									!cost && usageMissing && (
 										<StandardTooltip content={t("kilocode:pricing.costUnknownDescription")}>
 											<div className="flex items-center text-xs text-vscode-dropdown-foreground border-vscode-dropdown-border/50 border px-1.5 py-0.5 rounded-lg whitespace-nowrap">
@@ -1358,7 +1364,7 @@ export const ChatRowContent = ({
 											</div>
 										</StandardTooltip>
 									)
-									// kilocode_change end
+									// forked_change end
 								}
 							</div>
 							{(((cost === null || cost === undefined) && apiRequestFailedMessage) ||
@@ -1568,12 +1574,12 @@ export const ChatRowContent = ({
 						<>
 							<div style={headerStyle}>
 								{icon}
-								{/* kilocode_change start */}
+								{/* forked_change start */}
 								<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
 									{title}
 									{showTimestamps && <ChatTimestamps ts={message.ts} />}
 								</div>
-								{/* kilocode_change end */}
+								{/* forked_change end */}
 							</div>
 							<div className="pb-1">
 								<Markdown markdown={message.text} />
@@ -1629,7 +1635,7 @@ export const ChatRowContent = ({
 					const { results = [] } = parsed?.content || {}
 
 					return <CodebaseSearchResultsDisplay results={results} />
-				// kilocode_change start: upstream pr https://github.com/RooCodeInc/Roo-Code/pull/5452
+				// forked_change start: upstream pr https://github.com/RooCodeInc/Roo-Code/pull/5452
 				case "browser_action_result":
 					// This should not normally be rendered here as browser_action_result messages
 					// should be grouped into browser sessions and rendered by BrowserSessionRow.
@@ -1661,7 +1667,7 @@ export const ChatRowContent = ({
 							</div>
 						</>
 					)
-				// kilocode_change end
+				// forked_change end
 				case "user_edit_todos":
 					return <UpdateTodoListToolBlock userEdited onChange={() => {}} />
 				case "tool" as any:
@@ -1760,12 +1766,12 @@ export const ChatRowContent = ({
 							{title && (
 								<div style={headerStyle}>
 									{icon}
-									{/* kilocode_change start */}
+									{/* forked_change start */}
 									<div style={{ display: "flex", alignItems: "center", gap: "8px", flexGrow: 1 }}>
 										{title}
 										{showTimestamps && <ChatTimestamps ts={message.ts} />}
 									</div>
-									{/* kilocode_change end */}
+									{/* forked_change end */}
 								</div>
 							)}
 							<div style={{ paddingTop: 10 }}>
@@ -1887,12 +1893,12 @@ export const ChatRowContent = ({
 							{title && (
 								<div style={headerStyle}>
 									{icon}
-									{/* kilocode_change start */}
+									{/* forked_change start */}
 									<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
 										{title}
 										{showTimestamps && <ChatTimestamps ts={message.ts} />}
 									</div>
-									{/* kilocode_change start */}
+									{/* forked_change start */}
 								</div>
 							)}
 							<div className="flex flex-col gap-2 ml-6">
@@ -1955,7 +1961,7 @@ export const ChatRowContent = ({
 							<ReportBugPreview data={message.text || ""} />
 						</>
 					)
-				// kilocode_change end
+				// forked_change end
 				case "auto_approval_max_req_reached": {
 					return <AutoApprovedRequestLimitWarning message={message} />
 				}

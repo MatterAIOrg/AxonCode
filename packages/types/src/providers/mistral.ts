@@ -87,7 +87,7 @@ export const mistralModels = {
 		inputPrice: 0.1,
 		outputPrice: 0.3,
 	},
-	// kilocode_change end
+	// forked_change end
 	"pixtral-large-latest": {
 		maxTokens: 131_000,
 		contextWindow: 131_000,

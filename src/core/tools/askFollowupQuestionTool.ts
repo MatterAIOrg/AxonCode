@@ -33,7 +33,7 @@ export async function askFollowupQuestionTool(
 				suggest: [] as Suggest[],
 			}
 
-			// kilocode_change start
+			// forked_change start
 			// Handle native tool call format (follow_up is already parsed as an array by native function calling)
 			if ("follow_up" in block.params && Array.isArray(block.params.follow_up)) {
 				const followUpArray = block.params.follow_up as Array<{ text?: string; mode?: string }>
@@ -46,7 +46,7 @@ export async function askFollowupQuestionTool(
 					return result
 				})
 			}
-			// kilocode_change end
+			// forked_change end
 			// Handle XML format (legacy)
 			else if (follow_up) {
 				// Define the actual structure returned by the XML parser

@@ -35,13 +35,13 @@ const mockConvertToMentionPath = pathMentions.convertToMentionPath as ReturnType
 // Mock ExtensionStateContext
 vi.mock("@src/context/ExtensionStateContext")
 
-// kilocode_change start
+// forked_change start
 vi.mock("@tanstack/react-query")
 
 function kiloCodeSetUpUseQueryMock(historyItems: Partial<HistoryItem>[]) {
 	;(useQuery as ReturnType<typeof vi.fn>).mockReturnValue({ data: { historyItems } })
 }
-// kilocode_change end
+// forked_change end
 
 vi.mock("@src/components/ui/hooks/useSelectedModel", () => ({
 	useSelectedModel: vi.fn(() => ({

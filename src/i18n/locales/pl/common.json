@@ -209,8 +209,8 @@
 	},
 	"customModes": {
 		"errors": {
-			"yamlParseError": "Nieprawidłowy YAML w pliku .kilocodemodes w linii {{line}}. Sprawdź:\n• Prawidłowe wcięcia (używaj spacji, nie tabulatorów)\n• Pasujące cudzysłowy i nawiasy\n• Prawidłową składnię YAML",
-			"schemaValidationError": "Nieprawidłowy format trybów niestandardowych w .kilocodemodes:\n{{issues}}",
+			"yamlParseError": "Nieprawidłowy YAML w pliku .orbitalmodes w linii {{line}}. Sprawdź:\n• Prawidłowe wcięcia (używaj spacji, nie tabulatorów)\n• Pasujące cudzysłowy i nawiasy\n• Prawidłową składnię YAML",
+			"schemaValidationError": "Nieprawidłowy format trybów niestandardowych w .orbitalmodes:\n{{issues}}",
 			"invalidFormat": "Nieprawidłowy format trybów niestandardowych. Upewnij się, że twoje ustawienia są zgodne z prawidłowym formatem YAML.",
 			"updateFailed": "Aktualizacja trybu niestandardowego nie powiodła się: {{error}}",
 			"deleteFailed": "Usunięcie trybu niestandardowego nie powiodło się: {{error}}",

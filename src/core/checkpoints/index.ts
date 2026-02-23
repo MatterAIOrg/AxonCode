@@ -16,7 +16,7 @@ import { DIFF_VIEW_URI_SCHEME } from "../../integrations/editor/DiffViewProvider
 
 import { CheckpointServiceOptions, RepoPerTaskCheckpointService } from "../../services/checkpoints"
 
-// kilocode_change start
+// forked_change start
 import { TelemetryEventName } from "@roo-code/types"
 import { stringifyError } from "../../shared/kilocode/errorUtils"
 
@@ -26,7 +26,7 @@ function reportError(callsite: string, error: unknown) {
 		error: stringifyError(error),
 	})
 }
-// kilocode_change end
+// forked_change end
 
 export async function getCheckpointService(
 	task: Task,

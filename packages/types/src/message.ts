@@ -39,12 +39,12 @@ export const clineAsks = [
 	"browser_action_launch",
 	"use_mcp_server",
 	"auto_approval_max_req_reached",
-	// kilocode_change start
+	// forked_change start
 	"payment_required_prompt", // Added for the low credits dialog
 	"invalid_model",
 	"report_bug",
 	"condense",
-	// kilocode_change end
+	// forked_change end
 ] as const
 
 export const clineAskSchema = z.enum(clineAsks)

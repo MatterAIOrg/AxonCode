@@ -7,10 +7,10 @@ import {
 	claudeCodeModels,
 	deepSeekModels,
 	moonshotModels,
-	// kilocode_change start
+	// forked_change start
 	// geminiModels,
 	geminiCliModels,
-	// kilocode_change end
+	// forked_change end
 	mistralModels,
 	openAiNativeModels,
 	qwenCodeModels,
@@ -35,10 +35,10 @@ export const MODELS_BY_PROVIDER: Partial<Record<ProviderName, Record<string, Mod
 	deepseek: deepSeekModels,
 	doubao: doubaoModels,
 	moonshot: moonshotModels,
-	// kilocode_change start
+	// forked_change start
 	// gemini: geminiModels,
 	"gemini-cli": geminiCliModels,
-	// kilocode_change end
+	// forked_change end
 	mistral: mistralModels,
 	"openai-native": openAiNativeModels,
 	"qwen-code": qwenCodeModels,
@@ -62,10 +62,10 @@ export const PROVIDERS = [
 	{ value: "cerebras", label: "Cerebras" },
 	{ value: "gemini", label: "Google Gemini" },
 	{ value: "doubao", label: "Doubao" },
-	// kilocode_change start
+	// forked_change start
 	{ value: "gemini-cli", label: "Gemini CLI" },
 	{ value: "virtual-quota-fallback", label: "Virtual Quota Fallback" },
-	// kilocode_change end
+	// forked_change end
 	{ value: "deepseek", label: "DeepSeek" },
 	{ value: "moonshot", label: "Moonshot" },
 	{ value: "openai-native", label: "OpenAI" },
@@ -93,9 +93,9 @@ export const PROVIDERS = [
 	{ value: "synthetic", label: "Synthetic" }, // kilocode_change
 	{ value: "featherless", label: "Featherless AI" },
 	{ value: "io-intelligence", label: "IO Intelligence" },
-	// kilocode_change start
+	// forked_change start
 	// { value: "roo", label: "Roo Code Cloud" },
-	// kilocode_change end
+	// forked_change end
 	{ value: "vercel-ai-gateway", label: "Vercel AI Gateway" },
 ].sort((a, b) => a.label.localeCompare(b.label))
 

@@ -290,13 +290,13 @@ async function getFileOrFolderContent(
 
 		if (stats.isFile()) {
 			if (rooIgnoreController && !rooIgnoreController.validateAccess(absPath)) {
-				return `(File ${mentionPath} is ignored by .kilocodeignore)`
+				return `(File ${mentionPath} is ignored by .orbitalignore)`
 			}
-			// kilocode_change start
+			// forked_change start
 			if (isSupportedImageFormat(path.extname(absPath))) {
 				return `(Image of size ${stats.size} bytes, the read_file tool may be able to read it)`
 			}
-			// kilocode_change end
+			// forked_change end
 			try {
 				const content = await extractTextFromFile(absPath, maxReadFileLine)
 

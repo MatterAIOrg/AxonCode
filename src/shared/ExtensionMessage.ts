@@ -22,7 +22,7 @@ import { ModelRecord, RouterModels } from "./api"
 import { McpDownloadResponse, McpMarketplaceCatalog } from "./kilocode/mcp"
 import { McpServer } from "./mcp"
 import { Mode } from "./modes"
-// kilocode_change start
+// forked_change start
 import {
 	BalanceDataResponsePayload,
 	BetaModelsResponsePayload,
@@ -33,7 +33,7 @@ import {
 } from "./WebviewMessage"
 import { ClineRulesToggles } from "./cline-rules"
 import { KiloCodeWrapperProperties } from "./kilocode/wrapper"
-// kilocode_change end
+// forked_change end
 
 // Command interface for frontend/backend communication
 export interface Command {
@@ -163,7 +163,7 @@ export interface ExtensionMessage {
 		| "memories_response"
 		| "memory_deleted"
 	text?: string
-	// kilocode_change start
+	// forked_change start
 	payload?:
 		| ProfileDataResponsePayload
 		| BalanceDataResponsePayload
@@ -172,7 +172,7 @@ export interface ExtensionMessage {
 		| TaskHistoryResponsePayload
 		| ImplementPlanPayload
 		| OpenPlanFilePayload
-	// kilocode_change end
+	// forked_change end
 	action?:
 		| "chatButtonClicked"
 		| "mcpButtonClicked"
@@ -266,7 +266,7 @@ export interface ExtensionMessage {
 	messageTs?: number
 	hasCheckpoint?: boolean
 	context?: string
-	// kilocode_change start: Notifications
+	// forked_change start: Notifications
 	notifications?: Array<{
 		id: string
 		title: string
@@ -276,7 +276,7 @@ export interface ExtensionMessage {
 			actionURL: string
 		}
 	}>
-	// kilocode_change end
+	// forked_change end
 	commands?: Command[]
 	queuedMessages?: QueuedMessage[]
 	list?: string[] // For dismissedUpsells
@@ -409,7 +409,7 @@ export type ExtensionState = Pick<
 	enableCheckpoints: boolean
 	maxOpenTabsContext: number // Maximum number of VSCode open tabs to include in context (0-500)
 	maxWorkspaceFiles: number // Maximum number of files to include in current working directory details (0-500)
-	showRooIgnoredFiles: boolean // Whether to show .kilocodeignore'd files in listings
+	showRooIgnoredFiles: boolean // Whether to show .orbitalignore'd files in listings
 	maxReadFileLine: number // Maximum number of lines to read from a file before truncating
 	showAutoApproveMenu: boolean // kilocode_change: Whether to show the auto-approve menu in the chat view
 	maxImageFileSize: number // Maximum size of image files to process in MB
@@ -542,14 +542,14 @@ export interface ClineSayTool {
 		}>
 	}>
 	question?: string
-	// kilocode_change start
+	// forked_change start
 	fastApplyResult?: {
 		description?: string
 		tokensIn?: number
 		tokensOut?: number
 		cost?: number
 	}
-	// kilocode_change end
+	// forked_change end
 	imageData?: string // Base64 encoded image data for generated images
 	// Properties for runSlashCommand tool
 	command?: string
@@ -607,7 +607,7 @@ export interface ClineApiReqInfo {
 	// kilocode_change
 	usageMissing?: boolean
 	inferenceProvider?: string
-	// kilocode_change end
+	// forked_change end
 	cancelReason?: ClineApiReqCancelReason
 	streamingFailedMessage?: string
 	apiProtocol?: "anthropic" | "openai"

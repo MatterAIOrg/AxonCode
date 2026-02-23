@@ -162,7 +162,7 @@
 			},
 			"protected": {
 				"label": "Incloure fitxers protegits",
-				"description": "Permetre a Axon Code crear i editar fitxers protegits (com .kilocodeignore i fitxers de configuració .kilocode/) sense requerir aprovació."
+				"description": "Permetre a Axon Code crear i editar fitxers protegits (com .kilocodeignore i fitxers de configuració .orbital/) sense requerir aprovació."
 			}
 		},
 		"browser": {

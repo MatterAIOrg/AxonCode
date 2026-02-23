@@ -5,7 +5,7 @@ import * as fs from "fs/promises"
 import pWaitFor from "p-wait-for"
 import delay from "delay"
 import * as vscode from "vscode"
-// kilocode_change start
+// forked_change start
 import axios from "axios"
 import { codeReviewSettingsSchema, CodeReviewSettings, getKiloUrlFromToken, isGlobalStateKey } from "@roo-code/types"
 import { getAppUrl } from "@roo-code/types"
@@ -19,7 +19,7 @@ import {
 	UpdateGlobalStateMessage,
 } from "../../shared/WebviewMessage"
 import { myersDiff } from "../../services/continuedev/core/diff/myers"
-// kilocode_change end
+// forked_change end
 
 import {
 	type Language,
@@ -27,9 +27,9 @@ import {
 	type ClineMessage,
 	type TelemetrySetting,
 	TelemetryEventName,
-	// kilocode_change start
+	// forked_change start
 	fastApplyModelSchema,
-	// kilocode_change end
+	// forked_change end
 	UserSettingsConfig,
 } from "@roo-code/types"
 import { CloudService } from "@roo-code/cloud"
@@ -91,7 +91,7 @@ import { getCheckpointService } from "../checkpoints" // kilocode_change
 import { fetchAndRefreshOrganizationModesOnStartup, refreshOrganizationModes } from "./kiloWebviewMessgeHandlerHelpers"
 import { ImplementPlanPayload } from "../../shared/ExtensionMessage"
 
-// kilocode_change start: Helper functions for AI Code Review using Git API
+// forked_change start: Helper functions for AI Code Review using Git API
 
 /**
  * Skip patterns for AI code review - files that should be excluded from review
@@ -669,7 +669,7 @@ async function getGitMetadata(
 		}
 	}
 }
-// kilocode_change end
+// forked_change end
 
 export const webviewMessageHandler = async (
 	provider: ClineProvider,
@@ -1041,10 +1041,10 @@ export const webviewMessageHandler = async (
 			const customModes = await provider.customModesManager.getCustomModes()
 			await updateGlobalState("customModes", customModes)
 
-			// kilocode_change start: Fetch organization modes on startup
+			// forked_change start: Fetch organization modes on startup
 			// Fetch organization modes on startup if an organization is selected
 			await fetchAndRefreshOrganizationModesOnStartup(provider, updateGlobalState)
-			// kilocode_change end
+			// forked_change end
 
 			// Refresh workflow toggles
 			const { refreshWorkflowToggles } = await import("../context/instructions/workflows") // kilocode_change
@@ -1144,11 +1144,11 @@ export const webviewMessageHandler = async (
 				)
 			}
 			break
-		// kilocode_change start
+		// forked_change start
 		case "condense":
 			provider.getCurrentTask()?.handleWebviewAskResponse("yesButtonClicked")
 			break
-		// kilocode_change end
+		// forked_change end
 		case "customInstructions":
 			await provider.updateCustomInstructions(message.text)
 			break
@@ -1173,7 +1173,7 @@ export const webviewMessageHandler = async (
 			await provider.postStateToWebview()
 			break
 
-		// kilocode_change start
+		// forked_change start
 		case "getCommitChanges": {
 			const { commitRange } = (message.payload || {}) as { commitRange?: import("@roo-code/types").CommitRange }
 			if (commitRange) {
@@ -1242,7 +1242,7 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 		case "getPendingFileEdits": {
 			const currentTask = provider.getCurrentTask()
 
@@ -1302,7 +1302,7 @@ export const webviewMessageHandler = async (
 			} as any)
 			break
 		}
-		// kilocode_change start: View pending file diffs in VS Code diff view
+		// forked_change start: View pending file diffs in VS Code diff view
 		case "viewPendingFileDiffs" as any: {
 			const currentTask = provider.getCurrentTask()
 
@@ -1342,8 +1342,8 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
-		// kilocode_change end
-		// kilocode_change start: Get Git changes for AI Code Review (separate from pending file edits)
+		// forked_change end
+		// forked_change start: Get Git changes for AI Code Review (separate from pending file edits)
 		case "getGitChangesForReview": {
 			try {
 				// Get git changes using VS Code Git API
@@ -1368,8 +1368,8 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
-		// kilocode_change end
-		// kilocode_change start: AI Code Review handlers using Git API
+		// forked_change end
+		// forked_change start: AI Code Review handlers using Git API
 		case "requestCodeReview": {
 			try {
 				// Get git changes using VS Code Git API
@@ -1472,7 +1472,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 		case "alwaysAllowExecute":
 			await updateGlobalState("alwaysAllowExecute", message.bool ?? undefined)
 			await provider.postStateToWebview()
@@ -1702,7 +1702,7 @@ ${comment.suggestion}
 				}
 			}
 
-			// kilocode_change start: openrouter auth, kilocode provider
+			// forked_change start: openrouter auth, kilocode provider
 			const openRouterApiKey = apiConfiguration.openRouterApiKey || message?.values?.openRouterApiKey
 			const openRouterBaseUrl = apiConfiguration.openRouterBaseUrl || message?.values?.openRouterBaseUrl
 
@@ -1720,7 +1720,7 @@ ${comment.suggestion}
 					},
 				},
 			]
-			// kilocode_change end
+			// forked_change end
 
 			const results = await Promise.allSettled(
 				modelFetchPromises.map(async ({ key, options }) => {
@@ -1813,7 +1813,7 @@ ${comment.suggestion}
 			}
 
 			break
-		// kilocode_change start
+		// forked_change start
 		case "seeNewChanges":
 			const task = provider.getCurrentTask()
 			if (task && message.payload && message.payload) {
@@ -1956,7 +1956,7 @@ ${comment.suggestion}
 			})
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 		case "checkpointRestore": {
 			const result = checkoutRestorePayloadSchema.safeParse(message.payload)
 
@@ -2050,7 +2050,7 @@ ${comment.suggestion}
 			}
 
 			const workspaceFolder = getCurrentCwd()
-			const rooDir = path.join(workspaceFolder, ".kilocode")
+			const rooDir = path.join(workspaceFolder, ".orbital")
 			const mcpPath = path.join(rooDir, "mcp.json")
 
 			try {
@@ -2186,7 +2186,7 @@ ${comment.suggestion}
 				vscode.env.openExternal(vscode.Uri.parse(message.url))
 			}
 			break
-		// kilocode_change end
+		// forked_change end
 		case "remoteControlEnabled":
 			try {
 				await CloudService.instance.updateUserSettings({ extensionBridgeEnabled: message.bool ?? false })
@@ -2323,7 +2323,7 @@ ${comment.suggestion}
 			await updateGlobalState("fuzzyMatchThreshold", message.value)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change start
+		// forked_change start
 		case "morphApiKey":
 			await updateGlobalState("morphApiKey", message.text)
 			await provider.postStateToWebview()
@@ -2334,7 +2334,7 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 		case "updateVSCodeSetting": {
 			const { setting, value } = message
 
@@ -2604,7 +2604,7 @@ ${comment.suggestion}
 			await updateGlobalState("maxReadFileLine", message.value)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change start
+		// forked_change start
 		case "kiloCodeImageApiKey":
 			await provider.contextProxy.setValue("kiloCodeImageApiKey", message.text)
 			await provider.postStateToWebview()
@@ -2617,12 +2617,12 @@ ${comment.suggestion}
 			await updateGlobalState("showTaskTimeline", message.bool ?? false)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change start
+		// forked_change start
 		case "sendMessageOnEnter":
 			await updateGlobalState("sendMessageOnEnter", message.bool ?? false)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change end
+		// forked_change end
 		case "showTimestamps":
 			await updateGlobalState("showTimestamps", message.bool ?? false)
 			await provider.postStateToWebview()
@@ -2635,7 +2635,7 @@ ${comment.suggestion}
 			await updateGlobalState("allowVeryLargeReads", message.bool ?? false)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change end
+		// forked_change end
 		case "maxImageFileSize":
 			await updateGlobalState("maxImageFileSize", message.value)
 			await provider.postStateToWebview()
@@ -2686,18 +2686,18 @@ ${comment.suggestion}
 			await updateGlobalState("enhancementApiConfigId", message.text)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change start - commitMessageApiConfigId
+		// forked_change start - commitMessageApiConfigId
 		case "commitMessageApiConfigId":
 			await updateGlobalState("commitMessageApiConfigId", message.text)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change end - commitMessageApiConfigId
-		// kilocode_change start - terminalCommandApiConfigId
+		// forked_change end - commitMessageApiConfigId
+		// forked_change start - terminalCommandApiConfigId
 		case "terminalCommandApiConfigId":
 			await updateGlobalState("terminalCommandApiConfigId", message.text)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change end - terminalCommandApiConfigId
+		// forked_change end - terminalCommandApiConfigId
 		case "codeReviewSettings": {
 			const values = message.values as CodeReviewSettings
 			const validated = codeReviewSettingsSchema.parse(values)
@@ -2735,7 +2735,7 @@ ${comment.suggestion}
 			provider.postMessageToWebview({ type: "state", state: await provider.getStateToPostToWebview() })
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 		case "includeTaskHistoryInEnhance":
 			await updateGlobalState("includeTaskHistoryInEnhance", message.bool ?? true)
 			await provider.postStateToWebview()
@@ -2761,12 +2761,12 @@ ${comment.suggestion}
 			await updateGlobalState("autoApprovalEnabled", message.bool ?? false)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change start: yolo mode
+		// forked_change start: yolo mode
 		case "yoloMode":
 			await updateGlobalState("yoloMode", message.bool ?? false)
 			await provider.postStateToWebview()
 			break
-		// kilocode_change end
+		// forked_change end
 		case "enhancePrompt":
 			if (message.text) {
 				try {
@@ -2858,7 +2858,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change start
+		// forked_change start
 		case "showFeedbackOptions": {
 			const githubIssuesText = t("common:feedback.githubIssues")
 			const discordText = t("common:feedback.discord")
@@ -2881,7 +2881,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 		case "searchFiles": {
 			const workspacePath = getCurrentCwd()
 
@@ -2945,7 +2945,7 @@ ${comment.suggestion}
 			}
 			break
 		case "upsertApiConfiguration":
-			// kilocode_change start: check for kilocodeToken change to remove organizationId and fetch organization modes
+			// forked_change start: check for kilocodeToken change to remove organizationId and fetch organization modes
 			if (message.text && message.apiConfiguration) {
 				let configToSave = message.apiConfiguration
 				let organizationChanged = false
@@ -2994,7 +2994,7 @@ ${comment.suggestion}
 					await provider.postStateToWebview()
 				}
 			}
-			// kilocode_change end: check for kilocodeToken change to remove organizationId and fetch organization modes
+			// forked_change end: check for kilocodeToken change to remove organizationId and fetch organization modes
 			break
 		case "renameApiConfiguration":
 			if (message.values && message.apiConfiguration) {
@@ -4157,7 +4157,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change start
+		// forked_change start
 		case "cancelIndexing": {
 			try {
 				const manager = provider.getCurrentWorkspaceCodeIndexManager()
@@ -4188,7 +4188,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 		case "clearIndexData": {
 			try {
 				const manager = provider.getCurrentWorkspaceCodeIndexManager()
@@ -4217,7 +4217,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change start - add clearUsageData
+		// forked_change start - add clearUsageData
 		case "clearUsageData": {
 			try {
 				const usageTracker = UsageTracker.getInstance()
@@ -4230,7 +4230,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change start - add getUsageData
+		// forked_change start - add getUsageData
 		case "getUsageData": {
 			if (message.text) {
 				try {
@@ -4248,14 +4248,14 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change end - add getUsageData
-		// kilocode_change start - add toggleTaskFavorite
+		// forked_change end - add getUsageData
+		// forked_change start - add toggleTaskFavorite
 		case "toggleTaskFavorite":
 			if (message.text) {
 				await provider.toggleTaskFavorite(message.text)
 			}
 			break
-		// kilocode_change start - add fixMermaidSyntax
+		// forked_change start - add fixMermaidSyntax
 		case "fixMermaidSyntax":
 			if (message.text && message.requestId) {
 				try {
@@ -4284,7 +4284,7 @@ ${comment.suggestion}
 				}
 			}
 			break
-		// kilocode_change end
+		// forked_change end
 		case "focusPanelRequest": {
 			// Execute the focusPanel command to focus the WebView
 			await vscode.commands.executeCommand(getCommand("focusPanel"))
@@ -4426,7 +4426,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change start
+		// forked_change start
 		case "editMessage": {
 			await editMessageHandler(provider, message)
 			break
@@ -4446,8 +4446,8 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			break
 		}
-		// kilocode_change end
-		// kilocode_change start: Type-safe global state handler
+		// forked_change end
+		// forked_change start: Type-safe global state handler
 		case "updateGlobalState": {
 			const { stateKey, stateValue } = message as UpdateGlobalStateMessage
 			if (stateKey !== undefined && stateValue !== undefined && isGlobalStateKey(stateKey)) {
@@ -4456,7 +4456,7 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change end: Type-safe global state handler
+		// forked_change end: Type-safe global state handler
 		case "insertTextToChatArea":
 			provider.postMessageToWebview({ type: "insertTextToChatArea", text: message.text })
 			break
@@ -4730,7 +4730,7 @@ ${comment.suggestion}
 			})
 			break
 		}
-		// kilocode_change start: Plan mode implementation
+		// forked_change start: Plan mode implementation
 		case "implementPlan": {
 			if (message.payload) {
 				const { planFile, planContent } = message.payload as ImplementPlanPayload
@@ -4766,6 +4766,6 @@ ${comment.suggestion}
 			}
 			break
 		}
-		// kilocode_change end
+		// forked_change end
 	}
 }

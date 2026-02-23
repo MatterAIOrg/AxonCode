@@ -34,13 +34,13 @@ export const toolNames = [
 	"new_task",
 	"fetch_instructions",
 	"codebase_search",
-	// kilocode_change start
+	// forked_change start
 	"edit_file",
 	"new_rule",
 	"report_bug",
 	"condense",
 	"plan_file_edit",
-	// kilocode_change end
+	// forked_change end
 	"update_todo_list",
 	"run_slash_command",
 	"generate_image",

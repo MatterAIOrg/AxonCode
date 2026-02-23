@@ -20,7 +20,7 @@ import { Package } from "../../shared/package"
 import { getCommitRangeForNewCompletion } from "../checkpoints/kilocode/seeNewChanges"
 import { MemoryManager } from "../../services/chat-memory"
 
-// kilocode_change start
+// forked_change start
 async function getClineMessageOptions(task: Task) {
 	const commitRange = await getCommitRangeForNewCompletion(task)
 	return (
@@ -202,7 +202,7 @@ export async function attemptCompletionTool(
 
 			toolResults.push(...formatResponse.imageBlocks(images))
 
-			// kilocode_change start
+			// forked_change start
 			if (block.toolUseId) {
 				cline.userMessageContent.push({
 					type: "tool_result",
@@ -211,7 +211,7 @@ export async function attemptCompletionTool(
 				})
 				return
 			}
-			// kilocode_change end
+			// forked_change end
 
 			cline.userMessageContent.push({ type: "text", text: `${toolDescription()} Result:` })
 			cline.userMessageContent.push(...toolResults)

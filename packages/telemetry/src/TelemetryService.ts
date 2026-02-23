@@ -51,7 +51,7 @@ export class TelemetryService {
 		this.clients.forEach((client) => client.updateTelemetryState(isOptedIn))
 	}
 
-	// kilocode_change start
+	// forked_change start
 	public captureException(error: Error, properties?: Record<string | number, unknown>): void {
 		this.clients.forEach((client) => client.captureException(error, properties))
 	}
@@ -61,7 +61,7 @@ export class TelemetryService {
 			await client.updateIdentity(kilocodeToken)
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	/**
 	 * Generic method to capture any type of event with specified properties
@@ -101,10 +101,10 @@ export class TelemetryService {
 			cacheWriteTokens: number
 			cacheReadTokens: number
 			cost?: number
-			// kilocode_change start
+			// forked_change start
 			completionTime?: number
 			inferenceProvider?: string
-			// kilocode_change end
+			// forked_change end
 		},
 	): void {
 		this.captureEvent(TelemetryEventName.LLM_COMPLETION, { taskId, ...properties })

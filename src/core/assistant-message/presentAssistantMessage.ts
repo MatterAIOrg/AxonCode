@@ -208,10 +208,10 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
 					case "search_and_replace":
 						return `[${block.name} for '${block.params.path}']`
-					// kilocode_change start: Morph fast apply
+					// forked_change start: Morph fast apply
 					case "edit_file":
 						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
-					// kilocode_change end
+					// forked_change end
 					case "list_files":
 						return `[${block.name} for '${block.params.path}']`
 					case "list_code_definition_names":
@@ -238,14 +238,14 @@ export async function presentAssistantMessage(cline: Task) {
 						const modeName = getModeBySlug(mode, customModes)?.name ?? mode
 						return `[${block.name} in ${modeName} mode: '${message}']`
 					}
-					// kilocode_change start
+					// forked_change start
 					case "new_rule":
 						return `[${block.name} for '${block.params.path}']`
 					case "report_bug":
 						return `[${block.name}]`
 					case "condense":
 						return `[${block.name}]`
-					// kilocode_change end
+					// forked_change end
 					case "run_slash_command":
 						return `[${block.name} for '${block.params.command}'${block.params.args ? ` with args: ${block.params.args}` : ""}]`
 					case "generate_image":
@@ -299,7 +299,7 @@ export async function presentAssistantMessage(cline: Task) {
 			// }
 
 			const pushToolResult = (content: ToolResponse) => {
-				// kilocode_change start
+				// forked_change start
 				const items = new Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam>()
 
 				// No prefix - just return raw tool output
@@ -309,7 +309,7 @@ export async function presentAssistantMessage(cline: Task) {
 					items.push(...content)
 				}
 				pushToolResult_withToolUseId_kilocode(...items)
-				// kilocode_change end
+				// forked_change end
 
 				// Once a tool result has been collected, ignore all other tool
 				// uses since we should only ever present one tool result per
@@ -323,13 +323,13 @@ export async function presentAssistantMessage(cline: Task) {
 				progressStatus?: ToolProgressStatus,
 				isProtected?: boolean,
 			) => {
-				// kilocode_change start: yolo mode
+				// forked_change start: yolo mode
 
 				const state = await cline.providerRef.deref()?.getState()
 				if (state?.yoloMode) {
 					return true
 				}
-				// kilocode_change end
+				// forked_change end
 
 				const { response, text, images } = await cline.ask(
 					type,
@@ -517,11 +517,11 @@ export async function presentAssistantMessage(cline: Task) {
 				case "file_edit":
 					await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
 					break
-				// kilocode_change start: Morph fast apply
+				// forked_change start: Morph fast apply
 				case "edit_file":
 					await editFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
-				// kilocode_change end
+				// forked_change end
 				case "read_file":
 					// Check if this model should use the simplified single-file read tool
 					const modelId = cline.api.getModel().id
@@ -607,7 +607,7 @@ export async function presentAssistantMessage(cline: Task) {
 						askFinishSubTaskApproval,
 					)
 					break
-				// kilocode_change start
+				// forked_change start
 				case "new_rule":
 					await newRuleTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
@@ -617,7 +617,7 @@ export async function presentAssistantMessage(cline: Task) {
 				case "condense":
 					await condenseTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
-				// kilocode_change end
+				// forked_change end
 				case "run_slash_command":
 					await runSlashCommandTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
@@ -673,10 +673,10 @@ export async function presentAssistantMessage(cline: Task) {
 		if (cline.currentStreamingContentIndex < cline.assistantMessageContent.length) {
 			// There are already more content blocks to stream, so we'll call
 			// this function ourselves.
-			// kilocode_change start: prevent excessive recursion
+			// forked_change start: prevent excessive recursion
 			await yieldPromise()
 			await presentAssistantMessage(cline)
-			// kilocode_change end
+			// forked_change end
 			return
 		}
 
@@ -694,10 +694,10 @@ export async function presentAssistantMessage(cline: Task) {
 
 	// Block is partial, but the read stream may have finished.
 	if (cline.presentAssistantMessageHasPendingUpdates) {
-		// kilocode_change start: prevent excessive recursion
+		// forked_change start: prevent excessive recursion
 		await yieldPromise()
 		await presentAssistantMessage(cline)
-		// kilocode_change end
+		// forked_change end
 	}
 }
 

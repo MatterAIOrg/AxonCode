@@ -95,11 +95,11 @@ export default function MermaidBlock({ code: originalCode }: MermaidBlockProps) 
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [isErrorExpanded, setIsErrorExpanded] = useState(false)
-	// kilocode_change start
+	// forked_change start
 	const [svgContent, setSvgContent] = useState<string>("")
 	const [isFixing, setIsFixing] = useState(false)
 	const [code, setCode] = useState("")
-	// kilocode_change end
+	// forked_change end
 	const { showCopyFeedback, copyWithFeedback } = useCopyToClipboard()
 	const { t } = useAppTranslation()
 
@@ -107,13 +107,13 @@ export default function MermaidBlock({ code: originalCode }: MermaidBlockProps) 
 	useEffect(() => {
 		setIsLoading(true)
 		setError(null)
-		// kilocode_change start
+		// forked_change start
 		setCode(originalCode)
 		setIsFixing(false)
-		// kilocode_change end
+		// forked_change end
 	}, [originalCode]) // kilocode_change originalCode instead of code
 
-	// kilocode_change start
+	// forked_change start
 	const handleSyntaxFix = async () => {
 		if (isFixing) return
 
@@ -132,16 +132,16 @@ export default function MermaidBlock({ code: originalCode }: MermaidBlockProps) 
 		setIsFixing(false)
 		setIsLoading(false)
 	}
-	// kilocode_change end
+	// forked_change end
 
 	// 2) Debounce the actual parse/render
 	// the LLM is still 'typing', and we do not want to start rendering and/or autofixing before it is fully done.
 	useDebounceEffect(
 		() => {
-			//kilocode_change start
+			//forked_change start
 			if (isFixing) return
 			setIsLoading(true)
-			//kilocode_change end
+			//forked_change end
 
 			mermaid
 				.parse(code)
@@ -150,17 +150,17 @@ export default function MermaidBlock({ code: originalCode }: MermaidBlockProps) 
 					return mermaid.render(id, code)
 				})
 				.then(({ svg }) => {
-					//kilocode_change start
+					//forked_change start
 					setError(null)
 					setSvgContent(svg)
-					// kilocode_change end
+					// forked_change end
 				})
 				.catch((err) => {
 					console.warn("Mermaid parse/render failed:", err)
-					// kilocode_change start
+					// forked_change start
 					const errorMessage = err instanceof Error ? err.message : t("common:mermaid.render_error")
 					setError(errorMessage)
-					// kilocode_change end
+					// forked_change end
 				})
 				.finally(() => {
 					setIsLoading(false)
@@ -232,7 +232,7 @@ export default function MermaidBlock({ code: originalCode }: MermaidBlockProps) 
 							<span style={{ fontWeight: "bold" }}>{t("common:mermaid.render_error")}</span>
 						</div>
 						<div style={{ display: "flex", alignItems: "center" }}>
-							{/* kilocode_change start */}
+							{/* forked_change start */}
 							{!!error && (
 								<MermaidFixButton
 									onClick={(e) => {
@@ -244,7 +244,7 @@ export default function MermaidBlock({ code: originalCode }: MermaidBlockProps) 
 									<span className={`codicon codicon-${isFixing ? "loading" : "wand"}`}></span>
 								</MermaidFixButton>
 							)}
-							{/* kilocode_change end */}
+							{/* forked_change end */}
 							<CopyButton
 								onClick={(e) => {
 									e.stopPropagation()
@@ -267,7 +267,7 @@ export default function MermaidBlock({ code: originalCode }: MermaidBlockProps) 
 								{error}
 							</div>
 							<CodeBlock language="mermaid" source={code} />
-							{/* kilocode_change start */}
+							{/* forked_change start */}
 							{code !== originalCode && (
 								<div style={{ marginTop: "8px" }}>
 									<div style={{ marginBottom: "4px", fontSize: "0.9em", fontWeight: "bold" }}>
@@ -276,20 +276,20 @@ export default function MermaidBlock({ code: originalCode }: MermaidBlockProps) 
 									<CodeBlock language="mermaid" source={originalCode} />
 								</div>
 							)}
-							{/* kilocode_change end */}
+							{/* forked_change end */}
 						</div>
 					)}
 				</div>
 			) : (
 				<MermaidButton containerRef={containerRef} code={code} isLoading={isLoading} svgToPng={svgToPng}>
-					{/* kilocode_change start switched from ref to dangerouslySetInnerHTML */}
+					{/* forked_change start switched from ref to dangerouslySetInnerHTML */}
 					<SvgContainer
 						onClick={handleClick}
 						ref={containerRef}
 						$isLoading={isLoading}
 						dangerouslySetInnerHTML={{ __html: svgContent }}
 					/>
-					{/* kilocode_change end */}
+					{/* forked_change end */}
 				</MermaidButton>
 			)}
 		</MermaidBlockContainer>

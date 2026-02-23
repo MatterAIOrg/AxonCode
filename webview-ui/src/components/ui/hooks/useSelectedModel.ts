@@ -14,10 +14,10 @@ import {
 	moonshotModels,
 	geminiDefaultModelId,
 	geminiModels,
-	// kilocode_change start
+	// forked_change start
 	geminiCliDefaultModelId,
 	geminiCliModels,
-	// kilocode_change end
+	// forked_change end
 	mistralDefaultModelId,
 	mistralModels,
 	openAiModelInfoSaneDefaults,
@@ -73,7 +73,7 @@ import { useOpenRouterModelProviders } from "./useOpenRouterModelProviders"
 import { useLmStudioModels } from "./useLmStudioModels"
 import { useExtensionState } from "@/context/ExtensionStateContext" // kilocode_change
 
-// kilocode_change start
+// forked_change start
 export const useModelProviders = (kilocodeDefaultModel: string, apiConfiguration?: ProviderSettings) => {
 	const provider = apiConfiguration?.apiProvider
 	return useOpenRouterModelProviders(
@@ -87,12 +87,12 @@ export const useModelProviders = (kilocodeDefaultModel: string, apiConfiguration
 		apiConfiguration?.kilocodeOrganizationId ?? "personal",
 	)
 }
-// kilocode_change end
+// forked_change end
 import { useOllamaModels } from "./useOllamaModels"
 
 export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
 	const provider = apiConfiguration?.apiProvider || "anthropic"
-	// kilocode_change start
+	// forked_change start
 	const { kilocodeDefaultModel } = useExtensionState()
 	const lmStudioModelId = provider === "lmstudio" ? apiConfiguration?.lmStudioModelId : undefined
 	const ollamaModelId = provider === "ollama" ? apiConfiguration?.ollamaModelId : undefined
@@ -105,7 +105,7 @@ export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
 		googleGeminiBaseUrl: apiConfiguration?.googleGeminiBaseUrl,
 	})
 	const openRouterModelProviders = useModelProviders(kilocodeDefaultModel, apiConfiguration)
-	// kilocode_change end
+	// forked_change end
 	const lmStudioModels = useLmStudioModels(lmStudioModelId)
 	const ollamaModels = useOllamaModels(ollamaModelId)
 
@@ -257,14 +257,14 @@ function getSelectedModel({
 			const info = vertexModels[id as keyof typeof vertexModels]
 			return { id, info }
 		}
-		// kilocode_change start
+		// forked_change start
 		case "gemini": {
 			const id = apiConfiguration.apiModelId ?? geminiDefaultModelId
 			const remoteInfo = routerModels.gemini?.[id]
 			const staticInfo = geminiModels[id as keyof typeof geminiModels]
 			return { id, info: remoteInfo ?? staticInfo }
 		}
-		// kilocode_change end
+		// forked_change end
 		case "deepseek": {
 			const id = apiConfiguration.apiModelId ?? deepSeekDefaultModelId
 			const info = deepSeekModels[id as keyof typeof deepSeekModels]
@@ -382,7 +382,7 @@ function getSelectedModel({
 				],
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 
 		case "claude-code": {
 			// Claude Code models extend anthropic models but with images and prompt caching disabled
@@ -405,13 +405,13 @@ function getSelectedModel({
 			const info = fireworksModels[id as keyof typeof fireworksModels]
 			return { id, info }
 		}
-		// kilocode_change start
+		// forked_change start
 		case "synthetic": {
 			const id = apiConfiguration.apiModelId ?? syntheticDefaultModelId
 			const info = syntheticModels[id as keyof typeof syntheticModels]
 			return { id, info }
 		}
-		// kilocode_change end
+		// forked_change end
 		case "featherless": {
 			const id = apiConfiguration.apiModelId ?? featherlessDefaultModelId
 			const info = featherlessModels[id as keyof typeof featherlessModels]
@@ -450,13 +450,13 @@ function getSelectedModel({
 			const info = routerModels["vercel-ai-gateway"]?.[id]
 			return { id, info }
 		}
-		// kilocode_change start
+		// forked_change start
 		case "ovhcloud": {
 			const id = apiConfiguration.ovhCloudAiEndpointsModelId ?? ovhCloudAiEndpointsDefaultModelId
 			const info = routerModels.ovhcloud[id]
 			return { id, info }
 		}
-		// kilocode_change end
+		// forked_change end
 		// case "anthropic":
 		// case "human-relay":
 		// case "fake-ai":

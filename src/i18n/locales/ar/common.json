@@ -200,8 +200,8 @@
 	},
 	"customModes": {
 		"errors": {
-			"yamlParseError": "خطأ في تنسيق YAML في ملف .kilocodemodes عند السطر {{line}}. تحقق من:\n• المسافات (استخدم فراغات مو تبويبات)\n• تنسيق الاقتباسات والأقواس\n• صحة التنسيق العام",
-			"schemaValidationError": "تنسيق أوضاع مخصصة غير صالح في .kilocodemodes:\n{{issues}}",
+			"yamlParseError": "خطأ في تنسيق YAML في ملف .orbitalmodes عند السطر {{line}}. تحقق من:\n• المسافات (استخدم فراغات مو تبويبات)\n• تنسيق الاقتباسات والأقواس\n• صحة التنسيق العام",
+			"schemaValidationError": "تنسيق أوضاع مخصصة غير صالح في .orbitalmodes:\n{{issues}}",
 			"invalidFormat": "تنسيق الأوضاع المخصصة غير صحيح. تأكد إن الإعدادات بصيغة YAML سليمة.",
 			"updateFailed": "فشل تحديث الوضع المخصص: {{error}}",
 			"deleteFailed": "فشل حذف الوضع المخصص: {{error}}",

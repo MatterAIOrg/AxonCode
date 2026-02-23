@@ -189,7 +189,7 @@ Requirements:
 	NEW_TASK: {
 		template: `\${userInput}`,
 	},
-	// kilocode_change start
+	// forked_change start
 	COMMIT_MESSAGE: {
 		template: `# Conventional Commit Message Generator
 ## System Instructions
@@ -263,7 +263,7 @@ For significant changes, include a detailed body explaining the changes.
 
 Return ONLY the commit message in the conventional format, nothing else.`,
 	},
-	// kilocode_change end
+	// forked_change end
 } as const
 
 export const supportPrompt = {

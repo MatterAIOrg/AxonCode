@@ -147,7 +147,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	useEffect(() => {
 		setChangeDetected(JSON.stringify(cachedState) !== JSON.stringify(extensionState))
 	}, [cachedState, extensionState])
-	// kilocode_change end
+	// forked_change end
 
 	const {
 		alwaysAllowReadOnly,
@@ -245,7 +245,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		setChangeDetected(false)
 	}, [currentApiConfigName, extensionState])
 
-	// kilocode_change start
+	// forked_change start
 	// Temporary way of making sure that the Settings view updates its local state properly when receiving
 	// api keys from providers that support url callbacks. This whole Settings View needs proper with this local state thing later
 	const { kilocodeToken, openRouterApiKey, glamaApiKey, requestyApiKey } = extensionState.apiConfiguration ?? {}
@@ -271,7 +271,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			setCachedState(extensionState)
 		}
 	}, [extensionState, isChangeDetected])
-	// kilocode_change end
+	// forked_change end
 
 	// Bust the cache when settings are imported.
 	useEffect(() => {
@@ -283,11 +283,11 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 	const setCachedStateField: SetCachedStateField<keyof ExtensionStateContextType> = useCallback((field, value) => {
 		setCachedState((prevState) => {
-			// kilocode_change start
+			// forked_change start
 			if (deepEqual(prevState[field], value)) {
 				return prevState
 			}
-			// kilocode_change end
+			// forked_change end
 
 			setChangeDetected(true)
 			return { ...prevState, [field]: value }
@@ -496,7 +496,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 	useImperativeHandle(ref, () => ({ checkUnsaveChanges }), [checkUnsaveChanges])
 
-	// kilocode_change start
+	// forked_change start
 	const onConfirmDialogResult = useCallback(
 		(confirm: boolean) => {
 			if (confirm) {
@@ -527,7 +527,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			}
 		}
 	}, [isChangeDetected, onConfirmDialogResult])
-	// kilocode_change end
+	// forked_change end
 
 	// Handle tab changes with unsaved changes check
 	const handleTabChange = useCallback(
@@ -835,7 +835,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)} */}
 
-					{/* kilocode_change start display section */}
+					{/* forked_change start display section */}
 					{/* {activeTab === "display" && (
 						<DisplaySettings
 							sendMessageOnEnter={sendMessageOnEnter}
@@ -844,7 +844,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							setCachedStateField={setCachedStateField}
 						/>
 					)} */}
-					{/* kilocode_change end display section */}
+					{/* forked_change end display section */}
 
 					{/* Notifications Section */}
 					{activeTab === "notifications" && (
@@ -925,11 +925,11 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						<ExperimentalSettings
 							setExperimentEnabled={setExperimentEnabled}
 							experiments={experiments}
-							// kilocode_change start
+							// forked_change start
 							setCachedStateField={setCachedStateField}
 							morphApiKey={morphApiKey}
 							fastApplyModel={fastApplyModel}
-							// kilocode_change end
+							// forked_change end
 							apiConfiguration={apiConfiguration}
 							setApiConfigurationField={setApiConfigurationField}
 							openRouterImageApiKey={openRouterImageApiKey as string | undefined}

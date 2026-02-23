@@ -4,7 +4,7 @@ import * as fs from "fs"
 
 /**
  * Centralized path management for Axon Code CLI
- * All configuration and logs are stored in ~/.kilocode/
+ * All configuration and logs are stored in ~/.orbital/
  */
 export class KiloCodePaths {
 	private static readonly BASE_DIR_NAME = ".kilocode"
@@ -19,7 +19,7 @@ export class KiloCodePaths {
 	}
 
 	/**
-	 * Get base .kilocode/cli directory in user home
+	 * Get base .orbital/cli directory in user home
 	 */
 	static getKiloCodeDir(): string {
 		return path.join(this.getHomeDir(), this.BASE_DIR_NAME, this.CLI_SUBDIR)

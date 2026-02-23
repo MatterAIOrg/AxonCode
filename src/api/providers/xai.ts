@@ -63,7 +63,7 @@ export class XAIHandler extends BaseProvider implements SingleCompletionHandler 
 		let stream
 		try {
 			stream = await this.client.chat.completions.create(
-				// kilocode_change start
+				// forked_change start
 				addNativeToolCallsToParams(
 					{
 						model: modelId,
@@ -77,7 +77,7 @@ export class XAIHandler extends BaseProvider implements SingleCompletionHandler 
 					this.options,
 					metadata,
 				),
-				// kilocode_change end
+				// forked_change end
 			)
 		} catch (error) {
 			throw handleOpenAIError(error, this.providerName)

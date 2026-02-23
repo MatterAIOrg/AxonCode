@@ -32,10 +32,10 @@ export async function listFilesTool(
 	removeClosingTag: RemoveClosingTag,
 ) {
 	const relDirPath: string | undefined = block.params.path
-	// kilocode_change start: input can be strongly types
+	// forked_change start: input can be strongly types
 	const recursiveRaw: string | boolean | null | undefined = block.params.recursive
 	const recursive = typeof recursiveRaw === "boolean" ? recursiveRaw : recursiveRaw?.toLowerCase() === "true"
-	// kilocode_change end
+	// forked_change end
 
 	// Calculate if the path is outside workspace
 	const absolutePath = relDirPath ? path.resolve(cline.cwd, relDirPath) : cline.cwd

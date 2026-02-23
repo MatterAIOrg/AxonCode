@@ -97,7 +97,7 @@ import { readApiMessages, saveApiMessages, saveTaskMessages } from "../task-pers
 import { getNonce } from "./getNonce"
 import { getUri } from "./getUri"
 
-//kilocode_change start
+//forked_change start
 import { McpDownloadResponse, McpMarketplaceCatalog } from "../../shared/kilocode/mcp"
 import { McpServer } from "../../shared/mcp"
 import { OpenRouterHandler } from "../../api/providers"
@@ -109,7 +109,7 @@ import { getKiloUrlFromToken } from "@roo-code/types" // kilocode_change
 import { getKilocodeConfig, getWorkspaceProjectId, KilocodeConfig } from "../../utils/kilo-config-file" // kilocode_change
 
 export type ClineProviderState = Awaited<ReturnType<ClineProvider["getState"]>>
-// kilocode_change end
+// forked_change end
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -715,7 +715,7 @@ export class ClineProvider
 			return
 		}
 
-		//kilocode_change start
+		//forked_change start
 		if (command === "addToContextAndFocus") {
 			let messageText = prompt
 
@@ -746,7 +746,7 @@ ${prompt}
 			await vscode.commands.executeCommand("axon-code.focusChatInput")
 			return
 		}
-		// kilocode_change end
+		// forked_change end
 
 		await visibleProvider.createTask(prompt)
 	}
@@ -787,7 +787,7 @@ ${prompt}
 	async resolveWebviewView(webviewView: vscode.WebviewView | vscode.WebviewPanel) {
 		this.view = webviewView
 
-		// kilocode_change start: extract constant inTabMode
+		// forked_change start: extract constant inTabMode
 		// Set panel reference according to webview type
 		const inTabMode = "onDidChangeViewState" in webviewView
 
@@ -796,7 +796,7 @@ ${prompt}
 		} else if ("onDidChangeVisibility" in webviewView) {
 			setPanel(webviewView, "sidebar")
 		}
-		// kilocode_change end
+		// forked_change end
 
 		// Initialize out-of-scope variables that need to receive persistent
 		// global state values.
@@ -1237,7 +1237,7 @@ ${prompt}
 		this.webviewDisposables.push(messageDisposable)
 	}
 
-	/* kilocode_change start */
+	/* forked_change start */
 	/**
 	 * Handle messages from CLI ExtensionHost
 	 * This method allows the CLI to send messages directly to the webviewMessageHandler
@@ -1250,7 +1250,7 @@ ${prompt}
 			throw error
 		}
 	}
-	/* kilocode_change end */
+	/* forked_change end */
 
 	/**
 	 * Handle switching to a new mode, including updating the associated API configuration
@@ -1473,7 +1473,7 @@ ${prompt}
 			await fs.mkdir(mcpServersDir, { recursive: true })
 		} catch (error) {
 			// Fallback to a relative path if directory creation fails
-			return path.join(os.homedir(), ".kilocode", "mcp")
+			return path.join(os.homedir(), ".orbital", "mcp")
 		}
 		return mcpServersDir
 	}
@@ -1672,14 +1672,14 @@ ${prompt}
 			// get the task directory full path
 			const { taskDirPath } = await this.getTaskWithId(id)
 
-			// kilocode_change start
+			// forked_change start
 			// Check if task is favorited
 			const history = this.getGlobalState("taskHistory") ?? []
 			const task = history.find((item) => item.id === id)
 			if (task?.isFavorited) {
 				throw new Error("Cannot delete a favorited task. Please unfavorite it first.")
 			}
-			// kilocode_change end
+			// forked_change end
 
 			// remove task from stack if it's the current task
 			if (id === this.getCurrentTask()?.taskId) {
@@ -1748,7 +1748,7 @@ ${prompt}
 		}
 	}
 
-	// kilocode_change start
+	// forked_change start
 	async postRulesDataToWebview() {
 		const workspacePath = this.cwd
 		if (workspacePath) {
@@ -1758,7 +1758,7 @@ ${prompt}
 			})
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	/**
 	 * Fetches marketplace dataon demand to avoid blocking main state updates
@@ -2000,11 +2000,11 @@ ${prompt}
 		const currentMode = mode ?? defaultModeSlug
 		const hasSystemPromptOverride = await this.hasFileBasedSystemPromptOverride(currentMode)
 
-		// kilocode_change start wrapper information
+		// forked_change start wrapper information
 		const kiloCodeWrapperProperties = getKiloCodeWrapperProperties()
 		const taskHistory = this.getTaskHistory()
 		this.kiloCodeTaskHistorySizeForTelemetryOnly = taskHistory.length
-		// kilocode_change end
+		// forked_change end
 
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
@@ -2171,10 +2171,10 @@ ${prompt}
 			| "version"
 			| "shouldShowAnnouncement"
 			| "hasSystemPromptOverride"
-			// kilocode_change start
+			// forked_change start
 			| "taskHistoryFullLength"
 			| "taskHistoryVersion"
-			// kilocode_change end
+			// forked_change end
 		>
 	> {
 		const stateValues = this.contextProxy.getValues()
@@ -2327,7 +2327,7 @@ ${prompt}
 			enhancementApiConfigId: stateValues.enhancementApiConfigId,
 			commitMessageApiConfigId: stateValues.commitMessageApiConfigId, // kilocode_change
 			terminalCommandApiConfigId: stateValues.terminalCommandApiConfigId, // kilocode_change
-			// kilocode_change start
+			// forked_change start
 			experiments: stateValues.experiments ?? experimentDefault,
 			autoApprovalEnabled: stateValues.autoApprovalEnabled ?? true,
 			customModes,
@@ -2934,7 +2934,7 @@ ${prompt}
 	private getAppProperties(): StaticAppProperties {
 		if (!this._appProperties) {
 			const packageJSON = this.context.extension?.packageJSON
-			// kilocode_change start
+			// forked_change start
 			const {
 				kiloCodeWrapped,
 				kiloCodeWrapper,
@@ -2942,7 +2942,7 @@ ${prompt}
 				kiloCodeWrapperVersion,
 				kiloCodeWrapperTitle,
 			} = getKiloCodeWrapperProperties()
-			// kilocode_change end
+			// forked_change end
 
 			this._appProperties = {
 				appName: packageJSON?.name ?? Package.name,
@@ -3007,11 +3007,11 @@ ${prompt}
 			diffStrategy: task?.diffStrategy?.getName(),
 			isSubtask: task ? !!task.parentTask : undefined,
 			...(todos && { todos }),
-			// kilocode_change start
+			// forked_change start
 			currentTaskSize: task?.clineMessages.length,
 			taskHistorySize: this.kiloCodeTaskHistorySizeForTelemetryOnly || undefined,
 			toolStyle: getActiveToolUseStyle(apiConfiguration),
-			// kilocode_change end
+			// forked_change end
 		}
 	}
 
@@ -3027,7 +3027,7 @@ ${prompt}
 		return this._gitProperties
 	}
 
-	// kilocode_change start
+	// forked_change start
 	private _kiloConfig: KilocodeConfig | null = null
 	public async getKiloConfig(): Promise<KilocodeConfig | null> {
 		if (this._kiloConfig === null) {
@@ -3036,10 +3036,10 @@ ${prompt}
 		}
 		return this._kiloConfig
 	}
-	// kilocode_change end
+	// forked_change end
 
 	public async getTelemetryProperties(): Promise<TelemetryProperties> {
-		// kilocode_change start
+		// forked_change start
 		const { apiConfiguration, experiments } = await this.getState()
 		const task = this.getCurrentTask()
 
@@ -3098,17 +3098,17 @@ ${prompt}
 				}
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 
 		return {
 			...this.getAppProperties(),
 			// ...this.getCloudProperties(), kilocode_change: disable
-			// kilocode_change start
+			// forked_change start
 			...(await getModelId()),
 			...getMemory(),
 			...getFastApply(),
 			...getOpenRouter(),
-			// kilocode_change end
+			// forked_change end
 			...(await this.getTaskProperties()),
 			...(await this.getGitProperties()),
 		}
@@ -3284,7 +3284,7 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 	}
 	// end kilocode_change
 
-	// kilocode_change start
+	// forked_change start
 	// Add new methods for favorite functionality
 	async toggleTaskFavorite(id: string) {
 		const history = this.getGlobalState("taskHistory") ?? []
@@ -3337,7 +3337,7 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 	public getTaskHistory(): HistoryItem[] {
 		return this.getGlobalState("taskHistory") || []
 	}
-	// kilocode_change end
+	// forked_change end
 
 	public get cwd() {
 		return this.currentWorkspacePath || getWorkspacePath()

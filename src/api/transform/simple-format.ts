@@ -35,7 +35,7 @@ export function convertToSimpleContent(content: Anthropic.Messages.MessageParam[
 								return part.source.type === "url"
 									? `[Image: URL]`
 									: `[Image: ${part.source.media_type}]`
-								// kilocode_change end
+								// forked_change end
 							}
 							return ""
 						})

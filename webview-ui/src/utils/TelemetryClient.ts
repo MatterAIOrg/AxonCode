@@ -35,7 +35,7 @@ class TelemetryClient {
 		return TelemetryClient.instance
 	}
 
-	// kilocode_change start
+	// forked_change start
 	public captureException(error: Error, properties?: Record<string, any>) {
 		if (TelemetryClient.telemetryEnabled) {
 			try {
@@ -45,7 +45,7 @@ class TelemetryClient {
 			}
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	public capture(eventName: string, properties?: Record<string, any>) {
 		if (TelemetryClient.telemetryEnabled) {

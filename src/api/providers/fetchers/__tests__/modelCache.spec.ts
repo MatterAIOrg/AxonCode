@@ -161,7 +161,7 @@ describe("getModels with new GetModelsOptions", () => {
 		expect(result).toEqual(mockModels)
 	})
 
-	// kilocode_change start
+	// forked_change start
 	it("calls OvhCloudAiEndpointsModels for ovhcloud provider", async () => {
 		const mockModels = {
 			"ovhcloud/model": {
@@ -178,7 +178,7 @@ describe("getModels with new GetModelsOptions", () => {
 		expect(mockGetOvhCloudAiEndpointsModels).toHaveBeenCalled()
 		expect(result).toEqual(mockModels)
 	})
-	// kilocode_change end
+	// forked_change end
 
 	it("handles errors and re-throws them", async () => {
 		const expectedError = new Error("LiteLLM connection failed")

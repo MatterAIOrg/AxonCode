@@ -8,7 +8,7 @@ import TaskItem from "./TaskItem"
 import { useTaskHistory } from "@/kilocode/hooks/useTaskHistory"
 
 const HistoryPreview = ({ taskHistoryVersion }: { taskHistoryVersion: number } /*kilocode_change*/) => {
-	// kilocode_change start
+	// forked_change start
 	const { data } = useTaskHistory(
 		{
 			workspace: "current",
@@ -19,7 +19,7 @@ const HistoryPreview = ({ taskHistoryVersion }: { taskHistoryVersion: number } /
 		taskHistoryVersion,
 	)
 	const tasks = data?.historyItems ?? []
-	// kilocode_change end
+	// forked_change end
 	const { t } = useAppTranslation()
 
 	const handleViewAllHistory = () => {

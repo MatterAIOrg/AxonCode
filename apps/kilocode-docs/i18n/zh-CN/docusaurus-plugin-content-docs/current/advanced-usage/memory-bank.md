@@ -31,7 +31,7 @@ Memory Bank 是一个结构化文档系统，使 Axon Code 能够**更好地理�
 
 ## Memory Bank 的工作原理
 
-Memory Bank 基于 Axon Code 的 [自定义规则](/advanced-usage/custom-rules) 功能构建，为项目文档提供了一个专门的框架。Memory Bank 文件是存储在项目仓库 `.kilocode/rules/memory-bank` 文件夹中的标准 Markdown 文件。它们不是隐藏或专有的——它们是你和 Axon Code 都可以访问的常规文档文件。
+Memory Bank 基于 Axon Code 的 [自定义规则](/advanced-usage/custom-rules) 功能构建，为项目文档提供了一个专门的框架。Memory Bank 文件是存储在项目仓库 `.orbital/rules/memory-bank` 文件夹中的标准 Markdown 文件。它们不是隐藏或专有的——它们是你和 Axon Code 都可以访问的常规文档文件。
 
 在每个任务开始时，Axon Code 会读取所有 Memory Bank 文件，以构建对项目的全面理解。这是自动进行的，不需要你采取任何操作。Axon Code 然后会在其响应的开头显示 `[Memory Bank: Active]`，表示 Memory Bank 已成功激活，并简要总结其对项目的理解。
 
@@ -116,9 +116,9 @@ _用于记录重复任务的可选文件_
 
 ### 首次设置
 
-1. 在项目中创建 `.kilocode/rules/memory-bank/` 文件夹
-2. 在 `.kilocode/rules/memory-bank/brief.md` 中编写基本的项目摘要
-3. 创建文件 `.kilocode/rules/memory-bank-instructions.md` 并将 [此文档](pathname:///downloads/memory-bank.md) 粘贴到其中
+1. 在项目中创建 `.orbital/rules/memory-bank/` 文件夹
+2. 在 `.orbital/rules/memory-bank/brief.md` 中编写基本的项目摘要
+3. 创建文件 `.orbital/rules/memory-bank-instructions.md` 并将 [此文档](pathname:///downloads/memory-bank.md) 粘贴到其中
 4. 切换到 `Architect` 模式
 5. 检查是否选择了最佳可用的 AI 模型，不要使用“轻量级”模型
 6. 要求 Axon Code “initialize memory bank”
@@ -153,7 +153,7 @@ _用于记录重复任务的可选文件_
     - 文档和注释
     - 依赖项和外部集成
     - 测试框架和模式
-2. 在 `.kilocode/rules/memory-bank` 文件夹中创建全面的 Memory Bank 文件
+2. 在 `.orbital/rules/memory-bank` 文件夹中创建全面的 Memory Bank 文件
 3. 提供对其对项目的理解的详细摘要
 4. 要求你验证生成文件的准确性
 
@@ -254,7 +254,7 @@ Memory Bank 更新应自动发生在以下情况：
 
 ### Memory Bank 文件存储在哪里？
 
-Memory Bank 文件是存储在项目仓库中的常规 Markdown 文件，通常在 `.kilocode/rules/memory-bank/` 文件夹中。它们不是隐藏的系统文件——它们旨在成为项目文档的一部分。
+Memory Bank 文件是存储在项目仓库中的常规 Markdown 文件，通常在 `.orbital/rules/memory-bank/` 文件夹中。它们不是隐藏的系统文件——它们旨在成为项目文档的一部分。
 
 ### 我应该多久更新一次 Memory Bank？
 
@@ -274,7 +274,7 @@ Memory Bank 适用于所有 AI 模型，但更强大的模型将创建更全面�
 
 ### 我可以在多个项目中使用 Memory Bank 吗？
 
-是的！每个项目都有自己的 Memory Bank，位于其 `.kilocode/rules/memory-bank/` 文件夹中。Axon Code 会自动为每个项目使用正确的 Memory Bank。
+是的！每个项目都有自己的 Memory Bank，位于其 `.orbital/rules/memory-bank/` 文件夹中。Axon Code 会自动为每个项目使用正确的 Memory Bank。
 
 ### Memory Bank 是否会占用我的上下文窗口？
 

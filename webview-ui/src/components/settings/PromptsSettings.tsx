@@ -302,9 +302,9 @@ const PromptsSettings = ({
 						</div>
 					)}
 
-					{/* kilocode_change start */}
+					{/* forked_change start */}
 					{activeSupportOption === "COMMIT_MESSAGE" && <CommitMessagePromptSettings />}
-					{/* kilocode_change end */}
+					{/* forked_change end */}
 				</div>
 			</Section>
 		</div>

@@ -170,7 +170,7 @@
 			},
 			"protected": {
 				"label": "Zahrnout chráněné soubory",
-				"description": "Povolit Axon Code vytvářet a upravovat chráněné soubory (jako .kilocodeignore a konfigurační soubory .kilocode/) bez nutnosti schválení."
+				"description": "Povolit Axon Code vytvářet a upravovat chráněné soubory (jako .kilocodeignore a konfigurační soubory .orbital/) bez nutnosti schválení."
 			}
 		},
 		"browser": {

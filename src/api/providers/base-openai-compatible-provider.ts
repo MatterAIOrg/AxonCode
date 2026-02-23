@@ -68,10 +68,10 @@ export abstract class BaseOpenAiCompatibleProvider<ModelName extends string>
 			baseURL,
 			apiKey: this.options.apiKey,
 			defaultHeaders: DEFAULT_HEADERS,
-			// kilocode_change start
+			// forked_change start
 			timeout: timeout,
 			fetch: fetchWithTimeout(timeout),
-			// kilocode_change end
+			// forked_change end
 		})
 	}
 

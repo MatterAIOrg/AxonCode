@@ -8,11 +8,11 @@ export * from "./doubao.js"
 export * from "./featherless.js"
 export * from "./fireworks.js"
 export * from "./gemini.js"
-// kilocode_change start
+// forked_change start
 export * from "./gemini-cli.js"
 export * from "./ovhcloud.js"
 export * from "./synthetic.js"
-// kilocode_change end
+// forked_change end
 export * from "./glama.js"
 export * from "./groq.js"
 export * from "./huggingface.js"

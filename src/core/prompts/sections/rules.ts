@@ -1,12 +1,12 @@
 import { DiffStrategy } from "../../../shared/tools"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 
-// kilocode_change start
+// forked_change start
 import { getFastApplyEditingInstructions } from "../tools/edit-file"
 import { type ClineProviderState } from "../../webview/ClineProvider"
 import { getFastApplyModelType, isFastApplyAvailable } from "../../tools/editFileTool"
 import { ToolUseStyle } from "../../../../packages/types/src/kilocode/native-function-calling"
-// kilocode_change end
+// forked_change end
 
 function getEditingInstructions(diffStrategy?: DiffStrategy): string {
 	const instructions: string[] = []

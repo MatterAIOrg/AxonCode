@@ -1,6 +1,6 @@
 // npx vitest run src/api/providers/__tests__/zai.spec.ts
 
-// kilocode_change start
+// forked_change start
 vitest.mock("vscode", () => ({
 	workspace: {
 		getConfiguration: vitest.fn().mockReturnValue({
@@ -8,7 +8,7 @@ vitest.mock("vscode", () => ({
 		}),
 	},
 }))
-// kilocode_change end
+// forked_change end
 
 import OpenAI from "openai"
 import { Anthropic } from "@anthropic-ai/sdk"

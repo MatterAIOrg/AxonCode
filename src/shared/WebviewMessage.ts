@@ -9,11 +9,11 @@ import {
 	type ShareVisibility,
 	type QueuedMessage,
 	marketplaceItemSchema,
-	// kilocode_change start
+	// forked_change start
 	CommitRange,
 	HistoryItem,
 	GlobalState,
-	// kilocode_change end
+	// forked_change end
 } from "@roo-code/types"
 
 import { Mode } from "./modes"
@@ -36,14 +36,14 @@ export interface UpdateTodoListPayload {
 
 export type EditQueuedMessagePayload = Pick<QueuedMessage, "id" | "text" | "images">
 
-// kilocode_change start: Type-safe global state update message
+// forked_change start: Type-safe global state update message
 export type GlobalStateValue<K extends keyof GlobalState> = GlobalState[K]
 export type UpdateGlobalStateMessage<K extends keyof GlobalState = keyof GlobalState> = {
 	type: "updateGlobalState"
 	stateKey: K
 	stateValue: GlobalStateValue<K>
 }
-// kilocode_change end: Type-safe global state update message
+// forked_change end: Type-safe global state update message
 
 export interface WebviewMessage {
 	type:
@@ -311,7 +311,7 @@ export interface WebviewMessage {
 		| "editQueuedMessage"
 		| "dismissUpsell"
 		| "getDismissedUpsells"
-		// kilocode_change start
+		// forked_change start
 		| "getCommitChanges"
 		| "commitChanges"
 		| "getPendingFileEdits"
@@ -329,7 +329,7 @@ export interface WebviewMessage {
 		| "memories_response" // kilocode_change: Chat memories response
 		| "delete_memory" // kilocode_change: Delete memory
 		| "memory_deleted" // kilocode_change: Memory deleted response
-	// kilocode_change end
+	// forked_change end
 	text?: string
 	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "cloud"
@@ -362,7 +362,7 @@ export interface WebviewMessage {
 	ruleType?: string // kilocode_change
 	notificationId?: string // kilocode_change
 	commandIds?: string[] // kilocode_change: For getKeybindings
-	// kilocode_change end
+	// forked_change end
 	serverName?: string
 	toolName?: string
 	alwaysAllow?: boolean
@@ -521,7 +521,7 @@ export interface MemoryItem {
 	timestamp: string
 	mode?: string
 }
-// kilocode_change end
+// forked_change end
 
 export const checkoutDiffPayloadSchema = z.object({
 	ts: z.number(),
@@ -559,7 +559,7 @@ export type InstallMarketplaceItemWithParametersPayload = z.infer<
 	typeof installMarketplaceItemWithParametersPayloadSchema
 >
 
-// kilocode_change start
+// forked_change start
 export interface GetCommitChangesPayload {
 	commitRange: CommitRange
 }
@@ -596,10 +596,10 @@ export interface ApplyAllCodeReviewFixesPayload {
 	fixIndices: number[]
 	comments: CodeReviewComment[]
 }
-// kilocode_change end
+// forked_change end
 
 export type WebViewMessagePayload =
-	// kilocode_change start
+	// forked_change start
 	| ProfileDataResponsePayload
 	| BalanceDataResponsePayload
 	| BetaModelsResponsePayload
@@ -614,7 +614,7 @@ export type WebViewMessagePayload =
 	| CodeReviewResultsPayload
 	| ApplyCodeReviewFixPayload
 	| ApplyAllCodeReviewFixesPayload
-	// kilocode_change end
+	// forked_change end
 	| CheckpointDiffPayload
 	| CheckpointRestorePayload
 	| IndexingStatusPayload

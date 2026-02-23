@@ -140,12 +140,12 @@ export const getModelsByProvider = ({
 		}
 		case "gemini": {
 			return {
-				// kilocode_change start
+				// forked_change start
 				models:
 					routerModels.gemini && Object.keys(routerModels.gemini).length > 0
 						? routerModels.gemini
 						: geminiModels,
-				// kilocode_change end
+				// forked_change end
 				defaultModel: geminiDefaultModelId,
 			}
 		}
@@ -241,14 +241,14 @@ export const getModelsByProvider = ({
 				defaultModel: fireworksDefaultModelId,
 			}
 		}
-		// kilocode_change start
+		// forked_change start
 		case "synthetic": {
 			return {
 				models: syntheticModels,
 				defaultModel: syntheticDefaultModelId,
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 		case "io-intelligence": {
 			return {
 				models: routerModels["io-intelligence"],
@@ -279,14 +279,14 @@ export const getModelsByProvider = ({
 				defaultModel: deepInfraDefaultModelId,
 			}
 		}
-		// kilocode_change start
+		// forked_change start
 		case "ovhcloud": {
 			return {
 				models: routerModels.ovhcloud,
 				defaultModel: ovhCloudAiEndpointsDefaultModelId,
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 		default:
 			return {
 				models: {},
@@ -304,12 +304,12 @@ export const useProviderModels = (apiConfiguration?: ProviderSettings) => {
 		openRouterBaseUrl: apiConfiguration?.openRouterBaseUrl,
 		openRouterApiKey: apiConfiguration?.apiKey,
 		kilocodeOrganizationId: apiConfiguration?.kilocodeOrganizationId ?? "personal",
-		// kilocode_change start
+		// forked_change start
 		chutesApiKey: apiConfiguration?.chutesApiKey,
 		geminiApiKey: apiConfiguration?.geminiApiKey,
 		googleGeminiBaseUrl: apiConfiguration?.googleGeminiBaseUrl,
 		betaModelsEnabled, // kilocode_change: Beta models availability
-		// kilocode_change end
+		// forked_change end
 	})
 
 	const { models, defaultModel } =
@@ -322,11 +322,11 @@ export const useProviderModels = (apiConfiguration?: ProviderSettings) => {
 				})
 			: FALLBACK_MODELS
 
-	// kilocode_change start: Always show all models including axon-code-2-pro
+	// forked_change start: Always show all models including axon-code-2-pro
 	// Pro models are marked as disabled if betaModelsEnabled is false
 	const proModelIds = ["axon-code-2-pro"]
 	const proModelsEnabled = betaModelsEnabled
-	// kilocode_change end
+	// forked_change end
 
 	return {
 		provider,

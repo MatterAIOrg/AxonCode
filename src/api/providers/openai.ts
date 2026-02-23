@@ -170,9 +170,9 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			// Add max_tokens if needed
 			this.addMaxTokensIfNeeded(requestOptions, modelInfo)
 
-			// kilocode_change start: Add native tool call support when toolStyle is "json"
+			// forked_change start: Add native tool call support when toolStyle is "json"
 			addNativeToolCallsToParams(requestOptions, this.options, metadata)
-			// kilocode_change end
+			// forked_change end
 
 			let stream
 			try {
@@ -198,9 +198,9 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			for await (const chunk of stream) {
 				const delta = chunk.choices[0]?.delta ?? {}
 
-				// kilocode_change start: Handle native tool calls when toolStyle is "json"
+				// forked_change start: Handle native tool calls when toolStyle is "json"
 				yield* processNativeToolCallsFromDelta(delta, getActiveToolUseStyle(this.options))
-				// kilocode_change end
+				// forked_change end
 
 				if (delta.content) {
 					for (const chunk of matcher.update(delta.content)) {
@@ -208,7 +208,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 					}
 				}
 
-				// kilocode_change start: reasoning
+				// forked_change start: reasoning
 				const reasoningText =
 					"reasoning_content" in delta && typeof delta.reasoning_content === "string"
 						? delta.reasoning_content
@@ -221,7 +221,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 						text: reasoningText,
 					}
 				}
-				// kilocode_change end
+				// forked_change end
 
 				if (chunk.usage) {
 					lastUsage = chunk.usage
@@ -253,9 +253,9 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 
 			// Add max_tokens if needed
 			this.addMaxTokensIfNeeded(requestOptions, modelInfo)
-			// kilocode_change start: Add native tool call support when toolStyle is "json"
+			// forked_change start: Add native tool call support when toolStyle is "json"
 			addNativeToolCallsToParams(requestOptions, this.options, metadata)
-			// kilocode_change end
+			// forked_change end
 			let response
 			try {
 				response = await this.client.chat.completions.create(
@@ -266,7 +266,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 				throw handleOpenAIError(error, this.providerName)
 			}
 
-			// kilocode_change start: reasoning & tool calls.
+			// forked_change start: reasoning & tool calls.
 			const toolStyle = getActiveToolUseStyle(this.options)
 			const message = response.choices[0]?.message
 			if (message) {
@@ -289,7 +289,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 					}
 				}
 			}
-			// kilocode_change end
+			// forked_change end
 
 			yield this.processUsageMetrics(response.usage, modelInfo)
 		}

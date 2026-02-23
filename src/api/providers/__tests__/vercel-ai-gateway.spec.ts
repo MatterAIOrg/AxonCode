@@ -97,13 +97,13 @@ describe("VercelAiGatewayHandler", () => {
 		expect(OpenAI).toHaveBeenCalledWith({
 			baseURL: "https://ai-gateway.vercel.sh/v1",
 			apiKey: mockOptions.vercelAiGatewayApiKey,
-			// kilocode_change start
+			// forked_change start
 			defaultHeaders: expect.objectContaining({
 				"HTTP-Referer": "https://matterai.so",
 				"X-Title": "Axon Code",
 				"User-Agent": expect.stringContaining("Kilo-Code/"),
 			}),
-			// kilocode_change end
+			// forked_change end
 		})
 	})
 

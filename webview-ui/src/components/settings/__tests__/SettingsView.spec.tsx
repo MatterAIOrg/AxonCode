@@ -8,7 +8,7 @@ import SettingsView from "../SettingsView"
 
 vi.mock("@src/utils/vscode", () => ({ vscode: { postMessage: vi.fn() } }))
 
-// kilocode_change start
+// forked_change start
 // Mock the validate functions to prevent validation errors
 vi.mock("@src/utils/validate", () => ({
 	validateApiConfiguration: vi.fn().mockReturnValue(undefined),
@@ -16,7 +16,7 @@ vi.mock("@src/utils/validate", () => ({
 	validateModelId: vi.fn().mockReturnValue(undefined),
 	getModelValidationError: vi.fn().mockReturnValue(undefined),
 }))
-// kilocode_change end
+// forked_change end
 
 // Mock ApiConfigManager component
 vi.mock("../ApiConfigManager", () => ({
@@ -146,7 +146,7 @@ vi.mock("@/components/ui", () => ({
 			data-testid={dataTestId}
 		/>
 	),
-	// kilocode_change start
+	// forked_change start
 	DropdownMenu: ({ children }: any) => <div data-testid="dropdown-menu">{children}</div>,
 	DropdownMenuTrigger: ({ children }: any) => <div data-testid="dropdown-menu-trigger">{children}</div>,
 	DropdownMenuContent: ({ children }: any) => <div data-testid="dropdown-menu-content">{children}</div>,
@@ -155,7 +155,7 @@ vi.mock("@/components/ui", () => ({
 			{children}
 		</div>
 	),
-	// kilocode_change end
+	// forked_change end
 	Button: ({ children, onClick, variant, className, "data-testid": dataTestId }: any) => (
 		<button onClick={onClick} data-variant={variant} className={className} data-testid={dataTestId}>
 			{children}

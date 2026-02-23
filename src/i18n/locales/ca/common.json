@@ -209,8 +209,8 @@
 	},
 	"customModes": {
 		"errors": {
-			"yamlParseError": "YAML no vàlid al fitxer .kilocodemodes a la línia {{line}}. Comprova:\n• Indentació correcta (utilitza espais, no tabuladors)\n• Cometes i claudàtors coincidents\n• Sintaxi YAML vàlida",
-			"schemaValidationError": "Format de modes personalitzats no vàlid a .kilocodemodes:\n{{issues}}",
+			"yamlParseError": "YAML no vàlid al fitxer .orbitalmodes a la línia {{line}}. Comprova:\n• Indentació correcta (utilitza espais, no tabuladors)\n• Cometes i claudàtors coincidents\n• Sintaxi YAML vàlida",
+			"schemaValidationError": "Format de modes personalitzats no vàlid a .orbitalmodes:\n{{issues}}",
 			"invalidFormat": "Format de modes personalitzats no vàlid. Assegura't que la teva configuració segueix el format YAML correcte.",
 			"updateFailed": "Error en actualitzar el mode personalitzat: {{error}}",
 			"deleteFailed": "Error en eliminar el mode personalitzat: {{error}}",

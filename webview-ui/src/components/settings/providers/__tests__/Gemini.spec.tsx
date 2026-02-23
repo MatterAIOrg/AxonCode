@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { Gemini } from "../Gemini"
 
-// kilocode_change start
+// forked_change start
 import type { ProviderSettings } from "@roo-code/types"
 import { ExtensionStateContextProvider } from "@src/context/ExtensionStateContext"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-// kilocode_change end
+// forked_change end
 
 vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 	VSCodeTextField: ({ children, value, onInput, type }: any) => (
@@ -15,13 +15,13 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 			<input type={type} value={value} onChange={(e) => onInput(e)} />
 		</div>
 	),
-	// kilocode_change start
+	// forked_change start
 	VSCodeLink: ({ children, href, onClick, className }: any) => (
 		<a href={href} onClick={onClick} className={className}>
 			{children}
 		</a>
 	),
-	// kilocode_change end
+	// forked_change end
 }))
 
 vi.mock("vscrui", () => ({
@@ -41,12 +41,12 @@ vi.mock("@src/components/common/VSCodeButtonLink", () => ({
 	VSCodeButtonLink: ({ children, href }: any) => <a href={href}>{children}</a>,
 }))
 
-// kilocode_change start
+// forked_change start
 vi.mock("../ModelPicker", () => ({
 	__esModule: true,
 	ModelPicker: () => <div data-testid="model-picker" />,
 }))
-// kilocode_change end
+// forked_change end
 
 describe("Gemini", () => {
 	const defaultApiConfiguration: ProviderSettings = {

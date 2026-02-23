@@ -49,14 +49,14 @@ export const DeleteTaskDialog = ({ taskId, ...props }: DeleteTaskDialogProps) =>
 			<AlertDialogContent onEscapeKeyDown={() => onOpenChange?.(false)}>
 				<AlertDialogHeader>
 					<AlertDialogTitle>{t("history:deleteTask")}</AlertDialogTitle>
-					{/* kilocode_change start */}
+					{/* forked_change start */}
 					<AlertDialogDescription>
 						{isFavorited ? (
 							<div className="text-yellow-500 mb-2">{t("history:deleteTaskFavoritedWarning")}</div>
 						) : null}
 						{t("history:deleteTaskMessage")}
 					</AlertDialogDescription>
-					{/* kilocode_change end */}
+					{/* forked_change end */}
 				</AlertDialogHeader>
 				<AlertDialogFooter className="flex-col gap-2 items-center justify-center">
 					<AlertDialogCancel asChild>

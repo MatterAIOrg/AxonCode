@@ -10,11 +10,11 @@ interface ImageGenerationSettingsProps {
 	openRouterImageGenerationSelectedModel?: string
 	setOpenRouterImageApiKey: (apiKey: string) => void
 	setImageGenerationSelectedModel: (model: string) => void
-	// kilocode_change start
+	// forked_change start
 	kiloCodeImageApiKey?: string
 	setKiloCodeImageApiKey: (apiKey: string) => void
 	currentProfileKilocodeToken?: string
-	// kilocode_change end
+	// forked_change end
 }
 
 // Hardcoded list of image generation models
@@ -32,15 +32,15 @@ export const ImageGenerationSettings = ({
 	openRouterImageGenerationSelectedModel,
 	setOpenRouterImageApiKey,
 	setImageGenerationSelectedModel,
-	// kilocode_change start
+	// forked_change start
 	kiloCodeImageApiKey,
 	setKiloCodeImageApiKey,
 	currentProfileKilocodeToken,
-	// kilocode_change end
+	// forked_change end
 }: ImageGenerationSettingsProps) => {
 	const { t } = useAppTranslation()
 
-	// kilocode_change start
+	// forked_change start
 	const [isUsingOpenRouter, setIsUsingOpenRouter] = useState(!!openRouterImageApiKey)
 	useEffect(() => {
 		if (!enabled) {
@@ -70,7 +70,7 @@ export const ImageGenerationSettings = ({
 		setImageGenerationSelectedModel,
 		currentProfileKilocodeToken,
 	])
-	// kilocode_change end
+	// forked_change end
 
 	// Handle API key changes
 	const handleApiKeyChange = (value: string) => {
@@ -106,7 +106,7 @@ export const ImageGenerationSettings = ({
 					{/* API Key Configuration */}
 
 					{
-						// kilocode_change start
+						// forked_change start
 						<div>
 							<label className="block font-medium mb-1">
 								{t("settings:experimental.IMAGE_GENERATION.apiProvider")}
@@ -126,11 +126,11 @@ export const ImageGenerationSettings = ({
 								</VSCodeOption>
 							</VSCodeDropdown>
 						</div>
-						// kilocode_change end
+						// forked_change end
 					}
 
 					{
-						// kilocode_change start
+						// forked_change start
 						<div style={{ display: isUsingOpenRouter ? "none" : undefined }}>
 							<label className="block font-medium mb-1">
 								{t("settings:experimental.IMAGE_GENERATION.kiloCodeApiKeyLabel")}
@@ -164,7 +164,7 @@ export const ImageGenerationSettings = ({
 								)}
 							</p>
 						</div>
-						// kilocode_change end
+						// forked_change end
 					}
 
 					<div style={{ display: isUsingOpenRouter ? undefined : "none" } /*kilocode_change*/}>

@@ -36,11 +36,11 @@ type ModelIdKey = keyof Pick<
 	| "requestyModelId"
 	| "openAiModelId"
 	| "litellmModelId"
-	// kilocode_change start
+	// forked_change start
 	| "apiModelId"
 	| "kilocodeModel"
 	| "ovhCloudAiEndpointsModelId"
-	// kilocode_change end
+	// forked_change end
 	| "deepInfraModelId"
 	| "ioIntelligenceModelId"
 	| "vercelAiGatewayModelId"
@@ -88,10 +88,10 @@ export const ModelPicker = ({
 	const selectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-	// kilocode_change start
+	// forked_change start
 	const modelIds = usePreferredModels(models)
 	// const [isPricingExpanded, setIsPricingExpanded] = useState(false)
-	// kilocode_change end
+	// forked_change end
 
 	const { id: selectedModelId } = useSelectedModel(apiConfiguration)
 
@@ -212,7 +212,7 @@ export const ModelPicker = ({
 									)}
 								</CommandEmpty>
 								<CommandGroup>
-									{/* kilocode_change start */}
+									{/* forked_change start */}
 									{modelIds.map((model, i) => {
 										const isPreferred = Number.isInteger(models?.[model]?.preferredIndex)
 										const previousModelWasPreferred = Number.isInteger(
@@ -271,7 +271,7 @@ export const ModelPicker = ({
 											</Fragment>
 										)
 									})}
-									{/* kilocode_change end */}
+									{/* forked_change end */}
 								</CommandGroup>
 							</CommandList>
 							{searchValue && !modelIds.includes(searchValue) && (

@@ -19,13 +19,13 @@ export class AssistantMessageParser {
 	private readonly MAX_ACCUMULATOR_SIZE = 1024 * 1024 // 1MB limit
 	private readonly MAX_PARAM_LENGTH = 1024 * 100 // 100KB per parameter limit
 
-	// kilocode_change start
+	// forked_change start
 	// State for accumulating native tool calls
 	private nativeToolCallsAccumulator: Map<string, NativeToolCall> = new Map()
 	private processedNativeToolCallIds: Set<string> = new Set()
 	// Map index to id for tracking across streaming deltas
 	private nativeToolCallIndexToId: Map<number, string> = new Map()
-	// kilocode_change end
+	// forked_change end
 
 	private accumulator = ""
 
@@ -49,11 +49,11 @@ export class AssistantMessageParser {
 		this.currentParamValueStartIndex = 0
 		this.accumulator = ""
 
-		// kilocode_change start
+		// forked_change start
 		this.nativeToolCallsAccumulator.clear()
 		this.processedNativeToolCallIds.clear()
 		this.nativeToolCallIndexToId.clear()
-		// kilocode_change end
+		// forked_change end
 	}
 
 	/**
@@ -65,7 +65,7 @@ export class AssistantMessageParser {
 		return this.contentBlocks.slice()
 	}
 
-	// kilocode_change start
+	// forked_change start
 	/**
 	 * Process native OpenAI-format tool calls and convert them to internal ToolUse format.
 	 * This handles tool calls that come from OpenAI-compatible APIs in their native format
@@ -214,7 +214,7 @@ export class AssistantMessageParser {
 			}
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	/**
 	 * Process a new chunk of text and update the parser state.
@@ -407,9 +407,9 @@ export class AssistantMessageParser {
 	 * Should be called after processing the last chunk.
 	 */
 	public finalizeContentBlocks(): void {
-		// kilocode_change start: Finalize any accumulated native tool calls
+		// forked_change start: Finalize any accumulated native tool calls
 		this.finalizeNativeToolCalls()
-		// kilocode_change end
+		// forked_change end
 
 		// Mark all partial blocks as complete
 		for (const block of this.contentBlocks) {
@@ -422,7 +422,7 @@ export class AssistantMessageParser {
 		}
 	}
 
-	// kilocode_change start
+	// forked_change start
 	/**
 	 * Finalize any accumulated native tool calls that haven't been yielded yet.
 	 * This is called at the end of streaming to ensure all tool calls are processed,
@@ -478,5 +478,5 @@ export class AssistantMessageParser {
 		// Clear the accumulator after finalization
 		this.nativeToolCallsAccumulator.clear()
 	}
-	// kilocode_change end
+	// forked_change end
 }

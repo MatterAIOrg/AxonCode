@@ -70,7 +70,7 @@ export async function applyDiffTool(
 	console.log("Using XML multi-file apply diff tool")
 	return applyXMLDiffTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 }
-// kilocode_change end
+// forked_change end
 
 /* kilocode_change: rename */ async function applyXMLDiffTool(
 	cline: Task,

@@ -110,7 +110,7 @@ describe("Command Validation", () => {
 				])
 			})
 
-			// kilocode_change start allowed newlines within quotes
+			// forked_change start allowed newlines within quotes
 			it("preserves newlines within quotes", () => {
 				// Newlines inside quoted strings should be preserved as part of the command
 				// Using template literal to create actual newline
@@ -120,7 +120,7 @@ git status`
 				// The newlines inside quotes are preserved, so we get two commands
 				expect(parseCommand(commandWithNewlineInQuotes)).toEqual(['echo "Hello\nWorld"', "git status"])
 			})
-			// kilocode_change end
+			// forked_change end
 
 			it("handles quoted strings on single line", () => {
 				// When quotes are on the same line, they are preserved
@@ -1084,7 +1084,7 @@ describe("Unified Command Decision Functions", () => {
 			expect(getCommandDecision("dangerous", allowed, denied)).toBe("ask_user")
 			expect(getCommandDecision("npm install && dangerous", allowed, denied)).toBe("ask_user")
 		})
-		// kilocode_change start
+		// forked_change start
 		// Real-world regression: multi-line git commit message in quotes should be treated as a single command
 		describe("real-world: multi-line git commit message", () => {
 			it("auto-approves when commit message is single-line", () => {
@@ -1121,7 +1121,7 @@ describe("Unified Command Decision Functions", () => {
 				expect(parsed[0]).toContain("- point b")
 			})
 		})
-		// kilocode_change end
+		// forked_change end
 	})
 
 	describe("CommandValidator Integration Tests", () => {

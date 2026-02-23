@@ -43,7 +43,7 @@ export class ChutesHandler extends BaseOpenAiCompatibleProvider<ChutesModelId> {
 
 		const temperature = this.options.modelTemperature ?? this.getModel().info.temperature
 
-		// kilocode_change start: addNativeToolCallsToParams
+		// forked_change start: addNativeToolCallsToParams
 		return addNativeToolCallsToParams(
 			{
 				model,
@@ -56,7 +56,7 @@ export class ChutesHandler extends BaseOpenAiCompatibleProvider<ChutesModelId> {
 			this.options,
 			metadata,
 		)
-		// kilocode_change end
+		// forked_change end
 	}
 
 	override async *createMessage(

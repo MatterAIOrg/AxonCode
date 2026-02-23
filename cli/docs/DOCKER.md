@@ -109,7 +109,7 @@ docker run --rm \
 
 ### Persistent Configuration
 
-The CLI stores configuration in `~/.kilocode/config.json`. You can:
+The CLI stores configuration in `~/.orbital/config.json`. You can:
 
 **Option 1: Mount local config** (recommended)
 
@@ -133,7 +133,7 @@ If you experience text visibility issues (text blending with background), you ca
 
 **Option 1: Set theme explicitly in config**
 
-Edit `~/.kilocode/config.json`:
+Edit `~/.orbital/config.json`:
 
 ```json
 {

@@ -217,7 +217,7 @@ export const McpExecution = ({
 							</div>
 						)}
 					</div>
-					{/* kilocode_change start - moved Chevron button */}
+					{/* forked_change start - moved Chevron button */}
 					<Button
 						variant="ghost"
 						size="icon"
@@ -227,7 +227,7 @@ export const McpExecution = ({
 						}}>
 						{!isResponseExpanded ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
 					</Button>
-					{/* kilocode_change end - moved Chevron button */}
+					{/* forked_change end - moved Chevron button */}
 				</div>
 			</div>
 

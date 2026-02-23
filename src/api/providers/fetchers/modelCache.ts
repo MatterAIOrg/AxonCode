@@ -23,11 +23,11 @@ import { GetModelsOptions } from "../../../shared/api"
 // import { getOllamaModels } from "./ollama"
 // import { getLMStudioModels } from "./lmstudio"
 // import { getIOIntelligenceModels } from "./io-intelligence"
-// // kilocode_change start
+// // forked_change start
 // import { getOvhCloudAiEndpointsModels } from "./ovhcloud"
 // import { getChutesModels } from "./chutes"
 // import { getGeminiModels } from "./gemini"
-// kilocode_change end
+// forked_change end
 
 const memoryCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 5 * 60 })
 
@@ -68,12 +68,12 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 	try {
 		switch (provider) {
 			case "openrouter":
-				// kilocode_change start: base url and bearer token
+				// forked_change start: base url and bearer token
 				models = await getOpenRouterModels({
 					openRouterBaseUrl: options.baseUrl,
 					headers: options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : undefined,
 				})
-				// kilocode_change end
+				// forked_change end
 				break
 			// case "requesty":
 			// 	// Requesty models endpoint requires an API key for per-user custom policies.
@@ -90,7 +90,7 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 			// 	// Type safety ensures apiKey and baseUrl are always provided for LiteLLM.
 			// 	models = await getLiteLLMModels(options.apiKey, options.baseUrl)
 			// 	break
-			// kilocode_change start
+			// forked_change start
 			case "kilocode-openrouter": {
 				const backendUrl = options.kilocodeOrganizationId
 					? `https://api.matterai.so/organizations/${options.kilocodeOrganizationId}`

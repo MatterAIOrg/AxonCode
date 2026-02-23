@@ -26,13 +26,13 @@ describe("ExtensionChannel", () => {
 		vscodeVersion: "1.0.0",
 		platform: "darwin",
 		editorName: "Roo Code",
-		// kilocode_change start
+		// forked_change start
 		wrapped: false,
 		wrapper: null,
 		wrapperTitle: null,
 		wrapperCode: null,
 		wrapperVersion: null,
-		// kilocode_change end
+		// forked_change end
 		hostname: "test-host",
 	}
 

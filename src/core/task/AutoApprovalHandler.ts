@@ -25,14 +25,14 @@ export class AutoApprovalHandler {
 			data: string,
 		) => Promise<{ response: ClineAskResponse; text?: string; images?: string[] }>,
 	): Promise<AutoApprovalResult> {
-		// kilocode_change start: yolo mode
+		// forked_change start: yolo mode
 		if (state?.yoloMode) {
 			return {
 				shouldProceed: true,
 				requiresApproval: false,
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 
 		// Check request count limit
 		const requestResult = await this.checkRequestLimit(state, messages, askForApproval)

@@ -2,10 +2,10 @@ import { DiffStrategy } from "../../../shared/tools"
 import { McpHub } from "../../../services/mcp/McpHub"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 
-// kilocode_change start
+// forked_change start
 import { ClineProviderState } from "../../webview/ClineProvider"
 import { isFastApplyAvailable } from "../../tools/editFileTool"
-// kilocode_change end
+// forked_change end
 
 export function getCapabilitiesSection(
 	cwd: string,

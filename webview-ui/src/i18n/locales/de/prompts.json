@@ -55,11 +55,11 @@
 		"title": "Modusspezifische benutzerdefinierte Anweisungen (optional)",
 		"resetToDefault": "Auf Standardwerte zurücksetzen",
 		"description": "Fügen Sie verhaltensspezifische Richtlinien für den Modus {{modeName}} hinzu.",
-		"loadFromFile": "Benutzerdefinierte Anweisungen für den Modus {{mode}} können auch aus dem Ordner <span>.kilocode/rules-{{slug}}/</span> in deinem Arbeitsbereich oder aus dem globalen <0>.kilocode/rules-{{slug}}/</0> geladen werden (.kilocoderules-{{slug}} und .clinerules-{{slug}} sind veraltet und werden bald nicht mehr funktionieren)."
+		"loadFromFile": "Benutzerdefinierte Anweisungen für den Modus {{mode}} können auch aus dem Ordner <span>.orbital/rules-{{slug}}/</span> in deinem Arbeitsbereich oder aus dem globalen <0>.orbital/rules-{{slug}}/</0> geladen werden (.kilocoderules-{{slug}} und .clinerules-{{slug}} sind veraltet und werden bald nicht mehr funktionieren)."
 	},
 	"exportMode": {
 		"title": "Modus exportieren",
-		"description": "Exportiere diesen Modus mit Regeln aus dem .kilocode/rules-{{slug}}/ Ordner kombiniert in eine teilbare YAML-Datei. Die Originaldateien bleiben unverändert.",
+		"description": "Exportiere diesen Modus mit Regeln aus dem .orbital/rules-{{slug}}/ Ordner kombiniert in eine teilbare YAML-Datei. Die Originaldateien bleiben unverändert.",
 		"exporting": "Exportiere..."
 	},
 	"importMode": {
@@ -68,11 +68,11 @@
 		"importing": "Importiere...",
 		"global": {
 			"label": "Globale Ebene",
-			"description": "Verfügbar in allen Projekten. Wenn der exportierte Modus Regeldateien enthielt, werden diese im globalen .kilocode/rules-{slug}/ Ordner neu erstellt."
+			"description": "Verfügbar in allen Projekten. Wenn der exportierte Modus Regeldateien enthielt, werden diese im globalen .orbital/rules-{slug}/ Ordner neu erstellt."
 		},
 		"project": {
 			"label": "Projektebene",
-			"description": "Nur in diesem Arbeitsbereich verfügbar. Wenn der exportierte Modus Regeldateien enthielt, werden diese im .kilocode/rules-{slug}/ Ordner neu erstellt."
+			"description": "Nur in diesem Arbeitsbereich verfügbar. Wenn der exportierte Modus Regeldateien enthielt, werden diese im .orbital/rules-{slug}/ Ordner neu erstellt."
 		}
 	},
 	"advanced": {
@@ -81,7 +81,7 @@
 	"globalCustomInstructions": {
 		"title": "Benutzerdefinierte Anweisungen für alle Modi",
 		"description": "Diese Anweisungen gelten für alle Modi. Sie bieten einen grundlegenden Satz von Verhaltensweisen, die durch modusspezifische Anweisungen unten erweitert werden können. <0>Mehr erfahren</0>",
-		"loadFromFile": "Anweisungen können auch aus dem Ordner <span>.kilocode/rules/</span> in deinem Arbeitsbereich oder aus dem globalen <0>.kilocode/rules/</0> geladen werden (.kilocoderules und .clinerules sind veraltet und werden bald nicht mehr funktionieren)."
+		"loadFromFile": "Anweisungen können auch aus dem Ordner <span>.orbital/rules/</span> in deinem Arbeitsbereich oder aus dem globalen <0>.orbital/rules/</0> geladen werden (.kilocoderules und .clinerules sind veraltet und werden bald nicht mehr funktionieren)."
 	},
 	"systemPrompt": {
 		"preview": "System-Prompt Vorschau",
@@ -160,7 +160,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "Erweitert: System-Prompt überschreiben",
-		"description": "<2>⚠️ Warnung:</2> Diese erweiterte Funktion umgeht Sicherheitsvorkehrungen. <1>LIES DIES VOR DER VERWENDUNG!</1>Überschreibe den Standard-System-Prompt, indem du eine Datei unter <span>.kilocode/system-prompt-{{slug}}</span> erstellst."
+		"description": "<2>⚠️ Warnung:</2> Diese erweiterte Funktion umgeht Sicherheitsvorkehrungen. <1>LIES DIES VOR DER VERWENDUNG!</1>Überschreibe den Standard-System-Prompt, indem du eine Datei unter <span>.orbital/system-prompt-{{slug}}</span> erstellst."
 	},
 	"createModeDialog": {
 		"title": "Neuen Modus erstellen",

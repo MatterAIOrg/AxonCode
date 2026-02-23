@@ -1,5 +1,5 @@
 // kilocode_change - new file
-// npx vitest core/webview/__tests__/ClineProvider.kilocode-organization.spec.ts
+// npx vitest core/webview/__tests__/ClineProvider.orbital-organization.spec.ts
 
 import { setupCommonMocks, setupProvider, createMockWebviewView } from "../../../__tests__/common-mocks"
 

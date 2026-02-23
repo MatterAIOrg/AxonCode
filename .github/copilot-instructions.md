@@ -18,10 +18,10 @@ let i = 2 // kilocode_change
 For multiple consecutive lines, wrap them with start/end comments:
 
 ```typescript
-// kilocode_change start
+// forked_change start
 let i = 2
 let j = 3
-// kilocode_change end
+// forked_change end
 ```
 
 ## Language-Specific Examples
@@ -29,9 +29,9 @@ let j = 3
 ### HTML/JSX/TSX
 
 ```html
-{/* kilocode_change start */}
+{/* forked_change start */}
 <CustomKiloComponent />
-{/* kilocode_change end */}
+{/* forked_change end */}
 ```
 
 ### CSS/SCSS
@@ -42,11 +42,11 @@ let j = 3
 	color: blue;
 }
 
-/* kilocode_change start */
+/* forked_change start */
 .another-class {
 	background: red;
 }
-/* kilocode_change end */
+/* forked_change end */
 ```
 
 ## Special Cases

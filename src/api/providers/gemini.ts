@@ -41,12 +41,12 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 
 	private client: GoogleGenAI
 
-	// kilocode_change start
+	// forked_change start
 	private models: ModelRecord = { ...geminiModels }
 	private modelsLoaded = false
 	private modelsLoading?: Promise<void>
 	private readonly isVertex: boolean
-	// kilocode_change end
+	// forked_change end
 
 	constructor({ isVertex, ...options }: GeminiHandlerOptions) {
 		super()
@@ -79,7 +79,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 					: new GoogleGenAI({ apiKey })
 	}
 
-	// kilocode_change start
+	// forked_change start
 	private async ensureModelsLoaded() {
 		if (this.isVertex) {
 			return
@@ -110,7 +110,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 			this.models = { ...geminiModels }
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	async *createMessage(
 		systemInstruction: string,
@@ -153,11 +153,11 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 				if (chunk.candidates && chunk.candidates.length > 0) {
 					const candidate = chunk.candidates[0]
 
-					// kilocode_change start
+					// forked_change start
 					if (candidate.finishReason === FinishReason.MAX_TOKENS) {
 						throwMaxCompletionTokensReachedError()
 					}
-					// kilocode_change end
+					// forked_change end
 
 					if (candidate.groundingMetadata) {
 						pendingGroundingMetadata = candidate.groundingMetadata
@@ -222,7 +222,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 	}
 
 	override getModel() {
-		// kilocode_change start: dynamic loading
+		// forked_change start: dynamic loading
 		const requestedId = this.options.apiModelId
 		const availableModels = this.models
 		const staticModels = geminiModels as Record<string, ModelInfo>
@@ -240,7 +240,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 		const apiModelId = id.endsWith(":thinking") ? id.replace(":thinking", "") : id
 
 		return { id: apiModelId, info, ...params }
-		// kilocode_change end
+		// forked_change end
 	}
 
 	private extractGroundingSources(groundingMetadata?: GroundingMetadata): GroundingSource[] {

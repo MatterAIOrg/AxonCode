@@ -65,14 +65,14 @@ export async function getKilocodeConfig(
 }
 
 /**
- * Reads the project configuration from .kilocode/config.json
- * Note: .kilocode/config.jsonc is not supported to avoid bundling issues
+ * Reads the project configuration from .orbital/config.json
+ * Note: .orbital/config.jsonc is not supported to avoid bundling issues
  *
  * @param workspaceRoot The root path of the workspace
  * @returns The project configuration or undefined if not found or invalid
  */
 export async function getKilocodeConfigFile(workspaceRoot: string): Promise<KilocodeConfig | null> {
-	const configPath = path.join(workspaceRoot, ".kilocode", "config.json")
+	const configPath = path.join(workspaceRoot, ".orbital", "config.json")
 	try {
 		const content = await fs.readFile(configPath, "utf8")
 		const config = KilocodeConfig.parse(JSON.parse(content))
@@ -90,7 +90,7 @@ export async function getKilocodeConfigFile(workspaceRoot: string): Promise<Kilo
 /**
  * Gets the project ID from configuration file or git repository
  * Priority:
- * 1. .kilocode/config.json (project.id) - normalized
+ * 1. .orbital/config.json (project.id) - normalized
  * 2. Git repository URL (origin remote) - normalized to repo name
  * 3. undefined if neither exists
  *
@@ -112,7 +112,7 @@ export async function getProjectId(workspaceRoot: string, gitRepositoryUrl?: str
 /**
  * Gets the project ID for the current VSCode workspace
  * Priority:
- * 1. .kilocode/config.json (project.id) - normalized
+ * 1. .orbital/config.json (project.id) - normalized
  * 2. Git repository URL (origin remote) - normalized to repo name
  * 3. undefined if neither exists
  * @returns The normalized project ID or undefined

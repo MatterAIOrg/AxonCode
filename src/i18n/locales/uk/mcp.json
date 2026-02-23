@@ -3,7 +3,7 @@
 		"invalid_settings_format": "Неправильний формат JSON налаштувань MCP. Будь ласка, переконайся, що твої налаштування відповідають правильному формату JSON.",
 		"invalid_settings_syntax": "Неправильний формат JSON налаштувань MCP. Будь ласка, перевір свій файл налаштувань на наявність синтаксичних помилок.",
 		"invalid_settings_validation": "Неправильний формат налаштувань MCP: {{errorMessages}}",
-		"create_json": "Не вдалося створити або відкрити .kilocode/mcp.json: {{error}}",
+		"create_json": "Не вдалося створити або відкрити .orbital/mcp.json: {{error}}",
 		"failed_update_project": "Не вдалося оновити сервери MCP проекту",
 		"invalidJsonArgument": "Axon Code спробував використати {{toolName}} з неправильним аргументом JSON. Повторна спроба...",
 		"refresh_after_disable": "Не вдалося оновити з'єднання MCP після вимкнення",

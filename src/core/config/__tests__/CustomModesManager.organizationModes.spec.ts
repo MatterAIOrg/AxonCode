@@ -78,7 +78,7 @@ describe("CustomModesManager - Organization Modes", () => {
 	const mockStoragePath = `${path.sep}mock${path.sep}settings`
 	const mockSettingsPath = path.join(mockStoragePath, "settings", GlobalFileNames.customModes)
 	const mockWorkspacePath = path.resolve("/mock/workspace")
-	const mockRoomodes = path.join(mockWorkspacePath, ".kilocodemodes")
+	const mockRoomodes = path.join(mockWorkspacePath, ".orbitalmodes")
 
 	beforeEach(() => {
 		vi.clearAllMocks()

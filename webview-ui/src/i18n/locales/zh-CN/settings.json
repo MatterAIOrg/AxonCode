@@ -163,7 +163,7 @@
 			},
 			"protected": {
 				"label": "包含受保护的文件",
-				"description": "允许 Axon Code 创建和编辑受保护的文件（如 .kilocodeignore 和 .kilocode/ 配置文件），无需批准。"
+				"description": "允许 Axon Code 创建和编辑受保护的文件（如 .kilocodeignore 和 .orbital/ 配置文件），无需批准。"
 			}
 		},
 		"browser": {

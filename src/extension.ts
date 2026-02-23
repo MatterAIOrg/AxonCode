@@ -84,7 +84,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Create logger for cloud services.
 	const cloudLogger = createDualLogger(createOutputChannelLogger(outputChannel))
 
-	// kilocode_change start: no Roo cloud service
+	// forked_change start: no Roo cloud service
 	// Initialize Roo Code Cloud service.
 	// const cloudService = await CloudService.createInstance(context, cloudLogger)
 
@@ -108,7 +108,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// // Add to subscriptions for proper cleanup on deactivate
 	// context.subscriptions.push(cloudService)
-	// kilocode_change end
+	// forked_change end
 
 	// Initialize MDM service
 	const mdmService = await MdmService.createInstance(cloudLogger)
@@ -242,7 +242,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
-	// kilocode_change start
+	// forked_change start
 	if (!context.globalState.get("firstInstallCompleted")) {
 		outputChannel.appendLine("First installation detected, opening Axon Code sidebar!")
 		try {
@@ -263,7 +263,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			await context.globalState.update("firstInstallCompleted", true)
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	// Auto-import configuration if specified in settings
 	try {
@@ -315,14 +315,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
-	// kilocode_change start - Axon Code specific registrations
+	// forked_change start - Axon Code specific registrations
 	const { kiloCodeWrapped } = getKiloCodeWrapperProperties()
 	if (kiloCodeWrapped) {
 		// Only foward logs in Jetbrains
 		registerMainThreadForwardingLogger(context)
 	}
 	registerCommitMessageProvider(context, outputChannel) // kilocode_change
-	// kilocode_change end - Axon Code specific registrations
+	// forked_change end - Axon Code specific registrations
 
 	registerCodeActions(context)
 	registerTerminalActions(context)

@@ -12,32 +12,32 @@ import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
 
 import { inputEventTransform } from "../transforms"
 
-// kilocode_change start
+// forked_change start
 import { geminiDefaultModelId } from "@roo-code/types"
 import type { RouterModels } from "@roo/api"
 import { ModelPicker } from "../ModelPicker"
-// kilocode_change end
+// forked_change end
 
 type GeminiProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
 	fromWelcomeView?: boolean
-	// kilocode_change start
+	// forked_change start
 	routerModels?: RouterModels
 	organizationAllowList?: OrganizationAllowList
 	modelValidationError?: string
-	// kilocode_change end
+	// forked_change end
 }
 
 export const Gemini = ({
 	apiConfiguration,
 	setApiConfigurationField,
 	fromWelcomeView,
-	// kilocode_change start
+	// forked_change start
 	routerModels,
 	organizationAllowList,
 	modelValidationError,
-	// kilocode_change end
+	// forked_change end
 }: GeminiProps) => {
 	const { t } = useAppTranslation()
 

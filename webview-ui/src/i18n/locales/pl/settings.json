@@ -162,7 +162,7 @@
 			},
 			"protected": {
 				"label": "Uwzględnij pliki chronione",
-				"description": "Pozwól Axon Code na tworzenie i edycję plików chronionych (takich jak .kilocodeignore i pliki konfiguracyjne .kilocode/) bez konieczności zatwierdzania."
+				"description": "Pozwól Axon Code na tworzenie i edycję plików chronionych (takich jak .kilocodeignore i pliki konfiguracyjne .orbital/) bez konieczności zatwierdzania."
 			}
 		},
 		"browser": {

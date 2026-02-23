@@ -16,12 +16,12 @@ import { logger } from "../../utils/logging"
 import { GlobalFileNames } from "../../shared/globalFileNames"
 import { ensureSettingsDirectoryExists } from "../../utils/globalContext"
 import { t } from "../../i18n"
-// kilocode_change start
+// forked_change start
 import { getKiloUrlFromToken } from "@roo-code/types"
 import { X_KILOCODE_ORGANIZATIONID, X_KILOCODE_TESTER } from "../../shared/kilocode/headers"
-// kilocode_change end
+// forked_change end
 
-const ROOMODES_FILENAME = ".kilocodemodes"
+const ROOMODES_FILENAME = ".orbitalmodes"
 
 // Type definitions for import/export functionality
 interface RuleFile {
@@ -226,7 +226,7 @@ export class CustomModesManager {
 		}
 	}
 
-	// kilocode_change start: Added organizationModes parameter and precedence logic
+	// forked_change start: Added organizationModes parameter and precedence logic
 	private async mergeCustomModes(
 		projectModes: ModeConfig[],
 		globalModes: ModeConfig[],
@@ -252,7 +252,7 @@ export class CustomModesManager {
 				merged.push({ ...mode, source: "project" })
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 
 		// Add global modes (lowest precedence)
 		for (const mode of globalModes) {
@@ -313,11 +313,11 @@ export class CustomModesManager {
 					return
 				}
 
-				// Get modes from .kilocodemodes if it exists (takes precedence)
+				// Get modes from .orbitalmodes if it exists (takes precedence)
 				const roomodesPath = await this.getWorkspaceRoomodes()
 				const roomodesModes = roomodesPath ? await this.loadModesFromFile(roomodesPath) : []
 
-				// kilocode_change start Get organization modes from global state to preserve them
+				// forked_change start Get organization modes from global state to preserve them
 				const storedModes = (await this.context.globalState.get<ModeConfig[]>("customModes")) || []
 				const organizationModes = storedModes.filter((mode) => mode.source === "organization")
 
@@ -327,7 +327,7 @@ export class CustomModesManager {
 					result.data.customModes,
 					organizationModes,
 				)
-				// kilocode_change end
+				// forked_change end
 				await this.context.globalState.update("customModes", mergedModes)
 				this.clearCache()
 				await this.onUpdate()
@@ -357,15 +357,15 @@ export class CustomModesManager {
 					const storedModes = (await this.context.globalState.get<ModeConfig[]>("customModes")) || []
 					const organizationModes = storedModes.filter((mode) => mode.source === "organization")
 
-					// kilocode_change start
+					// forked_change start
 					// Merge with organization modes preserved
 					const mergedModes = await this.mergeCustomModes(roomodesModes, settingsModes, organizationModes)
 					await this.context.globalState.update("customModes", mergedModes)
-					// kilocode_change end
+					// forked_change end
 					this.clearCache()
 					await this.onUpdate()
 				} catch (error) {
-					console.error(`[CustomModesManager] Error handling .kilocodemodes file change:`, error)
+					console.error(`[CustomModesManager] Error handling .orbitalmodes file change:`, error)
 				}
 			}
 
@@ -377,14 +377,14 @@ export class CustomModesManager {
 					try {
 						const settingsModes = await this.loadModesFromFile(settingsPath)
 
-						//// kilocode_change start Get organization modes from global state to preserve them
+						//// forked_change start Get organization modes from global state to preserve them
 						const storedModes = (await this.context.globalState.get<ModeConfig[]>("customModes")) || []
 						const organizationModes = storedModes.filter((mode) => mode.source === "organization")
 
 						// Merge with organization modes preserved
 						const mergedModes = await this.mergeCustomModes([], settingsModes, organizationModes)
 						await this.context.globalState.update("customModes", mergedModes)
-						// kilocode_change end
+						// forked_change end
 						this.clearCache()
 						await this.onUpdate()
 					} catch (error) {
@@ -446,13 +446,13 @@ export class CustomModesManager {
 		const settingsModes = await this.loadModesFromFile(settingsPath)
 		const roomodesModes = roomodesPath ? await this.loadModesFromFile(roomodesPath) : []
 
-		// // kilocode_change start Get organization modes from global state to preserve them
+		// // forked_change start Get organization modes from global state to preserve them
 		const storedModes = (await this.context.globalState.get<ModeConfig[]>("customModes")) || []
 		const organizationModes = storedModes.filter((mode) => mode.source === "organization")
 
 		// Merge with organization modes preserved
 		const mergedModes = await this.mergeCustomModes(roomodesModes, settingsModes, organizationModes)
-		// kilocode_change end
+		// forked_change end
 
 		await this.context.globalState.update("customModes", mergedModes)
 

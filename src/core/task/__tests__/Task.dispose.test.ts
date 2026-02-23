@@ -43,7 +43,7 @@ describe("Task dispose method", () => {
 		// Reset all mocks
 		vi.clearAllMocks()
 
-		// kilocode_change start: mock context
+		// forked_change start: mock context
 		const mockContext = {
 			globalStorageUri: { fsPath: "/test/path" },
 			subscriptions: [],

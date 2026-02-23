@@ -47,11 +47,11 @@ describe("project-config", () => {
 	})
 
 	describe("getProjectConfig", () => {
-		it("returns config from .kilocode/config.json", async () => {
-			const kilocodeDir = path.join(tempDir, ".kilocode")
-			await fs.mkdir(kilocodeDir, { recursive: true })
+		it("returns config from .orbital/config.json", async () => {
+			const orbitalDir = path.join(tempDir, ".orbital")
+			await fs.mkdir(orbitalDir, { recursive: true })
 			await fs.writeFile(
-				path.join(kilocodeDir, "config.json"),
+				path.join(orbitalDir, "config.json"),
 				JSON.stringify({
 					project: {
 						id: "my-project",
@@ -75,9 +75,9 @@ describe("project-config", () => {
 		})
 
 		it("returns null when config file is invalid JSON", async () => {
-			const kilocodeDir = path.join(tempDir, ".kilocode")
-			await fs.mkdir(kilocodeDir, { recursive: true })
-			await fs.writeFile(path.join(kilocodeDir, "config.json"), "{ invalid json }")
+			const orbitalDir = path.join(tempDir, ".orbital")
+			await fs.mkdir(orbitalDir, { recursive: true })
+			await fs.writeFile(path.join(orbitalDir, "config.json"), "{ invalid json }")
 
 			const config = await getKilocodeConfigFile(tempDir)
 
@@ -85,10 +85,10 @@ describe("project-config", () => {
 		})
 
 		it("returns null when config file has no project.id", async () => {
-			const kilocodeDir = path.join(tempDir, ".kilocode")
-			await fs.mkdir(kilocodeDir, { recursive: true })
+			const orbitalDir = path.join(tempDir, ".orbital")
+			await fs.mkdir(orbitalDir, { recursive: true })
 			await fs.writeFile(
-				path.join(kilocodeDir, "config.json"),
+				path.join(orbitalDir, "config.json"),
 				JSON.stringify({
 					project: {},
 				}),
@@ -100,10 +100,10 @@ describe("project-config", () => {
 		})
 
 		it("returns null when config file has empty project.id", async () => {
-			const kilocodeDir = path.join(tempDir, ".kilocode")
-			await fs.mkdir(kilocodeDir, { recursive: true })
+			const orbitalDir = path.join(tempDir, ".orbital")
+			await fs.mkdir(orbitalDir, { recursive: true })
 			await fs.writeFile(
-				path.join(kilocodeDir, "config.json"),
+				path.join(orbitalDir, "config.json"),
 				JSON.stringify({
 					project: {
 						id: "",
@@ -119,10 +119,10 @@ describe("project-config", () => {
 
 	describe("getProjectId", () => {
 		it("returns normalized project ID from config file when available", async () => {
-			const kilocodeDir = path.join(tempDir, ".kilocode")
-			await fs.mkdir(kilocodeDir, { recursive: true })
+			const orbitalDir = path.join(tempDir, ".orbital")
+			await fs.mkdir(orbitalDir, { recursive: true })
 			await fs.writeFile(
-				path.join(kilocodeDir, "config.json"),
+				path.join(orbitalDir, "config.json"),
 				JSON.stringify({
 					project: {
 						id: "config-project-id",
@@ -148,10 +148,10 @@ describe("project-config", () => {
 		})
 
 		it("normalizes git URL when config file has no project.id", async () => {
-			const kilocodeDir = path.join(tempDir, ".kilocode")
-			await fs.mkdir(kilocodeDir, { recursive: true })
+			const orbitalDir = path.join(tempDir, ".orbital")
+			await fs.mkdir(orbitalDir, { recursive: true })
 			await fs.writeFile(
-				path.join(kilocodeDir, "config.json"),
+				path.join(orbitalDir, "config.json"),
 				JSON.stringify({
 					project: {},
 				}),
@@ -169,10 +169,10 @@ describe("project-config", () => {
 		})
 
 		it("prioritizes config file over git URL", async () => {
-			const kilocodeDir = path.join(tempDir, ".kilocode")
-			await fs.mkdir(kilocodeDir, { recursive: true })
+			const orbitalDir = path.join(tempDir, ".orbital")
+			await fs.mkdir(orbitalDir, { recursive: true })
 			await fs.writeFile(
-				path.join(kilocodeDir, "config.json"),
+				path.join(orbitalDir, "config.json"),
 				JSON.stringify({
 					project: {
 						id: "override-project",
@@ -186,10 +186,10 @@ describe("project-config", () => {
 		})
 
 		it("normalizes git URL in config file", async () => {
-			const kilocodeDir = path.join(tempDir, ".kilocode")
-			await fs.mkdir(kilocodeDir, { recursive: true })
+			const orbitalDir = path.join(tempDir, ".orbital")
+			await fs.mkdir(orbitalDir, { recursive: true })
 			await fs.writeFile(
-				path.join(kilocodeDir, "config.json"),
+				path.join(orbitalDir, "config.json"),
 				JSON.stringify({
 					project: {
 						id: "https://github.com/Kilo-Org/handbook.git",

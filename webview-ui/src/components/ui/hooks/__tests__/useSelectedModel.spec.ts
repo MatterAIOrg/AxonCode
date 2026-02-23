@@ -26,14 +26,14 @@ const createWrapper = () => {
 			},
 		},
 	})
-	// kilocode_change start: wrap with ExtensionStateContextProvider
+	// forked_change start: wrap with ExtensionStateContextProvider
 	return ({ children }: { children: React.ReactNode }) =>
 		React.createElement(
 			ExtensionStateContextProvider,
 			null,
 			React.createElement(QueryClientProvider, { client: queryClient }, children),
 		)
-	// kilocode_change end
+	// forked_change end
 }
 
 describe("useSelectedModel", () => {

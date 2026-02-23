@@ -6,30 +6,30 @@ import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
 
 import { inputEventTransform } from "../transforms"
 
-// kilocode_change start
+// forked_change start
 import { type ProviderSettings, type OrganizationAllowList, chutesDefaultModelId } from "@roo-code/types"
 import type { RouterModels } from "@roo/api"
 import { ModelPicker } from "../ModelPicker"
-// kilocode_change end
+// forked_change end
 
 type ChutesProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	// kilocode_change start
+	// forked_change start
 	routerModels?: RouterModels
 	organizationAllowList: OrganizationAllowList
 	modelValidationError?: string
-	// kilocode_change end
+	// forked_change end
 }
 
 export const Chutes = ({
 	apiConfiguration,
 	setApiConfigurationField,
-	// kilocode_change start
+	// forked_change start
 	routerModels,
 	organizationAllowList,
 	modelValidationError,
-	// kilocode_change end
+	// forked_change end
 }: ChutesProps) => {
 	const { t } = useAppTranslation()
 
@@ -63,7 +63,7 @@ export const Chutes = ({
 				</VSCodeButtonLink>
 			)}
 			{
-				// kilocode_change start
+				// forked_change start
 				<ModelPicker
 					apiConfiguration={apiConfiguration}
 					setApiConfigurationField={setApiConfigurationField}
@@ -75,7 +75,7 @@ export const Chutes = ({
 					organizationAllowList={organizationAllowList}
 					errorMessage={modelValidationError}
 				/>
-				// kilocode_change end
+				// forked_change end
 			}
 		</>
 	)

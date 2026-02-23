@@ -440,12 +440,12 @@ export const TerminalSettings = ({
 						)}
 					</div>
 				</div>
-				{/* kilocode_change start */}
+				{/* forked_change start */}
 				<TerminalCommandGeneratorSettings
 					terminalCommandApiConfigId={terminalCommandApiConfigId}
 					setCachedStateField={setCachedStateField}
 				/>
-				{/* kilocode_change end */}
+				{/* forked_change end */}
 			</Section>
 		</div>
 	)

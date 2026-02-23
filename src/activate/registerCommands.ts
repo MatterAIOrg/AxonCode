@@ -168,7 +168,7 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 	helpButtonClicked: () => {
 		vscode.env.openExternal(vscode.Uri.parse(getAppUrl()))
 	},
-	// kilocode_change end
+	// forked_change end
 	marketplaceButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
 		if (!visibleProvider) return
@@ -277,7 +277,7 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 			outputChannel.appendLine(`Error handling external URI: ${uriString}, error: ${error}`)
 		}
 	},
-	// kilocode_change end
+	// forked_change end
 	toggleAutoApprove: async () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
 

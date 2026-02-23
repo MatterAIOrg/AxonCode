@@ -12,7 +12,7 @@ import * as fileSearch from "../../../services/search/file-search"
 
 import { RepoPerTaskCheckpointService } from "../RepoPerTaskCheckpointService"
 
-// kilocode_change start
+// forked_change start
 vi.mock("@roo-code/telemetry", () => ({
 	TelemetryService: {
 		instance: {
@@ -20,7 +20,7 @@ vi.mock("@roo-code/telemetry", () => ({
 		},
 	},
 }))
-// kilocode_change end
+// forked_change end
 
 const tmpDir = path.join(os.tmpdir(), "CheckpointService")
 

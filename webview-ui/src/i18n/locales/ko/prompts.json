@@ -55,11 +55,11 @@
 		"title": "모드별 사용자 지정 지침 (선택 사항)",
 		"resetToDefault": "기본값으로 재설정",
 		"description": "{{modeName}} 모드에 대한 특정 행동 지침을 추가하세요.",
-		"loadFromFile": "{{mode}} 모드에 특정한 사용자 지정 지침은 작업 공간의 <span>.kilocode/rules-{{slug}}/</span> 폴더 또는 전역 <0>.kilocode/rules-{{slug}}/</0>에서도 로드할 수 있습니다 (.kilocoderules-{{slug}} 및 .clinerules-{{slug}}는 더 이상 사용되지 않으며 곧 작동을 중지합니다)."
+		"loadFromFile": "{{mode}} 모드에 특정한 사용자 지정 지침은 작업 공간의 <span>.orbital/rules-{{slug}}/</span> 폴더 또는 전역 <0>.orbital/rules-{{slug}}/</0>에서도 로드할 수 있습니다 (.kilocoderules-{{slug}} 및 .clinerules-{{slug}}는 더 이상 사용되지 않으며 곧 작동을 중지합니다)."
 	},
 	"exportMode": {
 		"title": "모드 내보내기",
-		"description": ".kilocode/rules-{{slug}}/ 폴더의 규칙과 함께 이 모드를 공유 가능한 YAML 파일로 내보냅니다. 원본 파일은 변경되지 않습니다.",
+		"description": ".orbital/rules-{{slug}}/ 폴더의 규칙과 함께 이 모드를 공유 가능한 YAML 파일로 내보냅니다. 원본 파일은 변경되지 않습니다.",
 		"exporting": "내보내는 중..."
 	},
 	"importMode": {
@@ -68,11 +68,11 @@
 		"importing": "가져오는 중...",
 		"global": {
 			"label": "전역 수준",
-			"description": "모든 프로젝트에서 사용 가능합니다. 내보낸 모드에 규칙 파일이 포함되어 있었다면 전역 .kilocode/rules-{slug}/ 폴더에 다시 생성됩니다."
+			"description": "모든 프로젝트에서 사용 가능합니다. 내보낸 모드에 규칙 파일이 포함되어 있었다면 전역 .orbital/rules-{slug}/ 폴더에 다시 생성됩니다."
 		},
 		"project": {
 			"label": "프로젝트 수준",
-			"description": "이 작업 공간에서만 사용할 수 있습니다. 내보낸 모드에 규칙 파일이 포함된 경우 .kilocode/rules-{slug}/ 폴더에 다시 생성됩니다."
+			"description": "이 작업 공간에서만 사용할 수 있습니다. 내보낸 모드에 규칙 파일이 포함된 경우 .orbital/rules-{slug}/ 폴더에 다시 생성됩니다."
 		}
 	},
 	"advanced": {
@@ -81,7 +81,7 @@
 	"globalCustomInstructions": {
 		"title": "모든 모드에 대한 사용자 지정 지침",
 		"description": "이 지침은 모든 모드에 적용됩니다. 아래의 모드별 지침으로 향상될 수 있는 기본 동작 세트를 제공합니다. <0>더 알아보기</0>",
-		"loadFromFile": "지침은 작업 공간의 <span>.kilocode/rules/</span> 폴더 또는 전역 <0>.kilocode/rules/</0>에서도 로드할 수 있습니다 (.kilocoderules 및 .clinerules는 더 이상 사용되지 않으며 곧 작동을 중지합니다)."
+		"loadFromFile": "지침은 작업 공간의 <span>.orbital/rules/</span> 폴더 또는 전역 <0>.orbital/rules/</0>에서도 로드할 수 있습니다 (.kilocoderules 및 .clinerules는 더 이상 사용되지 않으며 곧 작동을 중지합니다)."
 	},
 	"systemPrompt": {
 		"preview": "시스템 프롬프트 미리보기",
@@ -160,7 +160,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "고급: 시스템 프롬프트 재정의",
-		"description": "<2>⚠️ 경고:</2> 이 고급 기능은 안전 장치를 우회합니다. <1>사용하기 전에 이것을 읽으십시오!</1>작업 공간의 <span>.kilocode/system-prompt-{{slug}}</span>에 파일을 생성하여 기본 시스템 프롬프트를 재정의합니다."
+		"description": "<2>⚠️ 경고:</2> 이 고급 기능은 안전 장치를 우회합니다. <1>사용하기 전에 이것을 읽으십시오!</1>작업 공간의 <span>.orbital/system-prompt-{{slug}}</span>에 파일을 생성하여 기본 시스템 프롬프트를 재정의합니다."
 	},
 	"createModeDialog": {
 		"title": "새 모드 만들기",

@@ -1,7 +1,7 @@
-// kilocode_change start
+// forked_change start
 import { getSupportedBinaryFormats } from "../../../integrations/misc/extract-text"
 import { SUPPORTED_IMAGE_FORMATS } from "../../tools/helpers/imageHelpers"
-// kilocode_change end
+// forked_change end
 
 import { ToolArgs } from "./types"
 

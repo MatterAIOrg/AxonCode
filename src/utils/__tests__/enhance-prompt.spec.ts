@@ -77,7 +77,7 @@ describe("enhancePrompt", () => {
 		)
 	})
 
-	// kilocode_change start - updated tests to work with createMessage fallback
+	// forked_change start - updated tests to work with createMessage fallback
 	it("falls back to createMessage for API provider without completePrompt", async () => {
 		const mockStream = {
 			async *[Symbol.asyncIterator]() {
@@ -136,7 +136,7 @@ describe("enhancePrompt", () => {
 			{ role: "user", content: [{ type: "text", text: "Test prompt" }] },
 		])
 	})
-	// kilocode_change end - updated tests to work with createMessage fallback
+	// forked_change end - updated tests to work with createMessage fallback
 
 	it("uses appropriate model based on provider", async () => {
 		const openRouterConfig: ProviderSettings = {

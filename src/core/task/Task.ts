@@ -479,7 +479,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 	}
 
-	// kilocode_change start
+	// forked_change start
 	private getContext(): vscode.ExtensionContext {
 		const context = this.context
 		if (!context) {
@@ -487,7 +487,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 		return context
 	}
-	// kilocode_change end
+	// forked_change end
 	/**
 	 * Initialize the task mode from the provider state.
 	 * This method handles async initialization with proper error handling.
@@ -671,7 +671,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.emit(RooCodeEventName.Message, { action: "created", message })
 		await this.saveClineMessages()
 
-		// kilocode_change start: no cloud service
+		// forked_change start: no cloud service
 		// const shouldCaptureMessage = message.partial !== true && CloudService.isEnabled()
 
 		// if (shouldCaptureMessage) {
@@ -680,7 +680,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// 		properties: { taskId: this.taskId, message },
 		// 	})
 		// }
-		// kilocode_change end
+		// forked_change end
 	}
 
 	public async overwriteClineMessages(newMessages: ClineMessage[]) {
@@ -708,14 +708,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		const shouldCaptureMessage = message.partial !== true && CloudService.isEnabled()
 
-		// kilocode_change start: no cloud service
+		// forked_change start: no cloud service
 		// if (shouldCaptureMessage) {
 		// 	CloudService.instance.captureEvent({
 		// 		event: TelemetryEventName.TASK_MESSAGE,
 		// 		properties: { taskId: this.taskId, message },
 		// 	})
 		// }
-		// kilocode_change end
+		// forked_change end
 	}
 
 	private async saveClineMessages() {
@@ -868,7 +868,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, isProtected })
 		}
 
-		// kilocode_change start: YOLO mode auto-answer for follow-up questions
+		// forked_change start: YOLO mode auto-answer for follow-up questions
 		// Check if this is a follow-up question with suggestions in YOLO mode
 		if (type === "followup" && text && !partial) {
 			try {
@@ -901,7 +901,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				console.warn("Failed to auto-answer follow-up question in YOLO mode:", error)
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 
 		// The state is mutable if the message is complete and the task will
 		// block (via the `pWaitFor`).
@@ -1028,11 +1028,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.askResponseText = text
 		this.askResponseImages = images
 
-		// kilocode_change start
+		// forked_change start
 		// the askResponse assignment needs to happen last to avoid the async
 		// callbacks triggering before we assign the data above
 		this.askResponse = askResponse // this triggers async callbacks
-		// kilocode_change end
+		// forked_change end
 
 		// Create a checkpoint whenever the user sends a message.
 		// Use allowEmpty=true to ensure a checkpoint is recorded even if there are no file changes.
@@ -2015,7 +2015,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				maxReadFileLine = -1,
 			} = (await this.providerRef.deref()?.getState()) ?? {}
 
-			// kilocode_change start
+			// forked_change start
 			const [parsedUserContent, needsRulesFileCheck] = await processKiloUserContentMentions({
 				context: this.getContext(),
 				userContent: currentUserContent,
@@ -2032,10 +2032,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			if (needsRulesFileCheck) {
 				await this.say(
 					"error",
-					"Issue with processing the /newrule command. Double check that, if '.kilocode/rules' already exists, it's a directory and not a file. Otherwise there was an issue referencing this file/directory",
+					"Issue with processing the /newrule command. Double check that, if '.orbital/rules' already exists, it's a directory and not a file. Otherwise there was an issue referencing this file/directory",
 				)
 			}
-			// kilocode_change end
+			// forked_change end
 
 			// Check for files that were modified by the user after the assistant's last edit
 			// and inject a notification to inform the LLM about these changes
@@ -2082,11 +2082,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				let outputTokens = 0
 				let totalCost: number | undefined
 
-				// kilocode_change start
+				// forked_change start
 				let inferenceProvider: string | undefined
 				let usageMissing = false
 				const apiRequestStartTime = performance.now()
-				// kilocode_change end
+				// forked_change end
 
 				// We can't use `api_req_finished` anymore since it's a unique case
 				// where it could come after a streaming message (i.e. in the middle
@@ -2116,10 +2116,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								cacheWriteTokens,
 								cacheReadTokens,
 							),
-						// kilocode_change start
+						// forked_change start
 						usageMissing,
 						inferenceProvider,
-						// kilocode_change end
+						// forked_change end
 						cancelReason,
 						streamingFailedMessage,
 					} satisfies ClineApiReqInfo)
@@ -2245,7 +2245,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 									pendingGroundingSources.push(...chunk.sources)
 								}
 								break
-							//kilocode_change start
+							//forked_change start
 							case "native_tool_calls": {
 								// Handle native OpenAI-format tool calls
 								// Process native tool calls through the parser
@@ -2268,7 +2268,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								presentAssistantMessage(this)
 								break
 							}
-							//kilocode_change end
+							//forked_change end
 							case "text": {
 								assistantMessage += chunk.text
 
@@ -2341,7 +2341,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						let bgCacheReadTokens = currentTokens.cacheRead
 						let bgTotalCost = currentTokens.total
 
-						// kilocode_change start
+						// forked_change start
 						const refreshApiReqMsg = async (messageIndex: number) => {
 							// Update the API request message with the latest usage data
 							updateApiReqMsg()
@@ -2353,7 +2353,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								await this.updateClineMessage(apiReqMessage)
 							}
 						}
-						// kilocode_change end
+						// forked_change end
 
 						// Helper function to capture telemetry and update messages
 						const captureUsageData = async (
@@ -2414,10 +2414,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 											tokens.cacheWrite,
 											tokens.cacheRead,
 										),
-									// kilocode_change start
+									// forked_change start
 									completionTime: performance.now() - apiRequestStartTime,
 									inferenceProvider,
-									// kilocode_change end
+									// forked_change end
 								})
 							}
 						}
@@ -2478,10 +2478,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								console.warn(
 									`[Background Usage Collection] Suspicious: request ${apiReqIndex} is complete, but no usage info was found. Model: ${modelId}`,
 								)
-								// kilocode_change start
+								// forked_change start
 								usageMissing = true
 								await refreshApiReqMsg(apiReqIndex)
-								// kilocode_change end
+								// forked_change end
 							}
 						} catch (error) {
 							console.error("Error draining stream for usage data:", error)
@@ -2502,11 +2502,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 									},
 									lastApiReqIndex,
 								)
-								// kilocode_change start
+								// forked_change start
 							} else {
 								usageMissing = true
 								await refreshApiReqMsg(apiReqIndex)
-								// kilocode_change end
+								// forked_change end
 							}
 						}
 					}
@@ -2574,7 +2574,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				this.assistantMessageParser.finalizeContentBlocks()
 				this.assistantMessageContent = this.assistantMessageParser.getContentBlocks()
 
-				// kilocode_change start: Extract any newly finalized tool uses that weren't captured during streaming
+				// forked_change start: Extract any newly finalized tool uses that weren't captured during streaming
 				// This can happen when native tool calls arrive in a single complete chunk
 				const toolUsesFromFinalizedContent = this.assistantMessageContent
 					.filter((block): block is ToolUse => block.type === "tool_use")
@@ -2594,9 +2594,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						assistantToolUses.push(toolUse)
 					}
 				}
-				// kilocode_change end
+				// forked_change end
 
-				// kilocode_change start: Fix native tool calls not being executed
+				// forked_change start: Fix native tool calls not being executed
 				// Native tool calls are added with partial: false, so partialBlocks.length
 				// may be 0 even when there are unprocessed content blocks (especially tool uses).
 				// We need to call presentAssistantMessage if:
@@ -2611,7 +2611,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					// to complete, or executing any unprocessed tool calls.
 					presentAssistantMessage(this)
 				}
-				// kilocode_change end
+				// forked_change end
 
 				// Note: updateApiReqMsg() is now called from within drainStreamInBackgroundToFindAllUsage
 				// to ensure usage data is captured even when the stream is interrupted. The background task
@@ -2656,7 +2656,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						})
 					}
 
-					// kilocode_change start: also add tool calls to history
+					// forked_change start: also add tool calls to history
 					const assistantMessageContent = new Array<Anthropic.Messages.ContentBlockParam>()
 					if (assistantMessage) {
 						assistantMessageContent.push({ type: "text", text: assistantMessage })
@@ -2677,7 +2677,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					}
 
 					await this.addToApiConversationHistory(assistantHistoryMessage)
-					// kilocode_change end
+					// forked_change end
 
 					TelemetryService.instance.captureConversationMessage(this.taskId, "assistant")
 
@@ -2738,9 +2738,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						t("kilocode:task.noAssistantMessages"), // kilocode_change
 					)
 
-					// kilocode_change start
+					// forked_change start
 					TelemetryService.instance.captureEvent(TelemetryEventName.NO_ASSISTANT_MESSAGES)
-					// kilocode_change end
+					// forked_change end
 
 					await this.addToApiConversationHistory({
 						role: "assistant",
@@ -2765,7 +2765,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		return false
 	}
 
-	// kilocode_change start
+	// forked_change start
 	async loadContext(
 		userContent: UserContent,
 		includeFileDetails: boolean = false,
@@ -2841,7 +2841,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// Return all results
 		return [processedUserContent, environmentDetails, clinerulesError]
 	}
-	// kilocode_change end
+	// forked_change end
 
 	/*private kilocode_change*/ async getSystemPrompt(): Promise<string> {
 		const { mcpEnabled } = (await this.providerRef.deref()?.getState()) ?? {}
@@ -2920,10 +2920,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				},
 				undefined, // todoList
 				this.api.getModel().id,
-				// kilocode_change start
+				// forked_change start
 				getActiveToolUseStyle(apiConfiguration),
 				state,
-				// kilocode_change end
+				// forked_change end
 			)
 		})()
 	}
@@ -3043,14 +3043,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			const rateLimit = apiConfiguration?.rateLimitSeconds || 0
 			rateLimitDelay = Math.ceil(Math.max(0, rateLimit * 1000 - timeSinceLastRequest) / 1000)
 
-			// kilocode_change start
+			// forked_change start
 			if (rateLimitDelay > rateLimit) {
 				console.warn(
 					`rateLimitDelay ${rateLimitDelay}s is larger than the configured rateLimit ${rateLimit}s; this makes no sense`,
 				)
 				rateLimitDelay = rateLimit
 			}
-			// kilocode_change end
+			// forked_change end
 		}
 
 		// Only show rate limiting message if we're not retrying. If retrying, we'll include the delay there.
@@ -3133,7 +3133,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			...("reasoning" in msg ? { reasoning: (msg as any).reasoning } : {}),
 		}))
 
-		// kilocode_change start
+		// forked_change start
 		// Fetch project properties for KiloCode provider tracking
 		const kiloConfig = this.providerRef.deref()?.getKiloConfig()
 
@@ -3151,7 +3151,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// Fallback to root folder name if git info retrieval fails
 			repo = path.basename(this.workspacePath)
 		}
-		// kilocode_change end
+		// forked_change end
 
 		// Check auto-approval limits
 		const approvalResult = await this.autoApprovalHandler.checkAutoApprovalLimits(
@@ -3199,15 +3199,15 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			...(previousResponseId && !this.skipPrevResponseIdOnce ? { previousResponseId } : {}),
 			// If a condense just occurred, explicitly suppress continuity fallback for the next call
 			...(this.skipPrevResponseIdOnce ? { suppressPreviousResponseId: true } : {}),
-			// kilocode_change start
+			// forked_change start
 			// KiloCode-specific: pass projectId for backend tracking (ignored by other providers)
 			projectId: (await kiloConfig)?.project?.id,
 			// KiloCode-specific: pass git repository URL or root folder name for backend tracking
 			repo,
-			// kilocode_change end
+			// forked_change end
 		}
 
-		// kilocode_change start
+		// forked_change start
 		// Add allowed tools for JSON tool style
 		if (getActiveToolUseStyle(apiConfiguration) === "json" && mode) {
 			try {
@@ -3228,7 +3228,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				// Continue without allowedTools - will fall back to default behavior
 			}
 		}
-		// kilocode_change end
+		// forked_change end
 
 		// Reset skip flag after applying (it only affects the immediate next call)
 		if (this.skipPrevResponseIdOnce) {
@@ -3246,7 +3246,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this.isWaitingForFirstChunk = false
 		} catch (error) {
 			this.isWaitingForFirstChunk = false
-			// kilocode_change start
+			// forked_change start
 			if (apiConfiguration?.apiProvider === "kilocode" && isAnyRecognizedKiloCodeError(error)) {
 				const { response } = await (isPaymentRequiredError(error)
 					? this.ask(
@@ -3278,7 +3278,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				}
 				return
 			}
-			// kilocode_change end
+			// forked_change end
 			// note that this api_req_failed ask is unique in that we only present this option if the api hasn't streamed any content yet (ie it fails on the first chunk due), as it would allow them to hit a retry button. However if the api failed mid-stream, it could be in any arbitrary state where some tools may have executed, so that error is handled differently and requires cancelling the task entirely.
 
 			// Check if this is a 5xx error - always show retry dialog for server errors
@@ -3365,7 +3365,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// Reset streaming state since we encountered an error
 			this.isStreaming = false
 
-			// kilocode_change start
+			// forked_change start
 			if (apiConfiguration?.apiProvider === "kilocode" && isAnyRecognizedKiloCodeError(error)) {
 				const { response } = await (isPaymentRequiredError(error)
 					? this.ask(
@@ -3396,7 +3396,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				}
 				return
 			}
-			// kilocode_change end
+			// forked_change end
 
 			// Check if this is a 5xx error - always show retry dialog for server errors
 			const isServerError = error.status && Number(error.status) >= 500 && Number(error.status) < 600

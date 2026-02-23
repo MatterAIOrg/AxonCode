@@ -3,8 +3,8 @@ import * as path from "path"
 import fs from "fs/promises"
 
 /**
- * Converts .kilocode/rules file to directory and places old .kilocode/rules file inside directory, renaming it
- * Doesn't do anything if .kilocode/rules dir already exists or doesn't exist
+ * Converts .orbital/rules file to directory and places old .orbital/rules file inside directory, renaming it
+ * Doesn't do anything if .orbital/rules dir already exists or doesn't exist
  * Returns whether there are any uncaught errors
  */
 export async function ensureLocalKilorulesDirExists(

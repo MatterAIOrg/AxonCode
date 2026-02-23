@@ -76,10 +76,10 @@ export const modelInfoSchema = z.object({
 	minTokensPerCachePoint: z.number().optional(),
 	maxCachePoints: z.number().optional(),
 	cachableFields: z.array(z.string()).optional(),
-	// kilocode_change start
+	// forked_change start
 	displayName: z.string().nullish(),
 	preferredIndex: z.number().nullish(),
-	// kilocode_change end
+	// forked_change end
 	// Flag to indicate if the model is deprecated and should not be used
 	deprecated: z.boolean().optional(),
 	/**

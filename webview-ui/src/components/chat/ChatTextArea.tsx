@@ -35,7 +35,7 @@ import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
 
-// kilocode_change start: pull slash commands from Cline
+// forked_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
 import { ArrowRight02Icon } from "@/utils/customIcons"
 import {
@@ -45,7 +45,7 @@ import {
 	shouldShowSlashCommandsMenu,
 	validateSlashCommand,
 } from "@/utils/slash-commands"
-// kilocode_change end
+// forked_change end
 
 interface ChatTextAreaProps {
 	inputValue: string
@@ -177,7 +177,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				resizeObserver.disconnect()
 			}
 		}, [])
-		// kilocode_change end
+		// forked_change end
 
 		const [searchLoading, setSearchLoading] = useState(false)
 		const [searchRequestId, setSearchRequestId] = useState<string>("")
@@ -195,7 +195,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		}, [showDropdown])
 
 		const [isDraggingOver, setIsDraggingOver] = useState(false)
-		// kilocode_change start: pull slash commands from Cline
+		// forked_change start: pull slash commands from Cline
 		const [showSlashCommandsMenu, setShowSlashCommandsMenu] = useState(false)
 		const [selectedSlashCommandsIndex, setSelectedSlashCommandsIndex] = useState(0)
 		const [slashCommandsQuery, setSlashCommandsQuery] = useState("")
@@ -251,7 +251,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			}
 		}, [searchQuery])
 
-		// kilocode_change start: Image warning handlers
+		// forked_change start: Image warning handlers
 		const showImageWarning = useCallback((messageKey: string) => {
 			setImageWarning(messageKey)
 		}, [])
@@ -259,9 +259,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const dismissImageWarning = useCallback(() => {
 			setImageWarning(null)
 		}, [])
-		// kilocode_change end: Image warning handlers
+		// forked_change end: Image warning handlers
 
-		// kilocode_change start: Clear images if unsupported
+		// forked_change start: Clear images if unsupported
 		// Track previous shouldDisableImages state to detect when model image support changes
 		const prevShouldDisableImages = useRef<boolean>(shouldDisableImages)
 		useEffect(() => {
@@ -271,7 +271,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			}
 			prevShouldDisableImages.current = shouldDisableImages
 		}, [shouldDisableImages, selectedImages.length, setSelectedImages, showImageWarning])
-		// kilocode_change end: Clear images if unsupported
+		// forked_change end: Clear images if unsupported
 
 		const allModes = useMemo(() => getAllModes(customModes), [customModes])
 
@@ -316,7 +316,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		const handleMentionSelect = useCallback(
 			(type: ContextMenuOptionType, value?: string) => {
-				// kilocode_change start
+				// forked_change start
 				if (type === ContextMenuOptionType.Image) {
 					setShowContextMenu(false)
 					setSelectedType(null)
@@ -334,7 +334,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					onSelectImages()
 					return
 				}
-				// kilocode_change end
+				// forked_change end
 
 				if (type === ContextMenuOptionType.NoResults) {
 					return
@@ -407,7 +407,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			[setInputValue, cursorPosition, inputValue, onSelectImages],
 		)
 
-		// kilocode_change start: pull slash commands from Cline
+		// forked_change start: pull slash commands from Cline
 		const handleSlashCommandsSelect = useCallback(
 			(command: SlashCommand) => {
 				setShowSlashCommandsMenu(false)
@@ -436,7 +436,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			},
 			[inputValue, setInputValue, setMode, customModes],
 		)
-		// kilocode_change end
+		// forked_change end
 
 		useEffect(() => {
 			if (!showContextMenu) {
@@ -551,7 +551,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return type === "image" && acceptedTypes.includes(subtype)
 				})
 
-				// kilocode_change start: Image validation with warning messages
+				// forked_change start: Image validation with warning messages
 				if (imageItems.length > 0) {
 					e.preventDefault()
 
@@ -563,7 +563,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						showImageWarning(`kilocode:imageWarnings.maxImagesReached`)
 						return
 					}
-					// kilocode_change end: Image validation with warning messages
+					// forked_change end: Image validation with warning messages
 
 					const imagePromises = imageItems.map((item) => {
 						return new Promise<string | null>((resolve) => {
@@ -1171,7 +1171,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					if (message.requestId === searchRequestId) {
 						setFileSearchResults(message.results || [])
 					}
-					// kilocode_change start
+					// forked_change start
 				} else if (message.type === "insertTextToChatArea") {
 					if (message.text) {
 						setInputValue(message.text)
@@ -1182,7 +1182,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						}, 0)
 					}
 				}
-				// kilocode_change end
+				// forked_change end
 			}
 
 			window.addEventListener("message", messageHandler)
@@ -1255,7 +1255,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						return type === "image" && acceptedTypes.includes(subtype)
 					})
 
-					// kilocode_change start: Image validation with warning messages for drag and drop
+					// forked_change start: Image validation with warning messages for drag and drop
 					if (imageFiles.length > 0) {
 						if (shouldDisableImages) {
 							showImageWarning("kilocode:imageWarnings.modelNoImageSupport")
@@ -1265,7 +1265,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							showImageWarning("kilocode:imageWarnings.maxImagesReached")
 							return
 						}
-						// kilocode_change end: Image validation with warning messages for drag and drop
+						// forked_change end: Image validation with warning messages for drag and drop
 
 						const imagePromises = imageFiles.map((file) => {
 							return new Promise<string | null>((resolve) => {
@@ -1734,14 +1734,14 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								setIsDraggingOver(false)
 							}
 						}}>
-						{/* kilocode_change start: ImageWarningBanner integration */}
+						{/* forked_change start: ImageWarningBanner integration */}
 						<ImageWarningBanner
 							messageKey={imageWarning ?? ""}
 							onDismiss={dismissImageWarning}
 							isVisible={!!imageWarning}
 						/>
-						{/* kilocode_change end: ImageWarningBanner integration */}
-						{/* kilocode_change start: pull slash commands from Cline */}
+						{/* forked_change end: ImageWarningBanner integration */}
+						{/* forked_change start: pull slash commands from Cline */}
 						{showSlashCommandsMenu && (
 							<div ref={slashCommandsMenuContainerRef}>
 								<SlashCommandMenu
@@ -1754,7 +1754,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								/>
 							</div>
 						)}
-						{/* kilocode_change end: pull slash commands from Cline */}
+						{/* forked_change end: pull slash commands from Cline */}
 						{showContextMenu && (
 							<div
 								ref={contextMenuContainerRef}

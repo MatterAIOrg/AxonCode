@@ -55,11 +55,11 @@
 		"title": "تعليمات مخصصة لهذا النمط (اختياري)",
 		"resetToDefault": "رجّع للوضع الافتراضي",
 		"description": "اكتب تعليمات خاصة لسلوك نمط {{modeName}}.",
-		"loadFromFile": "تقدر تحمل التعليمات من المجلد <span>.kilocode/rules/</span> داخل المشروع (.kilocoderules-{{slug}} بيتوقف قريب)."
+		"loadFromFile": "تقدر تحمل التعليمات من المجلد <span>.orbital/rules/</span> داخل المشروع (.kilocoderules-{{slug}} بيتوقف قريب)."
 	},
 	"exportMode": {
 		"title": "تصدير النمط",
-		"description": "صدّر هذا النمط مع القواعد من مجلد .kilocode/rules-{{slug}}/ في ملف YAML قابل للمشاركة. الملفات الأصلية تبقى كما هي.",
+		"description": "صدّر هذا النمط مع القواعد من مجلد .orbital/rules-{{slug}}/ في ملف YAML قابل للمشاركة. الملفات الأصلية تبقى كما هي.",
 		"exporting": "جاري التصدير..."
 	},
 	"importMode": {
@@ -68,11 +68,11 @@
 		"importing": "جاري الاستيراد...",
 		"global": {
 			"label": "المستوى العام",
-			"description": "متوفر في كل المشاريع. إذا كان النمط المصدّر يحتوي على ملفات قواعد، سيتم إنشاؤها في مجلد .kilocode/rules-{slug}/ العام."
+			"description": "متوفر في كل المشاريع. إذا كان النمط المصدّر يحتوي على ملفات قواعد، سيتم إنشاؤها في مجلد .orbital/rules-{slug}/ العام."
 		},
 		"project": {
 			"label": "مستوى المشروع",
-			"description": "متوفر فقط في هذا المشروع. إذا كان النمط المصدّر يحتوي على ملفات قواعد، سيتم إنشاؤها في مجلد .kilocode/rules-{slug}/."
+			"description": "متوفر فقط في هذا المشروع. إذا كان النمط المصدّر يحتوي على ملفات قواعد، سيتم إنشاؤها في مجلد .orbital/rules-{slug}/."
 		}
 	},
 	"advanced": {
@@ -81,7 +81,7 @@
 	"globalCustomInstructions": {
 		"title": "تعليمات عامة لكل الأنماط",
 		"description": "هذي التعليمات تنطبق على كل الأنماط، وتعتبر قاعدة ينضاف لها تعليمات مخصصة بالنمط. <0>اعرف أكثر</0>",
-		"loadFromFile": "تقدر تحمل التعليمات من المجلد <span>.kilocode/rules/</span> داخل المشروع (.kilocoderules بيتوقف قريب)."
+		"loadFromFile": "تقدر تحمل التعليمات من المجلد <span>.orbital/rules/</span> داخل المشروع (.kilocoderules بيتوقف قريب)."
 	},
 	"systemPrompt": {
 		"preview": "عرض تمهيدي للنظام",
@@ -160,7 +160,7 @@
 	},
 	"advancedSystemPrompt": {
 		"title": "خيارات متقدمة: تجاوز موجه النظام",
-		"description": "<2>⚠️ تحذير:</2> هذا خيار متقدم يتجاوز الحمايات. <1>اقرأ قبل الاستخدام!</1> تقدر تتجاوز الموجه بإنشاء ملف في <span>.kilocode/system-prompt-{{slug}}</span>."
+		"description": "<2>⚠️ تحذير:</2> هذا خيار متقدم يتجاوز الحمايات. <1>اقرأ قبل الاستخدام!</1> تقدر تتجاوز الموجه بإنشاء ملف في <span>.orbital/system-prompt-{{slug}}</span>."
 	},
 	"createModeDialog": {
 		"title": "إنشاء نمط جديد",

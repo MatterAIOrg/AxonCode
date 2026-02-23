@@ -59,7 +59,7 @@ export const toolParamNames = [
 	"replace",
 	"use_regex",
 	"ignore_case",
-	// kilocode_change start
+	// forked_change start
 	"title",
 	"description",
 	"target_file",
@@ -71,7 +71,7 @@ export const toolParamNames = [
 	"code_edit",
 	"files",
 	"filename",
-	// kilocode_change end
+	// forked_change end
 	"args",
 	"start_line",
 	"end_line",
@@ -198,13 +198,13 @@ export interface FileEditToolUse extends ToolUse {
 		Partial<Pick<Record<ToolParamName, string>, "replace_all" | "target_file">>
 }
 
-// kilocode_change start: Morph fast apply
+// forked_change start: Morph fast apply
 export interface EditFileToolUse extends ToolUse {
 	name: "edit_file"
 	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "instructions" | "code_edit">> &
 		Partial<Pick<Record<ToolParamName, string>, "target_file">>
 }
-// kilocode_change end
+// forked_change end
 
 export interface CheckPastChatMemoriesToolUse extends ToolUse {
 	name: "check_past_chat_memories"

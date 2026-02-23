@@ -163,7 +163,7 @@
 			},
 			"protected": {
 				"label": "Inclure les fichiers protégés",
-				"description": "Permettre à Axon Code de créer et modifier des fichiers protégés (comme .kilocodeignore et les fichiers de configuration .kilocode/) sans nécessiter d'approbation."
+				"description": "Permettre à Axon Code de créer et modifier des fichiers protégés (comme .kilocodeignore et les fichiers de configuration .orbital/) sans nécessiter d'approbation."
 			}
 		},
 		"browser": {

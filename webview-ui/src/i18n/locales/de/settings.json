@@ -162,7 +162,7 @@
 			},
 			"protected": {
 				"label": "Geschützte Dateien einbeziehen",
-				"description": "Axon Code erlauben, geschützte Dateien (wie .kilocodeignore und .kilocode/ Konfigurationsdateien) ohne Genehmigung zu erstellen und zu bearbeiten."
+				"description": "Axon Code erlauben, geschützte Dateien (wie .kilocodeignore und .orbital/ Konfigurationsdateien) ohne Genehmigung zu erstellen und zu bearbeiten."
 			}
 		},
 		"browser": {

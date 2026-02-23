@@ -15,7 +15,7 @@ import { getApiUrl } from "@roo-code/types"
  * User identity structure
  */
 export interface UserIdentity {
-	/** Persistent CLI user ID (UUID stored in ~/.kilocode/cli/identity) */
+	/** Persistent CLI user ID (UUID stored in ~/.orbital/cli/identity) */
 	cliUserId: string
 
 	/** Machine identifier (OS-level) */

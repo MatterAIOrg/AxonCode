@@ -15,7 +15,7 @@ import type { ClineAsk, ClineMessage, McpServerUse } from "@roo-code/types"
 
 import { FollowUpData, SuggestionItem } from "@roo-code/types"
 
-// kilocode_change start: Local type definitions for Source Control Panel
+// forked_change start: Local type definitions for Source Control Panel
 interface CodeReviewComment {
 	path: string
 	body: string
@@ -23,7 +23,7 @@ interface CodeReviewComment {
 	startLine: number
 	endLine: number
 }
-// kilocode_change end
+// forked_change end
 import { findLast } from "@roo/array"
 import { combineApiRequests } from "@roo/combineApiRequests"
 import { combineCommandSequences } from "@roo/combineCommandSequences"
@@ -232,7 +232,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [showCheckpointWarning, setShowCheckpointWarning] = useState<boolean>(false)
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
 	const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
-	// kilocode_change start: AI Code Review state
+	// forked_change start: AI Code Review state
 	const [showSourceControl, setShowSourceControl] = useState(isReviewOnlyMode)
 	const [codeReviewResults, setCodeReviewResults] = useState<{
 		reviewBody: string
@@ -248,7 +248,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		reviewBody: string
 		reviewComments: CodeReviewComment[]
 	} | null>(null)
-	// kilocode_change end
+	// forked_change end
 	const everVisibleMessagesTsRef = useRef<LRUCache<number, boolean>>(
 		new LRUCache({
 			max: 100,
@@ -258,12 +258,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const autoApproveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const userRespondedRef = useRef<boolean>(false)
 	const [currentFollowUpTs, setCurrentFollowUpTs] = useState<number | null>(null)
-	// kilocode_change start: Sticky user message state
+	// forked_change start: Sticky user message state
 	const [stickyMessageIndex, setStickyMessageIndex] = useState<number | null>(null)
 	const stickyHeaderRef = useRef<HTMLDivElement | null>(null)
 	const virtuosoScrollerRef = useRef<HTMLElement | null>(null)
 	const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0)
-	// kilocode_change end
+	// forked_change end
 	const [iconsBaseUri] = useState(() => {
 		const w = window as any
 		return w.ICONS_BASE_URI || ""
@@ -274,7 +274,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		clineAskRef.current = clineAsk
 	}, [clineAsk])
 
-	// kilocode_change start: unused
+	// forked_change start: unused
 	// const {
 	// 	isOpen: isUpsellOpen,
 	// 	openUpsell,
@@ -283,7 +283,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// } = useCloudUpsell({
 	// 	autoOpenOnAuth: false,
 	// })
-	// kilocode_change end
+	// forked_change end
 
 	// Keep inputValueRef in sync with inputValue state
 	useEffect(() => {
@@ -511,7 +511,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setPrimaryButtonText(t("kilocode:chat.condense.condenseConversation"))
 							setSecondaryButtonText(undefined)
 							break
-						// kilocode_change end
+						// forked_change end
 					}
 					break
 				case "say":
@@ -813,14 +813,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "command_output":
 					vscode.postMessage({ type: "terminalOperation", terminalOperation: "continue" })
 					break
-				// kilocode_change start
+				// forked_change start
 				case "condense":
 					vscode.postMessage({
 						type: "condense",
 						text: lastMessage?.text,
 					})
 					break
-				// kilocode_change end
+				// forked_change end
 			}
 
 			setSendingDisabled(true)
@@ -902,7 +902,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const shouldDisableImages = !model?.supportsImages || selectedImages.length >= MAX_IMAGES_PER_MESSAGE
 
-	// kilocode_change start: AI Code Review handlers
+	// forked_change start: AI Code Review handlers
 	const _handleRequestCodeReview = useCallback(() => {
 		setIsCodeReviewLoading(true)
 		vscode.postMessage({ type: "requestCodeReview" })
@@ -953,7 +953,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		setShowSourceControl(false)
 		// Don't clear code review results - keep them in memory for later access
 	}, [])
-	// kilocode_change end
+	// forked_change end
 
 	const handleMessage = useCallback(
 		(e: MessageEvent) => {
@@ -1008,7 +1008,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						setIsCondensing(false)
 					}
 					break
-				// kilocode_change start: AI Code Review message handling
+				// forked_change start: AI Code Review message handling
 				case "codeReviewResults":
 					setIsCodeReviewLoading(false)
 					if (message.payload) {
@@ -1044,7 +1044,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						setHasUnreviewedChanges(files.length > 0)
 					}
 					break
-				// kilocode_change end
+				// forked_change end
 				case "workspaceUpdated":
 					// kilocode_change: Refresh git changes for review when workspace changes
 					vscode.postMessage({ type: "getGitChangesForReview" })
@@ -1070,7 +1070,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	useEvent("message", handleMessage)
 
-	// kilocode_change start: Check for git changes on mount and periodically
+	// forked_change start: Check for git changes on mount and periodically
 	useEffect(() => {
 		// Check for git changes when component mounts
 		vscode.postMessage({ type: "getGitChangesForReview" })
@@ -1100,7 +1100,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			window.removeEventListener("focus", handleFocus)
 		}
 	}, [])
-	// kilocode_change end
+	// forked_change end
 
 	// NOTE: the VSCode window needs to be focused for this to work.
 	useMount(() => textAreaRef.current?.focus())
@@ -1326,7 +1326,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// Check if a command message should be auto-approved.
 	const isAllowedCommand = useCallback(
 		(message: ClineMessage | undefined): boolean => {
-			// kilocode_change start wrap in try/catch
+			// forked_change start wrap in try/catch
 			if (message?.type !== "ask") return false
 			try {
 				return getCommandDecisionForMessage(message) === "auto_approve"
@@ -1335,7 +1335,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				console.error("Cannot validate command, auto-approve denied.", e)
 				return false
 			}
-			// kilocode_change end
+			// forked_change end
 		},
 		[getCommandDecisionForMessage],
 	)
@@ -1556,7 +1556,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 
 		visibleMessages.forEach((message: ClineMessage) => {
-			// kilocode_change start: upstream pr https://github.com/RooCodeInc/Roo-Code/pull/5452
+			// forked_change start: upstream pr https://github.com/RooCodeInc/Roo-Code/pull/5452
 			// Special handling for browser_action_result - ensure it's always in a browser session
 			if (message.say === "browser_action_result" && !isInBrowserSession) {
 				isInBrowserSession = true
@@ -1568,7 +1568,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				isInBrowserSession = true
 				currentGroup = []
 			}
-			// kilocode_change end
+			// forked_change end
 
 			if (message.ask === "browser_action_launch") {
 				// Complete existing browser session if any.
@@ -1600,7 +1600,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				if (isBrowserSessionMessage(message)) {
 					currentGroup.push(message)
 
-					// kilocode_change start: upstream pr https://github.com/RooCodeInc/Roo-Code/pull/5452
+					// forked_change start: upstream pr https://github.com/RooCodeInc/Roo-Code/pull/5452
 					if (message.say === "browser_action_result") {
 						// Check if the previous browser_action was a close action
 						const lastBrowserAction = [...currentGroup].reverse().find((m) => m.say === "browser_action")
@@ -1611,7 +1611,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							}
 						}
 					}
-					// kilocode_change end
+					// forked_change end
 				} else {
 					// complete existing browser session if any
 					endBrowserSession()
@@ -1665,7 +1665,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		})
 	}, [])
 
-	// kilocode_change start
+	// forked_change start
 	// Animated "blink" to highlight a specific message. Used by the TaskTimeline
 	const highlightClearTimerRef = useRef<NodeJS.Timeout | undefined>()
 	const [highlightedMessageIndex, setHighlightedMessageIndex] = useState<number | null>(null)
@@ -1691,7 +1691,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			}
 		}
 	}, [])
-	// kilocode_change end
+	// forked_change end
 
 	const handleSetExpandedRow = useCallback(
 		(ts: number, expand?: boolean) => {
@@ -1750,7 +1750,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [])
 	//kilocode_change
 
-	// kilocode_change start: Pixel-perfect sticky user message tracking via scroll events
+	// forked_change start: Pixel-perfect sticky user message tracking via scroll events
 	// Pre-compute indices of user_feedback messages for the scroll handler
 	const userFeedbackIndices = useMemo(() => {
 		const indices: number[] = []
@@ -1830,7 +1830,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		observer.observe(el)
 		return () => observer.disconnect()
 	}, [task?.ts]) // re-run when task mounts/changes
-	// kilocode_change end
+	// forked_change end
 
 	// Effect to handle showing the checkpoint warning after a delay
 	useEffect(() => {
@@ -2051,7 +2051,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					if (followUpData && followUpData.suggest && followUpData.suggest.length > 0) {
 						// Wait for the configured timeout before auto-selecting the first suggestion
 						await new Promise<void>((resolve) => {
-							// kilocode_change start
+							// forked_change start
 							if (!isMountedRef.current) {
 								resolve()
 								return
@@ -2064,7 +2064,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								autoApproveTimeoutRef.current = null
 								resolve()
 							}, followupAutoApproveTimeoutMs)
-							// kilocode_change end
+							// forked_change end
 						})
 
 						// Check if user responded manually
@@ -2080,7 +2080,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						return
 					}
 				} else if (lastMessage.ask === "tool" && isWriteToolAction(lastMessage)) {
-					// kilocode_change start
+					// forked_change start
 					await new Promise<void>((resolve) => {
 						if (!isMountedRef.current) {
 							resolve()
@@ -2095,7 +2095,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							resolve()
 						}, writeDelayMs)
 					})
-					// kilocode_change end
+					// forked_change end
 				}
 
 				vscode.postMessage({ type: "askResponse", askResponse: "yesButtonClicked" })
@@ -2196,13 +2196,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				handleSendMessage(inputValue, selectedImages)
 			}
 		},
-		// kilocode_change start
+		// forked_change start
 		focusInput: () => {
 			if (textAreaRef.current) {
 				textAreaRef.current.focus()
 			}
 		},
-		// kilocode_change end
+		// forked_change end
 	}))
 
 	const handleCondenseContext = (taskId: string) => {
@@ -2234,7 +2234,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			)}
 			{task ? (
 				<>
-					{/* kilocode_change start */}
+					{/* forked_change start */}
 					{/* <TaskHeader
 						task={task}
 						tokensIn={apiMetrics.totalTokensIn}
@@ -2283,9 +2283,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							<OrganizationSelector className="absolute top-2 right-3" />
 						</div>
 					)} */}
-					{/* kilocode_change start: changed the classes to support notifications */}
+					{/* forked_change start: changed the classes to support notifications */}
 					<div className="w-full h-full flex flex-col gap-4 px-3.5 transition-all duration-300">
-						{/* kilocode_change end */}
+						{/* forked_change end */}
 						{/* Version indicator in top-right corner - only on welcome screen */}
 						{/* kilocode_change: do not show */}
 						{/* <VersionIndicator
@@ -2295,13 +2295,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 						<RooHero /> */}
 
-						{/* kilocode_change start: KilocodeNotifications + Layout fixes */}
+						{/* forked_change start: KilocodeNotifications + Layout fixes */}
 						{/* TelemetryBanner removed */}
 						<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
 							<KilocodeNotifications />
 						</div>
 						<div className="flex flex-grow flex-col justify-start gap-4">
-							{/* kilocode_change end */}
+							{/* forked_change end */}
 							{/* <p className="text-vscode-editor-foreground leading-normal font-vscode-font-family text-center text-balance max-w-[380px] mx-auto my-0">
 								<Trans
 									i18nKey="chat:about"
@@ -2384,7 +2384,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
 							)}
 						</div>
-						{/* kilocode_change end */}
+						{/* forked_change end */}
 					</div>
 				</div>
 			)}

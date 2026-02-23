@@ -17,7 +17,7 @@ sidebar_label: 在Kilo Code中使用MCP
 MCP服务器配置可以在两个级别进行管理：
 
 1. **全局配置**：存储在`mcp_settings.json`文件中，可通过VS Code设置访问（见下文）。这些设置适用于所有工作区，除非被项目级配置覆盖。
-2. **项目级配置**：在项目根目录的`.kilocode/mcp.json`文件中定义。这允许你设置项目特定的服务器，并通过将文件提交到版本控制与团队共享配置。如果存在，Kilo Code会自动检测并加载此文件。
+2. **项目级配置**：在项目根目录的`.orbital/mcp.json`文件中定义。这允许你设置项目特定的服务器，并通过将文件提交到版本控制与团队共享配置。如果存在，Kilo Code会自动检测并加载此文件。
 
 **优先级**：如果服务器名称同时存在于全局和项目配置中，则**项目级配置优先**。
 
@@ -30,7 +30,7 @@ MCP服务器配置可以在两个级别进行管理：
 3.  选择 `Installed` 服务器
 4.  单击相应的按钮：
     - **`Edit Global MCP`**：打开全局 `mcp_settings.json` 文件。
-    - **`Edit Project MCP`**：打开项目特定的 `.kilocode/mcp.json` 文件。如果此文件不存在，Axon Code 将为您创建它。
+    - **`Edit Project MCP`**：打开项目特定的 `.orbital/mcp.json` 文件。如果此文件不存在，Axon Code 将为您创建它。
 
   <img src="/docs/img/using-mcp-in-kilo-code/mcp-installed-config.png" alt="编辑全局 MCP 和编辑项目 MCP 按钮" width="600" />
 
@@ -177,7 +177,7 @@ Kilo Code不附带任何预安装的MCP服务器。你需要单独查找并安�
 常见问题及解决方案：
 
 - **服务器无响应**：检查服务器进程是否正在运行并验证网络连接
-- **权限错误**：确保在`mcp_settings.json`（用于全局设置）或`.kilocode/mcp.json`（用于项目设置）中配置了正确的API密钥和凭据。
+- **权限错误**：确保在`mcp_settings.json`（用于全局设置）或`.orbital/mcp.json`（用于项目设置）中配置了正确的API密钥和凭据。
 - **工具不可用**：确认服务器是否正确实现了该工具且未在设置中禁用
 - **性能缓慢**：尝试调整特定MCP服务器的网络超时值
 

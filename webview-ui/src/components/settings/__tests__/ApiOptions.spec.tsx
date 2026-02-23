@@ -31,14 +31,14 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 			{children}
 		</label>
 	),
-	// kilocode_change start
+	// forked_change start
 	VSCodeDropdown: ({ children, value, onChange, className }: any) => (
 		<select value={value} onChange={onChange} className={className}>
 			{children}
 		</select>
 	),
 	VSCodeOption: ({ children, value }: any) => <option value={value}>{children}</option>,
-	// kilocode_change start
+	// forked_change start
 }))
 
 // Mock other components
@@ -270,14 +270,14 @@ vi.mock("@src/components/ui/hooks/useSelectedModel", () => ({
 			}
 		}
 	}),
-	// kilocode_change start
+	// forked_change start
 	useModelProviders: vi.fn(() => ({
 		data: {
 			openai: { id: "openai", name: "OpenAI" },
 			anthropic: { id: "anthropic", name: "Anthropic" },
 		},
 	})),
-	// kilocode_change end
+	// forked_change end
 }))
 
 const renderApiOptions = (props: Partial<ApiOptionsProps> = {}) => {

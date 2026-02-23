@@ -21,12 +21,12 @@ import { formatResponse } from "../prompts/responses"
 
 import { Task } from "../task/Task"
 
-// kilocode_change start
+// forked_change start
 import { TelemetryService } from "@roo-code/telemetry"
 import { NativeOllamaHandler } from "../../api/providers/native-ollama"
 import { OpenRouterHandler } from "../../api/providers/openrouter"
 import { t } from "../../i18n"
-// kilocode_change end
+// forked_change end
 
 export async function getEnvironmentDetails(cline: Task, includeFileDetails: boolean = false) {
 	let details = ""
@@ -267,7 +267,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 	// Add context tokens information.
 	const { contextTokens, totalCost } = getApiMetrics(cline.clineMessages)
 
-	// kilocode_change start
+	// forked_change start
 	// Be sure to fetch the model information before we need it.
 	if (cline.api instanceof OpenRouterHandler || cline.api instanceof NativeOllamaHandler) {
 		try {
@@ -281,7 +281,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 			return `<environment_details>\n${details.trim()}\n</environment_details>`
 		}
 	}
-	// kilocode_change end
+	// forked_change end
 
 	const { id: modelId, info: modelInfo } = cline.api.getModel()
 

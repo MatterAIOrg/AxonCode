@@ -10,10 +10,12 @@ export class NotificationService {
 		client.setNotificationHandler(LoggingMessageNotificationSchema, async (notification) => {
 			const params = notification.params || {}
 			const level = params.level || "info"
-			const data = params.data || params.message || ""
+			const data = params.data
 			const logger = params.logger || ""
+			// Convert data to string representation
+			const dataStr = typeof data === "string" ? data : JSON.stringify(data)
 			const dataPrefix = logger ? `[${logger}]` : ``
-			const message = `MCP ${name}: ${dataPrefix}${data}`
+			const message = `MCP ${name}: ${dataPrefix}${dataStr}`
 
 			switch (level) {
 				case "critical":

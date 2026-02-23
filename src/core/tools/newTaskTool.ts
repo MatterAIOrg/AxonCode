@@ -124,11 +124,11 @@ export async function newTaskTool(
 			// Preserve the current mode so we can resume with it later.
 			task.pausedModeSlug = (await provider.getState()).mode ?? defaultModeSlug
 
-			// kilocode_change start: Switch to the desired mode BEFORE creating the task
+			// forked_change start: Switch to the desired mode BEFORE creating the task
 			await provider.handleModeSwitch(mode)
 			// Small delay to ensure mode switch has propagated
 			await delay(100)
-			// kilocode_change end
+			// forked_change end
 
 			const newTask = await task.startSubtask(unescapedMessage, todoItems, mode)
 
