@@ -342,7 +342,7 @@ export async function readFileTool(
 			const isOutsideWorkspace = isPathOutsideWorkspace(fullPath)
 
 			// Get actual file line count for accurate limit display
-			const totalLines = await countFileLines(fullPath).catch(() => 0)
+			const totalLines = await countFileLines(fullPath).catch(() => MAX_READ_FILE_LINES)
 			const effectiveLimit = fileResult.limit
 				? Math.min(fileResult.limit, MAX_READ_FILE_LINES)
 				: Math.min(totalLines, MAX_READ_FILE_LINES)
