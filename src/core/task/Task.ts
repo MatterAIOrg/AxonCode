@@ -402,7 +402,19 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.providerRef = new WeakRef(provider)
 		this.globalStoragePath = provider.context.globalStorageUri.fsPath
 		this.diffViewProvider = new DiffViewProvider(this.cwd, this)
-		this.fileEditReviewController = new FileEditReviewController(this.cwd)
+
+		// Create token and repo getters for FileEditReviewController metrics reporting
+		const getToken = async () => {
+			const state = await this.providerRef.deref()?.getState()
+			return state?.apiConfiguration?.kilocodeToken
+		}
+		const getRepo = async () => {
+			const gitInfo = await getGitRepositoryInfo(this.cwd)
+			return gitInfo.repositoryUrl || path.basename(this.cwd)
+		}
+
+		this.fileEditReviewController = new FileEditReviewController(this.cwd, getToken, getRepo)
+		this.fileEditReviewController.setTaskId(this.taskId)
 		this.enableCheckpoints = enableCheckpoints
 		this.enableBridge = enableBridge
 
