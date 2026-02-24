@@ -35,8 +35,17 @@ export class FileEditReviewController implements vscode.Disposable {
 	private reviewQueue: string[] = []
 	private readonly codeLensEmitter = new vscode.EventEmitter<void>()
 	private readonly codeLensProvider: FileEditReviewCodeLensProvider
+	private _taskId: string | undefined
+	private _getToken: (() => Promise<string | undefined>) | undefined
+	private _getRepo: (() => Promise<string | undefined>) | undefined
 
-	constructor(private cwd: string) {
+	constructor(
+		private cwd: string,
+		getToken?: () => Promise<string | undefined>,
+		getRepo?: () => Promise<string | undefined>,
+	) {
+		this._getToken = getToken
+		this._getRepo = getRepo
 		// Old UI (comment thread actions) — kept for reference.
 		//
 		// this.commentController = vscode.comments.createCommentController("axon-code.review", "Axon Code Review")
@@ -48,6 +57,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			this.cwd,
 			() => this.pendingEdits,
 			this.codeLensEmitter.event,
+			() => this._taskId,
 		)
 
 		this.disposables.push(
@@ -56,9 +66,9 @@ export class FileEditReviewController implements vscode.Disposable {
 			vscode.window.onDidChangeActiveTextEditor(() => this.refreshDecorations()),
 			vscode.window.onDidChangeVisibleTextEditors(() => this.refreshDecorations()),
 			vscode.workspace.onDidCloseTextDocument((doc) => this.handleDocumentClosed(doc)),
-			vscode.commands.registerCommand(ACCEPT_COMMAND, (arg?: any, index?: number) =>
-				this.handleAccept(arg, index),
-			),
+			vscode.commands.registerCommand(ACCEPT_COMMAND, (...args: any[]) => {
+				return this.handleAccept(args[0], args[1], args[2])
+			}),
 			vscode.commands.registerCommand(ACCEPT_ALL_COMMAND, () => this.handleAcceptAll()),
 			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any, index?: number) =>
 				this.handleReject(arg, index),
@@ -135,6 +145,17 @@ export class FileEditReviewController implements vscode.Disposable {
 		return this.pendingEdits
 	}
 
+	// Set the task ID for metrics reporting
+	setTaskId(taskId: string) {
+		this._taskId = taskId
+		this.codeLensEmitter.fire() // Refresh CodeLenses to pick up new taskId
+	}
+
+	// Get the current task ID
+	getTaskId(): string | undefined {
+		return this._taskId
+	}
+
 	/**
 	 * Export pending edits data for transfer to another task.
 	 * This is used when a task is cancelled and rehydrated to preserve pending edits.
@@ -201,7 +222,16 @@ export class FileEditReviewController implements vscode.Disposable {
 		}
 	}
 
-	async handleAccept(arg?: any, index?: number) {
+	async handleAccept(
+		arg?: any,
+		index?: number,
+		editData?: {
+			originalContent?: string
+			newContent?: string
+			filePath?: string
+			taskId?: string
+		},
+	) {
 		// Arg can be a CommentThread if triggered from menu, or relPath if triggered programmatically
 		let entry: PendingFileEdit | undefined
 
@@ -225,7 +255,22 @@ export class FileEditReviewController implements vscode.Disposable {
 		}
 
 		if (!entry) {
+			console.log("[FileEditReviewController] No entry found, returning")
 			return
+		}
+
+		// Report metrics for single edit acceptance
+		if (editData?.originalContent !== undefined && editData?.newContent !== undefined && editData?.filePath) {
+			this.reportEditMetrics({
+				originalContent: editData.originalContent,
+				newContent: editData.newContent,
+				filePath: editData.filePath,
+				taskId: editData.taskId,
+			}).catch((err) => {
+				console.error("[FileEditReviewController] Failed to report edit metrics:", err)
+			})
+		} else {
+			console.log("[FileEditReviewController] Skipping metrics - missing editData")
 		}
 
 		if (typeof index === "number" && index >= 0 && index < entry.edits.length) {
@@ -245,6 +290,100 @@ export class FileEditReviewController implements vscode.Disposable {
 				// Optional: auto-advance behavior?
 				// this.handleReviewNext()
 			}
+		}
+	}
+
+	/**
+	 * Report edit metrics to the MatterAI API
+	 */
+	private async reportEditMetrics(editData: {
+		originalContent: string
+		newContent: string
+		filePath: string
+		taskId?: string
+	}): Promise<void> {
+		const kilocodeToken = await this._getToken?.()
+
+		if (!kilocodeToken) {
+			console.log("[FileEditReviewController] No kilocodeToken available, skipping metrics reporting")
+			return
+		}
+
+		const taskId = editData.taskId || this._taskId
+
+		if (!taskId) {
+			console.log("[FileEditReviewController] No taskId available, skipping metrics reporting")
+			return
+		}
+
+		// Calculate line changes using myers diff
+		const diffLines = myersDiff(editData.originalContent, editData.newContent)
+		let linesAdded = 0
+		let linesDeleted = 0
+		for (const diffLine of diffLines) {
+			if (diffLine.type === "new") {
+				linesAdded++
+			} else if (diffLine.type === "old") {
+				linesDeleted++
+			}
+		}
+
+		// Skip if no changes
+		if (linesAdded === 0 && linesDeleted === 0) {
+			console.log("[FileEditReviewController] No changes detected, skipping")
+			return
+		}
+
+		// Determine language from file extension
+		const ext = path.extname(editData.filePath).toLowerCase()
+		const languageMap: Record<string, string> = {
+			".ts": "ts",
+			".tsx": "tsx",
+			".js": "js",
+			".jsx": "jsx",
+			".py": "py",
+			".java": "java",
+			".go": "go",
+			".rs": "rs",
+			".cpp": "cpp",
+			".c": "c",
+			".cs": "cs",
+			".php": "php",
+			".rb": "rb",
+			".swift": "swift",
+			".kt": "kt",
+			".dart": "dart",
+			".vue": "vue",
+			".svelte": "svelte",
+		}
+		const language = languageMap[ext] || "ts"
+
+		// Get repo info
+		const repo = (await this._getRepo?.()) || path.basename(this.cwd)
+
+		try {
+			const url = `https://api.matterai.so/axoncode/meta/${taskId}/lines`
+			const response = await fetch(url, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${kilocodeToken}`,
+					"X-AXON-REPO": repo,
+				},
+				body: JSON.stringify({
+					language,
+					linesAdded,
+					linesUpdated: 0,
+					linesDeleted,
+				}),
+			})
+
+			if (!response.ok) {
+				console.error(`[FileEditReviewController] Failed to report metrics: ${response.statusText}`)
+			} else {
+			}
+		} catch (error) {
+			console.error("[FileEditReviewController] Error reporting metrics:", error)
 		}
 	}
 
@@ -461,6 +600,7 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 		private readonly cwd: string,
 		private readonly getPendingEdits: () => Map<string, PendingFileEdit>,
 		onDidChangeCodeLenses: vscode.Event<void>,
+		private readonly getTaskId: () => string | undefined,
 	) {
 		this.onDidChangeCodeLenses = onDidChangeCodeLenses
 	}
@@ -520,11 +660,21 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 			// --- Accept / Reject / Next buttons ---
 			const btnLine = Math.max(0, edit.diffAnchor.start.line)
 			const btnAnchor = new vscode.Range(btnLine, 0, btnLine, 0)
+			const taskId = this.getTaskId()
 			lenses.push(
 				new vscode.CodeLens(btnAnchor, {
 					title: "Accept",
 					command: ACCEPT_COMMAND,
-					arguments: [entry.relPath, i],
+					arguments: [
+						entry.relPath,
+						i,
+						{
+							originalContent: edit.originalContent,
+							newContent: edit.newContent,
+							filePath: entry.absolutePath,
+							taskId,
+						},
+					],
 				}),
 				new vscode.CodeLens(btnAnchor, {
 					title: "Reject",
