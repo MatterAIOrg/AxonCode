@@ -28,11 +28,13 @@ const ACCEPT_ALL_COMMAND = "axon-code.fileEdit.acceptAll"
 const REJECT_COMMAND = "axon-code.fileEdit.reject"
 const REJECT_ALL_COMMAND = "axon-code.fileEdit.rejectAll"
 const NEXT_COMMAND = "axon-code.fileEdit.reviewNext"
+const PREV_COMMAND = "axon-code.fileEdit.reviewPrev"
 
 export class FileEditReviewController implements vscode.Disposable {
 	private readonly disposables: vscode.Disposable[] = []
 	private pendingEdits = new Map<string, PendingFileEdit>()
 	private reviewQueue: string[] = []
+	private currentReviewIndex: number = 0
 	private readonly codeLensEmitter = new vscode.EventEmitter<void>()
 	private readonly codeLensProvider: FileEditReviewCodeLensProvider
 	private _taskId: string | undefined
@@ -103,9 +105,36 @@ export class FileEditReviewController implements vscode.Disposable {
 					: Array.from(FileEditReviewController.controllers.values())[0]
 				return controller?.handleReviewNext()
 			})
+			vscode.commands.registerCommand(PREV_COMMAND, (taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: Array.from(FileEditReviewController.controllers.values())[0]
+				return controller?.handleReviewPrev()
+			})
 			vscode.commands.registerCommand("axon-code.fileEdit.deletedLine", () => {}) // no-op command so VS Code doesn't strip it
 
 			FileEditReviewController.commandsRegistered = true
+		}
+	}
+
+	private updateContext() {
+		const totalFiles = this.reviewQueue.length
+		vscode.commands.executeCommand("setContext", "axon.fileEdit.pendingCount", totalFiles)
+
+		if (totalFiles > 0) {
+			// Ensure current index is valid
+			if (this.currentReviewIndex >= totalFiles) {
+				this.currentReviewIndex = 0
+			}
+
+			const currentFile = this.reviewQueue[this.currentReviewIndex]
+			const safeIndex = this.currentReviewIndex
+
+			vscode.commands.executeCommand("setContext", "axon.fileEdit.hasPendingEdits", true)
+			vscode.commands.executeCommand("setContext", "axon.fileEdit.currentIndex", safeIndex)
+		} else {
+			vscode.commands.executeCommand("setContext", "axon.fileEdit.hasPendingEdits", false)
+			vscode.commands.executeCommand("setContext", "axon.fileEdit.currentIndex", 0)
 		}
 	}
 
@@ -162,11 +191,13 @@ export class FileEditReviewController implements vscode.Disposable {
 			}
 			this.pendingEdits.set(readablePath, pending)
 			// Ensure unique queue items
-			this.reviewQueue = this.reviewQueue.filter((path) => path !== readablePath)
-			this.reviewQueue.push(readablePath)
+			if (!this.reviewQueue.includes(readablePath)) {
+				this.reviewQueue.push(readablePath)
+			}
 		}
 
 		this.refreshDecorations()
+		this.updateContext()
 		this.codeLensEmitter.fire()
 	}
 
@@ -505,7 +536,9 @@ export class FileEditReviewController implements vscode.Disposable {
 
 		this.pendingEdits.clear()
 		this.reviewQueue = []
+		this.currentReviewIndex = 0
 		this.refreshDecorations()
+		this.updateContext()
 		this.codeLensEmitter.fire()
 
 		return { linesAdded, linesUpdated, linesDeleted }
@@ -521,29 +554,66 @@ export class FileEditReviewController implements vscode.Disposable {
 
 		this.pendingEdits.clear()
 		this.reviewQueue = []
+		this.currentReviewIndex = 0
 		this.refreshDecorations()
+		this.updateContext()
 		this.codeLensEmitter.fire()
 	}
 
 	async handleReviewNext() {
-		const nextEntry = this.getNextEntry()
-		if (!nextEntry) {
+		if (this.reviewQueue.length === 0) {
 			vscode.window.showInformationMessage("No more pending file reviews.")
 			return
 		}
+
+		this.currentReviewIndex = (this.currentReviewIndex + 1) % this.reviewQueue.length
+		const readablePath = this.reviewQueue[this.currentReviewIndex]
+		const nextEntry = this.pendingEdits.get(readablePath)
+
+		if (!nextEntry) {
+			return
+		}
+
+		this.updateContext()
 
 		const document = await vscode.workspace.openTextDocument(nextEntry.absolutePath)
 		const editor = await vscode.window.showTextDocument(document, { preview: false })
 		editor.revealRange(nextEntry.diffAnchor, vscode.TextEditorRevealType.InCenter)
 	}
 
+	async handleReviewPrev() {
+		if (this.reviewQueue.length === 0) {
+			vscode.window.showInformationMessage("No more pending file reviews.")
+			return
+		}
+
+		this.currentReviewIndex = (this.currentReviewIndex - 1 + this.reviewQueue.length) % this.reviewQueue.length
+		const readablePath = this.reviewQueue[this.currentReviewIndex]
+		const prevEntry = this.pendingEdits.get(readablePath)
+
+		if (!prevEntry) {
+			return
+		}
+
+		this.updateContext()
+
+		const document = await vscode.workspace.openTextDocument(prevEntry.absolutePath)
+		const editor = await vscode.window.showTextDocument(document, { preview: false })
+		editor.revealRange(prevEntry.diffAnchor, vscode.TextEditorRevealType.InCenter)
+	}
+
 	private clearEntry(entry: PendingFileEdit) {
-		// Old UI (comment thread actions) — kept for reference.
-		// if (entry.thread) {
-		// 	entry.thread.dispose()
-		// }
 		this.pendingEdits.delete(entry.readablePath)
-		this.reviewQueue = this.reviewQueue.filter((path) => path !== entry.readablePath)
+
+		const idx = this.reviewQueue.indexOf(entry.readablePath)
+		if (idx > -1) {
+			this.reviewQueue.splice(idx, 1)
+			if (this.currentReviewIndex >= this.reviewQueue.length && this.reviewQueue.length > 0) {
+				this.currentReviewIndex = 0
+			}
+		}
+
+		this.updateContext()
 		this.codeLensEmitter.fire()
 	}
 
@@ -612,6 +682,8 @@ export class FileEditReviewController implements vscode.Disposable {
 
 		this.pendingEdits.clear()
 		this.reviewQueue = []
+		this.currentReviewIndex = 0
+		this.updateContext()
 		vscode.window.visibleTextEditors.forEach((editor) => {
 			editor.setDecorations(highlightDecorationType, [])
 		})
