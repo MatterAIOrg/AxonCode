@@ -543,6 +543,18 @@
 					"vscode.CodeActionKind.QuickFix"
 				]
 			}
+		],
+		"customEditors": [
+			{
+				"viewType": "axon-plan",
+				"displayName": "Axon Plan Viewer",
+				"selector": [
+					{
+						"filenamePattern": "*.md"
+					}
+				],
+				"priority": "option"
+			}
 		]
 	},
 	"scripts": {
