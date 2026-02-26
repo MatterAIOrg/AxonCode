@@ -722,11 +722,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						clineAskRef.current // Use clineAskRef.current
 					) {
 						case "followup":
-						case "tool":
-						case "browser_action_launch":
-						case "command": // User can provide feedback to a tool or command use.
 						case "command_output": // User can send input to command stdin.
-						case "use_mcp_server":
 						case "completion_result": // If this happens then the user has feedback for the completion result.
 						case "resume_task":
 						case "resume_completed_task":
@@ -737,6 +733,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								text,
 								images,
 							})
+							break
+						case "tool":
+						case "browser_action_launch":
+						case "command": // User can provide feedback to a tool or command use.
+						case "use_mcp_server":
+							vscode.postMessage({
+								type: "askResponse",
+								askResponse: "noButtonClicked",
+							})
+							vscode.postMessage({ type: "queueMessage", text, images })
 							break
 						// There is no other case that a textfield should be enabled.
 					}

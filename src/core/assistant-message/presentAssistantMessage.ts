@@ -343,6 +343,11 @@ export async function presentAssistantMessage(cline: Task) {
 				if (response !== "yesButtonClicked") {
 					// On reject, do nothing - just reject
 					cline.didRejectTool = true
+
+					// If the user sent a message (which caused the rejection), it might be queued
+					// Process any queued messages now
+					cline.processQueuedMessages()
+
 					return false
 				}
 

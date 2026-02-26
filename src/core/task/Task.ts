@@ -3615,8 +3615,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				const queued = this.messageQueueService.dequeueMessage()
 				if (queued) {
 					setTimeout(() => {
-						this.submitUserMessage(queued.text, queued.images).catch((err) =>
-							console.error(`[Task] Failed to submit queued message:`, err),
+						this.enqueueManualUserMessage(queued.text, queued.images).catch((err) =>
+							console.error(`[Task] Failed to enqueue queued message:`, err),
 						)
 					}, 0)
 				}
