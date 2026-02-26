@@ -206,6 +206,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [messages, currentTaskTodos])
 
 	const modifiedMessages = useMemo(() => combineApiRequests(combineCommandSequences(messages.slice(1))), [messages])
+	const lastModifiedMessage = useMemo(() => modifiedMessages.at(-1), [modifiedMessages])
 
 	// Has to be after api_req_finished are all reduced into api_req_started messages.
 	const apiMetrics = useMemo(() => getApiMetrics(modifiedMessages), [modifiedMessages])
@@ -1930,7 +1931,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					<BrowserSessionRow
 						messages={messageOrGroup}
 						isLast={index === groupedMessages.length - 1}
-						lastModifiedMessage={modifiedMessages.at(-1)}
+						lastModifiedMessage={lastModifiedMessage}
 						onHeightChange={handleRowHeightChange}
 						isStreaming={isStreaming}
 						isExpanded={(messageTs: number) => expandedRows[messageTs] ?? false}
@@ -1945,14 +1946,27 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			}
 
 			// regular message
+			const isEditable =
+				messageOrGroup.type === "ask" &&
+				messageOrGroup.ask === "tool" &&
+				(() => {
+					let tool: any = {}
+					try {
+						tool = JSON.parse(messageOrGroup.text || "{}")
+					} catch (_e) {
+						tool = {}
+					}
+					return tool.name === "str_replace_editor" || tool.name === "insert_content"
+				})()
+
 			return (
 				<ChatRow
 					key={messageOrGroup.ts}
 					message={messageOrGroup}
 					isExpanded={expandedRows[messageOrGroup.ts] || false}
 					onToggleExpand={toggleRowExpansion} // This was already stabilized
-					lastModifiedMessage={modifiedMessages.at(-1)} // Original direct access
-					isLast={index === groupedMessages.length - 1} // Original direct access
+					lastModifiedMessage={lastModifiedMessage} // Memoized reference
+					isLast={index === groupedMessages.length - 1} // Array length is stable enough vs inline computation
 					onHeightChange={handleRowHeightChange}
 					isStreaming={isStreaming}
 					onSuggestionClick={handleSuggestionClickInRow} // This was already stabilized
@@ -1961,19 +1975,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					enableCheckpoints={enableCheckpoints} // kilocode_change
 					onFollowUpUnmount={handleFollowUpUnmount}
 					isFollowUpAnswered={messageOrGroup.isAnswered === true || messageOrGroup.ts === currentFollowUpTs}
-					editable={
-						messageOrGroup.type === "ask" &&
-						messageOrGroup.ask === "tool" &&
-						(() => {
-							let tool: any = {}
-							try {
-								tool = JSON.parse(messageOrGroup.text || "{}")
-							} catch (_e) {
-								tool = {}
-							}
-							return tool.name === "str_replace_editor" || tool.name === "insert_content"
-						})()
-					}
+					editable={isEditable}
 					onPrimaryButtonClick={handlePrimaryButtonClick}
 					onSecondaryButtonClick={handleSecondaryButtonClick}
 					enableButtons={enableButtons && index === groupedMessages.length - 1}
@@ -1985,7 +1987,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		[
 			expandedRows,
 			toggleRowExpansion,
-			modifiedMessages,
+			lastModifiedMessage,
 			groupedMessages.length,
 			handleRowHeightChange,
 			isStreaming,

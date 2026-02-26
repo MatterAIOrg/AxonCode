@@ -1,5 +1,4 @@
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
-import { useEffect, useState } from "react"
 
 export const ProgressIndicator = () => (
 	<div
@@ -17,16 +16,6 @@ export const ProgressIndicator = () => (
 )
 
 export const MatterProgressIndicator = () => {
-	const [activeIndex, setActiveIndex] = useState(0)
-
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setActiveIndex((prev) => (prev + 1) % 3)
-		}, 100)
-
-		return () => clearInterval(interval)
-	}, [])
-
 	return (
 		<div
 			style={{
@@ -35,17 +24,7 @@ export const MatterProgressIndicator = () => {
 				gap: "3px",
 			}}>
 			{[0, 1, 2].map((index) => (
-				<div
-					key={index}
-					style={{
-						width: "6px",
-						height: "6px",
-						borderRadius: "1px",
-						backgroundColor: index === activeIndex ? "#c4fdff" : "rgba(196, 253, 255, 0.5)",
-						cursor: "pointer",
-						transition: "all 0.05s ease",
-					}}
-				/>
+				<div key={index} className="matter-progress-dot" style={{ animationDelay: `${index * 100}ms` }} />
 			))}
 		</div>
 	)
