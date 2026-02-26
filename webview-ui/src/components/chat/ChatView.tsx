@@ -1058,6 +1058,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					// kilocode_change: Refresh git changes for review when workspace changes
 					vscode.postMessage({ type: "getGitChangesForReview" })
 					break
+				case "mode":
+					// Reset sendingDisabled when mode changes to allow messages to be sent directly
+					setSendingDisabled(false)
+					break
 			}
 			// textAreaRef.current is not explicitly required here since React
 			// guarantees that ref will be stable across re-renders, and we're
@@ -1078,6 +1082,18 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	)
 
 	useEvent("message", handleMessage)
+
+	// Listen for mode changes to reset sendingDisabled
+	useEffect(() => {
+		const handleModeChanged = (_event: CustomEvent) => {
+			// Reset sendingDisabled when mode changes to allow messages to be sent directly
+			setSendingDisabled(false)
+		}
+		window.addEventListener("modeChanged", handleModeChanged as EventListener)
+		return () => {
+			window.removeEventListener("modeChanged", handleModeChanged as EventListener)
+		}
+	}, [])
 
 	// forked_change start: Check for git changes on mount and periodically
 	useEffect(() => {

@@ -44,6 +44,16 @@ export class FileEditReviewController implements vscode.Disposable {
 	private static readonly controllers = new Map<string, FileEditReviewController>()
 	private static commandsRegistered = false
 
+	private static getActiveController(): FileEditReviewController | undefined {
+		for (const controller of FileEditReviewController.controllers.values()) {
+			if (controller.reviewQueue.length > 0) {
+				return controller
+			}
+		}
+		const controllers = Array.from(FileEditReviewController.controllers.values())
+		return controllers[controllers.length - 1]
+	}
+
 	constructor(
 		private cwd: string,
 		getToken?: () => Promise<string | undefined>,
@@ -78,37 +88,37 @@ export class FileEditReviewController implements vscode.Disposable {
 				const taskId = args[2]?.taskId
 				const controller = taskId
 					? FileEditReviewController.controllers.get(taskId)
-					: Array.from(FileEditReviewController.controllers.values())[0]
+					: FileEditReviewController.getActiveController()
 				return controller?.handleAccept(args[0], args[1], args[2])
 			})
 			vscode.commands.registerCommand(ACCEPT_ALL_COMMAND, (taskId?: string) => {
 				const controller = taskId
 					? FileEditReviewController.controllers.get(taskId)
-					: Array.from(FileEditReviewController.controllers.values())[0]
+					: FileEditReviewController.getActiveController()
 				return controller?.handleAcceptAll()
 			})
 			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any, index?: number, taskId?: string) => {
 				const controller = taskId
 					? FileEditReviewController.controllers.get(taskId)
-					: Array.from(FileEditReviewController.controllers.values())[0]
+					: FileEditReviewController.getActiveController()
 				return controller?.handleReject(arg, index)
 			})
 			vscode.commands.registerCommand(REJECT_ALL_COMMAND, (taskId?: string) => {
 				const controller = taskId
 					? FileEditReviewController.controllers.get(taskId)
-					: Array.from(FileEditReviewController.controllers.values())[0]
+					: FileEditReviewController.getActiveController()
 				return controller?.handleRejectAll()
 			})
 			vscode.commands.registerCommand(NEXT_COMMAND, (taskId?: string) => {
 				const controller = taskId
 					? FileEditReviewController.controllers.get(taskId)
-					: Array.from(FileEditReviewController.controllers.values())[0]
+					: FileEditReviewController.getActiveController()
 				return controller?.handleReviewNext()
 			})
 			vscode.commands.registerCommand(PREV_COMMAND, (taskId?: string) => {
 				const controller = taskId
 					? FileEditReviewController.controllers.get(taskId)
-					: Array.from(FileEditReviewController.controllers.values())[0]
+					: FileEditReviewController.getActiveController()
 				return controller?.handleReviewPrev()
 			})
 			vscode.commands.registerCommand("axon-code.fileEdit.deletedLine", () => {}) // no-op command so VS Code doesn't strip it

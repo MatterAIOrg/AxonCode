@@ -390,7 +390,14 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 			switch (message.type) {
 				case "state": {
 					const newState = message.state!
-					setState((prevState) => mergeExtensionState(prevState, newState))
+					setState((prevState) => {
+						// Check if mode changed and dispatch custom event to notify ChatView
+						if (newState.mode !== undefined && prevState.mode !== newState.mode) {
+							// Dispatch custom event that ChatView can listen for
+							window.dispatchEvent(new CustomEvent("modeChanged", { detail: { newMode: newState.mode } }))
+						}
+						return mergeExtensionState(prevState, newState)
+					})
 					setShowWelcome(!checkExistKey(newState.apiConfiguration))
 					setDidHydrateState(true)
 					// Update alwaysAllowFollowupQuestions if present in state message

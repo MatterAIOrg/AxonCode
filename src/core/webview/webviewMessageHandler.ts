@@ -1834,7 +1834,7 @@ ${comment.suggestion}
 			// Execute the accept all command and get line counters
 			const lineCounters = await vscode.commands.executeCommand<
 				{ linesAdded: number; linesUpdated: number; linesDeleted: number } | undefined
-			>("axon-code.fileEdit.acceptAll")
+			>("axon-code.fileEdit.acceptAll", currentTask.taskId)
 
 			// Send line counters to server if we have data
 			if (
@@ -1914,7 +1914,7 @@ ${comment.suggestion}
 			break
 		}
 		case "fileEditReviewRejectAll":
-			await vscode.commands.executeCommand("axon-code.fileEdit.rejectAll")
+			await vscode.commands.executeCommand("axon-code.fileEdit.rejectAll", provider.getCurrentTask()?.taskId)
 			break
 		case "tasksByIdRequest": {
 			const request = message.payload as TasksByIdRequestPayload
@@ -4812,6 +4812,8 @@ ${comment.suggestion}
 				const { planFile, planContent } = message.payload as ImplementPlanPayload
 				// Switch to agent mode first
 				await provider.handleModeSwitch("agent")
+				// Post state to webview to ensure mode change is reflected
+				await provider.postStateToWebview()
 				// Small delay to ensure mode switch has propagated
 				await delay(100)
 				// Send the plan content as a user message to start implementation
@@ -4832,9 +4834,22 @@ ${comment.suggestion}
 					const globalStoragePath = provider.contextProxy.globalStorageUri.fsPath
 					const planMemoryDir = await getPlanMemoryDirectoryPath(globalStoragePath, currentTask.taskId)
 					const planFilePath = path.join(planMemoryDir, planFile)
+
 					try {
-						const document = await vscode.workspace.openTextDocument(vscode.Uri.file(planFilePath))
-						await vscode.window.showTextDocument(document, { preview: false })
+						// Check if running in Orbital IDE
+						const { isOrbitalIDE } = await import("../../utils/detectOrbitalIDE")
+
+						if (isOrbitalIDE()) {
+							// Use custom markdown rendering in Orbital IDE
+							const { openPlanFileInEditor } = await import(
+								"../../integrations/editor/PlanEditorProvider"
+							)
+							await openPlanFileInEditor(planFile, provider.contextProxy.rawContext)
+						} else {
+							// Use raw text document in other IDEs
+							const document = await vscode.workspace.openTextDocument(vscode.Uri.file(planFilePath))
+							await vscode.window.showTextDocument(document, { preview: false })
+						}
 					} catch (error) {
 						console.error("Failed to open plan file:", error)
 					}
