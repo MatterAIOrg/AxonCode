@@ -205,7 +205,13 @@ export interface ExtensionStateContextType extends ExtensionState {
 		maxTokens: number
 	} // kilocode_change: Track context window usage
 	betaModelsEnabled?: boolean // kilocode_change: Beta models availability
-	backgroundRunningTasks?: Array<{ taskId: string; taskLabel: string; isCompleted: boolean }> // kilocode_change: multi-chat support
+	backgroundRunningTasks?: Array<{
+		taskId: string
+		taskLabel: string
+		isCompleted: boolean
+		apiProvider?: string
+		apiModelId?: string
+	}> // kilocode_change: multi-chat support
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)

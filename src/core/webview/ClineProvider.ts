@@ -2190,10 +2190,66 @@ ${prompt}
 					rootTask.abort ||
 					rootTask.clineMessages.some((msg) => msg.type === "say" && msg.say === "completion_result")
 
-				return { taskId, taskLabel, isCompleted, ts: historyItem?.ts || 0 }
+				// Get model information from task's API configuration
+				const apiProvider = rootTask.apiConfiguration?.apiProvider
+				let apiModelId: string | undefined
+				if (apiProvider) {
+					const modelFieldMap: Record<string, keyof typeof rootTask.apiConfiguration> = {
+						anthropic: "apiModelId",
+						"claude-code": "apiModelId",
+						bedrock: "apiModelId",
+						vertex: "apiModelId",
+						gemini: "apiModelId",
+						"gemini-cli": "apiModelId",
+						mistral: "apiModelId",
+						deepseek: "apiModelId",
+						doubao: "apiModelId",
+						moonshot: "apiModelId",
+						xai: "apiModelId",
+						groq: "apiModelId",
+						chutes: "apiModelId",
+						cerebras: "apiModelId",
+						sambanova: "apiModelId",
+						zai: "apiModelId",
+						fireworks: "apiModelId",
+						synthetic: "apiModelId",
+						featherless: "apiModelId",
+						"qwen-code": "apiModelId",
+						roo: "apiModelId",
+						"virtual-quota-fallback": "apiModelId",
+						openrouter: "openRouterModelId",
+						"kilocode-openrouter": "openRouterModelId",
+						glama: "glamaModelId",
+						openai: "openAiModelId",
+						"openai-native": "openAiModelId",
+						ollama: "ollamaModelId",
+						lmstudio: "lmStudioModelId",
+						unbound: "unboundModelId",
+						requesty: "requestyModelId",
+						litellm: "litellmModelId",
+						huggingface: "huggingFaceModelId",
+						"io-intelligence": "ioIntelligenceModelId",
+						"vercel-ai-gateway": "vercelAiGatewayModelId",
+						deepinfra: "deepInfraModelId",
+						kilocode: "kilocodeModel",
+						ovhcloud: "ovhCloudAiEndpointsModelId",
+					}
+					const field = modelFieldMap[apiProvider]
+					if (field) {
+						apiModelId = rootTask.apiConfiguration[field] as string | undefined
+					}
+				}
+
+				return { taskId, taskLabel, isCompleted, apiProvider, apiModelId, ts: historyItem?.ts || 0 }
 			})
 			.sort((a, b) => (b.ts as number) - (a.ts as number))
-			.map(({ taskId, taskLabel, isCompleted }) => ({ taskId, taskLabel, isCompleted }))
+			.map(({ taskId, taskLabel, isCompleted, apiProvider, apiModelId }) => ({
+				taskId,
+				taskLabel,
+				isCompleted,
+				apiProvider,
+				apiModelId,
+			}))
 
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",

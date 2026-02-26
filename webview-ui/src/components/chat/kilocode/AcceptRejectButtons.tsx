@@ -203,8 +203,9 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 						className="rounded-md text-sm px-3 py-1"
 						onClick={acceptCallback}
 						style={{
-							background: "var(--vscode-button-background)",
-							color: "var(--vscode-button-foreground)",
+							background: "#1f932f",
+							color: "#ffffff",
+							fontWeight: 600,
 						}}>
 						Accept all
 					</Button>

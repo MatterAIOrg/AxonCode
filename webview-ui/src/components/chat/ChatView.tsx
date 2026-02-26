@@ -2434,6 +2434,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																</span>
 															</>
 														)}
+														{bt.apiModelId && (
+															<div className="flex items-center gap-2">
+																<div className="w-1 h-1 rounded-full bg-[var(--vscode-descriptionForeground)]" />
+																<span className="text-xs text-[var(--vscode-descriptionForeground)] truncate max-w-[150px]">
+																	{bt.apiModelId}
+																</span>
+															</div>
+														)}
 													</div>
 												</div>
 												<VSCodeButton
