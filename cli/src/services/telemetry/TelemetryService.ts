@@ -8,7 +8,7 @@ import { getIdentityManager } from "./identity.js"
 import { TelemetryEvent } from "./events.js"
 import { logs } from "../logs.js"
 import type { CLIConfig } from "../../config/types.js"
-import { KILOCODE_POSTHOG_API_KEY } from "../../constants/telemetry.js"
+import { ORBITAL_POSTHOG_API_KEY } from "../../constants/telemetry.js"
 
 /**
  * Telemetry Service
@@ -64,9 +64,9 @@ export class TelemetryService {
 			}
 
 			// Get API key from environment
-			const apiKey = KILOCODE_POSTHOG_API_KEY
+			const apiKey = ORBITAL_POSTHOG_API_KEY
 			if (!apiKey) {
-				logs.warn("KILOCODE_POSTHOG_API_KEY not set, telemetry disabled", "TelemetryService")
+				logs.warn("ORBITAL_POSTHOG_API_KEY not set, telemetry disabled", "TelemetryService")
 				this.isInitialized = true
 				return
 			}

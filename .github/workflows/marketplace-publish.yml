@@ -42,7 +42,7 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
             - name: Create .env file
-              run: echo "KILOCODE_POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" >> .env
+              run: echo "ORBITAL_POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" >> .env
             - name: Package Extension
               run: |
                   current_package_version=$(node -p "require('./src/package.json').version")
@@ -155,7 +155,7 @@ jobs:
             - name: Install dependencies
               run: pnpm install
             - name: Create .env file
-              run: echo "KILOCODE_POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" >> .env
+              run: echo "ORBITAL_POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" >> .env
             - name: Build
               run: pnpm run jetbrains:bundle
               shell: bash
