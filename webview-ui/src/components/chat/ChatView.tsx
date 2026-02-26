@@ -68,12 +68,12 @@ import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 // import ProfileViolationWarning from "./ProfileViolationWarning" kilocode_change: unused
+import { LinkSquare01Icon, PlayCircleIcon } from "@/utils/customIcons"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
 import { SourceControlPanel } from "./SourceControlPanel" // kilocode_change
-import { LinkSquare01Icon } from "@/utils/customIcons"
 // import DismissibleUpsell from "../common/DismissibleUpsell" // kilocode_change: unused
 // import { useCloudUpsell } from "@src/hooks/useCloudUpsell" // kilocode_change: unused
 // import { Cloud } from "lucide-react" // kilocode_change: unused
@@ -2392,8 +2392,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							{/* Background tasks - Hidden in review only mode */}
 							{!isReviewOnlyMode && backgroundRunningTasks && backgroundRunningTasks.length > 0 && (
 								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)]">
-									<div className="flex flex-row items-center gap-2 mb-2">
-										<span className="codicon codicon-play-circle text-vscode-foreground" />
+									<div className="flex flex-row items-center gap-1 mb-2">
+										<PlayCircleIcon className="w-4 h-4 rtl:-scale-x-100" />
 										<span className="text-md font-semibold text-vscode-foreground">
 											Background Tasks
 										</span>

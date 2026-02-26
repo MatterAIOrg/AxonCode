@@ -554,6 +554,11 @@ export class ClineProvider
 
 		this.log(`[bringTaskToForeground] Restored task ${taskId} to foreground`)
 
+		// Restore the task's model to global state for UI display
+		if (topTask.apiConfiguration) {
+			await this.contextProxy.setProviderSettings(topTask.apiConfiguration)
+		}
+
 		await this.postStateToWebview()
 	}
 	// kilocode_change: multi-chat support end
@@ -1044,14 +1049,75 @@ ${prompt}
 			taskSyncEnabled,
 		} = await this.getState()
 
+		// Restore model from history if available for task isolation
+		let taskApiConfiguration = { ...apiConfiguration }
+		if (historyItem.apiProvider && historyItem.apiModelId) {
+			// Map provider to its model ID field
+			const modelFieldMap: Record<string, keyof typeof apiConfiguration> = {
+				anthropic: "apiModelId",
+				"claude-code": "apiModelId",
+				bedrock: "apiModelId",
+				vertex: "apiModelId",
+				gemini: "apiModelId",
+				"gemini-cli": "apiModelId",
+				mistral: "apiModelId",
+				deepseek: "apiModelId",
+				doubao: "apiModelId",
+				moonshot: "apiModelId",
+				xai: "apiModelId",
+				groq: "apiModelId",
+				chutes: "apiModelId",
+				cerebras: "apiModelId",
+				sambanova: "apiModelId",
+				zai: "apiModelId",
+				fireworks: "apiModelId",
+				synthetic: "apiModelId",
+				featherless: "apiModelId",
+				"qwen-code": "apiModelId",
+				roo: "apiModelId",
+				"virtual-quota-fallback": "apiModelId",
+				openrouter: "openRouterModelId",
+				"kilocode-openrouter": "openRouterModelId",
+				glama: "glamaModelId",
+				openai: "openAiModelId",
+				"openai-native": "openAiModelId",
+				ollama: "ollamaModelId",
+				lmstudio: "lmStudioModelId",
+				unbound: "unboundModelId",
+				requesty: "requestyModelId",
+				litellm: "litellmModelId",
+				huggingface: "huggingFaceModelId",
+				"io-intelligence": "ioIntelligenceModelId",
+				"vercel-ai-gateway": "vercelAiGatewayModelId",
+				deepinfra: "deepInfraModelId",
+				kilocode: "kilocodeModel",
+				ovhcloud: "ovhCloudAiEndpointsModelId",
+			}
+
+			const field = modelFieldMap[historyItem.apiProvider]
+			if (field) {
+				// Update the configuration with the saved model
+				taskApiConfiguration = {
+					...taskApiConfiguration,
+					apiProvider: historyItem.apiProvider as any,
+					[field]: historyItem.apiModelId,
+				}
+				this.log(
+					`[createTaskWithHistoryItem] Restored model '${historyItem.apiModelId}' for provider '${historyItem.apiProvider}'`,
+				)
+				// Update global state to reflect the task's model in the UI
+				await this.contextProxy.setProviderSettings(taskApiConfiguration)
+			}
+		}
+
 		const task = new Task({
 			context: this.context, // kilocode_change
 			provider: this,
-			apiConfiguration,
+			apiConfiguration: taskApiConfiguration,
 			enableDiff,
 			enableCheckpoints,
 			fuzzyMatchThreshold,
-			consecutiveMistakeLimit: apiConfiguration.consecutiveMistakeLimit,
+			consecutiveMistakeLimit: taskApiConfiguration.consecutiveMistakeLimit,
 			historyItem,
 			experiments,
 			rootTask: historyItem.rootTask,

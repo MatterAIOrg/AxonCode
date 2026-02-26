@@ -194,6 +194,7 @@ export interface WebviewMessage {
 		| "maxWorkspaceFiles"
 		| "switchToBackgroundTask" // multi-chat
 		| "humanRelayResponse"
+		| "updateTaskModel" // Task-local model update for isolation
 		| "humanRelayCancel"
 		| "insertTextToChatArea" // kilocode_change
 		| "browserToolEnabled"
@@ -396,6 +397,9 @@ export interface WebviewMessage {
 	config?: Record<string, any> // Add config to the payload
 	visibility?: ShareVisibility // For share visibility
 	hasContent?: boolean // For checkRulesDirectoryResult
+	// Task-local model update for isolation
+	apiProvider?: string // For updateTaskModel
+	apiModelId?: string // For updateTaskModel
 	checkOnly?: boolean // For deleteCustomMode check
 	upsellId?: string // For dismissUpsell
 	list?: string[] // For dismissedUpsells response

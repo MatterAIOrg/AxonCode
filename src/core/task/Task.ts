@@ -794,6 +794,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				workspace: this.cwd,
 				mode: this._taskMode || defaultModeSlug, // Use the task's own mode, not the current provider mode.
 				contextWindowUsage: this.contextWindowUsage, // Pass current context window usage
+				apiConfiguration: this.apiConfiguration, // Pass task's API configuration for model isolation
 			})
 
 			if (hasTokenUsageChanged(tokenUsage, this.tokenUsageSnapshot)) {
@@ -3624,5 +3625,78 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		} catch (e) {
 			console.error(`[Task] Queue processing error:`, e)
 		}
+	}
+
+	/**
+	 * Update the model for this task without affecting global state.
+	 * This enables task-local model isolation - each task can have its own model.
+	 *
+	 * @param apiProvider - The API provider (e.g., "anthropic", "openrouter")
+	 * @param apiModelId - The model ID to use
+	 */
+	public updateModel(apiProvider: string, apiModelId: string): void {
+		// Map provider to its model ID field
+		const modelFieldMap: Record<string, keyof ProviderSettings> = {
+			anthropic: "apiModelId",
+			"claude-code": "apiModelId",
+			bedrock: "apiModelId",
+			vertex: "apiModelId",
+			gemini: "apiModelId",
+			"gemini-cli": "apiModelId",
+			mistral: "apiModelId",
+			deepseek: "apiModelId",
+			doubao: "apiModelId",
+			moonshot: "apiModelId",
+			xai: "apiModelId",
+			groq: "apiModelId",
+			chutes: "apiModelId",
+			cerebras: "apiModelId",
+			sambanova: "apiModelId",
+			zai: "apiModelId",
+			fireworks: "apiModelId",
+			synthetic: "apiModelId",
+			featherless: "apiModelId",
+			"qwen-code": "apiModelId",
+			roo: "apiModelId",
+			"virtual-quota-fallback": "apiModelId",
+			openrouter: "openRouterModelId",
+			"kilocode-openrouter": "openRouterModelId",
+			glama: "glamaModelId",
+			openai: "openAiModelId",
+			"openai-native": "openAiModelId",
+			ollama: "ollamaModelId",
+			lmstudio: "lmStudioModelId",
+			unbound: "unboundModelId",
+			requesty: "requestyModelId",
+			litellm: "litellmModelId",
+			huggingface: "huggingFaceModelId",
+			"io-intelligence": "ioIntelligenceModelId",
+			"vercel-ai-gateway": "vercelAiGatewayModelId",
+			deepinfra: "deepInfraModelId",
+			kilocode: "kilocodeModel",
+			ovhcloud: "ovhCloudAiEndpointsModelId",
+		}
+
+		const field = modelFieldMap[apiProvider]
+		if (!field) {
+			console.error(`[Task#updateModel] Unknown provider: ${apiProvider}`)
+			return
+		}
+
+		// Create a new configuration object with the updated model
+		// We need to cast because TypeScript doesn't know the field is valid
+		const updatedConfig = {
+			...this.apiConfiguration,
+			apiProvider,
+			[field]: apiModelId,
+		} as ProviderSettings
+
+		// Update the task's configuration (this is task-local, not global)
+		;(this as any).apiConfiguration = updatedConfig
+
+		// Rebuild the API handler with the new configuration
+		this.api = buildApiHandler(updatedConfig)
+
+		console.log(`[Task#updateModel] Updated task ${this.taskId} to use ${apiProvider}/${apiModelId}`)
 	}
 }

@@ -18,16 +18,18 @@ export const historyItemSchema = z.object({
 	totalCost: z.number(),
 	size: z.number().optional(),
 	workspace: z.string().optional(),
-	isFavorited: z.boolean().optional(), // kilocode_change
-	fileNotfound: z.boolean().optional(), // kilocode_change
+	isFavorited: z.boolean().optional(), // kilicode_change
+	fileNotfound: z.boolean().optional(), // kilicode_change
 	mode: z.string().optional(),
-	title: z.string().optional(), // kilocode_change: Task title from backend
+	title: z.string().optional(), // kilicode_change: Task title from backend
 	contextWindowUsage: z
 		.object({
 			currentTokens: z.number(),
 			maxTokens: z.number(),
 		})
 		.optional(),
+	apiProvider: z.string().optional(), // Task-specific API provider
+	apiModelId: z.string().optional(), // Task-specific model ID
 })
 
 export type HistoryItem = z.infer<typeof historyItemSchema>
