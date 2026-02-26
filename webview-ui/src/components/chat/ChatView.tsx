@@ -742,8 +742,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							vscode.postMessage({
 								type: "askResponse",
 								askResponse: "noButtonClicked",
+								text,
+								images,
 							})
-							vscode.postMessage({ type: "queueMessage", text, images })
 							break
 						// There is no other case that a textfield should be enabled.
 					}
@@ -972,7 +973,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "action":
 					switch (message.action!) {
 						case "didBecomeVisible":
-							if (!isHidden && !sendingDisabled && !enableButtons) {
+							// Only focus if the webview already has focus (user is interacting with it)
+							// Don't steal focus from IDE editor
+							if (!isHidden && !sendingDisabled && !enableButtons && document.hasFocus()) {
 								textAreaRef.current?.focus()
 							}
 							break
@@ -1128,7 +1131,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// forked_change end
 
 	// NOTE: the VSCode window needs to be focused for this to work.
-	useMount(() => textAreaRef.current?.focus())
+	// Only focus on mount if webview has focus (e.g., opened via shortcut)
+	// Don't steal focus if user is in IDE editor
+	useMount(() => {
+		if (document.hasFocus()) {
+			textAreaRef.current?.focus()
+		}
+	})
 
 	const visibleMessages = useMemo(() => {
 		const shouldHideApiReqStartedMessage = (message: ClineMessage): boolean => {
@@ -1266,7 +1275,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	useDebounceEffect(
 		() => {
-			if (!isHidden && !sendingDisabled && !enableButtons) {
+			// Only focus if the webview already has focus (user is interacting with it)
+			// Don't steal focus from IDE editor
+			if (!isHidden && !sendingDisabled && !enableButtons && document.hasFocus()) {
 				textAreaRef.current?.focus()
 			}
 		},
@@ -1878,6 +1889,36 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [modifiedMessages.length, isStreaming, isHidden])
 
+	// 3-minute timeout for silent LLM failures
+	const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const STREAMING_TIMEOUT_MS = 3 * 60 * 1000 // 3 minutes
+
+	useEffect(() => {
+		// Clear any existing timeout
+		if (streamingTimeoutRef.current) {
+			clearTimeout(streamingTimeoutRef.current)
+			streamingTimeoutRef.current = null
+		}
+
+		if (isStreaming) {
+			streamingTimeoutRef.current = setTimeout(() => {
+				// LLM has not responded for 3 minutes — show retry
+				setSendingDisabled(false)
+				setClineAsk("api_req_failed")
+				setEnableButtons(true)
+				setPrimaryButtonText(t("chat:retry.title"))
+				setSecondaryButtonText(t("chat:terminate.title"))
+			}, STREAMING_TIMEOUT_MS)
+		}
+
+		return () => {
+			if (streamingTimeoutRef.current) {
+				clearTimeout(streamingTimeoutRef.current)
+				streamingTimeoutRef.current = null
+			}
+		}
+	}, [isStreaming, messages.length, t, STREAMING_TIMEOUT_MS])
+
 	const switchToMode = useCallback(
 		(modeSlug: string): void => {
 			// Update local state and notify extension to sync mode change.
@@ -2407,8 +2448,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							)}
 							{/* Background tasks - Hidden in review only mode */}
 							{!isReviewOnlyMode && backgroundRunningTasks && backgroundRunningTasks.length > 0 && (
-								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)]">
-									<div className="flex flex-row items-center gap-1 mb-2">
+								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)] max-h-[50%] flex flex-col overflow-hidden">
+									<div className="flex flex-row items-center gap-1 mb-2 shrink-0">
 										<PlayCircleIcon className="w-4 h-4 rtl:-scale-x-100" />
 										<span className="text-md font-semibold text-vscode-foreground">
 											Background Tasks
@@ -2417,7 +2458,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 											{backgroundRunningTasks.filter((t) => !t.isCompleted).length} running
 										</span>
 									</div>
-									<div className="flex flex-col gap-2">
+									<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
 										{backgroundRunningTasks.map((bt) => (
 											<div
 												key={bt.taskId}
@@ -2452,7 +2493,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 														)}
 														{bt.apiModelId && (
 															<div className="flex items-center gap-2">
-																<div className="w-1 h-1 rounded-full bg-[var(--vscode-descriptionForeground)]" />
+																<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/40" />
 																<span className="text-xs text-[var(--vscode-descriptionForeground)] truncate max-w-[150px]">
 																	{bt.apiModelId}
 																</span>

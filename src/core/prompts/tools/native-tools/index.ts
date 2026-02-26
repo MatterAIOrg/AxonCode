@@ -16,6 +16,8 @@ import fileEdit from "./file_edit"
 import updateTodoList from "./update_todo_list"
 import codebaseSearch from "./codebase_search"
 import planFileEdit from "./plan_file_edit"
+import readPlanFile from "./read_plan_file"
+import listPlanFiles from "./list_plan_files"
 import useSkill from "./use_skill"
 
 export const nativeTools = [
@@ -36,6 +38,8 @@ export const nativeTools = [
 	listFiles,
 	// newTask,
 	planFileEdit,
+	readPlanFile,
+	listPlanFiles,
 	read_file_single,
 	// runSlashCommand,
 	// searchAndReplace,

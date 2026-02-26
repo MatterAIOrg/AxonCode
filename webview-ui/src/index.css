@@ -446,7 +446,7 @@ vscode-text-field::part(input) {
 /* Context mentions */
 
 .mention-context-textarea-highlight {
-	background-color: color-mix(in srgb, var(--vscode-activityBar-background) 100%, #000000 10%);
+	background-color: color-mix(in srgb, var(--vscode-button-background) 30%, #000000 99%);
 	border-radius: 3px;
 	color: white;
 	text-align: center;
@@ -458,14 +458,14 @@ vscode-text-field::part(input) {
 }
 
 .mention-context-highlight {
-	background-color: color-mix(in srgb, var(--vscode-activityBar-background) 100%, #000000 10%);
+	background-color: color-mix(in srgb, var(--vscode-button-background) 30%, #000000 99%);
 	border-radius: 3px;
 	color: white;
 	text-align: center;
 }
 
 .mention-context-highlight-with-shadow {
-	background-color: color-mix(in srgb, var(--vscode-activityBar-background) 100%, #000000 10%);
+	background-color: color-mix(in srgb, var(--vscode-button-background) 30%, #000000 99%);
 	border-radius: 3px;
 	text-align: center;
 	color: white;
@@ -479,7 +479,7 @@ vscode-text-field::part(input) {
 	padding: 0.5px 4px;
 	border-radius: 4px;
 	font-size: 10px;
-	background-color: color-mix(in srgb, var(--vscode-activityBar-background) 100%, #000000 10%);
+	background-color: color-mix(in srgb, var(--vscode-button-background) 30%, #000000 99%);
 	color: var(--vscode-foreground);
 	font-size: inherit;
 	font-weight: 400;

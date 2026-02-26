@@ -1,1 +1,1 @@
-export const KILOCODE_POSTHOG_API_KEY = process.env.KILOCODE_POSTHOG_API_KEY || ""
+export const ORBITAL_POSTHOG_API_KEY = process.env.ORBITAL_POSTHOG_API_KEY || ""

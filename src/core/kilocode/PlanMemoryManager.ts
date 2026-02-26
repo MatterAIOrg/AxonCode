@@ -137,4 +137,29 @@ export class PlanMemoryManager {
 		}
 		return null
 	}
+
+	/**
+	 * Get file metadata (line count, size, etc.)
+	 */
+	getFileMetadata(filename: string): { lineCount: number; charCount: number } | undefined {
+		const safeFilename = path.basename(filename)
+		const content = this.files.get(safeFilename)
+		if (!content) return undefined
+
+		return {
+			lineCount: content.split("\n").length,
+			charCount: content.length,
+		}
+	}
+
+	/**
+	 * Get summary of all files
+	 */
+	getFilesSummary(): Array<{ filename: string; lineCount: number; charCount: number }> {
+		return Array.from(this.files.entries()).map(([filename, content]) => ({
+			filename,
+			lineCount: content.split("\n").length,
+			charCount: content.length,
+		}))
+	}
 }

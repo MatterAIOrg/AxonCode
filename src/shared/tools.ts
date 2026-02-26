@@ -256,6 +256,8 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	run_slash_command: "run slash command",
 	generate_image: "generate images",
 	plan_file_edit: "edit plan files", // kilocode_change: Plan mode file editing
+	read_plan_file: "read plan files", // kilocode_change: Plan mode file reading
+	list_plan_files: "list plan files", // kilocode_change: Plan mode file listing
 	check_past_chat_memories: "check past chat memories",
 	use_skill: "use skill",
 } as const
@@ -289,6 +291,8 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 	plan: {
 		tools: [
 			"plan_file_edit", // kilocode_change: Plan mode file editing
+			"read_plan_file", // kilocode_change: Plan mode file reading
+			"list_plan_files", // kilocode_change: Plan mode file listing
 		],
 	},
 	browser: {

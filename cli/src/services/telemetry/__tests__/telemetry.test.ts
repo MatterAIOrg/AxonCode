@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 // This must be done before importing TelemetryService
 vi.mock("../../constants/telemetry.js", async () => {
 	return {
-		KILOCODE_POSTHOG_API_KEY: "test-posthog-api-key",
+		ORBITAL_POSTHOG_API_KEY: "test-posthog-api-key",
 	}
 })
 
@@ -220,7 +220,7 @@ describe("TelemetryService", () => {
 			ciMode: false,
 		})
 
-		// In test environment without KILOCODE_POSTHOG_API_KEY, telemetry will be disabled
+		// In test environment without ORBITAL_POSTHOG_API_KEY, telemetry will be disabled
 		// The service initializes successfully but isEnabled() returns false without an API key
 		expect(service.isEnabled()).toBe(false)
 	})

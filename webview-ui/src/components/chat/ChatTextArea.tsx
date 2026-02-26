@@ -133,9 +133,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		// Expand short mentions @filename to full paths @/full/path before sending
 		const expandMentions = useCallback((text: string): string => {
-			// Match @word patterns that might be filenames (has extension like .ts, .js, etc.)
-			return text.replace(/@([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)/g, (_match, filename) => {
-				const fullPath = mentionMapRef.current.get(filename)
+			// Match @word patterns that might be filenames or folder names
+			return text.replace(/@([a-zA-Z0-9_.-]+(?:\.[a-zA-Z0-9]+)?)/g, (_match, name) => {
+				const fullPath = mentionMapRef.current.get(name)
 				if (fullPath) {
 					return `${fullPath}`
 				}
@@ -686,9 +686,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 				processedText = processedText
 					.replace(/\n/g, '<br data-plain-break="true">')
-					.replace(/@([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)(?=\s|$)/g, (_match, filename) => {
-						if (mentionMapRef.current.has(filename)) {
-							return renderMentionChipLocal(filename, true)
+					.replace(/@([a-zA-Z0-9_.-]+(?:\.[a-zA-Z0-9]+)?)(?=\s|$)/g, (_match, name) => {
+						if (mentionMapRef.current.has(name)) {
+							return renderMentionChipLocal(name, true)
 						}
 						return _match
 					})

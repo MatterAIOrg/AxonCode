@@ -38,9 +38,25 @@ export async function planFileEditTool(
 
 		// Write to plan memory
 		if (cline.planMemoryManager) {
+			const isUpdate = cline.planMemoryManager.hasFile(filename)
+			const oldContent = isUpdate ? cline.planMemoryManager.readFile(filename) : ""
+
 			await cline.planMemoryManager.writeFile(filename, content)
 
-			const successMessage = `Plan file '${filename}' has been created/updated successfully.`
+			// Provide contextual feedback
+			let successMessage: string
+			if (isUpdate) {
+				successMessage = `Plan file '${filename}' has been updated.`
+				if (oldContent && oldContent !== content) {
+					// Calculate and show a brief summary of changes
+					const oldLines = oldContent.split("\n").length
+					const newLines = content.split("\n").length
+					successMessage += ` (${oldLines} lines → ${newLines} lines)`
+				}
+			} else {
+				successMessage = `Plan file '${filename}' has been created.`
+			}
+
 			const messageProps: ClineSayTool = {
 				tool: "planFileEdit",
 				filename,
@@ -49,6 +65,9 @@ export async function planFileEditTool(
 
 			await cline.ask("tool", JSON.stringify(messageProps))
 			pushToolResult(successMessage)
+
+			// Process any queued messages after plan file edit completes
+			cline.processQueuedMessages()
 		} else {
 			const errorMessage = "Plan memory manager is not available"
 			const formattedError = formatResponse.toolError(errorMessage)

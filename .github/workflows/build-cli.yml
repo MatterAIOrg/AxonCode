@@ -36,7 +36,7 @@ jobs:
             - name: Install dependencies
               run: pnpm install
             - name: Create .env file
-              run: echo "KILOCODE_POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" >> .env
+              run: echo "ORBITAL_POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" >> .env
               working-directory: cli
             - name: Build
               run: pnpm run cli:bundle
