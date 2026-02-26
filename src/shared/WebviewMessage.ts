@@ -192,6 +192,7 @@ export interface WebviewMessage {
 		| "deleteMcpServer"
 		| "maxOpenTabsContext"
 		| "maxWorkspaceFiles"
+		| "switchToBackgroundTask" // multi-chat
 		| "humanRelayResponse"
 		| "humanRelayCancel"
 		| "insertTextToChatArea" // kilocode_change
@@ -384,6 +385,7 @@ export interface WebviewMessage {
 	hasSystemPromptOverride?: boolean
 	terminalOperation?: "continue" | "abort"
 	messageTs?: number
+	taskId?: string // For switchToBackgroundTask
 	restoreCheckpoint?: boolean
 	historyPreviewCollapsed?: boolean
 	filters?: { type?: string; search?: string; tags?: string[] }

@@ -39,6 +39,9 @@ export class FileEditReviewController implements vscode.Disposable {
 	private _getToken: (() => Promise<string | undefined>) | undefined
 	private _getRepo: (() => Promise<string | undefined>) | undefined
 
+	private static readonly controllers = new Map<string, FileEditReviewController>()
+	private static commandsRegistered = false
+
 	constructor(
 		private cwd: string,
 		getToken?: () => Promise<string | undefined>,
@@ -66,17 +69,44 @@ export class FileEditReviewController implements vscode.Disposable {
 			vscode.window.onDidChangeActiveTextEditor(() => this.refreshDecorations()),
 			vscode.window.onDidChangeVisibleTextEditors(() => this.refreshDecorations()),
 			vscode.workspace.onDidCloseTextDocument((doc) => this.handleDocumentClosed(doc)),
-			vscode.commands.registerCommand(ACCEPT_COMMAND, (...args: any[]) => {
-				return this.handleAccept(args[0], args[1], args[2])
-			}),
-			vscode.commands.registerCommand(ACCEPT_ALL_COMMAND, () => this.handleAcceptAll()),
-			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any, index?: number) =>
-				this.handleReject(arg, index),
-			),
-			vscode.commands.registerCommand(REJECT_ALL_COMMAND, () => this.handleRejectAll()),
-			vscode.commands.registerCommand(NEXT_COMMAND, () => this.handleReviewNext()),
-			vscode.commands.registerCommand("axon-code.fileEdit.deletedLine", () => {}), // no-op command so VS Code doesn't strip it
 		)
+
+		if (!FileEditReviewController.commandsRegistered) {
+			vscode.commands.registerCommand(ACCEPT_COMMAND, (...args: any[]) => {
+				const taskId = args[2]?.taskId
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: Array.from(FileEditReviewController.controllers.values())[0]
+				return controller?.handleAccept(args[0], args[1], args[2])
+			})
+			vscode.commands.registerCommand(ACCEPT_ALL_COMMAND, (taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: Array.from(FileEditReviewController.controllers.values())[0]
+				return controller?.handleAcceptAll()
+			})
+			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any, index?: number, taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: Array.from(FileEditReviewController.controllers.values())[0]
+				return controller?.handleReject(arg, index)
+			})
+			vscode.commands.registerCommand(REJECT_ALL_COMMAND, (taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: Array.from(FileEditReviewController.controllers.values())[0]
+				return controller?.handleRejectAll()
+			})
+			vscode.commands.registerCommand(NEXT_COMMAND, (taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: Array.from(FileEditReviewController.controllers.values())[0]
+				return controller?.handleReviewNext()
+			})
+			vscode.commands.registerCommand("axon-code.fileEdit.deletedLine", () => {}) // no-op command so VS Code doesn't strip it
+
+			FileEditReviewController.commandsRegistered = true
+		}
 	}
 
 	addEdit(params: { relPath: string; absolutePath: string; originalContent: string; newContent: string }) {
@@ -147,7 +177,11 @@ export class FileEditReviewController implements vscode.Disposable {
 
 	// Set the task ID for metrics reporting
 	setTaskId(taskId: string) {
+		if (this._taskId) {
+			FileEditReviewController.controllers.delete(this._taskId)
+		}
 		this._taskId = taskId
+		FileEditReviewController.controllers.set(taskId, this)
 		this.codeLensEmitter.fire() // Refresh CodeLenses to pick up new taskId
 	}
 
@@ -572,6 +606,10 @@ export class FileEditReviewController implements vscode.Disposable {
 		// 	entry.thread?.dispose()
 		// }
 
+		if (this._taskId) {
+			FileEditReviewController.controllers.delete(this._taskId)
+		}
+
 		this.pendingEdits.clear()
 		this.reviewQueue = []
 		vscode.window.visibleTextEditors.forEach((editor) => {
@@ -679,12 +717,12 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 				new vscode.CodeLens(btnAnchor, {
 					title: "Reject",
 					command: REJECT_COMMAND,
-					arguments: [entry.relPath, i],
+					arguments: [entry.relPath, i, taskId],
 				}),
 				new vscode.CodeLens(btnAnchor, {
 					title: "Next",
 					command: NEXT_COMMAND,
-					arguments: [],
+					arguments: [taskId],
 				}),
 			)
 		}
@@ -693,11 +731,12 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 		if (entry.edits.length > 0) {
 			const firstLine = Math.max(0, entry.edits[0].diffAnchor.start.line)
 			const anchor = new vscode.Range(firstLine, 0, firstLine, 0)
+			const taskId = this.getTaskId()
 			lenses.push(
 				new vscode.CodeLens(anchor, {
 					title: "Accept all",
 					command: ACCEPT_ALL_COMMAND,
-					arguments: [],
+					arguments: [taskId],
 				}),
 			)
 		}

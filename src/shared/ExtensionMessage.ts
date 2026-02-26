@@ -463,6 +463,7 @@ export type ExtensionState = Pick<
 	taskSyncEnabled: boolean
 	featureRoomoteControlEnabled: boolean
 	showTimestamps?: boolean // kilocode_change: Show timestamps in chat messages
+	backgroundRunningTasks?: Array<{ taskId: string; taskLabel: string; isCompleted: boolean }> // kilocode_change: multi-chat support
 }
 
 // kilocode_change: Plan mode implementation

@@ -195,26 +195,7 @@ export const CommandExecution = ({
 								</StandardTooltip>
 							</div>
 						)}
-						{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && (
-							<div className="flex flex-row items-center gap-2">
-								<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
-									<VSCodeButton
-										appearance="primary"
-										disabled={!enableButtons}
-										onClick={() => onPrimaryButtonClick && onPrimaryButtonClick()}>
-										{primaryButtonText || t("chat:runCommand.title")}
-									</VSCodeButton>
-								</StandardTooltip>
-								<StandardTooltip content={secondaryButtonText || t("chat:reject.tooltip")}>
-									<VSCodeButton
-										appearance="secondary"
-										disabled={!enableButtons}
-										onClick={() => onSecondaryButtonClick && onSecondaryButtonClick()}>
-										{secondaryButtonText || t("chat:reject.title")}
-									</VSCodeButton>
-								</StandardTooltip>
-							</div>
-						)}
+
 						{output.length > 0 && (
 							<Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)}>
 								<ChevronDown
@@ -229,8 +210,8 @@ export const CommandExecution = ({
 				</div>
 			</div>
 
-			<div className="bg-vscode-editor-background border border-vscode-border rounded-xl mt-2">
-				<div className="p-2">
+			<div className="bg-vscode-editor-background border border-vscode-border rounded-xl mt-2 overflow-hidden flex flex-col">
+				<div className="p-2 overflow-y-auto max-h-[calc(100vh/2.5)]">
 					<CodeBlock source={command} language="shell" />
 					<OutputContainer isExpanded={isExpanded} output={output} />
 				</div>
@@ -244,6 +225,26 @@ export const CommandExecution = ({
 					/>
 				)}
 			</div>
+			{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && (
+				<div className="flex flex-row items-center justify-end gap-2 mt-2">
+					<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
+						<VSCodeButton
+							appearance="primary"
+							disabled={!enableButtons}
+							onClick={() => onPrimaryButtonClick && onPrimaryButtonClick()}>
+							{primaryButtonText || t("chat:runCommand.title")}
+						</VSCodeButton>
+					</StandardTooltip>
+					<StandardTooltip content={secondaryButtonText || t("chat:reject.tooltip")}>
+						<VSCodeButton
+							appearance="secondary"
+							disabled={!enableButtons}
+							onClick={() => onSecondaryButtonClick && onSecondaryButtonClick()}>
+							{secondaryButtonText || t("chat:reject.title")}
+						</VSCodeButton>
+					</StandardTooltip>
+				</div>
+			)}
 		</>
 	)
 }
@@ -254,7 +255,7 @@ const OutputContainerInternal = ({ isExpanded, output }: { isExpanded: boolean; 
 	<div
 		className={cn("overflow-hidden", {
 			"max-h-0": !isExpanded,
-			"max-h-[calc(100vh/2.5)] mt-1 pt-1 border-t border-border/25": isExpanded,
+			"mt-1 pt-1 border-t border-border/25": isExpanded,
 		})}>
 		{output.length > 0 && <CodeBlock source={output} language="log" />}
 	</div>

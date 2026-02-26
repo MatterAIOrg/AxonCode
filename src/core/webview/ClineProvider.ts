@@ -144,6 +144,7 @@ export class ClineProvider
 	private webviewDisposables: vscode.Disposable[] = []
 	private view?: vscode.WebviewView | vscode.WebviewPanel
 	private clineStack: Task[] = []
+	private backgroundTasks: Map<string, Task[]> = new Map() // kilocode_change: multi-chat support
 	private codeIndexStatusSubscription?: vscode.Disposable
 	private codeIndexManager?: CodeIndexManager
 	private _workspaceTracker?: WorkspaceTracker // workSpaceTracker read-only for access outside this class
@@ -462,8 +463,7 @@ export class ClineProvider
 		}
 	}
 
-	// Removes and destroys the top Cline instance (the current finished task),
-	// activating the previous one (resuming the parent task).
+	// Removed and destroyed the top Cline instance, aborting the active task.
 	async removeClineFromStack() {
 		if (this.clineStack.length === 0) {
 			return
@@ -501,6 +501,62 @@ export class ClineProvider
 			await this.postStateToWebview()
 		}
 	}
+
+	// kilocode_change: multi-chat support start
+	/**
+	 * Moves the currently running task(s) to the background map without aborting them.
+	 */
+	public async moveCurrentTaskToBackground() {
+		if (this.clineStack.length === 0) {
+			return
+		}
+
+		// Unfocus the top task
+		const topTask = this.clineStack[this.clineStack.length - 1]
+		topTask.emit(RooCodeEventName.TaskUnfocused)
+
+		// The root task determines the ID in the map
+		const rootTask = this.clineStack[0]
+		const rootTaskId = rootTask.taskId
+
+		this.backgroundTasks.set(rootTaskId, [...this.clineStack])
+		this.clineStack = []
+
+		this.log(
+			`[moveCurrentTaskToBackground] Moved task ${rootTaskId} to background. Total background tasks: ${this.backgroundTasks.size}`,
+		)
+
+		await this.postStateToWebview()
+	}
+
+	/**
+	 * Restores a background task to the foreground stack.
+	 */
+	public async bringTaskToForeground(taskId: string) {
+		const bgStack = this.backgroundTasks.get(taskId)
+		if (!bgStack || bgStack.length === 0) {
+			this.log(`[bringTaskToForeground] Task ${taskId} not found in background map`)
+			return
+		}
+
+		// If there is currently a task running, move it to the background first
+		if (this.clineStack.length > 0) {
+			await this.moveCurrentTaskToBackground()
+		}
+
+		// Restore the requested task stack
+		this.clineStack = bgStack
+		this.backgroundTasks.delete(taskId)
+
+		// Focus the newly restored top task
+		const topTask = this.clineStack[this.clineStack.length - 1]
+		topTask.emit(RooCodeEventName.TaskFocused)
+
+		this.log(`[bringTaskToForeground] Restored task ${taskId} to foreground`)
+
+		await this.postStateToWebview()
+	}
+	// kilocode_change: multi-chat support end
 
 	getTaskStackSize(): number {
 		return this.clineStack.length
@@ -612,6 +668,21 @@ export class ClineProvider
 		}
 
 		this.log("Cleared all tasks")
+
+		// Abort and clear background tasks
+		for (const [taskId, stack] of this.backgroundTasks.entries()) {
+			for (const task of stack.reverse()) {
+				try {
+					await task.abortTask(true)
+				} catch (e) {
+					this.log(`[dispose] background task abort failed: ${e.message}`)
+				}
+				const cleanupFunctions = this.taskEventListeners.get(task)
+				if (cleanupFunctions) cleanupFunctions.forEach((cleanup) => cleanup())
+				this.taskEventListeners.delete(task)
+			}
+		}
+		this.backgroundTasks.clear()
 
 		// Clear all pending edit operations to prevent memory leaks
 		this.clearAllPendingEditOperations()
@@ -1637,9 +1708,23 @@ ${prompt}
 
 	async showTaskWithId(id: string) {
 		if (id !== this.getCurrentTask()?.taskId) {
+			// Check if task is already running in background
+			if (this.backgroundTasks.has(id)) {
+				this.log(`[showTaskWithId] bringing background task ${id} to foreground`)
+				await this.bringTaskToForeground(id)
+				await this.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
+				return
+			}
+
 			// Non-current task.
 			const { historyItem } = await this.getTaskWithId(id)
-			await this.createTaskWithHistoryItem(historyItem) // Clears existing task.
+
+			// Move current to background instead of clearing
+			if (this.clineStack.length > 0) {
+				await this.moveCurrentTaskToBackground()
+			}
+
+			await this.createTaskWithHistoryItem(historyItem) // Will be safe since stack is empty.
 		}
 
 		await this.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
@@ -1686,6 +1771,18 @@ ${prompt}
 				// if we found the taskid to delete - call finish to abort this task and allow a new task to be started,
 				// if we are deleting a subtask and parent task is still waiting for subtask to finish - it allows the parent to resume (this case should neve exist)
 				await this.finishSubTask(t("common:tasks.deleted"))
+			}
+
+			// multi-chat support: remove from background tasks if it was backgrounded
+			if (this.backgroundTasks.has(id)) {
+				const stack = this.backgroundTasks.get(id)
+				if (stack) {
+					for (const task of stack) {
+						task.abort = true
+					}
+				}
+				this.backgroundTasks.delete(id)
+				await this.postStateToWebview()
 			}
 
 			// delete task from the task history state
@@ -2006,6 +2103,32 @@ ${prompt}
 		this.kiloCodeTaskHistorySizeForTelemetryOnly = taskHistory.length
 		// forked_change end
 
+		// multi-chat support: assemble background tasks
+		const backgroundRunningTasks = Array.from(this.backgroundTasks.entries())
+			.map(([taskId, stack]) => {
+				const rootTask = stack[0]
+				const historyItem = taskHistory.find((h) => h.id === taskId)
+				const uiMessages = rootTask.clineMessages.filter((msg) => msg.type === "say")
+				const taskLabel =
+					historyItem?.title ||
+					(rootTask as any).title ||
+					rootTask.metadata?.task ||
+					(uiMessages.length > 0
+						? uiMessages[0].text
+							? uiMessages[0].text.substring(0, 50) + "..."
+							: "Image Task"
+						: "New Task")
+
+				const isCompleted =
+					rootTask.abandoned ||
+					rootTask.abort ||
+					rootTask.clineMessages.some((msg) => msg.type === "say" && msg.say === "completion_result")
+
+				return { taskId, taskLabel, isCompleted, ts: historyItem?.ts || 0 }
+			})
+			.sort((a, b) => (b.ts as number) - (a.ts as number))
+			.map(({ taskId, taskLabel, isCompleted }) => ({ taskId, taskLabel, isCompleted }))
+
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
 			apiConfiguration,
@@ -2153,6 +2276,7 @@ ${prompt}
 			featureRoomoteControlEnabled,
 			codeReviewSettings,
 			contextWindowUsage: this.getCurrentTask()?.contextWindowUsage, // kilocode_change: Track context window usage
+			backgroundRunningTasks, // multi-chat support
 		}
 	}
 
@@ -2713,10 +2837,9 @@ ${prompt}
 		options: CreateTaskOptions = {},
 		configuration: RooCodeSettings = {},
 	): Promise<Task> {
-		// Clear any existing task before creating a new one
 		if (this.clineStack.length > 0) {
-			console.log(`[createTask] Clearing existing task before creating new one`)
-			await this.removeClineFromStack()
+			console.log(`[createTask] moving existing task to background before creating new one`)
+			await this.moveCurrentTaskToBackground()
 		}
 
 		if (configuration) {

@@ -73,6 +73,7 @@ import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kil
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
 import { SourceControlPanel } from "./SourceControlPanel" // kilocode_change
+import { LinkSquare01Icon } from "@/utils/customIcons"
 // import DismissibleUpsell from "../common/DismissibleUpsell" // kilocode_change: unused
 // import { useCloudUpsell } from "@src/hooks/useCloudUpsell" // kilocode_change: unused
 // import { Cloud } from "lucide-react" // kilocode_change: unused
@@ -147,6 +148,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// cloudIsAuthenticated, // kilocode_change
 		messageQueue = [],
 		sendMessageOnEnter, // kilocode_change
+		backgroundRunningTasks, // kilocode_change: multi-chat support
 	} = useExtensionState()
 
 	const isReviewOnlyMode = useMemo(() => {
@@ -2376,6 +2378,64 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 												</div>
 											</div>
 										</div>
+									</div>
+								</div>
+							)}
+							{/* Background tasks - Hidden in review only mode */}
+							{!isReviewOnlyMode && backgroundRunningTasks && backgroundRunningTasks.length > 0 && (
+								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)]">
+									<div className="flex flex-row items-center gap-2 mb-2">
+										<span className="codicon codicon-play-circle text-vscode-foreground" />
+										<span className="text-md font-semibold text-vscode-foreground">
+											Background Tasks
+										</span>
+										<span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
+											{backgroundRunningTasks.filter((t) => !t.isCompleted).length} running
+										</span>
+									</div>
+									<div className="flex flex-col gap-2">
+										{backgroundRunningTasks.map((bt) => (
+											<div
+												key={bt.taskId}
+												className="flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors"
+												onClick={() => {
+													vscode.postMessage({
+														type: "switchToBackgroundTask",
+														taskId: bt.taskId,
+													})
+												}}>
+												<div className="flex-1 flex flex-col gap-1 min-w-0">
+													<div className="flex items-center gap-2">
+														<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
+															{bt.taskLabel || "New Task"}
+														</span>
+													</div>
+													<div className="flex items-center gap-2">
+														{bt.isCompleted ? (
+															<>
+																<span className="flex items-center justify-center w-2 h-2 rounded-full bg-[var(--vscode-testing-iconPassed)]" />
+																<span className="text-xs text-[var(--vscode-descriptionForeground)]">
+																	Completed
+																</span>
+															</>
+														) : (
+															<>
+																<span className="flex items-center justify-center w-2 h-2 rounded-full bg-[var(--vscode-charts-blue)] animate-pulse" />
+																<span className="text-xs text-[var(--vscode-descriptionForeground)]">
+																	Running in background
+																</span>
+															</>
+														)}
+													</div>
+												</div>
+												<VSCodeButton
+													appearance="icon"
+													className="shrink-0"
+													title="Resume task">
+													<LinkSquare01Icon className="size-3" />
+												</VSCodeButton>
+											</div>
+										))}
 									</div>
 								</div>
 							)}
