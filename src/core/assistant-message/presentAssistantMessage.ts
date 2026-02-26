@@ -31,6 +31,8 @@ import { writeToFileTool } from "../tools/writeToFileTool"
 
 import { generateImageTool } from "../tools/generateImageTool"
 import { planFileEditTool } from "../tools/planFileEditTool"
+import { readPlanFileTool } from "../tools/readPlanFileTool"
+import { listPlanFilesTool } from "../tools/listPlanFilesTool"
 import { runSlashCommandTool } from "../tools/runSlashCommandTool"
 import { updateTodoListTool } from "../tools/updateTodoListTool"
 import { useSkillTool } from "../tools/useSkillTool"
@@ -252,6 +254,10 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.path}']`
 					case "plan_file_edit":
 						return `[${block.name} for '${block.params.filename}']`
+					case "read_plan_file":
+						return `[${block.name} for '${block.params.filename}']`
+					case "list_plan_files":
+						return `[${block.name}]`
 					case "check_past_chat_memories":
 						return `[${block.name} for '${block.params.regex}']`
 					default:
@@ -632,6 +638,12 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				case "plan_file_edit":
 					await planFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
+					break
+				case "read_plan_file":
+					await readPlanFileTool(cline, block, handleError, pushToolResult, removeClosingTag)
+					break
+				case "list_plan_files":
+					await listPlanFilesTool(cline, block, handleError, pushToolResult)
 					break
 				case "use_skill":
 					await useSkillTool(cline, block, handleError, pushToolResult)

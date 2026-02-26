@@ -4810,18 +4810,15 @@ ${comment.suggestion}
 		case "implementPlan": {
 			if (message.payload) {
 				const { planFile, planContent } = message.payload as ImplementPlanPayload
-				// Switch to agent mode first
+				const implementText = `Please implement the following plan:\n\n${planContent}`
+				// Switch mode and send the message directly from the backend
+				// bypassing webview's sendingDisabled guard
 				await provider.handleModeSwitch("agent")
-				// Post state to webview to ensure mode change is reflected
 				await provider.postStateToWebview()
-				// Small delay to ensure mode switch has propagated
 				await delay(100)
-				// Send the plan content as a user message to start implementation
-				await provider.postMessageToWebview({
-					type: "invoke",
-					invoke: "sendMessage",
-					text: `Please implement the following plan:\n\n${planContent}`,
-				})
+				// Use createTask to directly start a new task from backend,
+				// avoiding the webview routing entirely
+				await provider.createTask(implementText)
 			}
 			break
 		}

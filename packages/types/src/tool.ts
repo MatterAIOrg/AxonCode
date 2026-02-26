@@ -40,6 +40,8 @@ export const toolNames = [
 	"report_bug",
 	"condense",
 	"plan_file_edit",
+	"read_plan_file",
+	"list_plan_files",
 	// forked_change end
 	"update_todo_list",
 	"run_slash_command",

@@ -95,9 +95,12 @@ const TaskItem = ({
 					{/* Model - always visible if available */}
 					{item.apiModelId && (
 						<StandardTooltip content={`Model: ${item.apiModelId}`}>
-							<span className="text-xs text-vscode-descriptionForeground/60 truncate max-w-[100px]">
-								{item.apiModelId}
-							</span>
+							<div className="ml-0.5 flex items-center gap-1.5">
+								<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/30" />
+								<span className="text-xs text-vscode-descriptionForeground/60 truncate max-w-[100px]">
+									{item.apiModelId}
+								</span>
+							</div>
 						</StandardTooltip>
 					)}
 
