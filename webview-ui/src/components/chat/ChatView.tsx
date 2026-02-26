@@ -2448,8 +2448,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							)}
 							{/* Background tasks - Hidden in review only mode */}
 							{!isReviewOnlyMode && backgroundRunningTasks && backgroundRunningTasks.length > 0 && (
-								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)]">
-									<div className="flex flex-row items-center gap-1 mb-2">
+								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)] max-h-[50%] flex flex-col overflow-hidden">
+									<div className="flex flex-row items-center gap-1 mb-2 shrink-0">
 										<PlayCircleIcon className="w-4 h-4 rtl:-scale-x-100" />
 										<span className="text-md font-semibold text-vscode-foreground">
 											Background Tasks
@@ -2458,7 +2458,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 											{backgroundRunningTasks.filter((t) => !t.isCompleted).length} running
 										</span>
 									</div>
-									<div className="flex flex-col gap-2">
+									<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
 										{backgroundRunningTasks.map((bt) => (
 											<div
 												key={bt.taskId}
