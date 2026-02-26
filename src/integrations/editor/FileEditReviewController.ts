@@ -28,16 +28,31 @@ const ACCEPT_ALL_COMMAND = "axon-code.fileEdit.acceptAll"
 const REJECT_COMMAND = "axon-code.fileEdit.reject"
 const REJECT_ALL_COMMAND = "axon-code.fileEdit.rejectAll"
 const NEXT_COMMAND = "axon-code.fileEdit.reviewNext"
+const PREV_COMMAND = "axon-code.fileEdit.reviewPrev"
 
 export class FileEditReviewController implements vscode.Disposable {
 	private readonly disposables: vscode.Disposable[] = []
 	private pendingEdits = new Map<string, PendingFileEdit>()
 	private reviewQueue: string[] = []
+	private currentReviewIndex: number = 0
 	private readonly codeLensEmitter = new vscode.EventEmitter<void>()
 	private readonly codeLensProvider: FileEditReviewCodeLensProvider
 	private _taskId: string | undefined
 	private _getToken: (() => Promise<string | undefined>) | undefined
 	private _getRepo: (() => Promise<string | undefined>) | undefined
+
+	private static readonly controllers = new Map<string, FileEditReviewController>()
+	private static commandsRegistered = false
+
+	private static getActiveController(): FileEditReviewController | undefined {
+		for (const controller of FileEditReviewController.controllers.values()) {
+			if (controller.reviewQueue.length > 0) {
+				return controller
+			}
+		}
+		const controllers = Array.from(FileEditReviewController.controllers.values())
+		return controllers[controllers.length - 1]
+	}
 
 	constructor(
 		private cwd: string,
@@ -66,17 +81,71 @@ export class FileEditReviewController implements vscode.Disposable {
 			vscode.window.onDidChangeActiveTextEditor(() => this.refreshDecorations()),
 			vscode.window.onDidChangeVisibleTextEditors(() => this.refreshDecorations()),
 			vscode.workspace.onDidCloseTextDocument((doc) => this.handleDocumentClosed(doc)),
-			vscode.commands.registerCommand(ACCEPT_COMMAND, (...args: any[]) => {
-				return this.handleAccept(args[0], args[1], args[2])
-			}),
-			vscode.commands.registerCommand(ACCEPT_ALL_COMMAND, () => this.handleAcceptAll()),
-			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any, index?: number) =>
-				this.handleReject(arg, index),
-			),
-			vscode.commands.registerCommand(REJECT_ALL_COMMAND, () => this.handleRejectAll()),
-			vscode.commands.registerCommand(NEXT_COMMAND, () => this.handleReviewNext()),
-			vscode.commands.registerCommand("axon-code.fileEdit.deletedLine", () => {}), // no-op command so VS Code doesn't strip it
 		)
+
+		if (!FileEditReviewController.commandsRegistered) {
+			vscode.commands.registerCommand(ACCEPT_COMMAND, (...args: any[]) => {
+				const taskId = args[2]?.taskId
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: FileEditReviewController.getActiveController()
+				return controller?.handleAccept(args[0], args[1], args[2])
+			})
+			vscode.commands.registerCommand(ACCEPT_ALL_COMMAND, (taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: FileEditReviewController.getActiveController()
+				return controller?.handleAcceptAll()
+			})
+			vscode.commands.registerCommand(REJECT_COMMAND, (arg?: any, index?: number, taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: FileEditReviewController.getActiveController()
+				return controller?.handleReject(arg, index)
+			})
+			vscode.commands.registerCommand(REJECT_ALL_COMMAND, (taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: FileEditReviewController.getActiveController()
+				return controller?.handleRejectAll()
+			})
+			vscode.commands.registerCommand(NEXT_COMMAND, (taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: FileEditReviewController.getActiveController()
+				return controller?.handleReviewNext()
+			})
+			vscode.commands.registerCommand(PREV_COMMAND, (taskId?: string) => {
+				const controller = taskId
+					? FileEditReviewController.controllers.get(taskId)
+					: FileEditReviewController.getActiveController()
+				return controller?.handleReviewPrev()
+			})
+			vscode.commands.registerCommand("axon-code.fileEdit.deletedLine", () => {}) // no-op command so VS Code doesn't strip it
+
+			FileEditReviewController.commandsRegistered = true
+		}
+	}
+
+	private updateContext() {
+		const totalFiles = this.reviewQueue.length
+		vscode.commands.executeCommand("setContext", "axon.fileEdit.pendingCount", totalFiles)
+
+		if (totalFiles > 0) {
+			// Ensure current index is valid
+			if (this.currentReviewIndex >= totalFiles) {
+				this.currentReviewIndex = 0
+			}
+
+			const currentFile = this.reviewQueue[this.currentReviewIndex]
+			const safeIndex = this.currentReviewIndex
+
+			vscode.commands.executeCommand("setContext", "axon.fileEdit.hasPendingEdits", true)
+			vscode.commands.executeCommand("setContext", "axon.fileEdit.currentIndex", safeIndex)
+		} else {
+			vscode.commands.executeCommand("setContext", "axon.fileEdit.hasPendingEdits", false)
+			vscode.commands.executeCommand("setContext", "axon.fileEdit.currentIndex", 0)
+		}
 	}
 
 	addEdit(params: { relPath: string; absolutePath: string; originalContent: string; newContent: string }) {
@@ -132,11 +201,13 @@ export class FileEditReviewController implements vscode.Disposable {
 			}
 			this.pendingEdits.set(readablePath, pending)
 			// Ensure unique queue items
-			this.reviewQueue = this.reviewQueue.filter((path) => path !== readablePath)
-			this.reviewQueue.push(readablePath)
+			if (!this.reviewQueue.includes(readablePath)) {
+				this.reviewQueue.push(readablePath)
+			}
 		}
 
 		this.refreshDecorations()
+		this.updateContext()
 		this.codeLensEmitter.fire()
 	}
 
@@ -147,7 +218,11 @@ export class FileEditReviewController implements vscode.Disposable {
 
 	// Set the task ID for metrics reporting
 	setTaskId(taskId: string) {
+		if (this._taskId) {
+			FileEditReviewController.controllers.delete(this._taskId)
+		}
 		this._taskId = taskId
+		FileEditReviewController.controllers.set(taskId, this)
 		this.codeLensEmitter.fire() // Refresh CodeLenses to pick up new taskId
 	}
 
@@ -471,7 +546,9 @@ export class FileEditReviewController implements vscode.Disposable {
 
 		this.pendingEdits.clear()
 		this.reviewQueue = []
+		this.currentReviewIndex = 0
 		this.refreshDecorations()
+		this.updateContext()
 		this.codeLensEmitter.fire()
 
 		return { linesAdded, linesUpdated, linesDeleted }
@@ -487,29 +564,66 @@ export class FileEditReviewController implements vscode.Disposable {
 
 		this.pendingEdits.clear()
 		this.reviewQueue = []
+		this.currentReviewIndex = 0
 		this.refreshDecorations()
+		this.updateContext()
 		this.codeLensEmitter.fire()
 	}
 
 	async handleReviewNext() {
-		const nextEntry = this.getNextEntry()
-		if (!nextEntry) {
+		if (this.reviewQueue.length === 0) {
 			vscode.window.showInformationMessage("No more pending file reviews.")
 			return
 		}
+
+		this.currentReviewIndex = (this.currentReviewIndex + 1) % this.reviewQueue.length
+		const readablePath = this.reviewQueue[this.currentReviewIndex]
+		const nextEntry = this.pendingEdits.get(readablePath)
+
+		if (!nextEntry) {
+			return
+		}
+
+		this.updateContext()
 
 		const document = await vscode.workspace.openTextDocument(nextEntry.absolutePath)
 		const editor = await vscode.window.showTextDocument(document, { preview: false })
 		editor.revealRange(nextEntry.diffAnchor, vscode.TextEditorRevealType.InCenter)
 	}
 
+	async handleReviewPrev() {
+		if (this.reviewQueue.length === 0) {
+			vscode.window.showInformationMessage("No more pending file reviews.")
+			return
+		}
+
+		this.currentReviewIndex = (this.currentReviewIndex - 1 + this.reviewQueue.length) % this.reviewQueue.length
+		const readablePath = this.reviewQueue[this.currentReviewIndex]
+		const prevEntry = this.pendingEdits.get(readablePath)
+
+		if (!prevEntry) {
+			return
+		}
+
+		this.updateContext()
+
+		const document = await vscode.workspace.openTextDocument(prevEntry.absolutePath)
+		const editor = await vscode.window.showTextDocument(document, { preview: false })
+		editor.revealRange(prevEntry.diffAnchor, vscode.TextEditorRevealType.InCenter)
+	}
+
 	private clearEntry(entry: PendingFileEdit) {
-		// Old UI (comment thread actions) — kept for reference.
-		// if (entry.thread) {
-		// 	entry.thread.dispose()
-		// }
 		this.pendingEdits.delete(entry.readablePath)
-		this.reviewQueue = this.reviewQueue.filter((path) => path !== entry.readablePath)
+
+		const idx = this.reviewQueue.indexOf(entry.readablePath)
+		if (idx > -1) {
+			this.reviewQueue.splice(idx, 1)
+			if (this.currentReviewIndex >= this.reviewQueue.length && this.reviewQueue.length > 0) {
+				this.currentReviewIndex = 0
+			}
+		}
+
+		this.updateContext()
 		this.codeLensEmitter.fire()
 	}
 
@@ -572,8 +686,14 @@ export class FileEditReviewController implements vscode.Disposable {
 		// 	entry.thread?.dispose()
 		// }
 
+		if (this._taskId) {
+			FileEditReviewController.controllers.delete(this._taskId)
+		}
+
 		this.pendingEdits.clear()
 		this.reviewQueue = []
+		this.currentReviewIndex = 0
+		this.updateContext()
 		vscode.window.visibleTextEditors.forEach((editor) => {
 			editor.setDecorations(highlightDecorationType, [])
 		})
@@ -679,12 +799,12 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 				new vscode.CodeLens(btnAnchor, {
 					title: "Reject",
 					command: REJECT_COMMAND,
-					arguments: [entry.relPath, i],
+					arguments: [entry.relPath, i, taskId],
 				}),
 				new vscode.CodeLens(btnAnchor, {
 					title: "Next",
 					command: NEXT_COMMAND,
-					arguments: [],
+					arguments: [taskId],
 				}),
 			)
 		}
@@ -693,11 +813,12 @@ class FileEditReviewCodeLensProvider implements vscode.CodeLensProvider {
 		if (entry.edits.length > 0) {
 			const firstLine = Math.max(0, entry.edits[0].diffAnchor.start.line)
 			const anchor = new vscode.Range(firstLine, 0, firstLine, 0)
+			const taskId = this.getTaskId()
 			lenses.push(
 				new vscode.CodeLens(anchor, {
 					title: "Accept all",
 					command: ACCEPT_ALL_COMMAND,
-					arguments: [],
+					arguments: [taskId],
 				}),
 			)
 		}

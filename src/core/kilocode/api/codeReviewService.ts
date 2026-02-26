@@ -194,8 +194,8 @@ export class CodeReviewService {
 				return true
 			}
 
-			// 524 = Cloudflare timeout
-			if (error.response?.status === 524) {
+			// 502 = Bad Gateway, 503 = Service Unavailable, 524 = Cloudflare timeout
+			if (error.response?.status === 502 || error.response?.status === 503 || error.response?.status === 524) {
 				return true
 			}
 

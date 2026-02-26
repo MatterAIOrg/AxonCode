@@ -68,6 +68,7 @@ import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 // import ProfileViolationWarning from "./ProfileViolationWarning" kilocode_change: unused
+import { LinkSquare01Icon, PlayCircleIcon } from "@/utils/customIcons"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
@@ -147,6 +148,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// cloudIsAuthenticated, // kilocode_change
 		messageQueue = [],
 		sendMessageOnEnter, // kilocode_change
+		backgroundRunningTasks, // kilocode_change: multi-chat support
 	} = useExtensionState()
 
 	const isReviewOnlyMode = useMemo(() => {
@@ -204,6 +206,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [messages, currentTaskTodos])
 
 	const modifiedMessages = useMemo(() => combineApiRequests(combineCommandSequences(messages.slice(1))), [messages])
+	const lastModifiedMessage = useMemo(() => modifiedMessages.at(-1), [modifiedMessages])
 
 	// Has to be after api_req_finished are all reduced into api_req_started messages.
 	const apiMetrics = useMemo(() => getApiMetrics(modifiedMessages), [modifiedMessages])
@@ -720,11 +723,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						clineAskRef.current // Use clineAskRef.current
 					) {
 						case "followup":
-						case "tool":
-						case "browser_action_launch":
-						case "command": // User can provide feedback to a tool or command use.
 						case "command_output": // User can send input to command stdin.
-						case "use_mcp_server":
 						case "completion_result": // If this happens then the user has feedback for the completion result.
 						case "resume_task":
 						case "resume_completed_task":
@@ -735,6 +734,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								text,
 								images,
 							})
+							break
+						case "tool":
+						case "browser_action_launch":
+						case "command": // User can provide feedback to a tool or command use.
+						case "use_mcp_server":
+							vscode.postMessage({
+								type: "askResponse",
+								askResponse: "noButtonClicked",
+							})
+							vscode.postMessage({ type: "queueMessage", text, images })
 							break
 						// There is no other case that a textfield should be enabled.
 					}
@@ -1049,6 +1058,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					// kilocode_change: Refresh git changes for review when workspace changes
 					vscode.postMessage({ type: "getGitChangesForReview" })
 					break
+				case "mode":
+					// Reset sendingDisabled when mode changes to allow messages to be sent directly
+					setSendingDisabled(false)
+					break
 			}
 			// textAreaRef.current is not explicitly required here since React
 			// guarantees that ref will be stable across re-renders, and we're
@@ -1069,6 +1082,18 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	)
 
 	useEvent("message", handleMessage)
+
+	// Listen for mode changes to reset sendingDisabled
+	useEffect(() => {
+		const handleModeChanged = (_event: CustomEvent) => {
+			// Reset sendingDisabled when mode changes to allow messages to be sent directly
+			setSendingDisabled(false)
+		}
+		window.addEventListener("modeChanged", handleModeChanged as EventListener)
+		return () => {
+			window.removeEventListener("modeChanged", handleModeChanged as EventListener)
+		}
+	}, [])
 
 	// forked_change start: Check for git changes on mount and periodically
 	useEffect(() => {
@@ -1922,7 +1947,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					<BrowserSessionRow
 						messages={messageOrGroup}
 						isLast={index === groupedMessages.length - 1}
-						lastModifiedMessage={modifiedMessages.at(-1)}
+						lastModifiedMessage={lastModifiedMessage}
 						onHeightChange={handleRowHeightChange}
 						isStreaming={isStreaming}
 						isExpanded={(messageTs: number) => expandedRows[messageTs] ?? false}
@@ -1937,14 +1962,27 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			}
 
 			// regular message
+			const isEditable =
+				messageOrGroup.type === "ask" &&
+				messageOrGroup.ask === "tool" &&
+				(() => {
+					let tool: any = {}
+					try {
+						tool = JSON.parse(messageOrGroup.text || "{}")
+					} catch (_e) {
+						tool = {}
+					}
+					return tool.name === "str_replace_editor" || tool.name === "insert_content"
+				})()
+
 			return (
 				<ChatRow
 					key={messageOrGroup.ts}
 					message={messageOrGroup}
 					isExpanded={expandedRows[messageOrGroup.ts] || false}
 					onToggleExpand={toggleRowExpansion} // This was already stabilized
-					lastModifiedMessage={modifiedMessages.at(-1)} // Original direct access
-					isLast={index === groupedMessages.length - 1} // Original direct access
+					lastModifiedMessage={lastModifiedMessage} // Memoized reference
+					isLast={index === groupedMessages.length - 1} // Array length is stable enough vs inline computation
 					onHeightChange={handleRowHeightChange}
 					isStreaming={isStreaming}
 					onSuggestionClick={handleSuggestionClickInRow} // This was already stabilized
@@ -1953,19 +1991,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					enableCheckpoints={enableCheckpoints} // kilocode_change
 					onFollowUpUnmount={handleFollowUpUnmount}
 					isFollowUpAnswered={messageOrGroup.isAnswered === true || messageOrGroup.ts === currentFollowUpTs}
-					editable={
-						messageOrGroup.type === "ask" &&
-						messageOrGroup.ask === "tool" &&
-						(() => {
-							let tool: any = {}
-							try {
-								tool = JSON.parse(messageOrGroup.text || "{}")
-							} catch (_e) {
-								tool = {}
-							}
-							return tool.name === "str_replace_editor" || tool.name === "insert_content"
-						})()
-					}
+					editable={isEditable}
 					onPrimaryButtonClick={handlePrimaryButtonClick}
 					onSecondaryButtonClick={handleSecondaryButtonClick}
 					enableButtons={enableButtons && index === groupedMessages.length - 1}
@@ -1977,7 +2003,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		[
 			expandedRows,
 			toggleRowExpansion,
-			modifiedMessages,
+			lastModifiedMessage,
 			groupedMessages.length,
 			handleRowHeightChange,
 			isStreaming,
@@ -2376,6 +2402,72 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 												</div>
 											</div>
 										</div>
+									</div>
+								</div>
+							)}
+							{/* Background tasks - Hidden in review only mode */}
+							{!isReviewOnlyMode && backgroundRunningTasks && backgroundRunningTasks.length > 0 && (
+								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)]">
+									<div className="flex flex-row items-center gap-1 mb-2">
+										<PlayCircleIcon className="w-4 h-4 rtl:-scale-x-100" />
+										<span className="text-md font-semibold text-vscode-foreground">
+											Background Tasks
+										</span>
+										<span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
+											{backgroundRunningTasks.filter((t) => !t.isCompleted).length} running
+										</span>
+									</div>
+									<div className="flex flex-col gap-2">
+										{backgroundRunningTasks.map((bt) => (
+											<div
+												key={bt.taskId}
+												className="flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors"
+												onClick={() => {
+													vscode.postMessage({
+														type: "switchToBackgroundTask",
+														taskId: bt.taskId,
+													})
+												}}>
+												<div className="flex-1 flex flex-col gap-1 min-w-0">
+													<div className="flex items-center gap-2">
+														<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
+															{bt.taskLabel || "New Task"}
+														</span>
+													</div>
+													<div className="flex items-center gap-2">
+														{bt.isCompleted ? (
+															<>
+																<span className="flex items-center justify-center w-2 h-2 rounded-full bg-[var(--vscode-testing-iconPassed)]" />
+																<span className="text-xs text-[var(--vscode-descriptionForeground)]">
+																	Completed
+																</span>
+															</>
+														) : (
+															<>
+																<span className="flex items-center justify-center w-2 h-2 rounded-full bg-[var(--vscode-charts-blue)] animate-pulse" />
+																<span className="text-xs text-[var(--vscode-descriptionForeground)]">
+																	Running in background
+																</span>
+															</>
+														)}
+														{bt.apiModelId && (
+															<div className="flex items-center gap-2">
+																<div className="w-1 h-1 rounded-full bg-[var(--vscode-descriptionForeground)]" />
+																<span className="text-xs text-[var(--vscode-descriptionForeground)] truncate max-w-[150px]">
+																	{bt.apiModelId}
+																</span>
+															</div>
+														)}
+													</div>
+												</div>
+												<VSCodeButton
+													appearance="icon"
+													className="shrink-0"
+													title="Resume task">
+													<LinkSquare01Icon className="size-3" />
+												</VSCodeButton>
+											</div>
+										))}
 									</div>
 								</div>
 							)}

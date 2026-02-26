@@ -9,6 +9,7 @@ import { useMemo } from "react"
 import { prettyModelName } from "../../../utils/prettyModelName"
 import { useProviderModels } from "../hooks/useProviderModels"
 import { getModelIdKey, getSelectedModelId } from "../hooks/useSelectedModel"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 
 interface ModelSelectorProps {
 	currentApiConfigName?: string
@@ -18,6 +19,7 @@ interface ModelSelectorProps {
 
 export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallbackText }: ModelSelectorProps) => {
 	const { t } = useAppTranslation()
+	const { currentTaskItem } = useExtensionState()
 	const { provider, providerModels, providerDefaultModel, isLoading, isError, proModelIds, proModelsEnabled } =
 		useProviderModels(apiConfiguration)
 	const selectedModelId = getSelectedModelId({
@@ -52,22 +54,43 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 	const disabled = isLoading || isError
 
 	const onChange = (value: string) => {
-		if (!currentApiConfigName) {
-			return
-		}
 		if (apiConfiguration[modelIdKey] === value) {
 			// don't reset openRouterSpecificProvider
 			return
 		}
-		vscode.postMessage({
-			type: "upsertApiConfiguration",
-			text: currentApiConfigName,
-			apiConfiguration: {
-				...apiConfiguration,
-				[modelIdKey]: value,
-				openRouterSpecificProvider: OPENROUTER_DEFAULT_PROVIDER_NAME,
-			},
-		})
+
+		// If there's an active task, use task-local model update for isolation
+		// This prevents changing the model from affecting all tasks across all windows
+		if (currentTaskItem && provider) {
+			vscode.postMessage({
+				type: "updateTaskModel",
+				apiProvider: provider,
+				apiModelId: value,
+			})
+		} else if (currentApiConfigName) {
+			// No active task, update global configuration
+			vscode.postMessage({
+				type: "upsertApiConfiguration",
+				text: currentApiConfigName,
+				apiConfiguration: {
+					...apiConfiguration,
+					[modelIdKey]: value,
+					openRouterSpecificProvider: OPENROUTER_DEFAULT_PROVIDER_NAME,
+				},
+			})
+		} else {
+			// No task and no config name - still try to update global configuration
+			// This handles the case where model is selected before creating a task
+			vscode.postMessage({
+				type: "upsertApiConfiguration",
+				text: "default",
+				apiConfiguration: {
+					...apiConfiguration,
+					[modelIdKey]: value,
+					openRouterSpecificProvider: OPENROUTER_DEFAULT_PROVIDER_NAME,
+				},
+			})
+		}
 	}
 
 	const renderItem = (option: DropdownOption & { isProModelDisabled?: boolean }) => {

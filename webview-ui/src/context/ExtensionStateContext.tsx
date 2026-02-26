@@ -205,6 +205,13 @@ export interface ExtensionStateContextType extends ExtensionState {
 		maxTokens: number
 	} // kilocode_change: Track context window usage
 	betaModelsEnabled?: boolean // kilocode_change: Beta models availability
+	backgroundRunningTasks?: Array<{
+		taskId: string
+		taskLabel: string
+		isCompleted: boolean
+		apiProvider?: string
+		apiModelId?: string
+	}> // kilocode_change: multi-chat support
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -334,6 +341,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		kiloCodeImageApiKey: "",
 		openRouterImageGenerationSelectedModel: "",
 		betaModelsEnabled: false, // kilocode_change: Default to false
+		backgroundRunningTasks: [], // kilocode_change: multi-chat support
 	})
 
 	const [didHydrateState, setDidHydrateState] = useState(false)
@@ -382,7 +390,14 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 			switch (message.type) {
 				case "state": {
 					const newState = message.state!
-					setState((prevState) => mergeExtensionState(prevState, newState))
+					setState((prevState) => {
+						// Check if mode changed and dispatch custom event to notify ChatView
+						if (newState.mode !== undefined && prevState.mode !== newState.mode) {
+							// Dispatch custom event that ChatView can listen for
+							window.dispatchEvent(new CustomEvent("modeChanged", { detail: { newMode: newState.mode } }))
+						}
+						return mergeExtensionState(prevState, newState)
+					})
 					setShowWelcome(!checkExistKey(newState.apiConfiguration))
 					setDidHydrateState(true)
 					// Update alwaysAllowFollowupQuestions if present in state message
@@ -692,6 +707,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setIncludeDiagnosticMessages: (value) => {
 			setState((prevState) => ({ ...prevState, includeDiagnosticMessages: value }))
 		},
+		backgroundRunningTasks: state.backgroundRunningTasks, // kilocode_change: multi-chat support
 		maxDiagnosticMessages: state.maxDiagnosticMessages,
 		setMaxDiagnosticMessages: (value) => {
 			setState((prevState) => ({ ...prevState, maxDiagnosticMessages: value }))

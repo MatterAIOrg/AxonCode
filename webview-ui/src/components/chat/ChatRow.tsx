@@ -217,7 +217,32 @@ export const ChatRowContent = ({
 	)
 	const [currentWordIndex, setCurrentWordIndex] = useState(() => Math.floor(Math.random() * streamingWords.length))
 
+	const isStreamingWords = useMemo(() => {
+		const type = message.type === "ask" ? message.ask : message.say
+		if (type !== "api_req_started") return false
+		if (!message.text) return false
+		const info = safeJsonParse<ClineApiReqInfo>(message.text)
+		if (!info) return false
+		// Streaming words should only animate while the request is still in progress
+		// (no cost yet, no cancel reason, no failed msg)
+		const cost = info.cost
+		const apiReqCancelReason = info.cancelReason
+		const apiRequestFailedMessage =
+			isLast && lastModifiedMessage?.ask === "api_req_failed" ? lastModifiedMessage?.text : undefined
+		const apiReqStreamingFailedMessage = info.streamingFailedMessage
+
+		return (
+			cost === undefined &&
+			cost === null &&
+			apiReqCancelReason === undefined &&
+			apiRequestFailedMessage === undefined &&
+			apiReqStreamingFailedMessage === undefined
+		)
+	}, [message.type, message.ask, message.say, message.text, isLast, lastModifiedMessage])
+
 	useEffect(() => {
+		if (!isStreamingWords) return
+
 		const interval = setInterval(() => {
 			setCurrentWordIndex((prev) => {
 				let newIndex
@@ -228,7 +253,7 @@ export const ChatRowContent = ({
 			})
 		}, 3000)
 		return () => clearInterval(interval)
-	}, [streamingWords.length])
+	}, [streamingWords.length, isStreamingWords])
 
 	// Handle message events for image selection during edit mode
 	useEffect(() => {

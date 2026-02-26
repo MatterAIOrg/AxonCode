@@ -483,7 +483,7 @@ vscode-text-field::part(input) {
 	color: var(--vscode-foreground);
 	font-size: inherit;
 	font-weight: 400;
-	vertical-align: baseline;
+	vertical-align: bottom;
 }
 
 .mention-chip__icon {
@@ -597,6 +597,25 @@ input[cmdk-input]:focus {
 
 .animate-pulse {
 	animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes matter-progress-pulse {
+	0%,
+	100% {
+		background-color: rgba(196, 253, 255, 0.5);
+	}
+
+	50% {
+		background-color: #c4fdff;
+	}
+}
+
+.matter-progress-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 1px;
+	background-color: rgba(196, 253, 255, 0.5);
+	animation: matter-progress-pulse 0.3s steps(1) infinite;
 }
 
 /* Transition utilities */

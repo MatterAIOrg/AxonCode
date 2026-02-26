@@ -3,6 +3,7 @@ import getFolderSize from "get-folder-size"
 import axios from "axios" // kilocode_change
 
 import type { ClineMessage, HistoryItem } from "@roo-code/types"
+import type { ProviderSettings } from "@roo-code/types"
 
 import { combineApiRequests } from "../../shared/combineApiRequests"
 import { combineCommandSequences } from "../../shared/combineCommandSequences"
@@ -81,6 +82,71 @@ export async function fetchTaskTitle(
 	return null
 }
 
+/**
+ * Extract model ID from ProviderSettings based on the provider.
+ * Different providers use different field names for model ID.
+ *
+ * @param settings - The ProviderSettings object
+ * @returns The model ID string or undefined if not found
+ */
+export function getModelIdFromConfig(settings: ProviderSettings): string | undefined {
+	const provider = settings.apiProvider
+
+	if (!provider) {
+		return undefined
+	}
+
+	// Map provider to its model ID field
+	const modelFieldMap: Record<string, keyof ProviderSettings> = {
+		anthropic: "apiModelId",
+		"claude-code": "apiModelId",
+		bedrock: "apiModelId",
+		vertex: "apiModelId",
+		gemini: "apiModelId",
+		"gemini-cli": "apiModelId",
+		mistral: "apiModelId",
+		deepseek: "apiModelId",
+		doubao: "apiModelId",
+		moonshot: "apiModelId",
+		xai: "apiModelId",
+		groq: "apiModelId",
+		chutes: "apiModelId",
+		cerebras: "apiModelId",
+		sambanova: "apiModelId",
+		zai: "apiModelId",
+		fireworks: "apiModelId",
+		synthetic: "apiModelId",
+		featherless: "apiModelId",
+		"qwen-code": "apiModelId",
+		roo: "apiModelId",
+		"virtual-quota-fallback": "apiModelId",
+		openrouter: "openRouterModelId",
+		"kilocode-openrouter": "openRouterModelId",
+		glama: "glamaModelId",
+		openai: "openAiModelId",
+		"openai-native": "openAiModelId",
+		ollama: "ollamaModelId",
+		lmstudio: "lmStudioModelId",
+		unbound: "unboundModelId",
+		requesty: "requestyModelId",
+		litellm: "litellmModelId",
+		huggingface: "huggingFaceModelId",
+		"io-intelligence": "ioIntelligenceModelId",
+		"vercel-ai-gateway": "vercelAiGatewayModelId",
+		deepinfra: "deepInfraModelId",
+		kilocode: "kilocodeModel",
+		ovhcloud: "ovhCloudAiEndpointsModelId",
+	}
+
+	const field = modelFieldMap[provider]
+	if (!field) {
+		return undefined
+	}
+
+	const modelId = settings[field]
+	return typeof modelId === "string" ? modelId : undefined
+}
+
 export type TaskMetadataOptions = {
 	taskId: string
 	rootTaskId?: string
@@ -94,6 +160,7 @@ export type TaskMetadataOptions = {
 		currentTokens: number
 		maxTokens: number
 	}
+	apiConfiguration?: ProviderSettings
 }
 
 export async function taskMetadata({
@@ -106,6 +173,7 @@ export async function taskMetadata({
 	workspace,
 	mode,
 	contextWindowUsage,
+	apiConfiguration,
 }: TaskMetadataOptions) {
 	const taskDir = await getTaskDirectoryPath(globalStoragePath, id)
 
@@ -185,6 +253,9 @@ export async function taskMetadata({
 						maxTokens: 200000, // Default max tokens for KiloCode models
 					}
 				: undefined,
+		// Capture model information for task isolation
+		apiProvider: apiConfiguration?.apiProvider,
+		apiModelId: apiConfiguration ? getModelIdFromConfig(apiConfiguration) : undefined,
 	}
 
 	return { historyItem, tokenUsage }

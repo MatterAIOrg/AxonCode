@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "5.5.0",
+	"version": "5.5.2",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -542,6 +542,18 @@
 				"providedCodeActionKinds": [
 					"vscode.CodeActionKind.QuickFix"
 				]
+			}
+		],
+		"customEditors": [
+			{
+				"viewType": "axon-plan",
+				"displayName": "Axon Plan Viewer",
+				"selector": [
+					{
+						"filenamePattern": "*.md"
+					}
+				],
+				"priority": "option"
 			}
 		]
 	},

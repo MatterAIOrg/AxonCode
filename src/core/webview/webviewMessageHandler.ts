@@ -1036,6 +1036,11 @@ export const webviewMessageHandler = async (
 	}
 
 	switch (message.type) {
+		case "switchToBackgroundTask":
+			if (message.taskId) {
+				await provider.bringTaskToForeground(message.taskId)
+			}
+			break
 		case "webviewDidLaunch":
 			// Load custom modes first
 			const customModes = await provider.customModesManager.getCustomModes()
@@ -1829,7 +1834,7 @@ ${comment.suggestion}
 			// Execute the accept all command and get line counters
 			const lineCounters = await vscode.commands.executeCommand<
 				{ linesAdded: number; linesUpdated: number; linesDeleted: number } | undefined
-			>("axon-code.fileEdit.acceptAll")
+			>("axon-code.fileEdit.acceptAll", currentTask.taskId)
 
 			// Send line counters to server if we have data
 			if (
@@ -1909,7 +1914,7 @@ ${comment.suggestion}
 			break
 		}
 		case "fileEditReviewRejectAll":
-			await vscode.commands.executeCommand("axon-code.fileEdit.rejectAll")
+			await vscode.commands.executeCommand("axon-code.fileEdit.rejectAll", provider.getCurrentTask()?.taskId)
 			break
 		case "tasksByIdRequest": {
 			const request = message.payload as TasksByIdRequestPayload
@@ -2995,6 +3000,77 @@ ${comment.suggestion}
 				}
 			}
 			// forked_change end: check for kilocodeToken change to remove organizationId and fetch organization modes
+			break
+		case "updateTaskModel":
+			// Task-local model update for isolation - updates global state for UI display
+			// Model switching should always be allowed, even without an active task
+			if (message.apiProvider && message.apiModelId) {
+				const task = provider.getCurrentTask()
+				if (task) {
+					task.updateModel(message.apiProvider, message.apiModelId)
+					provider.log(
+						`[updateTaskModel] Updated task ${task.taskId} to use ${message.apiProvider}/${message.apiModelId}`,
+					)
+				} else {
+					provider.log(`[updateTaskModel] No active task, updating global state only`)
+				}
+				// Always update global state to reflect the model change in the UI
+				// This is necessary because the webview displays the global apiConfiguration
+				// Note: This updates the global state, but each task maintains its own model
+				// When switching tasks, the model will be restored from history
+				const state = await provider.getState()
+				const modelFieldMap: Record<string, keyof typeof state.apiConfiguration> = {
+					anthropic: "apiModelId",
+					"claude-code": "apiModelId",
+					bedrock: "apiModelId",
+					vertex: "apiModelId",
+					gemini: "apiModelId",
+					"gemini-cli": "apiModelId",
+					mistral: "apiModelId",
+					deepseek: "apiModelId",
+					doubao: "apiModelId",
+					moonshot: "apiModelId",
+					xai: "apiModelId",
+					groq: "apiModelId",
+					chutes: "apiModelId",
+					cerebras: "apiModelId",
+					sambanova: "apiModelId",
+					zai: "apiModelId",
+					fireworks: "apiModelId",
+					synthetic: "apiModelId",
+					featherless: "apiModelId",
+					"qwen-code": "apiModelId",
+					roo: "apiModelId",
+					"virtual-quota-fallback": "apiModelId",
+					openrouter: "openRouterModelId",
+					"kilocode-openrouter": "openRouterModelId",
+					glama: "glamaModelId",
+					openai: "openAiModelId",
+					"openai-native": "openAiModelId",
+					ollama: "ollamaModelId",
+					lmstudio: "lmStudioModelId",
+					unbound: "unboundModelId",
+					requesty: "requestyModelId",
+					litellm: "litellmModelId",
+					huggingface: "huggingFaceModelId",
+					"io-intelligence": "ioIntelligenceModelId",
+					"vercel-ai-gateway": "vercelAiGatewayModelId",
+					deepinfra: "deepInfraModelId",
+					kilocode: "kilocodeModel",
+					ovhcloud: "ovhCloudAiEndpointsModelId",
+				}
+				const field = modelFieldMap[message.apiProvider]
+				if (field && state.apiConfiguration) {
+					const updatedConfig = {
+						...state.apiConfiguration,
+						apiProvider: message.apiProvider as any,
+						[field]: message.apiModelId,
+					}
+					await provider.contextProxy.setProviderSettings(updatedConfig)
+					// Update webview state to reflect the model change
+					await provider.postStateToWebview()
+				}
+			}
 			break
 		case "renameApiConfiguration":
 			if (message.values && message.apiConfiguration) {
@@ -4736,6 +4812,8 @@ ${comment.suggestion}
 				const { planFile, planContent } = message.payload as ImplementPlanPayload
 				// Switch to agent mode first
 				await provider.handleModeSwitch("agent")
+				// Post state to webview to ensure mode change is reflected
+				await provider.postStateToWebview()
 				// Small delay to ensure mode switch has propagated
 				await delay(100)
 				// Send the plan content as a user message to start implementation
@@ -4756,9 +4834,22 @@ ${comment.suggestion}
 					const globalStoragePath = provider.contextProxy.globalStorageUri.fsPath
 					const planMemoryDir = await getPlanMemoryDirectoryPath(globalStoragePath, currentTask.taskId)
 					const planFilePath = path.join(planMemoryDir, planFile)
+
 					try {
-						const document = await vscode.workspace.openTextDocument(vscode.Uri.file(planFilePath))
-						await vscode.window.showTextDocument(document, { preview: false })
+						// Check if running in Orbital IDE
+						const { isOrbitalIDE } = await import("../../utils/detectOrbitalIDE")
+
+						if (isOrbitalIDE()) {
+							// Use custom markdown rendering in Orbital IDE
+							const { openPlanFileInEditor } = await import(
+								"../../integrations/editor/PlanEditorProvider"
+							)
+							await openPlanFileInEditor(planFile, provider.contextProxy.rawContext)
+						} else {
+							// Use raw text document in other IDEs
+							const document = await vscode.workspace.openTextDocument(vscode.Uri.file(planFilePath))
+							await vscode.window.showTextDocument(document, { preview: false })
+						}
 					} catch (error) {
 						console.error("Failed to open plan file:", error)
 					}

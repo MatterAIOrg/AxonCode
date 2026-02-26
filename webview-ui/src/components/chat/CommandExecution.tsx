@@ -38,215 +38,218 @@ interface CommandExecutionProps {
 	secondaryButtonText?: string
 }
 
-export const CommandExecution = ({
-	executionId,
-	text,
-	icon,
-	title,
-	onPrimaryButtonClick,
-	onSecondaryButtonClick,
-	enableButtons,
-	primaryButtonText,
-	secondaryButtonText,
-}: CommandExecutionProps) => {
-	const {
-		terminalShellIntegrationDisabled = true, // kilocode_change: default
-		allowedCommands = [],
-		deniedCommands = [],
-		setAllowedCommands,
-		setDeniedCommands,
-	} = useExtensionState()
+export const CommandExecution = memo(
+	({
+		executionId,
+		text,
+		icon,
+		title,
+		onPrimaryButtonClick,
+		onSecondaryButtonClick,
+		enableButtons,
+		primaryButtonText,
+		secondaryButtonText,
+	}: CommandExecutionProps) => {
+		const {
+			terminalShellIntegrationDisabled = true, // kilocode_change: default
+			allowedCommands = [],
+			deniedCommands = [],
+			setAllowedCommands,
+			setDeniedCommands,
+		} = useExtensionState()
 
-	const { command, output: parsedOutput } = useMemo(() => parseCommandAndOutput(text), [text])
+		const { command, output: parsedOutput } = useMemo(() => parseCommandAndOutput(text), [text])
 
-	// If we aren't opening the VSCode terminal for this command then we default
-	// to expanding the command execution output.
-	const [isExpanded, setIsExpanded] = useState(terminalShellIntegrationDisabled)
-	const [streamingOutput, setStreamingOutput] = useState("")
-	const [status, setStatus] = useState<CommandExecutionStatus | null>(null)
+		// If we aren't opening the VSCode terminal for this command then we default
+		// to expanding the command execution output.
+		const [isExpanded, setIsExpanded] = useState(terminalShellIntegrationDisabled)
+		const [streamingOutput, setStreamingOutput] = useState("")
+		const [status, setStatus] = useState<CommandExecutionStatus | null>(null)
 
-	// The command's output can either come from the text associated with the
-	// task message (this is the case for completed commands) or from the
-	// streaming output (this is the case for running commands).
-	const output = streamingOutput || parsedOutput
+		// The command's output can either come from the text associated with the
+		// task message (this is the case for completed commands) or from the
+		// streaming output (this is the case for running commands).
+		const output = streamingOutput || parsedOutput
 
-	// Extract command patterns from the actual command that was executed
-	const commandPatterns = useMemo<CommandPattern[]>(() => {
-		// First get all individual commands (including subshell commands) using parseCommand
-		const allCommands = parseCommand(command)
+		// Extract command patterns from the actual command that was executed
+		const commandPatterns = useMemo<CommandPattern[]>(() => {
+			// First get all individual commands (including subshell commands) using parseCommand
+			const allCommands = parseCommand(command)
 
-		// Then extract patterns from each command using the existing pattern extraction logic
-		const allPatterns = new Set<string>()
+			// Then extract patterns from each command using the existing pattern extraction logic
+			const allPatterns = new Set<string>()
 
-		// Add all individual commands first
-		allCommands.forEach((cmd) => {
-			if (cmd.trim()) {
-				allPatterns.add(cmd.trim())
-			}
-		})
+			// Add all individual commands first
+			allCommands.forEach((cmd) => {
+				if (cmd.trim()) {
+					allPatterns.add(cmd.trim())
+				}
+			})
 
-		// Then add extracted patterns for each command
-		allCommands.forEach((cmd) => {
-			const patterns = extractPatternsFromCommand(cmd)
-			patterns.forEach((pattern) => allPatterns.add(pattern))
-		})
+			// Then add extracted patterns for each command
+			allCommands.forEach((cmd) => {
+				const patterns = extractPatternsFromCommand(cmd)
+				patterns.forEach((pattern) => allPatterns.add(pattern))
+			})
 
-		return Array.from(allPatterns).map((pattern) => ({
-			pattern,
-		}))
-	}, [command])
+			return Array.from(allPatterns).map((pattern) => ({
+				pattern,
+			}))
+		}, [command])
 
-	// Handle pattern changes
-	const handleAllowPatternChange = (pattern: string) => {
-		const isAllowed = allowedCommands.includes(pattern)
-		const newAllowed = isAllowed ? allowedCommands.filter((p) => p !== pattern) : [...allowedCommands, pattern]
-		const newDenied = deniedCommands.filter((p) => p !== pattern)
+		// Handle pattern changes
+		const handleAllowPatternChange = (pattern: string) => {
+			const isAllowed = allowedCommands.includes(pattern)
+			const newAllowed = isAllowed ? allowedCommands.filter((p) => p !== pattern) : [...allowedCommands, pattern]
+			const newDenied = deniedCommands.filter((p) => p !== pattern)
 
-		setAllowedCommands(newAllowed)
-		setDeniedCommands(newDenied)
-		vscode.postMessage({ type: "allowedCommands", commands: newAllowed })
-		vscode.postMessage({ type: "deniedCommands", commands: newDenied })
-	}
+			setAllowedCommands(newAllowed)
+			setDeniedCommands(newDenied)
+			vscode.postMessage({ type: "allowedCommands", commands: newAllowed })
+			vscode.postMessage({ type: "deniedCommands", commands: newDenied })
+		}
 
-	const handleDenyPatternChange = (pattern: string) => {
-		const isDenied = deniedCommands.includes(pattern)
-		const newDenied = isDenied ? deniedCommands.filter((p) => p !== pattern) : [...deniedCommands, pattern]
-		const newAllowed = allowedCommands.filter((p) => p !== pattern)
+		const handleDenyPatternChange = (pattern: string) => {
+			const isDenied = deniedCommands.includes(pattern)
+			const newDenied = isDenied ? deniedCommands.filter((p) => p !== pattern) : [...deniedCommands, pattern]
+			const newAllowed = allowedCommands.filter((p) => p !== pattern)
 
-		setAllowedCommands(newAllowed)
-		setDeniedCommands(newDenied)
-		vscode.postMessage({ type: "allowedCommands", commands: newAllowed })
-		vscode.postMessage({ type: "deniedCommands", commands: newDenied })
-	}
+			setAllowedCommands(newAllowed)
+			setDeniedCommands(newDenied)
+			vscode.postMessage({ type: "allowedCommands", commands: newAllowed })
+			vscode.postMessage({ type: "deniedCommands", commands: newDenied })
+		}
 
-	const onMessage = useCallback(
-		(event: MessageEvent) => {
-			const message: ExtensionMessage = event.data
+		const onMessage = useCallback(
+			(event: MessageEvent) => {
+				const message: ExtensionMessage = event.data
 
-			if (message.type === "commandExecutionStatus") {
-				const result = commandExecutionStatusSchema.safeParse(safeJsonParse(message.text, {}))
+				if (message.type === "commandExecutionStatus") {
+					const result = commandExecutionStatusSchema.safeParse(safeJsonParse(message.text, {}))
 
-				if (result.success) {
-					const data = result.data
+					if (result.success) {
+						const data = result.data
 
-					if (data.executionId !== executionId) {
-						return
-					}
+						if (data.executionId !== executionId) {
+							return
+						}
 
-					switch (data.status) {
-						case "started":
-							setStatus(data)
-							break
-						case "output":
-							setStreamingOutput(data.output)
-							break
-						case "fallback":
-							setIsExpanded(true)
-							break
-						default:
-							setStatus(data)
-							break
+						switch (data.status) {
+							case "started":
+								setStatus(data)
+								break
+							case "output":
+								setStreamingOutput(data.output)
+								break
+							case "fallback":
+								setIsExpanded(true)
+								break
+							default:
+								setStatus(data)
+								break
+						}
 					}
 				}
-			}
-		},
-		[executionId],
-	)
+			},
+			[executionId],
+		)
 
-	useEvent("message", onMessage)
+		useEvent("message", onMessage)
 
-	return (
-		<>
-			<div className="flex flex-row items-center justify-between gap-2 mb-1">
-				<div className="flex flex-row items-center gap-2">
-					{icon}
-					{title}
-					{status?.status === "exited" && (
-						<div className="flex flex-row items-center gap-2 font-mono text-xs">
-							<StandardTooltip
-								content={t("chat.commandExecution.exitStatus", { exitStatus: status.exitCode })}>
-								<div
-									className={cn(
-										"rounded-full size-2",
-										status.exitCode === 0 ? "bg-green-600" : "bg-red-600",
-									)}
-								/>
-							</StandardTooltip>
-						</div>
-					)}
-				</div>
-				<div className=" flex flex-row items-center justify-between gap-2 px-1">
-					<div className="flex flex-row items-center gap-1">
-						{status?.status === "started" && (
+		return (
+			<>
+				<div className="flex flex-row items-center justify-between gap-2 mb-1">
+					<div className="flex flex-row items-center gap-2">
+						{icon}
+						{title}
+						{status?.status === "exited" && (
 							<div className="flex flex-row items-center gap-2 font-mono text-xs">
-								{status.pid && <div className="whitespace-nowrap">(PID: {status.pid})</div>}
-								<StandardTooltip content={t("chat:commandExecution.abort")}>
-									<Button
-										variant="ghost"
-										size="icon"
-										onClick={() =>
-											vscode.postMessage({
-												type: "terminalOperation",
-												terminalOperation: "abort",
-											})
-										}>
-										<OctagonX className="size-4" />
-									</Button>
+								<StandardTooltip
+									content={t("chat.commandExecution.exitStatus", { exitStatus: status.exitCode })}>
+									<div
+										className={cn(
+											"rounded-full size-2",
+											status.exitCode === 0 ? "bg-green-600" : "bg-red-600",
+										)}
+									/>
 								</StandardTooltip>
 							</div>
-						)}
-						{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && (
-							<div className="flex flex-row items-center gap-2">
-								<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
-									<VSCodeButton
-										appearance="primary"
-										disabled={!enableButtons}
-										onClick={() => onPrimaryButtonClick && onPrimaryButtonClick()}>
-										{primaryButtonText || t("chat:runCommand.title")}
-									</VSCodeButton>
-								</StandardTooltip>
-								<StandardTooltip content={secondaryButtonText || t("chat:reject.tooltip")}>
-									<VSCodeButton
-										appearance="secondary"
-										disabled={!enableButtons}
-										onClick={() => onSecondaryButtonClick && onSecondaryButtonClick()}>
-										{secondaryButtonText || t("chat:reject.title")}
-									</VSCodeButton>
-								</StandardTooltip>
-							</div>
-						)}
-						{output.length > 0 && (
-							<Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)}>
-								<ChevronDown
-									className={cn(
-										"size-4 transition-transform duration-300",
-										isExpanded && "rotate-180",
-									)}
-								/>
-							</Button>
 						)}
 					</div>
-				</div>
-			</div>
+					<div className=" flex flex-row items-center justify-between gap-2 px-1">
+						<div className="flex flex-row items-center gap-1">
+							{status?.status === "started" && (
+								<div className="flex flex-row items-center gap-2 font-mono text-xs">
+									{status.pid && <div className="whitespace-nowrap">(PID: {status.pid})</div>}
+									<StandardTooltip content={t("chat:commandExecution.abort")}>
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() =>
+												vscode.postMessage({
+													type: "terminalOperation",
+													terminalOperation: "abort",
+												})
+											}>
+											<OctagonX className="size-4" />
+										</Button>
+									</StandardTooltip>
+								</div>
+							)}
 
-			<div className="bg-vscode-editor-background border border-vscode-border rounded-xl mt-2">
-				<div className="p-2">
-					<CodeBlock source={command} language="shell" />
-					<OutputContainer isExpanded={isExpanded} output={output} />
+							{output.length > 0 && (
+								<Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)}>
+									<ChevronDown
+										className={cn(
+											"size-4 transition-transform duration-300",
+											isExpanded && "rotate-180",
+										)}
+									/>
+								</Button>
+							)}
+						</div>
+					</div>
 				</div>
-				{command && command.trim() && (
-					<CommandPatternSelector
-						patterns={commandPatterns}
-						allowedCommands={allowedCommands}
-						deniedCommands={deniedCommands}
-						onAllowPatternChange={handleAllowPatternChange}
-						onDenyPatternChange={handleDenyPatternChange}
-					/>
+
+				<div className="bg-vscode-editor-background border border-vscode-border rounded-xl mt-2 overflow-hidden flex flex-col">
+					<div className="p-2 overflow-y-auto max-h-[calc(100vh/2.5)]">
+						<CodeBlock source={command} language="shell" />
+						<OutputContainer isExpanded={isExpanded} output={output} />
+					</div>
+					{command && command.trim() && (
+						<CommandPatternSelector
+							patterns={commandPatterns}
+							allowedCommands={allowedCommands}
+							deniedCommands={deniedCommands}
+							onAllowPatternChange={handleAllowPatternChange}
+							onDenyPatternChange={handleDenyPatternChange}
+						/>
+					)}
+				</div>
+				{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && (
+					<div className="flex flex-row items-center justify-end gap-2 mt-2">
+						<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
+							<VSCodeButton
+								appearance="primary"
+								disabled={!enableButtons}
+								onClick={() => onPrimaryButtonClick && onPrimaryButtonClick()}>
+								{primaryButtonText || t("chat:runCommand.title")}
+							</VSCodeButton>
+						</StandardTooltip>
+						<StandardTooltip content={secondaryButtonText || t("chat:reject.tooltip")}>
+							<VSCodeButton
+								appearance="secondary"
+								disabled={!enableButtons}
+								onClick={() => onSecondaryButtonClick && onSecondaryButtonClick()}>
+								{secondaryButtonText || t("chat:reject.title")}
+							</VSCodeButton>
+						</StandardTooltip>
+					</div>
 				)}
-			</div>
-		</>
-	)
-}
+			</>
+		)
+	},
+)
 
 CommandExecution.displayName = "CommandExecution"
 
@@ -254,7 +257,7 @@ const OutputContainerInternal = ({ isExpanded, output }: { isExpanded: boolean; 
 	<div
 		className={cn("overflow-hidden", {
 			"max-h-0": !isExpanded,
-			"max-h-[calc(100vh/2.5)] mt-1 pt-1 border-t border-border/25": isExpanded,
+			"mt-1 pt-1 border-t border-border/25": isExpanded,
 		})}>
 		{output.length > 0 && <CodeBlock source={output} language="log" />}
 	</div>

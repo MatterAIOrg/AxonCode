@@ -489,6 +489,61 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			return children.map((child, idx) => toPlainText(child, idx === children.length - 1)).join("")
 		}, [toPlainText])
 
+		const getNodeTextLength = useCallback((node: Node): number => {
+			if (node.nodeType === Node.TEXT_NODE) {
+				return node.textContent?.length || 0
+			}
+
+			if (node.nodeType === Node.ELEMENT_NODE) {
+				const el = node as HTMLElement
+				if (el.dataset?.mentionValue) {
+					return el.dataset.mentionValue.length
+				}
+
+				if (el.tagName === "BR") {
+					return 1
+				}
+
+				return Array.from(el.childNodes).reduce((total, child) => total + getNodeTextLength(child), 0)
+			}
+
+			return 0
+		}, [])
+
+		const getCaretPosition = useCallback(() => {
+			if (!textAreaRef.current) return 0
+			const selection = window.getSelection()
+			if (!selection || selection.rangeCount === 0) return 0
+
+			const { anchorNode, anchorOffset } = selection
+			if (!anchorNode || !textAreaRef.current.contains(anchorNode)) {
+				return 0
+			}
+
+			const computeOffset = (root: Node, target: Node, offset: number): number => {
+				if (root === target) {
+					return offset
+				}
+
+				let total = 0
+				for (const child of Array.from(root.childNodes)) {
+					if (child === target) {
+						return total + computeOffset(child, target, offset)
+					}
+
+					if (child.contains(target)) {
+						return total + computeOffset(child, target, offset)
+					}
+
+					total += getNodeTextLength(child)
+				}
+
+				return total
+			}
+
+			return computeOffset(textAreaRef.current, anchorNode, anchorOffset)
+		}, [getNodeTextLength])
+
 		const handlePaste = useCallback(
 			async (e: React.ClipboardEvent) => {
 				const items = e.clipboardData.items
@@ -513,33 +568,22 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return
 				}
 
-				// If there's HTML data, paste as plain text to clear formatting
+				// If there's HTML data, paste as plain text to clear formatting.
+				// Don't do DOM manipulation — let useLayoutEffect handle rendering+cursor
+				// so the input event (handleInputChange) doesn't race and clobber position.
 				if (pastedHtml && pastedText) {
 					e.preventDefault()
 					const plainText = pastedText
 
-					// Insert plain text directly into the DOM to preserve existing formatting
-					const selection = window.getSelection()
-					if (selection && selection.rangeCount > 0) {
-						const range = selection.getRangeAt(0)
-						const textNode = document.createTextNode(plainText)
-						range.deleteContents()
-						range.insertNode(textNode)
+					// Use actual DOM caret position (React state may be stale after a click)
+					const actualCursorPosition = getCaretPosition()
+					const newValue =
+						inputValue.slice(0, actualCursorPosition) + plainText + inputValue.slice(actualCursorPosition)
+					const newCursorPosition = actualCursorPosition + plainText.length
 
-						// Move cursor to end of inserted text
-						range.setStartAfter(textNode)
-						range.setEndAfter(textNode)
-						selection.removeAllRanges()
-						selection.addRange(range)
-
-						// Update state to match the new content
-						const newValue = getPlainTextFromInput()
-						setInputValue(newValue)
-						const newCursorPosition = cursorPosition + plainText.length
-						setCursorPosition(newCursorPosition)
-						intendedCursorPositionRef.current = newCursorPosition
-					}
-
+					setInputValue(newValue)
+					setCursorPosition(newCursorPosition)
+					intendedCursorPositionRef.current = newCursorPosition
 					setShowContextMenu(false)
 					return
 				}
@@ -603,13 +647,13 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			[
 				shouldDisableImages,
 				setSelectedImages,
-				cursorPosition,
 				setInputValue,
 				inputValue,
+				cursorPosition,
 				t,
 				selectedImages.length, // kilocode_change - added selectedImages.length
 				showImageWarning, // kilocode_change - added showImageWarning
-				getPlainTextFromInput,
+				getCaretPosition,
 			],
 		)
 
@@ -669,61 +713,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			},
 			[customModes, renderMentionChipLocal],
 		)
-
-		const getNodeTextLength = useCallback((node: Node): number => {
-			if (node.nodeType === Node.TEXT_NODE) {
-				return node.textContent?.length || 0
-			}
-
-			if (node.nodeType === Node.ELEMENT_NODE) {
-				const el = node as HTMLElement
-				if (el.dataset?.mentionValue) {
-					return el.dataset.mentionValue.length
-				}
-
-				if (el.tagName === "BR") {
-					return 1
-				}
-
-				return Array.from(el.childNodes).reduce((total, child) => total + getNodeTextLength(child), 0)
-			}
-
-			return 0
-		}, [])
-
-		const getCaretPosition = useCallback(() => {
-			if (!textAreaRef.current) return 0
-			const selection = window.getSelection()
-			if (!selection || selection.rangeCount === 0) return 0
-
-			const { anchorNode, anchorOffset } = selection
-			if (!anchorNode || !textAreaRef.current.contains(anchorNode)) {
-				return 0
-			}
-
-			const computeOffset = (root: Node, target: Node, offset: number): number => {
-				if (root === target) {
-					return offset
-				}
-
-				let total = 0
-				for (const child of Array.from(root.childNodes)) {
-					if (child === target) {
-						return total + computeOffset(child, target, offset)
-					}
-
-					if (child.contains(target)) {
-						return total + computeOffset(child, target, offset)
-					}
-
-					total += getNodeTextLength(child)
-				}
-
-				return total
-			}
-
-			return computeOffset(textAreaRef.current, anchorNode, anchorOffset)
-		}, [getNodeTextLength])
 
 		const setCaretPosition = useCallback(
 			(position: number) => {
@@ -866,7 +855,13 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						return
 					}
 
-					if ((event.key === "Enter" || event.key === "Tab") && selectedSlashCommandsIndex !== -1) {
+					// Don't intercept modifier+Enter (e.g. cmd+enter for new line)
+					if (
+						(event.key === "Enter" || event.key === "Tab") &&
+						selectedSlashCommandsIndex !== -1 &&
+						!event.metaKey &&
+						!event.ctrlKey
+					) {
 						event.preventDefault()
 						const commands = getMatchingSlashCommands(
 							slashCommandsQuery,
@@ -923,7 +918,13 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						})
 						return
 					}
-					if ((event.key === "Enter" || event.key === "Tab") && selectedMenuIndex !== -1) {
+					// Don't intercept modifier+Enter (e.g. cmd+enter for new line)
+					if (
+						(event.key === "Enter" || event.key === "Tab") &&
+						selectedMenuIndex !== -1 &&
+						!event.metaKey &&
+						!event.ctrlKey
+					) {
 						event.preventDefault()
 						const selectedOption = getContextMenuOptions(
 							searchQuery,
@@ -948,6 +949,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				const shouldSendMessage =
 					!isComposing &&
 					event.key === "Enter" &&
+					!event.metaKey &&
+					!event.ctrlKey &&
 					((sendMessageOnEnter && !event.shiftKey) || (!sendMessageOnEnter && event.shiftKey))
 
 				if (shouldSendMessage) {

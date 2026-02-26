@@ -1,5 +1,31 @@
 # Changelog
 
+## [v5.5.2] - 2026-02-26
+
+### Added
+
+- Background tasks support for multi-chats - now you can run multiple chat tasks simultaneously without blocking each other
+- Single file accept metrics - track detailed metrics when accepting individual file edits
+- Model state per task - each task now maintains its own model selection state independently
+- Bottom anchor for changes and navigation - improved UI with anchored navigation controls
+- Todo IDE plan view - enhanced plan viewing experience in the IDE
+
+### Changed
+
+- Chat performance improvements - optimized rendering and message handling for smoother chat experience
+- UI updates across multiple components for better consistency and user experience
+- Enhanced file edit review controller with improved functionality
+- Updated task metadata handling for better state management
+
+### Fixed
+
+- Fixed plan implementation issues for better plan execution
+- Fixed chat new lines and paste cursor positioning for improved text input experience
+- Fixed mention chip alignment for better visual consistency
+- Auto reject tools and send new message - improved tool rejection workflow
+
+---
+
 ## [v5.4.1] - 2026-02-13
 
 ### Added

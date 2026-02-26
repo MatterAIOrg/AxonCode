@@ -92,6 +92,15 @@ const TaskItem = ({
 						</span>
 					</StandardTooltip>
 
+					{/* Model - always visible if available */}
+					{item.apiModelId && (
+						<StandardTooltip content={`Model: ${item.apiModelId}`}>
+							<span className="text-xs text-vscode-descriptionForeground/60 truncate max-w-[100px]">
+								{item.apiModelId}
+							</span>
+						</StandardTooltip>
+					)}
+
 					{/* Action buttons - only visible on hover, no space when hidden */}
 					{!isSelectionMode && (
 						<div className="flex items-center gap-1 hidden group-hover:flex transition-transform duration-200 ease-in-out origin-right">
