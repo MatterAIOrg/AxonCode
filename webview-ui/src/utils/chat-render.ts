@@ -1,5 +1,5 @@
 import { mentionRegexGlobal, unescapeSpaces } from "@roo/context-mentions"
-import { getIconForFilePath, getIconUrlByName } from "vscode-material-icons"
+import { getIconForFilePath, getIconForDirectoryPath, getIconUrlByName } from "vscode-material-icons"
 
 export interface MentionChipParts {
 	primary: string
@@ -89,6 +89,30 @@ export const getFileIconForMention = (rawMention: string, materialIconsBaseUri: 
 	return ""
 }
 
+export const getFolderIconForMention = (rawMention: string, materialIconsBaseUri: string): string => {
+	const mention = unescapeSpaces(rawMention)
+	// Remove line numbers and trailing slash
+	const pathWithoutLineNumbers = mention.replace(/#L\d+(?:-\d+)?$/, "").replace(/\/$/, "")
+	// Get the folder name (last part of path)
+	const folderName = pathWithoutLineNumbers.split("/").pop() || ""
+
+	const iconName = getIconForDirectoryPath(folderName)
+	return getIconUrlByName(iconName, materialIconsBaseUri)
+}
+
+export const isFolderMention = (rawMention: string): boolean => {
+	const mention = unescapeSpaces(rawMention)
+	// Remove line numbers before checking
+	const pathWithoutLineNumbers = mention.replace(/#L\d+(?:-\d+)?$/, "")
+	// A folder mention ends with / or doesn't have a file extension
+	if (pathWithoutLineNumbers.endsWith("/")) {
+		return true
+	}
+	// Check if it's a path without a file extension (likely a folder)
+	const filename = pathWithoutLineNumbers.split("/").pop() || ""
+	return !filename.includes(".") && filename.length > 0
+}
+
 export const renderMentionChip = (
 	rawMention: string,
 	materialIconsBaseUri: string,
@@ -100,8 +124,18 @@ export const renderMentionChip = (
 	const label = escapeHtml(`${isCompactFile ? rawMention : unescapeSpaces(rawMention)}`)
 	const mentionValue = escapeHtml(`@${isCompactFile ? rawMention : unescapeSpaces(rawMention)}`)
 
-	const fileIconUrl = getFileIconForMention(rawMention, materialIconsBaseUri)
-	const iconHtml = fileIconUrl ? `<img src="${fileIconUrl}" class="mention-chip__icon" alt="" />` : ""
+	// Check if this is a folder mention
+	const isFolder = isFolderMention(rawMention)
+
+	let iconHtml = ""
+	if (isFolder) {
+		// Use material icon for folder mentions (same as ContextMenu)
+		const folderIconUrl = getFolderIconForMention(rawMention, materialIconsBaseUri)
+		iconHtml = `<img src="${folderIconUrl}" class="mention-chip__icon" alt="" />`
+	} else {
+		const fileIconUrl = getFileIconForMention(rawMention, materialIconsBaseUri)
+		iconHtml = fileIconUrl ? `<img src="${fileIconUrl}" class="mention-chip__icon" alt="" />` : ""
+	}
 
 	// Extract line number from meta parts if available
 	const lineInfo = parts.meta.find((m) => m.startsWith("L"))
@@ -120,9 +154,9 @@ export const valueToHtml = (
 
 	processedText = processedText
 		.replace(/\n/g, '<br data-plain-break="true">')
-		.replace(/@([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)(?=\s|$)/g, (_match, filename) => {
-			if (mentionMap.has(filename)) {
-				return renderMentionChip(filename, materialIconsBaseUri, true)
+		.replace(/@([a-zA-Z0-9_.-]+(?:\.[a-zA-Z0-9]+)?)(?=\s|$)/g, (_match, name) => {
+			if (mentionMap.has(name)) {
+				return renderMentionChip(name, materialIconsBaseUri, true)
 			}
 			return _match
 		})
