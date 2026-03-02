@@ -95,8 +95,8 @@
 				{
 					"id": "axon-code-ActivityBar",
 					"title": "%views.activitybar.title%",
-					"icon": "assets/icons/matterai-ic.png",
-					"darkIcon": "assets/icons/matterai-ic.png"
+					"icon": "assets/icons/orbital-extension.png",
+					"darkIcon": "assets/icons/orbital-extension.png"
 				}
 			]
 		},
@@ -106,8 +106,8 @@
 					"type": "webview",
 					"id": "axon-code.SidebarProvider",
 					"name": "%views.sidebar.name%",
-					"icon": "assets/icons/matterai-ic.png",
-					"darkIcon": "assets/icons/matterai-ic.png"
+					"icon": "assets/icons/orbital-extension.png",
+					"darkIcon": "assets/icons/orbital-extension.png"
 				}
 			]
 		},
