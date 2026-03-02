@@ -1926,17 +1926,24 @@ export const ChatRowContent = ({
 									{/* forked_change start */}
 								</div>
 							)}
-							<div className="flex flex-col gap-2 ml-6">
-								<Markdown
-									markdown={message.partial === true ? message?.text : followUpData?.question}
-								/>
-								<FollowUpSuggest
-									suggestions={followUpData?.suggest}
-									onSuggestionClick={onSuggestionClick}
-									ts={message?.ts}
-									onCancelAutoApproval={onFollowUpUnmount}
-									isAnswered={isFollowUpAnswered}
-								/>
+							<div className="flex flex-col gap-2 mr-3">
+								<div className="bg-vscode-editor-background border border-vscode-border rounded-lg p-3">
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-sm text-vscode-descriptionForeground font-medium">
+											Question
+										</span>
+									</div>
+									<Markdown
+										markdown={message.partial === true ? message?.text : followUpData?.question}
+									/>
+									<FollowUpSuggest
+										suggestions={followUpData?.suggest}
+										onSuggestionClick={onSuggestionClick}
+										ts={message?.ts}
+										onCancelAutoApproval={onFollowUpUnmount}
+										isAnswered={isFollowUpAnswered}
+									/>
+								</div>
 							</div>
 						</>
 					)

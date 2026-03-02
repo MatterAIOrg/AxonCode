@@ -75,7 +75,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		{
 			inputValue,
 			setInputValue,
-			sendingDisabled,
+			// sendingDisabled,
 			// selectApiConfigDisabled,
 			selectedImages,
 			setSelectedImages,
@@ -1648,8 +1648,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
 							<button
 								aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}
-								disabled={sendingDisabled && !isStreaming}
-								onClick={isStreaming ? onCancelStreaming : !sendingDisabled ? handleSend : undefined}
+								disabled={false}
+								onClick={isStreaming && !inputValue.trim() ? onCancelStreaming : handleSend}
 								className={cn(
 									"relative inline-flex items-center justify-center",
 									"bg-transparent border-none",
@@ -1658,11 +1658,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"transition-all duration-150",
 									"focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
-									!sendingDisabled && "cursor-pointer",
-									sendingDisabled &&
-										!isStreaming &&
-										"opacity-60 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
-									isStreaming && "text-red-400 hover:text-red-300 hover:bg-red-500/10",
+									"cursor-pointer",
+									isStreaming &&
+										!inputValue.trim() &&
+										"text-red-400 hover:text-red-300 hover:bg-red-500/10",
 								)}>
 								{isStreaming ? (
 									<div className="w-4 h-4 bg-current rounded-sm"></div>

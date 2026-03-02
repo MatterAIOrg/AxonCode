@@ -4772,6 +4772,44 @@ ${comment.suggestion}
 
 			break
 		}
+		case "forceSendQueuedMessage": {
+			const messageId = message.text
+			if (!messageId) {
+				break
+			}
+
+			const currentTask = provider.getCurrentTask()
+			if (!currentTask) {
+				break
+			}
+
+			// Atomically extract the queued message before cancelling
+			const queuedMsg = currentTask.messageQueueService.getAndRemoveMessage(messageId)
+			if (!queuedMsg) {
+				break
+			}
+
+			// Cancel the current task (aborts streaming + rehydrates from history)
+			await provider.cancelTask()
+
+			// After rehydration, the task is waiting at a resume_task prompt.
+			// Passing "messageResponse" here perfectly injects the message into the
+			// chat stream via `Task.ts` `ask("resume_task")` resolving with messageResponse.
+			const newTask = provider.getCurrentTask()
+			if (newTask) {
+				// We need to wait for the task to finish rehydrating and reach the resume_task prompt
+				const checkAndSend = () => {
+					if (newTask.isWaitingForAskResponse) {
+						newTask.handleWebviewAskResponse("messageResponse", queuedMsg.text, queuedMsg.images)
+					} else {
+						setTimeout(checkAndSend, 100)
+					}
+				}
+				checkAndSend()
+			}
+
+			break
+		}
 		case "dismissUpsell": {
 			if (message.upsellId) {
 				try {

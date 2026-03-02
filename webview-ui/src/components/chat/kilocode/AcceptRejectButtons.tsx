@@ -121,52 +121,60 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 							View Diff
 						</Button>
 					</div>
-					{files.map((file) => {
-						const fileIconUrl = getFileIconUrl(file.relPath)
-						return (
-							<div
-								key={file.relPath}
-								className="flex items-center gap-1.5 px-2 py-1 border-b border-vscode-editorWidget-border hover:bg-vscode-list-hoverBackground cursor-pointer"
-								onClick={() =>
-									vscode.postMessage({
-										type: "openFile",
-										text: file.relPath,
-										values: file.firstLineNumber ? { line: file.firstLineNumber } : undefined,
-									})
-								}
-								title={file.absolutePath}>
-								{/* File Icon - Use actual file icon */}
-								{fileIconUrl ? (
-									<img src={fileIconUrl} className="w-4 h-4" alt="" />
-								) : (
-									<div
-										className="flex items-center justify-center w-4 h-4 text-[10px] font-bold rounded"
-										style={{
-											backgroundColor: "var(--vscode-editorWidget-background)",
-											color: "var(--vscode-descriptionForeground)",
-										}}>
-										{getFileName(file.relPath).split(".").pop()?.slice(0, 2).toUpperCase() || "F"}
+					{/* Scrollable file list */}
+					<div className="overflow-y-auto max-h-64">
+						{files.map((file) => {
+							const fileIconUrl = getFileIconUrl(file.relPath)
+							return (
+								<div
+									key={file.relPath}
+									className="flex items-center gap-1.5 px-2 py-1 border-b border-vscode-editorWidget-border hover:bg-vscode-list-hoverBackground cursor-pointer"
+									onClick={() =>
+										vscode.postMessage({
+											type: "openFile",
+											text: file.relPath,
+											values: file.firstLineNumber ? { line: file.firstLineNumber } : undefined,
+										})
+									}
+									title={file.absolutePath}>
+									{/* File Icon - Use actual file icon */}
+									{fileIconUrl ? (
+										<img src={fileIconUrl} className="w-4 h-4" alt="" />
+									) : (
+										<div
+											className="flex items-center justify-center w-4 h-4 text-[10px] font-bold rounded"
+											style={{
+												backgroundColor: "var(--vscode-editorWidget-background)",
+												color: "var(--vscode-descriptionForeground)",
+											}}>
+											{getFileName(file.relPath).split(".").pop()?.slice(0, 2).toUpperCase() ||
+												"F"}
+										</div>
+									)}
+
+									{/* Diff Stats */}
+									<div className="flex gap-0.5 text-sm font-medium">
+										<span style={{ color: "var(--vscode-charts-green)" }}>
+											+{file.stat.additions}
+										</span>
+										<span style={{ color: "var(--vscode-charts-red)" }}>
+											-{file.stat.deletions}
+										</span>
 									</div>
-								)}
 
-								{/* Diff Stats */}
-								<div className="flex gap-0.5 text-sm font-medium">
-									<span style={{ color: "var(--vscode-charts-green)" }}>+{file.stat.additions}</span>
-									<span style={{ color: "var(--vscode-charts-red)" }}>-{file.stat.deletions}</span>
+									{/* File Name */}
+									<div className="flex flex-row gap-2.5 flex-1 min-w-0 items-center justify-start">
+										<span className="text-sm flex-shrink-0 font-medium text-vscode-foreground truncate">
+											{getFileName(file.relPath)}
+										</span>
+										<span className="text-xs text-vscode-foreground opacity-80 truncate">
+											{getDir(file.absolutePath)}
+										</span>
+									</div>
 								</div>
-
-								{/* File Name */}
-								<div className="flex flex-row gap-2.5 flex-1 min-w-0 items-center justify-start">
-									<span className="text-sm flex-shrink-0 font-medium text-vscode-foreground truncate">
-										{getFileName(file.relPath)}
-									</span>
-									<span className="text-xs text-vscode-foreground opacity-80 truncate">
-										{getDir(file.absolutePath)}
-									</span>
-								</div>
-							</div>
-						)
-					})}
+							)
+						})}
+					</div>
 				</div>
 			)}
 

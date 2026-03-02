@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from "react"
 import { ClipboardCopy } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
 
-import { Button, StandardTooltip } from "@/components/ui"
+import { StandardTooltip } from "@/components/ui"
 
-import { useAppTranslation } from "@src/i18n/TranslationContext"
-import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { SuggestionItem } from "@roo-code/types"
+import { useExtensionState } from "@src/context/ExtensionStateContext"
+import { useAppTranslation } from "@src/i18n/TranslationContext"
 
 const DEFAULT_FOLLOWUP_TIMEOUT_MS = 60000
 const COUNTDOWN_INTERVAL_MS = 1000
@@ -103,19 +103,19 @@ export const FollowUpSuggest = ({
 	}
 
 	return (
-		<div className="flex mb-2 flex-col h-full gap-2">
+		<div className="flex flex-col gap-1 mt-2">
 			{suggestions.map((suggestion, index) => {
 				const isFirstSuggestion = index === 0
 
 				return (
 					<div
 						key={`${suggestion.answer}-${ts}`}
-						className="bg-vscode-editor-background rounded-sm w-full relative group">
-						<Button
-							variant="outline"
-							className="text-left whitespace-normal break-words w-full h-auto px-3 py-2 justify-start pr-8"
-							onClick={(event) => handleSuggestionClick(suggestion, event)}
-							aria-label={suggestion.answer}>
+						className="flex items-center gap-2 p-2 rounded-lg hover:bg-vscode-list-hoverBackground group cursor-pointer transition-colors group"
+						onClick={(event) => handleSuggestionClick(suggestion, event)}>
+						<div className="flex-shrink-0 w-6 h-6 bg-vscode-button-background/20 group-hover:bg-vscode-button-background/40 rounded flex items-center justify-center text-xs text-vscode-badge-foreground font-medium">
+							{index + 1}
+						</div>
+						<div className="flex-1 text-md text-vscode-foreground/70 group-hover:text-vscode-foreground whitespace-normal break-words">
 							{suggestion.answer}
 							{isFirstSuggestion && countdown !== null && !suggestionSelected && !isAnswered && (
 								<span
@@ -124,25 +124,17 @@ export const FollowUpSuggest = ({
 									{t("chat:followUpSuggest.countdownDisplay", { count: countdown })}
 								</span>
 							)}
-						</Button>
-						{/* {suggestion.mode && (
-							<div className="absolute bottom-0 right-0 text-[10px] bg-vscode-badge-background text-vscode-badge-foreground rounded-md mr-1 mb-1 px-1 py-0.5 border border-vscode-badge-background flex items-center gap-0.5">
-								<span className="codicon codicon-arrow-right" style={{ fontSize: "8px" }} />
-								{suggestion.mode}
-							</div>
-						)} */}
+						</div>
 						<StandardTooltip content={t("chat:followUpSuggest.copyToInput")}>
 							<div
-								className="absolute cursor-pointer top-2 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
+								className="flex-shrink-0 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
 								onClick={(e) => {
 									e.stopPropagation()
-									// Cancel the auto-approve timer when edit button is clicked
 									setSuggestionSelected(true)
 									onCancelAutoApproval?.()
-									// Simulate shift-click by directly calling the handler with shiftKey=true.
 									onSuggestionClick?.(suggestion, { ...e, shiftKey: true })
 								}}>
-								<ClipboardCopy className="w-4" />
+								<ClipboardCopy className="w-4 text-vscode-descriptionForeground" />
 							</div>
 						</StandardTooltip>
 					</div>

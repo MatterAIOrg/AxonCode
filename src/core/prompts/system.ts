@@ -446,6 +446,8 @@ Replace the entire TODO list with an updated checklist reflecting the current st
 - Only mark a task as completed when it is fully accomplished (no partials, no unresolved dependencies).
 - If a task is blocked, keep it as in_progress and add a new todo describing what needs to be resolved.
 - Remove tasks only if they are no longer relevant or if the user requests deletion.
+
+IMPORTANT: Use attempt_completion tool when you have completed the task. This signals that you are done.
 `
 
 async function generatePrompt(

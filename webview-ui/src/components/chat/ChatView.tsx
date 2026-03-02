@@ -694,7 +694,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		(text: string, images: string[]) => {
 			text = text.trim()
 			if (text || images.length > 0) {
-				if (sendingDisabled) {
+				if (sendingDisabled || isStreaming) {
 					try {
 						vscode.postMessage({ type: "queueMessage", text, images })
 						setInputValue("")
@@ -756,7 +756,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				handleChatReset()
 			}
 		},
-		[handleChatReset, markFollowUpAsAnswered, sendingDisabled], // messagesRef and clineAskRef are stable
+		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming], // messagesRef and clineAskRef are stable
 	)
 
 	const handleSetChatBoxMessage = useCallback(
@@ -1891,7 +1891,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	// 3-minute timeout for silent LLM failures
 	const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-	const STREAMING_TIMEOUT_MS = 3 * 60 * 1000 // 3 minutes
+	const STREAMING_TIMEOUT_MS = 2 * 60 * 1000 // 3 minutes
 
 	useEffect(() => {
 		// Clear any existing timeout
@@ -2607,6 +2607,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							type: "editQueuedMessage",
 							payload: { id: messageQueue[index].id, text: newText, images: messageQueue[index].images },
 						})
+					}
+				}}
+				onForceSend={(index) => {
+					if (messageQueue[index]) {
+						vscode.postMessage({ type: "forceSendQueuedMessage", text: messageQueue[index].id })
 					}
 				}}
 			/>

@@ -77,6 +77,18 @@ export class MessageQueueService extends EventEmitter<QueueEvents> {
 		return true
 	}
 
+	public getAndRemoveMessage(id: string): QueuedMessage | undefined {
+		const { index, message } = this.findMessage(id)
+
+		if (!message) {
+			return undefined
+		}
+
+		this._messages.splice(index, 1)
+		this.emit("stateChanged", this._messages)
+		return message
+	}
+
 	public dequeueMessage(): QueuedMessage | undefined {
 		const message = this._messages.shift()
 		this.emit("stateChanged", this._messages)
