@@ -8,14 +8,16 @@ import { Button } from "@src/components/ui"
 import Thumbnails from "../common/Thumbnails"
 
 import { Mention } from "./Mention"
+import { UploadCircle01Icon } from "@/utils/customIcons"
 
 interface QueuedMessagesProps {
 	queue: QueuedMessage[]
 	onRemove: (index: number) => void
 	onUpdate: (index: number, newText: string) => void
+	onForceSend?: (index: number) => void
 }
 
-export const QueuedMessages = ({ queue, onRemove, onUpdate }: QueuedMessagesProps) => {
+export const QueuedMessages = ({ queue, onRemove, onUpdate, onForceSend }: QueuedMessagesProps) => {
 	const { t } = useTranslation("chat")
 	const [editingStates, setEditingStates] = useState<Record<string, { isEditing: boolean; value: string }>>({})
 
@@ -89,7 +91,20 @@ export const QueuedMessages = ({ queue, onRemove, onUpdate }: QueuedMessagesProp
 										</div>
 									)}
 								</div>
-								<div className="flex items-center justify-center">
+								<div className="flex items-center justify-center gap-1">
+									{onForceSend && (
+										<Button
+											variant="ghost"
+											size="icon"
+											className="shrink-0"
+											title="Force send (cancel current stream and send this message)"
+											onClick={(e) => {
+												e.stopPropagation()
+												onForceSend(index)
+											}}>
+											<UploadCircle01Icon className="size-3" />
+										</Button>
+									)}
 									<Button
 										variant="ghost"
 										size="icon"

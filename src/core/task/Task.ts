@@ -283,7 +283,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	private askResponse?: ClineAskResponse
 	private askResponseText?: string
 	private askResponseImages?: string[]
-	private isWaitingForAskResponse = false
+	public isWaitingForAskResponse = false
 	public lastMessageTs?: number
 	private manualMessageQueue: Array<{ text: string; images?: string[] }> = []
 	private isProcessingManualMessages = false

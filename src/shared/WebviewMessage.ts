@@ -311,6 +311,7 @@ export interface WebviewMessage {
 		| "queueMessage"
 		| "removeQueuedMessage"
 		| "editQueuedMessage"
+		| "forceSendQueuedMessage"
 		| "dismissUpsell"
 		| "getDismissedUpsells"
 		// forked_change start
