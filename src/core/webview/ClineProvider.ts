@@ -1716,7 +1716,7 @@ ${prompt}
 			kilocodeToken: token,
 		})
 
-		vscode.window.showInformationMessage("Axon Code successfully configured!")
+		vscode.window.showInformationMessage("Orbital successfully configured!")
 
 		if (this.getCurrentTask()) {
 			this.getCurrentTask()!.api = buildApiHandler({
@@ -1724,6 +1724,9 @@ ${prompt}
 				kilocodeToken: token,
 			})
 		}
+
+		// Navigate to chat view after successful authentication
+		await this.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
 	}
 
 	// Task history
