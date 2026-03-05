@@ -45,6 +45,7 @@ import {
 import { initializeI18n } from "./i18n"
 import { registerMainThreadForwardingLogger } from "./utils/fowardingLogger" // kilocode_change
 import { getKiloCodeWrapperProperties } from "./core/kilocode/wrapper" // kilocode_change
+import { isOrbitalIDE } from "./utils/detectOrbitalIDE" // kilocode_change
 
 /**
  * Built using https://github.com/microsoft/vscode-webview-ui-toolkit
@@ -326,6 +327,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		registerMainThreadForwardingLogger(context)
 	}
 	registerCommitMessageProvider(context, outputChannel) // kilocode_change
+
+	// Set context key for Orbital IDE detection
+	const isOrbital = isOrbitalIDE()
+	await vscode.commands.executeCommand("setContext", "axon:isOrbital", isOrbital)
+	outputChannel.appendLine(`Running in ${isOrbital ? "Orbital IDE" : "VS Code"}`)
+
 	// forked_change end - Axon Code specific registrations
 
 	registerCodeActions(context)

@@ -1074,12 +1074,18 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			return
 		}
 
-		// If user rejects a tool/command, don't enqueue the feedback text as a new message
-		// The feedback is already handled by the tool rejection logic
+		// If user rejects a tool/command with feedback text, enqueue it as a new message
+		// so the user's message is not lost
 		if (askResponse === "noButtonClicked") {
 			this.askResponseText = text
 			this.askResponseImages = images
 			this.askResponse = askResponse
+			// If user provided text/images with the rejection, enqueue it as a new message
+			const trimmedText = text?.trim() ?? ""
+			const hasImages = Array.isArray(images) && images.length > 0
+			if (trimmedText || hasImages) {
+				void this.enqueueManualUserMessage(text, images)
+			}
 			return
 		}
 

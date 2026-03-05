@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "5.5.4",
+	"version": "5.5.6",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -412,11 +412,19 @@
 			},
 			{
 				"command": "axon-code.addToContext",
+				"key": "cmd+l",
+				"mac": "cmd+l",
+				"win": "ctrl+l",
+				"linux": "ctrl+l",
+				"when": "axon:isOrbital && editorTextFocus && editorHasSelection"
+			},
+			{
+				"command": "axon-code.addToContext",
 				"key": "cmd+y",
 				"mac": "cmd+y",
 				"win": "ctrl+y",
 				"linux": "ctrl+y",
-				"when": "editorTextFocus && editorHasSelection"
+				"when": "!axon:isOrbital && editorTextFocus && editorHasSelection"
 			},
 			{
 				"command": "axon-code.toggleAutoApprove",

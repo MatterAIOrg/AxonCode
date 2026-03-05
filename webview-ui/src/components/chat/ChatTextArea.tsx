@@ -522,6 +522,19 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 			const computeOffset = (root: Node, target: Node, offset: number): number => {
 				if (root === target) {
+					// For text nodes, offset is a character offset — return directly.
+					// For element nodes (e.g. the contenteditable div itself, or a <div>/<br>
+					// wrapper inserted by the browser after Shift+Enter), offset is a child
+					// index. We must sum the text lengths of children[0..offset) to get the
+					// real character position.
+					if (target.nodeType === Node.ELEMENT_NODE) {
+						let total = 0
+						const children = Array.from(target.childNodes)
+						for (let i = 0; i < offset && i < children.length; i++) {
+							total += getNodeTextLength(children[i])
+						}
+						return total
+					}
 					return offset
 				}
 
@@ -549,7 +562,13 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				const items = e.clipboardData.items
 
 				const pastedText = e.clipboardData.getData("text")
-				const pastedHtml = e.clipboardData.getData("text/html")
+				const _pastedHtml = e.clipboardData.getData("text/html")
+
+				// Use actual DOM caret position and text content (React state may be stale
+				// after Shift+Enter inserts a newline — inputValue won't re-render until next
+				// cycle, but the DOM is already updated)
+				const actualCursorPosition = getCaretPosition()
+				const currentValue = getPlainTextFromInput()
 
 				// Check if the pasted content is a URL, add space after so user
 				// can easily delete if they don't want it.
@@ -558,9 +577,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					e.preventDefault()
 					const trimmedUrl = pastedText.trim()
 					const newValue =
-						inputValue.slice(0, cursorPosition) + trimmedUrl + " " + inputValue.slice(cursorPosition)
+						currentValue.slice(0, actualCursorPosition) +
+						trimmedUrl +
+						" " +
+						currentValue.slice(actualCursorPosition)
 					setInputValue(newValue)
-					const newCursorPosition = cursorPosition + trimmedUrl.length + 1
+					const newCursorPosition = actualCursorPosition + trimmedUrl.length + 1
 					setCursorPosition(newCursorPosition)
 					intendedCursorPositionRef.current = newCursorPosition
 					setShowContextMenu(false)
@@ -568,17 +590,17 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return
 				}
 
-				// If there's HTML data, paste as plain text to clear formatting.
-				// Don't do DOM manipulation — let useLayoutEffect handle rendering+cursor
-				// so the input event (handleInputChange) doesn't race and clobber position.
-				if (pastedHtml && pastedText) {
+				// Handle all text pastes (both HTML and plain text) manually to ensure correct
+				// cursor position handling with mention chips. Browser default paste behavior
+				// doesn't understand mention chips and can insert text in wrong positions.
+				if (pastedText) {
 					e.preventDefault()
 					const plainText = pastedText
 
-					// Use actual DOM caret position (React state may be stale after a click)
-					const actualCursorPosition = getCaretPosition()
 					const newValue =
-						inputValue.slice(0, actualCursorPosition) + plainText + inputValue.slice(actualCursorPosition)
+						currentValue.slice(0, actualCursorPosition) +
+						plainText +
+						currentValue.slice(actualCursorPosition)
 					const newCursorPosition = actualCursorPosition + plainText.length
 
 					setInputValue(newValue)
@@ -648,12 +670,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				shouldDisableImages,
 				setSelectedImages,
 				setInputValue,
-				inputValue,
-				cursorPosition,
 				t,
 				selectedImages.length, // kilocode_change - added selectedImages.length
 				showImageWarning, // kilocode_change - added showImageWarning
 				getCaretPosition,
+				getPlainTextFromInput,
 			],
 		)
 
