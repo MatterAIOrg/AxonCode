@@ -17,10 +17,8 @@ export async function webFetchTool(
 	removeClosingTag: RemoveClosingTag,
 ) {
 	const toolName = "web_fetch"
-	console.log(`[webFetchTool] Called with block:`, JSON.stringify(block, null, 2))
 
 	let url: string | undefined = block.params.url
-	console.log(`[webFetchTool] Extracted URL: ${url}`)
 
 	const sharedMessageProps: ClineSayTool = {
 		tool: "webFetch",
@@ -28,17 +26,13 @@ export async function webFetchTool(
 	}
 
 	if (block.partial) {
-		console.log(`[webFetchTool] Block is partial, streaming...`)
 		await cline.ask("tool", JSON.stringify(sharedMessageProps), block.partial).catch(() => {})
 		return
 	}
 
-	console.log(`[webFetchTool] Block is complete, processing...`)
 	url = removeClosingTag("url", url)
-	console.log(`[webFetchTool] URL after removeClosingTag: ${url}`)
 
 	if (!url) {
-		console.log(`[webFetchTool] URL is missing, returning error`)
 		cline.consecutiveMistakeCount++
 		pushToolResult(await cline.sayAndCreateMissingParamError(toolName, "url"))
 		return
@@ -47,9 +41,7 @@ export async function webFetchTool(
 	// Validate URL format
 	try {
 		new URL(url)
-		console.log(`[webFetchTool] URL validation passed`)
 	} catch (e) {
-		console.log(`[webFetchTool] URL validation failed:`, e)
 		pushToolResult(formatResponse.toolError(`Invalid URL format: ${url}`))
 		return
 	}
@@ -70,8 +62,6 @@ export async function webFetchTool(
 	const providerState = await provider?.getState()
 	const kilocodeToken = providerState?.apiConfiguration?.kilocodeToken
 
-	console.log(`[webFetchTool] kilocodeToken present: ${!!kilocodeToken}`)
-
 	if (!kilocodeToken) {
 		pushToolResult(
 			formatResponse.toolError("Kilocode token is required for web fetch. Please configure your token."),
@@ -81,7 +71,6 @@ export async function webFetchTool(
 
 	try {
 		const apiUrl = `https://api.matterai.so/axoncode/webFetch?token=${kilocodeToken}`
-		console.log(`[webFetchTool] Calling API: ${apiUrl}`)
 
 		const response = await axios.post<WebFetchResponse>(
 			apiUrl,
@@ -95,9 +84,7 @@ export async function webFetchTool(
 			},
 		)
 
-		console.log(`[webFetchTool] API response status: ${response.status}`)
 		const excerpts = response.data.excerpts
-		console.log(`[webFetchTool] Excerpts count: ${excerpts?.length ?? 0}`)
 
 		if (!excerpts || excerpts.length === 0) {
 			pushToolResult(`No content could be extracted from URL: "${url}"`)
@@ -107,10 +94,8 @@ export async function webFetchTool(
 		// Format excerpts for LLM
 		const formattedContent = excerpts.join("\n\n")
 
-		console.log(`[webFetchTool] Pushing formatted content`)
 		pushToolResult(`Content from ${url}:\n\n${formattedContent}`)
 	} catch (error: any) {
-		console.error(`[webFetchTool] Error:`, error)
 		if (error.response?.status === 401) {
 			pushToolResult(formatResponse.toolError("Authentication failed. Please check your Kilocode token."))
 		} else if (error.response?.status === 429) {

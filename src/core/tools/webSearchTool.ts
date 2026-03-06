@@ -24,10 +24,8 @@ export async function webSearchTool(
 	removeClosingTag: RemoveClosingTag,
 ) {
 	const toolName = "web_search"
-	console.log(`[webSearchTool] Called with block:`, JSON.stringify(block, null, 2))
 
 	let query: string | undefined = block.params.query
-	console.log(`[webSearchTool] Extracted query: ${query}`)
 
 	const sharedMessageProps: ClineSayTool = {
 		tool: "webSearch",
@@ -35,17 +33,13 @@ export async function webSearchTool(
 	}
 
 	if (block.partial) {
-		console.log(`[webSearchTool] Block is partial, streaming...`)
 		await cline.ask("tool", JSON.stringify(sharedMessageProps), block.partial).catch(() => {})
 		return
 	}
 
-	console.log(`[webSearchTool] Block is complete, processing...`)
 	query = removeClosingTag("query", query)
-	console.log(`[webSearchTool] Query after removeClosingTag: ${query}`)
 
 	if (!query) {
-		console.log(`[webSearchTool] Query is missing, returning error`)
 		cline.consecutiveMistakeCount++
 		pushToolResult(await cline.sayAndCreateMissingParamError(toolName, "query"))
 		return
@@ -67,8 +61,6 @@ export async function webSearchTool(
 	const providerState = await provider?.getState()
 	const kilocodeToken = providerState?.apiConfiguration?.kilocodeToken
 
-	console.log(`[webSearchTool] kilocodeToken present: ${!!kilocodeToken}`)
-
 	if (!kilocodeToken) {
 		pushToolResult(
 			formatResponse.toolError("Kilocode token is required for web search. Please configure your token."),
@@ -78,7 +70,6 @@ export async function webSearchTool(
 
 	try {
 		const url = `https://api.matterai.so/axoncode/websearch?token=${kilocodeToken}`
-		console.log(`[webSearchTool] Calling API: ${url}`)
 
 		const response = await axios.post<WebSearchResponse>(
 			url,
@@ -92,9 +83,7 @@ export async function webSearchTool(
 			},
 		)
 
-		console.log(`[webSearchTool] API response status: ${response.status}`)
 		const results = response.data.results
-		console.log(`[webSearchTool] Results count: ${results?.length ?? 0}`)
 
 		if (!results || results.length === 0) {
 			pushToolResult(`No results found for query: "${query}"`)
@@ -115,10 +104,8 @@ export async function webSearchTool(
 			})
 			.join("\n\n---\n\n")
 
-		console.log(`[webSearchTool] Pushing formatted results`)
 		pushToolResult(`Search results for "${query}":\n\n${formattedResults}`)
 	} catch (error: any) {
-		console.error(`[webSearchTool] Error:`, error)
 		if (error.response?.status === 401) {
 			pushToolResult(formatResponse.toolError("Authentication failed. Please check your Kilocode token."))
 		} else if (error.response?.status === 429) {
