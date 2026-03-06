@@ -36,7 +36,7 @@ const HistoryPreview = ({ taskHistoryVersion }: { taskHistoryVersion: number } /
 					<div className="ml-3 mt-1">
 						<button
 							onClick={handleViewAllHistory}
-							className="text-base opacity-50 text-vscode-descriptionForeground hover:text-[var(--color-matterai-green)] transition-colors cursor-pointer text-center"
+							className="text-base opacity-50 text-vscode-descriptionForeground hover:text-[var(--vscode-button-background)] transition-colors cursor-pointer text-center"
 							aria-label={t("history:viewAllHistory")}>
 							{t("history:viewAllHistory")}
 						</button>

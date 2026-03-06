@@ -2166,6 +2166,19 @@ ${prompt}
 		const currentMode = mode ?? defaultModeSlug
 		const hasSystemPromptOverride = await this.hasFileBasedSystemPromptOverride(currentMode)
 
+		// Merge task's apiConfiguration into global state for webview display
+		// This ensures the webview shows the task-specific model when there's an active task
+		let mergedApiConfiguration = apiConfiguration
+		const currentTask = this.getCurrentTask()
+		if (currentTask && currentTask.apiConfiguration) {
+			// Merge task's apiConfiguration on top of global apiConfiguration
+			// This allows the webview to display the task's model while preserving other global settings
+			mergedApiConfiguration = {
+				...apiConfiguration,
+				...currentTask.apiConfiguration,
+			}
+		}
+
 		// forked_change start wrapper information
 		const kiloCodeWrapperProperties = getKiloCodeWrapperProperties()
 		const taskHistory = this.getTaskHistory()
@@ -2256,7 +2269,7 @@ ${prompt}
 
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
-			apiConfiguration,
+			apiConfiguration: mergedApiConfiguration,
 			customInstructions,
 			alwaysAllowReadOnly: alwaysAllowReadOnly ?? true,
 			alwaysAllowReadOnlyOutsideWorkspace: alwaysAllowReadOnlyOutsideWorkspace ?? true,

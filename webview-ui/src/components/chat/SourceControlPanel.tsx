@@ -428,7 +428,7 @@ ${comment.suggestion}
 										<div className="flex items-center justify-between mb-1.5">
 											<button
 												className="flex items-center gap-1.5 text-sm hover:underline cursor-pointer bg-transparent border-none p-0"
-												style={{ color: "var(--color-matterai-green)" }}
+												style={{ color: "var(--vscode-button-background)" }}
 												onClick={() => handleCommentClick(comment)}>
 												{commentFileIconUrl ? (
 													<img src={commentFileIconUrl} className="w-3.5 h-3.5" alt="" />

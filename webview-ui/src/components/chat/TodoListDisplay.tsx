@@ -45,7 +45,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 				<CheckCircle
 					size={10}
 					style={{
-						color: "var(--color-matterai-green)",
+						color: "var(--vscode-button-background)",
 						marginRight: 6,
 						flexShrink: 0,
 					}}
@@ -76,7 +76,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 						width: 8,
 						height: 8,
 						borderRadius: "50%",
-						background: "var(--color-matterai-green)",
+						background: "var(--vscode-button-background)",
 						marginRight: 8,
 						marginLeft: 2,
 						flexShrink: 0,

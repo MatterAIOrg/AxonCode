@@ -507,6 +507,8 @@ export interface ClineSayTool {
 		| "codeReview" // kilocode_change: AI Code Review
 		| "checkPastChatMemories" // Chat memories feature
 		| "useSkill"
+		| "webFetch"
+		| "webSearch"
 	path?: string
 	diff?: string
 	content?: string
@@ -565,6 +567,11 @@ export interface ClineSayTool {
 	description?: string
 	// kilocode_change: Properties for planFileEdit tool
 	filename?: string
+	// Properties for web search tool
+	results?: Array<{
+		url: string
+		title: string
+	}>
 }
 
 // Must keep in sync with system prompt.

@@ -106,7 +106,7 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 							<div className="flex flex-col gap-2 text-[13px] p-2">
 								<span className="font-semibold">Pro models are only available on the Paid Plan</span>
 								<button
-									className="text-[var(--color-matterai-green)] hover:underline text-left"
+									className="text-[var(--vscode-button-background)] hover:underline text-left"
 									onClick={(e) => {
 										e.stopPropagation()
 										vscode.postMessage({

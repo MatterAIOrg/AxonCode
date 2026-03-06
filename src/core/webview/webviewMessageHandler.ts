@@ -3002,73 +3002,76 @@ ${comment.suggestion}
 			// forked_change end: check for kilocodeToken change to remove organizationId and fetch organization modes
 			break
 		case "updateTaskModel":
-			// Task-local model update for isolation - updates global state for UI display
-			// Model switching should always be allowed, even without an active task
+			// Task-local model update for isolation
+			// When there's an active task, only update the task's model to prevent affecting other tasks
+			// When there's no active task, update global state as a default setting
 			if (message.apiProvider && message.apiModelId) {
 				const task = provider.getCurrentTask()
 				if (task) {
+					// Active task: only update task-local model, NOT global state
+					// This ensures model changes are isolated to this task
 					task.updateModel(message.apiProvider, message.apiModelId)
 					provider.log(
 						`[updateTaskModel] Updated task ${task.taskId} to use ${message.apiProvider}/${message.apiModelId}`,
 					)
-				} else {
-					provider.log(`[updateTaskModel] No active task, updating global state only`)
-				}
-				// Always update global state to reflect the model change in the UI
-				// This is necessary because the webview displays the global apiConfiguration
-				// Note: This updates the global state, but each task maintains its own model
-				// When switching tasks, the model will be restored from history
-				const state = await provider.getState()
-				const modelFieldMap: Record<string, keyof typeof state.apiConfiguration> = {
-					anthropic: "apiModelId",
-					"claude-code": "apiModelId",
-					bedrock: "apiModelId",
-					vertex: "apiModelId",
-					gemini: "apiModelId",
-					"gemini-cli": "apiModelId",
-					mistral: "apiModelId",
-					deepseek: "apiModelId",
-					doubao: "apiModelId",
-					moonshot: "apiModelId",
-					xai: "apiModelId",
-					groq: "apiModelId",
-					chutes: "apiModelId",
-					cerebras: "apiModelId",
-					sambanova: "apiModelId",
-					zai: "apiModelId",
-					fireworks: "apiModelId",
-					synthetic: "apiModelId",
-					featherless: "apiModelId",
-					"qwen-code": "apiModelId",
-					roo: "apiModelId",
-					"virtual-quota-fallback": "apiModelId",
-					openrouter: "openRouterModelId",
-					"kilocode-openrouter": "openRouterModelId",
-					glama: "glamaModelId",
-					openai: "openAiModelId",
-					"openai-native": "openAiModelId",
-					ollama: "ollamaModelId",
-					lmstudio: "lmStudioModelId",
-					unbound: "unboundModelId",
-					requesty: "requestyModelId",
-					litellm: "litellmModelId",
-					huggingface: "huggingFaceModelId",
-					"io-intelligence": "ioIntelligenceModelId",
-					"vercel-ai-gateway": "vercelAiGatewayModelId",
-					deepinfra: "deepInfraModelId",
-					kilocode: "kilocodeModel",
-					ovhcloud: "ovhCloudAiEndpointsModelId",
-				}
-				const field = modelFieldMap[message.apiProvider]
-				if (field && state.apiConfiguration) {
-					const updatedConfig = {
-						...state.apiConfiguration,
-						apiProvider: message.apiProvider as any,
-						[field]: message.apiModelId,
-					}
-					await provider.contextProxy.setProviderSettings(updatedConfig)
-					// Update webview state to reflect the model change
+					// Update webview state to reflect the task's model change
+					// getStateToPostToWebview will merge the task's apiConfiguration
 					await provider.postStateToWebview()
+				} else {
+					// No active task: update global state as default setting
+					provider.log(`[updateTaskModel] No active task, updating global state only`)
+					const state = await provider.getState()
+					const modelFieldMap: Record<string, keyof typeof state.apiConfiguration> = {
+						anthropic: "apiModelId",
+						"claude-code": "apiModelId",
+						bedrock: "apiModelId",
+						vertex: "apiModelId",
+						gemini: "apiModelId",
+						"gemini-cli": "apiModelId",
+						mistral: "apiModelId",
+						deepseek: "apiModelId",
+						doubao: "apiModelId",
+						moonshot: "apiModelId",
+						xai: "apiModelId",
+						groq: "apiModelId",
+						chutes: "apiModelId",
+						cerebras: "apiModelId",
+						sambanova: "apiModelId",
+						zai: "apiModelId",
+						fireworks: "apiModelId",
+						synthetic: "apiModelId",
+						featherless: "apiModelId",
+						"qwen-code": "apiModelId",
+						roo: "apiModelId",
+						"virtual-quota-fallback": "apiModelId",
+						openrouter: "openRouterModelId",
+						"kilocode-openrouter": "openRouterModelId",
+						glama: "glamaModelId",
+						openai: "openAiModelId",
+						"openai-native": "openAiModelId",
+						ollama: "ollamaModelId",
+						lmstudio: "lmStudioModelId",
+						unbound: "unboundModelId",
+						requesty: "requestyModelId",
+						litellm: "litellmModelId",
+						huggingface: "huggingFaceModelId",
+						"io-intelligence": "ioIntelligenceModelId",
+						"vercel-ai-gateway": "vercelAiGatewayModelId",
+						deepinfra: "deepInfraModelId",
+						kilocode: "kilocodeModel",
+						ovhcloud: "ovhCloudAiEndpointsModelId",
+					}
+					const field = modelFieldMap[message.apiProvider]
+					if (field && state.apiConfiguration) {
+						const updatedConfig = {
+							...state.apiConfiguration,
+							apiProvider: message.apiProvider as any,
+							[field]: message.apiModelId,
+						}
+						await provider.contextProxy.setProviderSettings(updatedConfig)
+						// Update webview state to reflect the model change
+						await provider.postStateToWebview()
+					}
 				}
 			}
 			break
