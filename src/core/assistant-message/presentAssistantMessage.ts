@@ -48,6 +48,8 @@ import { condenseTool } from "../tools/condenseTool" // kilocode_change
 import { newRuleTool } from "../tools/newRuleTool" // kilocode_change
 import { reportBugTool } from "../tools/reportBugTool" // kilocode_change
 import { validateToolUse } from "../tools/validateToolUse"
+import { webFetchTool } from "../tools/webFetchTool"
+import { webSearchTool } from "../tools/webSearchTool"
 
 /**
  * Processes and presents assistant message content to the user interface.
@@ -260,6 +262,10 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name}]`
 					case "check_past_chat_memories":
 						return `[${block.name} for '${block.params.regex}']`
+					case "web_fetch":
+						return `[${block.name} for '${block.params.url}']`
+					case "web_search":
+						return `[${block.name} for '${block.params.query}']`
 					default:
 						return `[${block.name}]`
 				}
@@ -647,6 +653,23 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				case "use_skill":
 					await useSkillTool(cline, block, handleError, pushToolResult)
+					break
+				case "web_fetch":
+					console.log(
+						`[presentAssistantMessage] Routing to webFetchTool, block:`,
+						JSON.stringify(block, null, 2),
+					)
+					await webFetchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+					break
+				case "web_search":
+					console.log(
+						`[presentAssistantMessage] Routing to webSearchTool, block:`,
+						JSON.stringify(block, null, 2),
+					)
+					await webSearchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+					break
+				default:
+					console.log(`[presentAssistantMessage] No handler for tool: ${block.name}`)
 					break
 			}
 

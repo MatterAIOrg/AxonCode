@@ -260,6 +260,8 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	list_plan_files: "list plan files", // kilocode_change: Plan mode file listing
 	check_past_chat_memories: "check past chat memories",
 	use_skill: "use skill",
+	web_fetch: "fetch web content",
+	web_search: "search the web",
 } as const
 
 // Define available tool groups.
@@ -274,6 +276,8 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 			"codebase_search",
 			"check_past_chat_memories",
 			"use_skill",
+			"web_fetch",
+			"web_search",
 		],
 	},
 	edit: {

@@ -34,6 +34,8 @@ import { getRunSlashCommandDescription } from "./run-slash-command"
 import { getGenerateImageDescription } from "./generate-image"
 import { getCheckPastChatMemoriesDescription } from "./check-past-chat-memories"
 import { getUseSkillDescription } from "./use-skill"
+import { getWebFetchDescription } from "./web-fetch"
+import { getWebSearchDescription } from "./web-search"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 import { discoverSkills } from "../../tools/skills"
 
@@ -78,6 +80,8 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined 
 	generate_image: (args) => getGenerateImageDescription(args),
 	check_past_chat_memories: (args) => getCheckPastChatMemoriesDescription(args),
 	use_skill: (args) => getUseSkillDescription(args),
+	web_fetch: (args) => getWebFetchDescription(args),
+	web_search: (args) => getWebSearchDescription(args),
 }
 
 export async function getToolDescriptionsForMode(
@@ -229,4 +233,6 @@ export {
 	getRunSlashCommandDescription,
 	getGenerateImageDescription,
 	getCheckPastChatMemoriesDescription,
+	getWebFetchDescription,
+	getWebSearchDescription,
 }

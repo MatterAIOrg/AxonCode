@@ -219,15 +219,15 @@ const StyledMarkdown = styled.div`
 	}
 
 	.mention-context-highlight {
-		background-color: color-mix(in srgb, var(--color-matterai-green) 30%, transparent);
+		background-color: color-mix(in srgb, var(--vscode-button-background) 30%, transparent);
 		border-radius: 3px;
 		text-align: center;
 	}
 
 	.mention-context-highlight-with-shadow {
-		background-color: color-mix(in srgb, var(--color-matterai-green) 30%, transparent);
+		background-color: color-mix(in srgb, var(--vscode-button-background) 30%, transparent);
 		border-radius: 3px;
-		box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--color-matterai-green) 30%, transparent);
+		box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--vscode-button-background) 30%, transparent);
 		text-align: center;
 	}
 `

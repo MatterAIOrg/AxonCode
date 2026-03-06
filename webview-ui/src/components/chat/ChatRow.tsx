@@ -19,11 +19,11 @@ import { vscode } from "@src/utils/vscode"
 
 import CodeAccordian, { extractFirstLineNumberFromDiff } from "../common/CodeAccordian"
 import ImageBlock from "../common/ImageBlock"
-import GitHubDiffView from "./GitHubDiffView"
 import MarkdownBlock from "../common/MarkdownBlock"
 import Thumbnails from "../common/Thumbnails"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
 import ErrorRow from "./ErrorRow"
+import GitHubDiffView from "./GitHubDiffView"
 import { ReasoningBlock } from "./ReasoningBlock"
 import UpdateTodoListToolBlock from "./UpdateTodoListToolBlock"
 
@@ -42,6 +42,7 @@ import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
+import { Globe02Icon, PlayIcon } from "@/utils/customIcons"
 import { appendImages } from "@src/utils/imageUtils"
 import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // kilocode_change
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
@@ -55,7 +56,6 @@ import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } from "./ContextCondenseRow"
 import { McpExecution } from "./McpExecution"
 import { FastApplyChatDisplay } from "./kilocode/FastApplyChatDisplay" // kilocode_change
-import { PlayIcon } from "@/utils/customIcons"
 
 interface ChatRowProps {
 	message: ClineMessage
@@ -351,7 +351,7 @@ export const ChatRowContent = ({
 
 	const normalColor = "var(--vscode-foreground)"
 	const errorColor = "var(--vscode-errorForeground)"
-	const successColor = "var(--color-matterai-green)"
+	const successColor = "var(--vscode-button-background)"
 	const cancelledColor = "var(--vscode-descriptionForeground)"
 
 	const [icon, title] = useMemo(() => {
@@ -897,6 +897,76 @@ export const ChatRowContent = ({
 						</div>
 					</div>
 				)
+			case "webFetch":
+				return (
+					<div className="flex gap-1">
+						<div style={headerStyle}>
+							<Globe02Icon className="size-3 mr-1" />
+							<span style={{}}>Fetched</span>
+						</div>
+						<div className="">
+							<ToolUseBlock>
+								<ToolUseBlockHeader>
+									<span style={{ fontWeight: "500" }}>{tool.content}</span>
+								</ToolUseBlockHeader>
+							</ToolUseBlock>
+						</div>
+					</div>
+				)
+			case "webSearch": {
+				const searchQuery = tool.query
+				const searchResults = tool.results
+
+				return (
+					<div className="flex gap-1">
+						<div style={headerStyle}>
+							<Globe02Icon className="size-3 mr-1" />
+							<span style={{}}>Searched</span>
+						</div>
+						<div className="">
+							<ToolUseBlock>
+								<ToolUseBlockHeader style={{}}>
+									<div
+										style={{
+											fontWeight: "500",
+											whiteSpace: "nowrap",
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+										}}>
+										{searchQuery}
+									</div>
+									{searchResults && searchResults.length > 0 && (
+										<div
+											style={{
+												display: "flex",
+												flexDirection: "column",
+												gap: "4px",
+												width: "100%",
+											}}>
+											{searchResults.map((result, index) => (
+												<div
+													key={index}
+													style={{
+														display: "flex",
+														alignItems: "center",
+														gap: "4px",
+														fontSize: "calc(var(--vscode-font-size) - 1px)",
+														color: "var(--vscode-descriptionForeground)",
+													}}>
+													<span
+														className="codicon codicon-link"
+														style={{ fontSize: "12px" }}></span>
+													<span>{result.title || result.url}</span>
+												</div>
+											))}
+										</div>
+									)}
+								</ToolUseBlockHeader>
+							</ToolUseBlock>
+						</div>
+					</div>
+				)
+			}
 			case "fetchInstructions":
 				return (
 					<>

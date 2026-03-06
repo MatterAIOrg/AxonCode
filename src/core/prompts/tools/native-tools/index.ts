@@ -19,6 +19,8 @@ import planFileEdit from "./plan_file_edit"
 import readPlanFile from "./read_plan_file"
 import listPlanFiles from "./list_plan_files"
 import useSkill from "./use_skill"
+import webFetch from "./web_fetch"
+import webSearch from "./web_search"
 
 export const nativeTools = [
 	// apply_diff_single_file,
@@ -46,5 +48,7 @@ export const nativeTools = [
 	searchFiles,
 	updateTodoList,
 	useSkill,
+	webFetch,
+	webSearch,
 	// writeToFile,
 ] satisfies OpenAI.Chat.ChatCompletionTool[]

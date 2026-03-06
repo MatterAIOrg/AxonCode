@@ -214,7 +214,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 										<CheckCircle
 											size={10}
 											style={{
-												color: "var(--color-matterai-green)",
+												color: "var(--vscode-button-background)",
 												marginRight: 6,
 												marginTop: 6,
 												flexShrink: 0,

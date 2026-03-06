@@ -118,12 +118,20 @@ export class AssistantMessageParser {
 			// First delta: has function name (initialize accumulator)
 			if (toolCall.function?.name) {
 				const toolName = toolCall.function.name
+				console.log(`[AssistantMessageParser] Processing tool call with name: ${toolName}`)
+				console.log(
+					`[AssistantMessageParser] toolNames includes "${toolName}":`,
+					toolNames.includes(toolName as ToolName),
+				)
 
 				// Validate that this is a recognized tool name
 				if (!toolNames.includes(toolName as ToolName)) {
 					console.warn("[AssistantMessageParser] Unknown tool name in native call:", toolName)
+					console.log("[AssistantMessageParser] Available toolNames:", toolNames)
 					continue
 				}
+
+				console.log(`[AssistantMessageParser] Tool name "${toolName}" is valid, creating accumulator`)
 
 				if (!accumulatedCall) {
 					accumulatedCall = {
