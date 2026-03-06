@@ -1,5 +1,70 @@
 # Changelog
 
+## [v5.5.7] - 2026-03-06
+
+### Added
+
+- Web fetch and web search tools for enhanced information retrieval
+- Model state per task - each task now maintains its own model selection state independently
+
+### Changed
+
+- Cleaned up chat theme for improved visual consistency
+- Enhanced webview message handling for better task management
+
+### Fixed
+
+- Fixed @ mentions when editing messages
+
+---
+
+## [v5.5.6] - 2026-03-05
+
+### Changed
+
+- Enhanced task state management with improved model selection handling
+- Updated webview message handler for better task coordination
+
+---
+
+## [v5.5.4] - 2026-03-02
+
+### Added
+
+- Better follow up question UI for improved user interaction
+
+### Changed
+
+- Enhanced queue and sending prevention for better chat UX
+- Improved file list with scrollable container and max height
+
+### Fixed
+
+- Fixed activity bar icon display
+- Fixed authentication navigation issues
+
+---
+
+## [v5.5.3] - 2026-02-26
+
+### Added
+
+- Plan file tools (readPlanFile, listPlanFiles) for better plan management
+- Image input modality support for enhanced interactions
+- Plan memory manager for improved plan tracking
+
+### Changed
+
+- Enhanced UI improvements across multiple components
+- Updated PostHog telemetry integration
+- Improved folder mention chip UI
+
+### Fixed
+
+- Limited background task height for better layout management
+
+---
+
 ## [v5.5.2] - 2026-02-26
 
 ### Added
