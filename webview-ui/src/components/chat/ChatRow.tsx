@@ -438,7 +438,7 @@ export const ChatRowContent = ({
 							{t("chat:apiRequest.failed")}
 						</span>
 					) : (
-						<span style={{ color: normalColor }}>{streamingWords[currentWordIndex]}...</span>
+						<span className="animate-shimmer">{streamingWords[currentWordIndex]}...</span>
 					),
 				]
 			case "followup":
@@ -494,20 +494,20 @@ export const ChatRowContent = ({
 				// Check if this is a batch diff request
 				if (message.type === "ask" && tool.batchDiffs && Array.isArray(tool.batchDiffs)) {
 					return (
-						<>
+						<div className="animate-fade-up">
 							<div style={headerStyle}>
 								{/* <FileDiff className="w-4 shrink-0" aria-label="Batch diff icon" /> */}
 								<span style={{}}>{t("chat:fileOperations.wantsToApplyBatchChanges")}</span>
 							</div>
 							<BatchDiffApproval files={tool.batchDiffs} ts={message.ts} />
-						</>
+						</div>
 					)
 				}
 
 				// Regular single file diff
 				const diffCode = tool.content ?? tool.diff
 				return (
-					<>
+					<div className="animate-fade-up">
 						<div style={headerStyle}>
 							{tool.isProtected ? (
 								<span
@@ -548,7 +548,7 @@ export const ChatRowContent = ({
 								// forked_change end
 							}
 						</div>
-					</>
+					</div>
 				)
 			case "fileEdit": {
 				const fileEditDiff = tool.diff ?? buildFileEditDiff(tool)
@@ -563,7 +563,8 @@ export const ChatRowContent = ({
 					})
 				}
 				return (
-					<div className={`flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start w-full`}>
+					<div
+						className={`animate-fade-up flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start w-full`}>
 						<div style={headerStyle} className="">
 							{tool.isProtected ? (
 								<span
@@ -603,7 +604,8 @@ export const ChatRowContent = ({
 			}
 			case "planFileEdit":
 				return (
-					<div className={`flex ${isExpanded ? "flex-col" : "flex-col"} gap-1 items-start pb-2`}>
+					<div
+						className={`animate-fade-up flex ${isExpanded ? "flex-col" : "flex-col"} gap-1 items-start pb-2`}>
 						<div style={headerStyle} className="">
 							<span style={{}}>Plan file edited</span>
 						</div>
@@ -657,7 +659,7 @@ export const ChatRowContent = ({
 				// Use the explicit lineNumber from the tool, or extract from diff
 				const insertLineNumber = tool.lineNumber && tool.lineNumber > 0 ? tool.lineNumber : undefined
 				return (
-					<>
+					<div className="animate-fade-up">
 						<div style={headerStyle}>
 							{tool.isProtected ? (
 								<span
@@ -698,59 +700,12 @@ export const ChatRowContent = ({
 								}
 							/>
 						</div>
-					</>
-				)
-			}
-			case "searchAndReplace": {
-				const searchDiffCode = tool.diff
-				const searchFirstLineMatch = searchDiffCode?.match(/@@\s*-\d+(?:,\d+)?\s+\+(\d+)(?:,\d+)?\s*@@/)
-				const searchFirstLineNumber = searchFirstLineMatch ? parseInt(searchFirstLineMatch[1], 10) : undefined
-				return (
-					<>
-						<div style={headerStyle}>
-							{tool.isProtected ? (
-								<span
-									className="codicon codicon-lock"
-									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
-								/>
-							) : (
-								toolIcon("replace")
-							)}
-							<span style={{}}>
-								{tool.isProtected && message.type === "ask"
-									? t("chat:fileOperations.wantsToEditProtected")
-									: message.type === "ask"
-										? t("chat:fileOperations.wantsToSearchReplace")
-										: t("chat:fileOperations.didSearchReplace")}
-							</span>
-						</div>
-						<div className="">
-							<CodeAccordian
-								path={tool.path}
-								code={tool.diff}
-								language="diff"
-								progressStatus={message.progressStatus}
-								isLoading={message.partial}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggleExpand}
-								onJumpToFile={(line) =>
-									vscode.postMessage({
-										type: "openFile",
-										text: "./" + tool.path,
-										values:
-											(line ?? searchFirstLineNumber)
-												? { line: line ?? searchFirstLineNumber }
-												: undefined,
-									})
-								}
-							/>
-						</div>
-					</>
+					</div>
 				)
 			}
 			case "codebaseSearch": {
 				return (
-					<div style={headerStyle}>
+					<div className="animate-fade-up" style={headerStyle}>
 						{/* {toolIcon("search")} */}
 						<span style={{}}>
 							{tool.path ? (
@@ -787,7 +742,7 @@ export const ChatRowContent = ({
 			}
 			case "newFileCreated":
 				return (
-					<>
+					<div className="animate-fade-up">
 						<div style={headerStyle}>
 							{tool.isProtected ? (
 								<span
@@ -825,7 +780,7 @@ export const ChatRowContent = ({
 								// forked_change end
 							}
 						</div>
-					</>
+					</div>
 				)
 			case "readFile":
 				// Check if this is a batch file permission request
@@ -2087,7 +2042,9 @@ const ChatRow = memo((props: ChatRowProps) => {
 	const [chatrow, { height }] = useSize(
 		<div
 			// kilocode_change: add highlighted className
-			className={cn(`px-[15px] py-[2px] pr-[6px] relative ${highlighted ? "animate-message-highlight" : ""}`)}>
+			className={cn(
+				`px-[15px] py-[2px] pr-[6px] relative animate-fade-up ${highlighted ? "animate-message-highlight" : ""}`,
+			)}>
 			{/* {showTaskTimeline && <KiloChatRowGutterBar message={message} />} */}
 			<ChatRowContent {...props} />
 		</div>,

@@ -74,11 +74,19 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial }: R
 				<div className="flex items-center gap-1">
 					{/* <Lightbulb className="w-3" /> */}
 					{displayElapsed > 0 ? (
-						<span className="text-vscode-foreground hover:text-[var(--vscode-button-background)]">
+						<span
+							className={cn(
+								"text-vscode-foreground hover:text-[var(--vscode-button-background)]",
+								partial && "animate-shimmer",
+							)}>
 							{label} for {timeLabel}
 						</span>
 					) : (
-						<span className="text-vscode-foreground hover:text-[var(--vscode-button-background)]">
+						<span
+							className={cn(
+								"text-vscode-foreground hover:text-[var(--vscode-button-background)]",
+								partial && "animate-shimmer",
+							)}>
 							{label}
 						</span>
 					)}

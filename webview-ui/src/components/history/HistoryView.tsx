@@ -1,13 +1,12 @@
 import React, { memo, useState } from "react"
-import BottomControls from "../kilocode/BottomControls" // kilocode_change
-import { DeleteTaskDialog } from "./DeleteTaskDialog"
-import { BatchDeleteTaskDialog } from "./BatchDeleteTaskDialog"
 import { Virtuoso } from "react-virtuoso"
+import BottomControls from "../kilocode/BottomControls" // kilocode_change
+import { BatchDeleteTaskDialog } from "./BatchDeleteTaskDialog"
+import { DeleteTaskDialog } from "./DeleteTaskDialog"
 
 import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import {
-	Button,
 	Checkbox,
 	Select,
 	SelectContent,
@@ -18,9 +17,10 @@ import {
 } from "@/components/ui"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 
+import DangerButton from "../common/DangerButton"
 import { Tab, TabContent, TabHeader } from "../common/Tab"
-import { useTaskSearch } from "./useTaskSearch"
 import TaskItem from "./TaskItem"
+import { useTaskSearch } from "./useTaskSearch"
 
 type HistoryViewProps = {
 	onDone: () => void
@@ -276,7 +276,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 			</TabContent>
 
 			{/* kilocode_change: more nesting so we can add more rows, removed fixed class */}
-			<div className="bg-vscode-editor-background">
+			<div className="bg-vscode-editor-background m-2 p-2 rounded-sm">
 				{/* Fixed action bar at bottom - only shown in selection mode with selected items */}
 				{isSelectionMode && selectedTaskIds.length > 0 && (
 					<div className="border-t border-vscode-panel-border p-2 flex justify-between items-center">
@@ -287,24 +287,23 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							})}
 						</div>
 						<div className="flex gap-2">
-							<Button variant="secondary" onClick={() => setSelectedTaskIds([])}>
+							<VSCodeButton appearance="primary" onClick={() => setSelectedTaskIds([])}>
 								{t("history:clearSelection")}
-							</Button>
-							<Button variant="default" onClick={handleBatchDelete}>
-								{t("history:deleteSelected")}
-							</Button>
+							</VSCodeButton>
+							<DangerButton onClick={handleBatchDelete}>{t("history:deleteSelected")}</DangerButton>
 						</div>
 					</div>
 				)}
 				{
 					// forked_change start
-					<div className="border-t border-b border-vscode-panel-border p-2 flex justify-between items-center">
+					<div className="flex justify-between items-center">
 						{t("kilocode:pagination.page", {
 							page: pageIndex + 1,
 							count: pageCount,
 						})}
 						<div className="flex gap-2">
-							<Button
+							<VSCodeButton
+								appearance="primary"
 								disabled={pageIndex <= 0}
 								onClick={() => {
 									if (pageIndex > 0) {
@@ -312,8 +311,9 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									}
 								}}>
 								{t("kilocode:pagination.previous")}
-							</Button>
-							<Button
+							</VSCodeButton>
+							<VSCodeButton
+								appearance="primary"
 								disabled={pageIndex >= pageCount - 1}
 								onClick={() => {
 									if (pageIndex < pageCount - 1) {
@@ -321,7 +321,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									}
 								}}>
 								{t("kilocode:pagination.next")}
-							</Button>
+							</VSCodeButton>
 						</div>
 					</div>
 					// forked_change end

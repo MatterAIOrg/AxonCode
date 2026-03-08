@@ -51,6 +51,17 @@
 	vscode-button[appearance="secondary"]:hover::part(control) {
 		background: var(--vscode-button-secondaryHoverBackground) !important;
 	}
+
+	/* DangerButton Custom Style */
+	vscode-button[data-variant="danger"],
+	vscode-button[data-variant="danger"]::part(control),
+	vscode-button[data-variant="danger"]:hover,
+	vscode-button[data-variant="danger"]:hover::part(control) {
+		background: var(--vscode-errorForeground) !important;
+		color: var(--vscode-foreground) !important;
+		border-radius: 6px !important;
+		border: none !important;
+	}
 }
 
 @theme {
@@ -597,6 +608,46 @@ input[cmdk-input]:focus {
 
 .animate-pulse {
 	animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-fade-up {
+	animation: fade-up 0.6s ease-out;
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+.animate-shimmer {
+	background: linear-gradient(
+		90deg,
+		var(--vscode-foreground) 0%,
+		var(--vscode-foreground) 40%,
+		var(--vscode-button-background) 50%,
+		var(--vscode-foreground) 60%,
+		var(--vscode-foreground) 100%
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	animation: shimmer 2s linear infinite;
+	color: transparent;
 }
 
 @keyframes matter-progress-pulse {
