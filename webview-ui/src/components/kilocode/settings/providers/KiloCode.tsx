@@ -96,14 +96,7 @@ export const KiloCode = ({
 	}, [clineMessages, apiConfiguration?.kilocodeToken])
 
 	// Calculate usage percentage from profile data
-	const usagePercentage =
-		profileData?.usagePercentage !== undefined
-			? profileData.usagePercentage
-			: profileData?.usedCredits !== undefined &&
-				  profileData?.totalCredits !== undefined &&
-				  profileData.totalCredits > 0
-				? (profileData.usedCredits / profileData.totalCredits) * 100
-				: null
+	const usagePercentage = profileData?.usagePercentage ?? null
 
 	// Always show all models including axon-code-2-pro
 	// The model will be marked as disabled if betaModelsEnabled is false
@@ -155,23 +148,33 @@ export const KiloCode = ({
 										{profileData.plan?.toLocaleUpperCase()}
 									</div>
 								</div>
-								<div>
-									<div className="text-md font-medium text-[var(--vscode-foreground)]">
-										Monthly Credits
+								{usagePercentage !== null && (
+									<div className="space-y-2">
+										<div className="flex justify-between items-center">
+											<div className="text-md font-medium text-[var(--vscode-foreground)]">
+												Monthly Usage
+											</div>
+											<div className="text-md text-[var(--vscode-descriptionForeground)]">
+												{usagePercentage.toFixed(0)}% used
+											</div>
+										</div>
+										<div
+											className="w-full h-2.5 rounded-full overflow-hidden"
+											style={{
+												backgroundColor:
+													"color-mix(in srgb, var(--vscode-input-background), black 20%)",
+											}}>
+											<div
+												className="h-full bg-[var(--vscode-button-background)] transition-all duration-300"
+												style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+											/>
+										</div>
 									</div>
-									<div className="mt-1 text-md text-[var(--vscode-descriptionForeground)]">
-										${(profileData.remainingCredits || 0).toFixed(1)} / $
-										{(profileData.totalCredits || 0).toFixed(1)} remaining (
-										{usagePercentage !== null
-											? `${usagePercentage.toFixed(0)}% used`
-											: "loading..."}
-										)
-									</div>
-								</div>
+								)}
 								{profileData.remainingReviews !== undefined && (
 									<div>
-										<div className="text-md font-medium text-[var(--vscode-foreground)]">
-											Monthly Reviews
+										<div className="pt-1 text-md font-medium text-[var(--vscode-foreground)]">
+											Monthly Code Reviews
 										</div>
 										<div className="mt-1 text-md text-[var(--vscode-descriptionForeground)]">
 											{profileData.remainingReviews.toFixed(0)} reviews remaining

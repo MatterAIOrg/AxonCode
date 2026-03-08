@@ -461,10 +461,7 @@ export type ProfileData = {
 	organizations?: UserOrganizationWithApiKey[]
 	// Additional fields from /axoncode/profile endpoint
 	plan?: string
-	remainingCredits?: number
 	remainingReviews?: number
-	totalCredits?: number
-	usedCredits?: number
 	usagePercentage?: number
 }
 
