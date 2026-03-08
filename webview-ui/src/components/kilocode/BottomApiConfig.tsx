@@ -76,12 +76,7 @@ export const BottomApiConfig = () => {
 	}
 
 	// Calculate usage percentage from profile data
-	const usagePercentage =
-		profileData?.usagePercentage !== undefined
-			? profileData.usagePercentage
-			: profileData?.usedCredits !== undefined && profileData?.totalCredits !== undefined
-				? (profileData.usedCredits / profileData.totalCredits) * 100
-				: null
+	const usagePercentage = profileData?.usagePercentage ?? null
 
 	// Calculate card position when showing
 	const handleMouseEnter = () => {
@@ -128,23 +123,36 @@ export const BottomApiConfig = () => {
 										<div className="text-xs font-medium text-[var(--vscode-foreground)]">
 											Current Plan
 										</div>
-
 										<div className="text-xs text-[var(--vscode-descriptionForeground)]">
 											{profileData?.plan}
 										</div>
 									</div>
+									{usagePercentage !== null && (
+										<div className="space-y-2">
+											<div className="flex justify-between items-center">
+												<div className="text-xs font-medium text-[var(--vscode-foreground)]">
+													Monthly Usage
+												</div>
+												<div className="text-xs text-[var(--vscode-descriptionForeground)]">
+													{usagePercentage.toFixed(0)}%
+												</div>
+											</div>
+											<div
+												className="w-full h-2 rounded-full overflow-hidden"
+												style={{
+													backgroundColor:
+														"color-mix(in srgb, var(--vscode-input-background), black 20%)",
+												}}>
+												<div
+													className="h-full bg-[var(--vscode-button-background)] transition-all duration-300"
+													style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+												/>
+											</div>
+										</div>
+									)}
 									<div className="space-y-1">
 										<div className="text-xs font-medium text-[var(--vscode-foreground)]">
-											Monthly Credits
-										</div>
-										<div className="text-xs text-[var(--vscode-descriptionForeground)]">
-											${(profileData?.remainingCredits || 0).toFixed(1)} / $
-											{(profileData?.totalCredits || 0).toFixed(1)} credits
-										</div>
-									</div>
-									<div className="space-y-1">
-										<div className="text-xs font-medium text-[var(--vscode-foreground)]">
-											Monthly Reviews
+											Monthly Code Reviews
 										</div>
 										<div className="text-xs text-[var(--vscode-descriptionForeground)]">
 											{(profileData?.remainingReviews || 0).toFixed(0)} reviews remaining
