@@ -2288,16 +2288,18 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			data-testid="chat-view"
 			className={isHidden ? "hidden" : "fixed top-0 left-0 right-0 bottom-0 flex flex-col overflow-hidden"}>
 			{(showAnnouncement || showAnnouncementModal) && (
-				<Announcement
-					hideAnnouncement={() => {
-						if (showAnnouncementModal) {
-							setShowAnnouncementModal(false)
-						}
-						if (showAnnouncement) {
-							hideAnnouncement()
-						}
-					}}
-				/>
+				<div className="animate-fade-up">
+					<Announcement
+						hideAnnouncement={() => {
+							if (showAnnouncementModal) {
+								setShowAnnouncementModal(false)
+							}
+							if (showAnnouncement) {
+								hideAnnouncement()
+							}
+						}}
+					/>
+				</div>
 			)}
 			{task ? (
 				<>
@@ -2314,31 +2316,33 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						handleCondenseContext={handleCondenseContext}
 						todos={latestTodos}
 					/> */}
-					<KiloTaskHeader
-						task={task}
-						tokensIn={apiMetrics.totalTokensIn}
-						tokensOut={apiMetrics.totalTokensOut}
-						cacheWrites={apiMetrics.totalCacheWrites}
-						cacheReads={apiMetrics.totalCacheReads}
-						totalCost={apiMetrics.totalCost}
-						contextTokens={apiMetrics.contextTokens}
-						handleCondenseContext={handleCondenseContext}
-						onClose={handleTaskCloseButtonClick}
-						groupedMessages={groupedMessages}
-						onMessageClick={handleMessageClick}
-						isTaskActive={sendingDisabled}
-						todos={latestTodos}
-						title={(task as any)?.title}
-					/>
+					<div className="animate-fade-up">
+						<KiloTaskHeader
+							task={task}
+							tokensIn={apiMetrics.totalTokensIn}
+							tokensOut={apiMetrics.totalTokensOut}
+							cacheWrites={apiMetrics.totalCacheWrites}
+							cacheReads={apiMetrics.totalCacheReads}
+							totalCost={apiMetrics.totalCost}
+							contextTokens={apiMetrics.contextTokens}
+							handleCondenseContext={handleCondenseContext}
+							onClose={handleTaskCloseButtonClick}
+							groupedMessages={groupedMessages}
+							onMessageClick={handleMessageClick}
+							isTaskActive={sendingDisabled}
+							todos={latestTodos}
+							title={(task as any)?.title}
+						/>
+					</div>
 
 					{hasSystemPromptOverride && (
-						<div className="px-3">
+						<div className="px-3 animate-fade-up">
 							<SystemPromptWarning />
 						</div>
 					)}
 
 					{showCheckpointWarning && (
-						<div className="px-3">
+						<div className="px-3 animate-fade-up">
 							<CheckpointWarning />
 						</div>
 					)}
@@ -2364,7 +2368,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 						{/* forked_change start: KilocodeNotifications + Layout fixes */}
 						{/* TelemetryBanner removed */}
-						<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
+						<div className={`${taskHistoryFullLength === 0 ? "mt-10" : ""} animate-fade-up`}>
 							<KilocodeNotifications />
 						</div>
 						<div className="flex flex-grow flex-col justify-start gap-4">
@@ -2514,7 +2518,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							)}
 							{/* History preview - Hidden in review only mode */}
 							{!isReviewOnlyMode && taskHistoryFullLength > 0 && isExpanded && (
-								<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
+								<div className="animate-fade-up">
+									<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
+								</div>
 							)}
 						</div>
 						{/* forked_change end */}
@@ -2550,7 +2556,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						{/* kilocode_change: Sticky user message - positioned outside Virtuoso for true sticky behavior */}
 						<div
 							ref={stickyHeaderRef}
-							className="absolute top-0 left-0 right-0 z-10 px-3 py-0.5 pointer-events-none">
+							className="absolute top-0 left-0 right-0 z-10 px-3 py-0.5 pointer-events-none animate-fade-up">
 							<div className="pointer-events-auto">
 								<StickyUserMessage
 									task={task}
@@ -2559,34 +2565,36 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								/>
 							</div>
 						</div>
-						<Virtuoso
-							ref={virtuosoRef}
-							key={task.ts}
-							className="scrollable grow overflow-y-scroll mb-1 scrollbar-hide"
-							// increasing top by 3_000 to prevent jumping around when user collapses a row
-							increaseViewportBy={{ top: 400, bottom: 400 }} // kilocode_change: use more modest numbers to see if they reduce gray screen incidence
-							data={groupedMessages}
-							itemContent={itemContent}
-							// kilocode_change: Spacer at top of list so items don't hide behind the sticky header
-							components={{
-								Header: () => <div style={{ height: stickyHeaderHeight }} />,
-							}}
-							atBottomStateChange={(isAtBottom: boolean) => {
-								setIsAtBottom(isAtBottom)
-								if (isAtBottom) {
-									disableAutoScrollRef.current = false
-								}
-								// setShowScrollToBottom(disableAutoScrollRef.current && !isAtBottom)
-							}}
-							atBottomThreshold={10}
-							initialTopMostItemIndex={groupedMessages.length - 1}
-							// kilocode_change: Capture scroller element for pixel-perfect sticky tracking
-							scrollerRef={(ref) => {
-								if (ref instanceof HTMLElement) {
-									virtuosoScrollerRef.current = ref
-								}
-							}}
-						/>
+						<div className="animate-fade-up">
+							<Virtuoso
+								ref={virtuosoRef}
+								key={task.ts}
+								className="scrollable grow overflow-y-scroll mb-1 scrollbar-hide"
+								// increasing top by 3_000 to prevent jumping around when user collapses a row
+								increaseViewportBy={{ top: 400, bottom: 400 }} // kilocode_change: use more modest numbers to see if they reduce gray screen incidence
+								data={groupedMessages}
+								itemContent={itemContent}
+								// kilocode_change: Spacer at top of list so items don't hide behind the sticky header
+								components={{
+									Header: () => <div style={{ height: stickyHeaderHeight }} />,
+								}}
+								atBottomStateChange={(isAtBottom: boolean) => {
+									setIsAtBottom(isAtBottom)
+									if (isAtBottom) {
+										disableAutoScrollRef.current = false
+									}
+									// setShowScrollToBottom(disableAutoScrollRef.current && !isAtBottom)
+								}}
+								atBottomThreshold={10}
+								initialTopMostItemIndex={groupedMessages.length - 1}
+								// kilocode_change: Capture scroller element for pixel-perfect sticky tracking
+								scrollerRef={(ref) => {
+									if (ref instanceof HTMLElement) {
+										virtuosoScrollerRef.current = ref
+									}
+								}}
+							/>
+						</div>
 					</div>
 					<div className={`flex-initial min-h-0 ${!areButtonsVisible ? "mb-1" : ""}`}>
 						{showAutoApproveMenu && <AutoApproveMenu />}
@@ -2684,7 +2692,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				/>
 			)}
 			{/* kilocode_change: added settings toggle the profile and model selection */}
-			{!isReviewOnlyMode && <BottomControls showApiConfig />}
+			{!isReviewOnlyMode && (
+				<div className="animate-fade-up">
+					<BottomControls showApiConfig />
+				</div>
+			)}
 			{/* kilocode_change: end */}
 
 			{/* kilocode_change: disable {isProfileDisabled && (
