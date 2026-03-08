@@ -324,7 +324,7 @@ export const useProviderModels = (apiConfiguration?: ProviderSettings) => {
 
 	// forked_change start: Always show all models including axon-code-2-pro
 	// Pro models are marked as disabled if betaModelsEnabled is false
-	const proModelIds = ["axon-code-2-pro"]
+	const proModelIds = ["axon-code-2-pro", "axon-code-2-pro-high"]
 	const proModelsEnabled = betaModelsEnabled
 	// forked_change end
 
