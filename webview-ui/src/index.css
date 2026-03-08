@@ -51,6 +51,17 @@
 	vscode-button[appearance="secondary"]:hover::part(control) {
 		background: var(--vscode-button-secondaryHoverBackground) !important;
 	}
+
+	/* DangerButton Custom Style */
+	vscode-button[data-variant="danger"],
+	vscode-button[data-variant="danger"]::part(control),
+	vscode-button[data-variant="danger"]:hover,
+	vscode-button[data-variant="danger"]:hover::part(control) {
+		background: var(--vscode-errorForeground) !important;
+		color: var(--vscode-foreground) !important;
+		border-radius: 6px !important;
+		border: none !important;
+	}
 }
 
 @theme {
