@@ -2379,11 +2379,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 							break
 						}
 
-						if (this.didAlreadyUseTool) {
-							assistantMessage +=
-								"\n\n[Response interrupted by a tool use result. Only one tool may be used at a time and should be placed at the end of the message.]"
-							break
-						}
+						// if (this.didAlreadyUseTool) {
+						// 	assistantMessage +=
+						// 		"\n\n[Response interrupted by a tool use result. Only one tool may be used at a time and should be placed at the end of the message.]"
+						// 	break
+						// }
 					}
 
 					// Create a copy of current token values to avoid race conditions
