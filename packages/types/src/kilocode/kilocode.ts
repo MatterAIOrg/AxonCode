@@ -30,6 +30,7 @@ export type CommitRange = z.infer<typeof commitRangeSchema>
 
 export const kiloCodeMetaDataSchema = z.object({
 	commitRange: commitRangeSchema.optional(),
+	reasoningDuration: z.number().optional(),
 })
 
 export type KiloCodeMetaData = z.infer<typeof kiloCodeMetaDataSchema>
