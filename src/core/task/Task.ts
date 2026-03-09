@@ -2693,8 +2693,18 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					)
 
 					if (lastReasoningIndex !== -1 && this.clineMessages[lastReasoningIndex].partial) {
-						this.clineMessages[lastReasoningIndex].partial = false
-						await this.updateClineMessage(this.clineMessages[lastReasoningIndex])
+						const reasoningMsg = this.clineMessages[lastReasoningIndex]
+						reasoningMsg.partial = false
+						// Calculate and store reasoning duration in metadata
+						const reasoningDuration = Date.now() - reasoningMsg.ts
+						reasoningMsg.metadata = {
+							...reasoningMsg.metadata,
+							kiloCode: {
+								...reasoningMsg.metadata?.kiloCode,
+								reasoningDuration,
+							},
+						}
+						await this.updateClineMessage(reasoningMsg)
 					}
 				}
 

@@ -15,39 +15,66 @@ interface ReasoningBlockProps {
 	metadata?: any
 }
 
-export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial }: ReasoningBlockProps) => {
+export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, metadata }: ReasoningBlockProps) => {
 	const { t } = useTranslation()
 	const { reasoningBlockCollapsed } = useExtensionState()
 
 	const [isCollapsed, setIsCollapsed] = useState(reasoningBlockCollapsed)
 
 	const [elapsed, setElapsed] = useState<number>(0)
-	const [finalElapsed, setFinalElapsed] = useState<number>(0)
-	const hasStoredFinalRef = useRef<boolean>(false)
 	const contentRef = useRef<HTMLDivElement>(null)
+	const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+	const wasLastRef = useRef<boolean>(false)
+
+	// Get stored duration from metadata (if available)
+	const storedDuration = metadata?.kiloCode?.reasoningDuration as number | undefined
 
 	useEffect(() => {
 		setIsCollapsed(reasoningBlockCollapsed)
 	}, [reasoningBlockCollapsed])
 
+	// Expand while streaming for the current (last) reasoning block only
+	// Collapse with a delay when streaming completes
+	useEffect(() => {
+		// Only auto-expand if this is the last reasoning block and streaming is active
+		if (isStreaming && _isLast) {
+			wasLastRef.current = true
+			setIsCollapsed(false)
+			// Clear any pending collapse timeout
+			if (collapseTimeoutRef.current) {
+				clearTimeout(collapseTimeoutRef.current)
+				collapseTimeoutRef.current = null
+			}
+		} else if (wasLastRef.current && !isStreaming) {
+			// This block was the last one but streaming stopped
+			// Delay collapse by 2 seconds
+			collapseTimeoutRef.current = setTimeout(() => {
+				setIsCollapsed(true)
+			}, 2000)
+			wasLastRef.current = false
+		}
+
+		return () => {
+			if (collapseTimeoutRef.current) {
+				clearTimeout(collapseTimeoutRef.current)
+			}
+		}
+	}, [isStreaming, _isLast])
+
 	useEffect(() => {
 		if (partial) {
-			hasStoredFinalRef.current = false
 			const tick = () => setElapsed(Date.now() - ts)
 			tick()
 			const id = setInterval(tick, 1000)
 			return () => {
 				clearInterval(id)
-				// Capture final elapsed time when streaming stops
-				const finalTime = Date.now() - ts
-				setFinalElapsed(finalTime)
 				setElapsed(0) // Reset elapsed to stop counting
-				hasStoredFinalRef.current = true
 			}
 		}
 	}, [partial, ts])
 
-	const displayElapsed = isStreaming ? elapsed : finalElapsed
+	// Derive displayElapsed - use stored metadata if available, otherwise use live elapsed
+	const displayElapsed = storedDuration !== undefined ? storedDuration : elapsed
 	const totalSeconds = Math.floor(displayElapsed / 1000)
 
 	const formatTime = (seconds: number): string => {
