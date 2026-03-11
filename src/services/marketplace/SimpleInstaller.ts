@@ -369,7 +369,7 @@ export class SimpleInstaller {
 		}
 	}
 
-	private async getMcpFilePath(target: "project" | "global"): Promise<string> {
+	async getMcpFilePath(target: "project" | "global"): Promise<string> {
 		if (target === "project") {
 			const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
 			if (!workspaceFolder) {

@@ -32,6 +32,7 @@ import McpToolRow from "./McpToolRow"
 // import McpEnabledToggle from "./McpEnabledToggle" // kilocode_change not used
 import { McpErrorRow } from "./McpErrorRow"
 import { Delete01Icon, Refresh04Icon } from "@/utils/customIcons"
+import { SuggestedPluginsView } from "../kilocodeMcp/suggested"
 
 type McpViewProps = {
 	onDone: () => void
@@ -178,6 +179,11 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 								</Button>
 							</StandardTooltip>
 							*/}
+						</div>
+
+						{/* Suggested Plugins Marketplace */}
+						<div style={{ marginTop: "20px" }}>
+							<SuggestedPluginsView />
 						</div>
 						{/* forked_change start */}
 						{/* <div className="mt-5">

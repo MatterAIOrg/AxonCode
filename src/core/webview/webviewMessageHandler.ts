@@ -4489,6 +4489,79 @@ ${comment.suggestion}
 			break
 		}
 
+		case "installSuggestedPlugin": {
+			if (message.pluginName && message.config && message.scope) {
+				try {
+					const { SimpleInstaller } = await import("../../services/marketplace/SimpleInstaller")
+					const installer = new SimpleInstaller(provider.context)
+
+					// Get the file path based on scope
+					const filePath = await installer.getMcpFilePath(message.scope)
+
+					// Read existing file or create new structure
+					const fs = await import("fs/promises")
+					const path = await import("path")
+					let existingData: any = { mcpServers: {} }
+
+					try {
+						const existing = await fs.readFile(filePath, "utf-8")
+						existingData = JSON.parse(existing) || { mcpServers: {} }
+					} catch (error: any) {
+						if (error.code === "ENOENT") {
+							// File doesn't exist, use default structure
+							existingData = { mcpServers: {} }
+						} else if (error instanceof SyntaxError) {
+							// JSON parsing error
+							const fileName = message.scope === "project" ? ".orbital/mcp.json" : "mcp-settings.json"
+							throw new Error(
+								`Cannot install MCP server: The ${fileName} file contains invalid JSON. ` +
+									`Please fix the syntax errors in the file before installing new servers.`,
+							)
+						} else {
+							throw error
+						}
+					}
+
+					// Ensure mcpServers object exists
+					if (!existingData.mcpServers) {
+						existingData.mcpServers = {}
+					}
+
+					// Get the first server name from the config
+					const serverNames = Object.keys(message.config.mcpServers || {})
+					if (serverNames.length === 0) {
+						throw new Error("Invalid plugin configuration: no servers found")
+					}
+
+					// Add each server from the config
+					for (const serverName of serverNames) {
+						existingData.mcpServers[serverName] = message.config.mcpServers[serverName]
+					}
+
+					// Write back to file
+					await fs.mkdir(path.dirname(filePath), { recursive: true })
+					const jsonContent = JSON.stringify(existingData, null, 2)
+					await fs.writeFile(filePath, jsonContent, "utf-8")
+
+					// Notify MCP hub to update connections
+					const mcpHub = provider.getMcpHub()
+					if (mcpHub) {
+						await mcpHub.updateServerConnections(existingData.mcpServers, message.scope)
+					}
+
+					// Show success message
+					await provider.postStateToWebview()
+					vscode.window.showInformationMessage(`Successfully added ${message.pluginName} MCP server`)
+				} catch (error) {
+					console.error(`Error installing suggested plugin: ${error}`)
+					vscode.window.showErrorMessage(
+						`Failed to install plugin: ${error instanceof Error ? error.message : String(error)}`,
+					)
+				}
+			}
+			break
+		}
+
 		case "switchTab": {
 			if (message.tab) {
 				// Capture tab shown event for all switchTab messages (which are user-initiated)

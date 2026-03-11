@@ -1,15 +1,3 @@
-import React, { useMemo, useState, useEffect } from "react"
-import { MarketplaceItem, TelemetryEventName } from "@roo-code/types"
-import { vscode } from "@/utils/vscode"
-import { telemetryClient } from "@/utils/TelemetryClient"
-import { ViewState } from "../MarketplaceViewStateManager"
-import { useAppTranslation } from "@/i18n/TranslationContext"
-import { isValidUrl } from "../../../utils/url"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { StandardTooltip } from "@/components/ui"
-import { MarketplaceInstallModal } from "./MarketplaceInstallModal"
-import { useExtensionState } from "@/context/ExtensionStateContext"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -19,7 +7,19 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
+	StandardTooltip,
 } from "@/components/ui"
+import { Button } from "@/components/ui/button"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { useAppTranslation } from "@/i18n/TranslationContext"
+import { telemetryClient } from "@/utils/TelemetryClient"
+import { vscode } from "@/utils/vscode"
+import { MarketplaceItem, TelemetryEventName } from "@roo-code/types"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import React, { useEffect, useState } from "react"
+import { isValidUrl } from "../../../utils/url"
+import { ViewState } from "../MarketplaceViewStateManager"
+import { MarketplaceInstallModal } from "./MarketplaceInstallModal"
 
 interface ItemInstalledMetadata {
 	type: string
@@ -35,7 +35,7 @@ interface MarketplaceItemCardProps {
 	}
 }
 
-export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, filters, setFilters, installed }) => {
+export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, installed }) => {
 	const { t } = useAppTranslation()
 	const { cwd } = useExtensionState()
 	const [showInstallModal, setShowInstallModal] = useState(false)
@@ -65,14 +65,6 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, 
 		return () => window.removeEventListener("message", handleMessage)
 	}, [item.id, t])
 
-	const typeLabel = useMemo(() => {
-		const labels: Partial<Record<MarketplaceItem["type"], string>> = {
-			mode: t("marketplace:filters.type.mode"),
-			mcp: t("marketplace:filters.type.mcpServer"),
-		}
-		return labels[item.type] ?? "N/A"
-	}, [item.type, t])
-
 	// Determine installation status
 	const isInstalledGlobally = !!installed.global
 	const isInstalledInProject = !!installed.project
@@ -96,20 +88,23 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, 
 			<div className="border border-vscode-panel-border rounded-sm p-3 bg-vscode-editor-background">
 				<div className="flex gap-2 items-start justify-between">
 					<div className="flex gap-2 items-start">
-						<div>
-							<h3 className="text-lg font-semibold text-vscode-foreground mt-0 mb-1 leading-none">
+						{/* Logo image */}
+						<img
+							src={item.logo}
+							alt={item.name}
+							className="w-8 h-8 rounded-sm object-contain flex-shrink-0"
+						/>
+						<div className="flex gap-0 flex-col">
+							<h3 className="text-lg font-semibold text-vscode-foreground m-0 leading-none p-0">
 								{item.type === "mcp" && item.url && isValidUrl(item.url) ? (
-									<Button
-										variant="link"
-										className="p-0 h-auto text-lg font-semibold text-vscode-foreground hover:underline"
-										onClick={() => vscode.postMessage({ type: "openExternal", url: item.url })}>
+									<div className="p-0 h-auto text-lg font-semibold text-vscode-foreground">
 										{item.name}
-									</Button>
+									</div>
 								) : (
 									item.name
 								)}
 							</h3>
-							<AuthorInfo item={item} typeLabel={typeLabel} />
+							<p className="text-sm text-vscode-descriptionForeground p-0 m-0">{item.author}</p>
 						</div>
 					</div>
 					<div className="flex items-center gap-1">
@@ -136,13 +131,12 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, 
 							</StandardTooltip>
 						) : (
 							/* Single Install button when not installed */
-							<Button
-								size="sm"
-								variant="default"
+							<VSCodeButton
+								appearance="primary"
 								className="text-xs h-5 py-0 px-2"
 								onClick={handleInstallClick}>
 								{t("marketplace:items.card.install")}
-							</Button>
+							</VSCodeButton>
 						)}
 
 						{/* Error message display */}
@@ -154,7 +148,7 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, 
 					</div>
 				</div>
 
-				<p className="my-2 text-vscode-foreground">{item.description}</p>
+				<p className="text-xs text-vscode-foreground">{item.description}</p>
 
 				{/* Installation status badges and tags in the same row */}
 				{(isInstalled || (item.tags && item.tags.length > 0)) && (
@@ -165,34 +159,6 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, 
 								{t("marketplace:items.card.installed")}
 							</span>
 						)}
-
-						{/* Tags on the right */}
-						{item.tags &&
-							item.tags.length > 0 &&
-							item.tags.map((tag) => (
-								<StandardTooltip
-									key={tag}
-									content={
-										filters.tags.includes(tag)
-											? t("marketplace:filters.tags.clear", { count: tag })
-											: t("marketplace:filters.tags.clickToFilter")
-									}>
-									<Button
-										size="sm"
-										variant="secondary"
-										className={cn("rounded-sm capitalize text-xs px-2 h-5", {
-											"border-solid border-primary text-primary": filters.tags.includes(tag),
-										})}
-										onClick={() => {
-											const newTags = filters.tags.includes(tag)
-												? filters.tags.filter((t: string) => t !== tag)
-												: [...filters.tags, tag]
-											setFilters({ tags: newTags })
-										}}>
-										{tag}
-									</Button>
-								</StandardTooltip>
-							))}
 					</div>
 				)}
 			</div>
@@ -250,38 +216,4 @@ export const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, 
 			</AlertDialog>
 		</>
 	)
-}
-
-interface AuthorInfoProps {
-	item: MarketplaceItem
-	typeLabel: string
-}
-
-const AuthorInfo: React.FC<AuthorInfoProps> = ({ item, typeLabel }) => {
-	const { t } = useAppTranslation()
-
-	const handleOpenAuthorUrl = () => {
-		if (item.authorUrl && isValidUrl(item.authorUrl)) {
-			vscode.postMessage({ type: "openExternal", url: item.authorUrl })
-		}
-	}
-
-	if (item.author) {
-		return (
-			<p className="text-sm text-vscode-descriptionForeground my-0">
-				{typeLabel}{" "}
-				{item.authorUrl && isValidUrl(item.authorUrl) ? (
-					<Button
-						variant="link"
-						className="p-0 h-auto text-sm text-vscode-textLink hover:underline"
-						onClick={handleOpenAuthorUrl}>
-						{t("marketplace:items.card.by", { author: item.author })}
-					</Button>
-				) : (
-					t("marketplace:items.card.by", { author: item.author })
-				)}
-			</p>
-		)
-	}
-	return null
 }
