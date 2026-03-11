@@ -224,7 +224,32 @@ export class SimpleInstaller {
 		}
 
 		const filePath = await this.getMcpFilePath(target)
-		const mcpData = JSON.parse(contentToUse)
+		const parsedContent = JSON.parse(contentToUse)
+
+		// Extract the server config from mcpServers wrapper
+		// The content comes as { "mcpServers": { "serverName": { ...config } } }
+		// We need to extract just the inner server config
+		let mcpData: any
+		let serverName: string | undefined
+
+		if (parsedContent.mcpServers && typeof parsedContent.mcpServers === "object") {
+			// Get the first server key and its config
+			const serverKeys = Object.keys(parsedContent.mcpServers)
+			if (serverKeys.length > 0) {
+				serverName = serverKeys[0]
+				mcpData = parsedContent.mcpServers[serverName]
+			} else {
+				throw new Error("No server configuration found in mcpServers")
+			}
+		} else {
+			// Fallback: use the content directly if it's not wrapped in mcpServers
+			mcpData = parsedContent
+		}
+
+		// Use the item id as the server name if we couldn't extract it from content
+		if (!serverName) {
+			serverName = item.id
+		}
 
 		// Read existing file or create new structure
 		let existingData: any = { mcpServers: {} }
@@ -252,9 +277,6 @@ export class SimpleInstaller {
 		if (!existingData.mcpServers) {
 			existingData.mcpServers = {}
 		}
-
-		// Use the item id as the server name
-		const serverName = item.id
 
 		// Add or update the single server
 		existingData.mcpServers[serverName] = mcpData

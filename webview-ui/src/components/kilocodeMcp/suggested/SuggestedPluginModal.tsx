@@ -1,4 +1,3 @@
-import React, { useState } from "react"
 import {
 	Dialog,
 	DialogContent,
@@ -7,10 +6,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { SuggestedPlugin } from "./types"
 import { vscode } from "@/utils/vscode"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import React, { useState } from "react"
+import { SuggestedPlugin } from "./types"
 
 interface SuggestedPluginModalProps {
 	plugin: SuggestedPlugin | null
@@ -160,12 +160,15 @@ export const SuggestedPluginModal: React.FC<SuggestedPluginModalProps> = ({
 				</div>
 
 				<DialogFooter>
-					<Button variant="outline" onClick={onClose} disabled={isInstalling}>
+					<VSCodeButton appearance="secondary" onClick={onClose} disabled={isInstalling}>
 						Cancel
-					</Button>
-					<Button onClick={handleInstall} disabled={!apiKey.trim() || isInstalling}>
+					</VSCodeButton>
+					<VSCodeButton
+						appearance="primary"
+						onClick={handleInstall}
+						disabled={!apiKey.trim() || isInstalling}>
 						{isInstalling ? "Adding..." : "Add"}
-					</Button>
+					</VSCodeButton>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

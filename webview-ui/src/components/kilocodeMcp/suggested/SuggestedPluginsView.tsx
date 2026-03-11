@@ -26,7 +26,7 @@ export const SuggestedPluginsView: React.FC = () => {
 					Please try again later or check your connection.
 				</div>
 				<Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-					<RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
+					<RefreshCw className={`w-4 h-4 mr-2 mt-2 ${isFetching ? "animate-spin" : ""}`} />
 					Retry
 				</Button>
 			</div>
