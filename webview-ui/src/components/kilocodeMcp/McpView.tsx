@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import styled from "styled-components"
 import { useAppTranslation } from "../../i18n/TranslationContext"
 
@@ -7,12 +7,10 @@ import { SectionHeader } from "../settings/SectionHeader"
 import { Section } from "../settings/Section"
 
 import RooMcpView from "../../components/mcp/McpView"
-import { MarketplaceViewStateManager } from "../../components/marketplace/MarketplaceViewStateManager"
-import { MarketplaceView } from "../../components/marketplace/MarketplaceView"
+import { SuggestedPluginsView } from "./suggested"
 
 const McpView = () => {
 	const [activeTab, setActiveTab] = useState("marketplace")
-	const marketplaceStateManager = useMemo(() => new MarketplaceViewStateManager(), [])
 	const { t } = useAppTranslation()
 
 	const handleTabChange = (tab: string) => {
@@ -59,9 +57,7 @@ const McpView = () => {
 
 					{/* Content container */}
 					<div style={{ width: "100%" }}>
-						{activeTab === "marketplace" && (
-							<MarketplaceView hideHeader targetTab="mcp" stateManager={marketplaceStateManager} />
-						)}
+						{activeTab === "marketplace" && <SuggestedPluginsView />}
 						{activeTab === "installed" && <RooMcpView hideHeader onDone={() => {}} />}
 					</div>
 				</div>

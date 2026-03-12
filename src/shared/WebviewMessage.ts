@@ -278,6 +278,7 @@ export interface WebviewMessage {
 		| "removeInstalledMarketplaceItem"
 		| "marketplaceInstallResult"
 		| "fetchMarketplaceData"
+		| "installSuggestedPlugin"
 		| "switchTab"
 		| "profileThresholds"
 		| "editMessage" // kilocode_change
@@ -396,6 +397,8 @@ export interface WebviewMessage {
 	mpItem?: MarketplaceItem
 	mpInstallOptions?: InstallMarketplaceItemOptions
 	config?: Record<string, any> // Add config to the payload
+	pluginName?: string // For installSuggestedPlugin
+	scope?: "project" | "global" // For installSuggestedPlugin
 	visibility?: ShareVisibility // For share visibility
 	hasContent?: boolean // For checkRulesDirectoryResult
 	// Task-local model update for isolation

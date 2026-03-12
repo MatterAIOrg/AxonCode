@@ -73,6 +73,13 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 		}
 	}, [partial, ts])
 
+	// Auto-scroll to bottom when streaming adds new content
+	useEffect(() => {
+		if (isStreaming && contentRef.current) {
+			contentRef.current.scrollTop = contentRef.current.scrollHeight
+		}
+	}, [content, isStreaming])
+
 	// Derive displayElapsed - use stored metadata if available, otherwise use live elapsed
 	const displayElapsed = storedDuration !== undefined ? storedDuration : elapsed
 	const totalSeconds = Math.floor(displayElapsed / 1000)
@@ -125,7 +132,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 				</div>
 			</div>
 			{(content?.trim()?.length ?? 0) > 0 && !isCollapsed && (
-				<div ref={contentRef} className="text-vscode-descriptionForeground">
+				<div ref={contentRef} className="text-vscode-descriptionForeground max-h-[300px] overflow-y-auto">
 					<MarkdownBlock markdown={content} />
 				</div>
 			)}

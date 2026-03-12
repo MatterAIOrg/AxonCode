@@ -1,7 +1,3 @@
-import React, { useState, useMemo, useEffect } from "react"
-import { MarketplaceItem, McpParameter, McpInstallationMethod } from "@roo-code/types"
-import { vscode } from "@/utils/vscode"
-import { useAppTranslation } from "@/i18n/TranslationContext"
 import {
 	Dialog,
 	DialogContent,
@@ -10,9 +6,13 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAppTranslation } from "@/i18n/TranslationContext"
+import { vscode } from "@/utils/vscode"
+import { MarketplaceItem, McpInstallationMethod, McpParameter } from "@roo-code/types"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import React, { useEffect, useMemo, useState } from "react"
 
 interface MarketplaceInstallModalProps {
 	item: MarketplaceItem | null
@@ -373,24 +373,27 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 				<DialogFooter>
 					{installationComplete ? (
 						<>
-							<Button variant="outline" onClick={onClose}>
+							<VSCodeButton appearance="primary" onClick={onClose}>
 								{t("marketplace:install.done")}
-							</Button>
-							<Button
+							</VSCodeButton>
+							<VSCodeButton
+								appearance="primary"
 								// kilocode_change: only display when item type is modes
 								style={item.type === "mcp" ? { display: "none" } : undefined}
 								onClick={() => handlePostInstallAction(item.type === "mcp" ? "mcp" : "modes")}>
 								{item.type === "mcp"
 									? t("marketplace:install.goToMcp")
 									: t("marketplace:install.goToModes")}
-							</Button>
+							</VSCodeButton>
 						</>
 					) : (
 						<>
-							<Button variant="outline" onClick={onClose}>
+							<VSCodeButton appearance="secondary" onClick={onClose}>
 								{t("common:answers.cancel")}
-							</Button>
-							<Button onClick={handleInstall}>{t("marketplace:install.button")}</Button>
+							</VSCodeButton>
+							<VSCodeButton appearance="primary" onClick={handleInstall}>
+								{t("marketplace:install.button")}
+							</VSCodeButton>
 						</>
 					)}
 				</DialogFooter>
