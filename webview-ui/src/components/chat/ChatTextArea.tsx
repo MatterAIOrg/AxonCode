@@ -314,99 +314,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			}
 		}, [showContextMenu, setShowContextMenu])
 
-		const handleMentionSelect = useCallback(
-			(type: ContextMenuOptionType, value?: string) => {
-				// forked_change start
-				if (type === ContextMenuOptionType.Image) {
-					setShowContextMenu(false)
-					setSelectedType(null)
-
-					const beforeCursor = inputValue.slice(0, cursorPosition)
-					const afterCursor = inputValue.slice(cursorPosition)
-					const lastAtIndex = beforeCursor.lastIndexOf("@")
-
-					if (lastAtIndex !== -1) {
-						const newValue = beforeCursor.slice(0, lastAtIndex) + afterCursor
-						setInputValue(newValue)
-						intendedCursorPositionRef.current = lastAtIndex
-					}
-
-					onSelectImages()
-					return
-				}
-				// forked_change end
-
-				if (type === ContextMenuOptionType.NoResults) {
-					return
-				}
-
-				// if (type === ContextMenuOptionType.Mode && value) {
-				// 	// Handle mode selection.
-				// 	setMode(value)
-				// 	setInputValue("")
-				// 	setShowContextMenu(false)
-				// 	vscode.postMessage({ type: "mode", text: value })
-				// 	return
-				// }
-
-				if (
-					type === ContextMenuOptionType.File ||
-					type === ContextMenuOptionType.Folder
-					// type === ContextMenuOptionType.Git
-				) {
-					if (!value) {
-						setSelectedType(type)
-						setSearchQuery("")
-						setSelectedMenuIndex(0)
-						return
-					}
-				}
-
-				setShowContextMenu(false)
-				setSelectedType(null)
-
-				let insertValue = value || ""
-
-				// if (type === ContextMenuOptionType.URL) {
-				// 	insertValue = value || ""
-				// } else
-				if (
-					type === ContextMenuOptionType.File ||
-					type === ContextMenuOptionType.Folder
-					// type === ContextMenuOptionType.OpenedFile
-				) {
-					const fullPath = value || ""
-					if (fullPath.startsWith("/")) {
-						const segments = fullPath.split("/").filter(Boolean)
-						const filename = segments.pop() || fullPath
-						insertValue = filename
-						mentionMapRef.current.set(filename, fullPath)
-					} else {
-						insertValue = fullPath
-					}
-				}
-				// else if (type === ContextMenuOptionType.Problems) {
-				// 	insertValue = "problems"
-				// } else if (type === ContextMenuOptionType.Terminal) {
-				// 	insertValue = "terminal"
-				// } else if (type === ContextMenuOptionType.Git) {
-				// 	insertValue = value || ""
-				// }
-
-				const { newValue, mentionIndex } = insertMention(inputValue, cursorPosition, insertValue)
-
-				setInputValue(newValue)
-				const newCursorPosition = newValue.indexOf(" ", mentionIndex + insertValue.length) + 1
-				setCursorPosition(newCursorPosition)
-				intendedCursorPositionRef.current = newCursorPosition
-
-				setTimeout(() => {
-					textAreaRef.current?.focus()
-				}, 0)
-			},
-			[setInputValue, cursorPosition, inputValue, onSelectImages],
-		)
-
 		// forked_change start: pull slash commands from Cline
 		const handleSlashCommandsSelect = useCallback(
 			(command: SlashCommand) => {
@@ -556,6 +463,85 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 			return computeOffset(textAreaRef.current, anchorNode, anchorOffset)
 		}, [getNodeTextLength])
+
+		const getCurrentInputSnapshot = useCallback(() => {
+			return {
+				value: getPlainTextFromInput(),
+				cursor: getCaretPosition(),
+			}
+		}, [getCaretPosition, getPlainTextFromInput])
+
+		const handleMentionSelect = useCallback(
+			(type: ContextMenuOptionType, value?: string) => {
+				// forked_change start
+				if (type === ContextMenuOptionType.Image) {
+					setShowContextMenu(false)
+					setSelectedType(null)
+
+					const { value: currentValue, cursor: currentCursorPosition } = getCurrentInputSnapshot()
+					const beforeCursor = currentValue.slice(0, currentCursorPosition)
+					const afterCursor = currentValue.slice(currentCursorPosition)
+					const lastAtIndex = beforeCursor.lastIndexOf("@")
+
+					if (lastAtIndex !== -1) {
+						const newValue = beforeCursor.slice(0, lastAtIndex) + afterCursor
+						setInputValue(newValue)
+						setCursorPosition(lastAtIndex)
+						intendedCursorPositionRef.current = lastAtIndex
+					} else if (currentValue !== inputValue) {
+						setInputValue(currentValue)
+						setCursorPosition(currentCursorPosition)
+						intendedCursorPositionRef.current = currentCursorPosition
+					}
+
+					onSelectImages()
+					return
+				}
+				// forked_change end
+
+				if (type === ContextMenuOptionType.NoResults) {
+					return
+				}
+
+				if (type === ContextMenuOptionType.File || type === ContextMenuOptionType.Folder) {
+					if (!value) {
+						setSelectedType(type)
+						setSearchQuery("")
+						setSelectedMenuIndex(0)
+						return
+					}
+				}
+
+				setShowContextMenu(false)
+				setSelectedType(null)
+
+				let insertValue = value || ""
+
+				if (type === ContextMenuOptionType.File || type === ContextMenuOptionType.Folder) {
+					const fullPath = value || ""
+					if (fullPath.startsWith("/")) {
+						const segments = fullPath.split("/").filter(Boolean)
+						const filename = segments.pop() || fullPath
+						insertValue = filename
+						mentionMapRef.current.set(filename, fullPath)
+					} else {
+						insertValue = fullPath
+					}
+				}
+
+				const { newValue, mentionIndex } = insertMention(inputValue, cursorPosition, insertValue)
+
+				setInputValue(newValue)
+				const newCursorPosition = newValue.indexOf(" ", mentionIndex + insertValue.length) + 1
+				setCursorPosition(newCursorPosition)
+				intendedCursorPositionRef.current = newCursorPosition
+
+				setTimeout(() => {
+					textAreaRef.current?.focus()
+				}, 0)
+			},
+			[cursorPosition, getCurrentInputSnapshot, inputValue, onSelectImages, setInputValue, setCursorPosition],
+		)
 
 		const handlePaste = useCallback(
 			async (e: React.ClipboardEvent) => {
@@ -1625,8 +1611,17 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									if (showContextMenu || !textAreaRef.current) return
 
 									textAreaRef.current.focus()
+									const { value: currentValue, cursor: currentCursorPosition } =
+										getCurrentInputSnapshot()
+									const nextValue =
+										currentValue.slice(0, currentCursorPosition) +
+										" @" +
+										currentValue.slice(currentCursorPosition)
+									const nextCursorPosition = currentCursorPosition + 2
 
-									setInputValue(`${inputValue} @`)
+									setInputValue(nextValue)
+									setCursorPosition(nextCursorPosition)
+									intendedCursorPositionRef.current = nextCursorPosition
 									setShowContextMenu(true)
 									setSearchQuery("")
 									setSelectedMenuIndex(4)
@@ -1822,7 +1817,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						style={{
 							left: "16px",
 							zIndex: 2,
-							marginTop: "14px", // kilocode_change
+							marginTop: "4px",
 							marginBottom: 0,
 						}}
 					/>

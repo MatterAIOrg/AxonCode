@@ -1,4 +1,5 @@
 import { defaultModeSlug } from "@roo/modes"
+import { useState } from "react"
 
 import { render, fireEvent, screen } from "@src/utils/test-utils"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
@@ -197,6 +198,49 @@ describe("ChatTextArea", () => {
 
 			// Verify the enhance button appears after apiConfiguration changes
 			expect(getEnhancePromptButton()).toBeInTheDocument()
+		})
+	})
+
+	describe("image context preservation", () => {
+		it("keeps existing text and mention chips when opening image context from the live editor state", () => {
+			const setInputValueSpy = vi.fn()
+			const onSelectImages = vi.fn()
+
+			const Wrapper = () => {
+				const [inputValue, setInputValue] = useState("Draft ")
+
+				return (
+					<ChatTextArea
+						{...defaultProps}
+						inputValue={inputValue}
+						setInputValue={(value) => {
+							setInputValueSpy(value)
+							setInputValue(value)
+						}}
+						onSelectImages={onSelectImages}
+					/>
+				)
+			}
+
+			render(<Wrapper />)
+
+			const input = screen.getByTestId("chat-input")
+			input.innerHTML =
+				'Draft <span class="mention-chip" data-mention-value="@/test/workspace/src/ChatTextArea.tsx">ChatTextArea.tsx</span> tail'
+
+			const selection = window.getSelection()
+			const range = document.createRange()
+			range.setStart(input, input.childNodes.length)
+			range.collapse(true)
+			selection?.removeAllRanges()
+			selection?.addRange(range)
+
+			fireEvent.click(screen.getByRole("button", { name: "Add Context (@)" }))
+			fireEvent.click(screen.getByText("Add Image"))
+
+			expect(setInputValueSpy).toHaveBeenCalledWith("Draft @/test/workspace/src/ChatTextArea.tsx tail @")
+			expect(setInputValueSpy).toHaveBeenCalledWith("Draft @/test/workspace/src/ChatTextArea.tsx tail ")
+			expect(onSelectImages).toHaveBeenCalledTimes(1)
 		})
 	})
 

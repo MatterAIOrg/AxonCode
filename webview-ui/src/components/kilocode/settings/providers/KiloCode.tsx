@@ -1,16 +1,15 @@
+import { useExtensionState } from "@/context/ExtensionStateContext"
 import { getAppUrl, type OrganizationAllowList, type ProviderSettings } from "@roo-code/types"
 import type { RouterModels } from "@roo/api"
+import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
-import { Button } from "@src/components/ui"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
+import { useEffect, useRef, useState } from "react"
 import { KiloCodeWrapperProperties } from "../../../../../../src/shared/kilocode/wrapper"
 import { ModelPicker } from "../../../settings/ModelPicker"
 import { OrganizationSelector } from "../../common/OrganizationSelector"
 import { getKiloCodeBackendSignInUrl } from "../../helpers"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
-import { useEffect, useRef, useState } from "react"
 
 type KiloCodeProps = {
 	apiConfiguration: ProviderSettings
@@ -28,7 +27,7 @@ type KiloCodeProps = {
 export const KiloCode = ({
 	apiConfiguration,
 	setApiConfigurationField,
-	currentApiConfigName,
+	// currentApiConfigName,
 	hideKiloCodeButton,
 	routerModels,
 	organizationAllowList,
@@ -133,6 +132,9 @@ export const KiloCode = ({
 		<>
 			<div>
 				<label className="block font-bold text-lg">{t("kilocode:settings.provider.account")}</label>
+				{profileData?.email && (
+					<div className="text-sm text-[var(--vscode-descriptionForeground)] mt-1">{profileData.email}</div>
+				)}
 			</div>
 			{!hideKiloCodeButton &&
 				(apiConfiguration.kilocodeToken ? (
@@ -183,11 +185,6 @@ export const KiloCode = ({
 								)}
 							</div>
 						)}
-
-						{/* Manage plan button */}
-						<VSCodeButtonLink appearance="primary" href="https://app.matterai.so/ai-coding-agent">
-							Manage/Upgrade plan
-						</VSCodeButtonLink>
 					</div>
 				) : (
 					<VSCodeButtonLink
@@ -222,29 +219,6 @@ export const KiloCode = ({
 				proModelIds={proModelIds}
 				proModelsEnabled={betaModelsEnabled}
 			/>
-
-			{!hideKiloCodeButton && apiConfiguration.kilocodeToken ? (
-				<Button
-					className="mt-24 w-fit"
-					variant="destructive"
-					onClick={async () => {
-						setApiConfigurationField("kilocodeToken", "")
-
-						vscode.postMessage({
-							type: "upsertApiConfiguration",
-							text: currentApiConfigName,
-							apiConfiguration: {
-								...apiConfiguration,
-								kilocodeToken: "",
-								kilocodeOrganizationId: undefined,
-							},
-						})
-					}}>
-					{t("kilocode:settings.provider.logout")}
-				</Button>
-			) : (
-				<></>
-			)}
 		</>
 	)
 }

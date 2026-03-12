@@ -8,6 +8,69 @@ import { getBinPath } from "../ripgrep"
 
 export type FileResult = { path: string; type: "file" | "folder"; label?: string }
 
+const DEFAULT_FILE_SCAN_LIMIT = Number.MAX_SAFE_INTEGER
+const MIN_FZF_CANDIDATES = 200
+
+function normalizeForSearch(value: string): string {
+	return value.toLowerCase()
+}
+
+function getItemBasename(item: FileResult): string {
+	return path.posix.basename(item.path)
+}
+
+function getSearchString(item: FileResult): string {
+	const basename = getItemBasename(item)
+	return `${basename} ${item.path}`
+}
+
+function hasFileExtension(value: string): boolean {
+	return /\.[a-z0-9]+$/i.test(value)
+}
+
+function getRankSignals(item: FileResult, normalizedQuery: string) {
+	const basename = normalizeForSearch(getItemBasename(item))
+	const fullPath = normalizeForSearch(item.path)
+	const queryHasExtension = hasFileExtension(normalizedQuery)
+
+	return {
+		exactBasename: basename === normalizedQuery ? 1 : 0,
+		exactPathSuffix: fullPath.endsWith(normalizedQuery) ? 1 : 0,
+		basenameStartsWith: basename.startsWith(normalizedQuery) ? 1 : 0,
+		pathSegmentMatch: fullPath.includes(`/${normalizedQuery}`) ? 1 : 0,
+		basenameIncludes: basename.includes(normalizedQuery) ? 1 : 0,
+		extensionExactness: queryHasExtension && basename.endsWith(normalizedQuery) ? 1 : 0,
+		isFile: item.type === "file" ? 1 : 0,
+		basenameLength: basename.length,
+		pathLength: fullPath.length,
+	}
+}
+
+export function rankWorkspaceSearchResults(results: FileResult[], query: string): FileResult[] {
+	const normalizedQuery = normalizeForSearch(query.trim())
+	if (!normalizedQuery) {
+		return results
+	}
+
+	return [...results].sort((left, right) => {
+		const a = getRankSignals(left, normalizedQuery)
+		const b = getRankSignals(right, normalizedQuery)
+
+		return (
+			b.exactBasename - a.exactBasename ||
+			b.extensionExactness - a.extensionExactness ||
+			b.exactPathSuffix - a.exactPathSuffix ||
+			b.basenameStartsWith - a.basenameStartsWith ||
+			b.pathSegmentMatch - a.pathSegmentMatch ||
+			b.basenameIncludes - a.basenameIncludes ||
+			b.isFile - a.isFile ||
+			a.basenameLength - b.basenameLength ||
+			a.pathLength - b.pathLength ||
+			left.path.localeCompare(right.path)
+		)
+	})
+}
+
 export async function executeRipgrep({
 	args,
 	workspacePath,
@@ -87,7 +150,7 @@ export async function executeRipgrep({
 
 export async function executeRipgrepForFiles(
 	workspacePath: string,
-	limit: number = 5000,
+	limit: number = DEFAULT_FILE_SCAN_LIMIT,
 ): Promise<{ path: string; type: "file" | "folder"; label?: string }[]> {
 	const args = [
 		"--files",
@@ -114,7 +177,7 @@ export async function searchWorkspaceFiles(
 ): Promise<{ path: string; type: "file" | "folder"; label?: string }[]> {
 	try {
 		// Get all files and directories (from our modified function)
-		const allItems = await executeRipgrepForFiles(workspacePath, 5000)
+		const allItems = await executeRipgrepForFiles(workspacePath)
 
 		// If no query, just return the top items
 		if (!query.trim()) {
@@ -124,22 +187,25 @@ export async function searchWorkspaceFiles(
 		// Create search items for all files AND directories
 		const searchItems = allItems.map((item) => ({
 			original: item,
-			searchStr: `${item.path} ${item.label || ""}`,
+			searchStr: getSearchString(item),
 		}))
 
 		// Run fzf search on all items
 		const fzf = new Fzf(searchItems, {
 			selector: (item) => item.searchStr,
 			tiebreakers: [byLengthAsc],
-			limit: limit,
+			limit: Math.max(limit * 10, MIN_FZF_CANDIDATES),
 		})
 
-		// Get all matching results from fzf
-		const fzfResults = fzf.find(query).map((result) => result.item.original)
+		// Get a broad slice of matching results from fzf, then apply ranking tuned for file names/extensions.
+		const rankedMatches = rankWorkspaceSearchResults(
+			fzf.find(query).map((result) => result.item.original),
+			query,
+		).slice(0, limit)
 
 		// Verify types of the shortest results
 		const verifiedResults = await Promise.all(
-			fzfResults.map(async (result) => {
+			rankedMatches.map(async (result) => {
 				const fullPath = path.join(workspacePath, result.path)
 				// Verify if the path exists and is actually a directory
 				if (fs.existsSync(fullPath)) {

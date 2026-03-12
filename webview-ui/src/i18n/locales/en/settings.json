@@ -35,7 +35,7 @@
 		"experimental": "Experimental",
 		"language": "Language",
 		"codeReview": "AI Code Reviews",
-		"about": "About Axon Code"
+		"about": "About Orbital"
 	},
 	"slashCommands": {
 		"description": "Manage your slash commands to quickly execute custom workflows and actions. <DocsLink>Learn more</DocsLink>"

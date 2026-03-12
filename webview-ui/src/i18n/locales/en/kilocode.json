@@ -55,7 +55,7 @@
 			"account": "MatterAI Account",
 			"apiKey": "Axon Code API Key",
 			"login": "Log in at MatterAI",
-			"logout": "Log out from Axon Code",
+			"logout": "Log Out",
 			"providerRouting": {
 				"title": "Provider Routing",
 				"managedByOrganization": "Manage Organization-level Provider Routing",

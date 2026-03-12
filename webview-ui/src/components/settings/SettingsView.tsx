@@ -4,10 +4,10 @@ import {
 	CheckCheck,
 	CircleUserRound,
 	GitPullRequest,
-	Info,
+	// Info, // kilocode_change: hidden for now
 	Languages,
 	LucideIcon,
-	Server,
+	// Server, // kilocode_change: hidden for now
 	SquareMousePointer,
 	SquareTerminal,
 	Webhook,
@@ -27,7 +27,7 @@ import React, {
 // kilocode_change
 import { ensureBodyPointerEventsRestored } from "@/utils/fixPointerEvents"
 
-import type { ProviderSettings, TelemetrySetting } from "@roo-code/types"
+import type { ProviderSettings } from "@roo-code/types"
 
 import {
 	AlertDialog,
@@ -55,8 +55,8 @@ import { SectionHeader } from "./SectionHeader"
 import { SetCachedStateField } from "./types"
 // import ApiConfigManager from "./ApiConfigManager"
 import deepEqual from "fast-deep-equal" // kilocode_change
-import McpView from "../kilocodeMcp/McpView" // kilocode_change
-import { About } from "./About"
+// import McpView from "../kilocodeMcp/McpView" // kilocode_change: hidden for now
+// import { About } from "./About" // kilocode_change: hidden for now
 import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
 import { BrowserSettings } from "./BrowserSettings"
@@ -72,13 +72,13 @@ import { SlashCommandsSettings } from "./SlashCommandsSettings"
 import { TerminalSettings } from "./TerminalSettings"
 import { UISettings } from "./UISettings"
 
-export const settingsTabsContainer = "flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden"
-export const settingsTabList =
-	"w-48 data-[compact=true]:w-12 flex-shrink-0 flex flex-col overflow-y-auto overflow-x-hidden border-r border-vscode-sideBar-background"
+export const settingsTabsContainer =
+	"flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden bg-vscode-editor-background"
+export const settingsTabList = "flex-shrink-0 flex flex-col overflow-y-auto overflow-x-hidden flex-1"
 export const settingsTabTrigger =
-	"whitespace-nowrap overflow-hidden min-w-0 h-12 px-4 py-3 box-border flex items-center border-l-2 border-transparent text-vscode-foreground opacity-70 hover:bg-vscode-list-hoverBackground data-[compact=true]:w-12 data-[compact=true]:p-4 cursor-pointer" // kilocode_change add cursor-pointer
+	"whitespace-nowrap overflow-hidden min-w-0 h-9 px-3 mb-1 mx-2 box-border flex items-center border border-transparent rounded-md text-vscode-foreground opacity-70 hover:bg-vscode-list-hoverBackground data-[compact=true]:w-10 data-[compact=true]:px-0 data-[compact=true]:mx-auto data-[compact=true]:justify-center cursor-pointer" // kilocode_change add cursor-pointer
 export const settingsTabTriggerActive =
-	"opacity-100 border-vscode-focusBorder bg-vscode-list-activeSelectionBackground hover:bg-vscode-list-activeSelectionBackground cursor-default" // kilocode_change add hover:bg-* and cursor-default
+	"opacity-100 bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] hover:bg-[var(--vscode-button-background)] font-medium cursor-default" // kilocode_change add hover:bg-* and cursor-default
 
 export interface SettingsViewRef {
 	checkUnsaveChanges: (then: () => void) => void
@@ -97,9 +97,9 @@ const sectionNames = [
 	"ui",
 	"experimental",
 	"language",
-	"mcp",
+	// "mcp", // kilocode_change: hidden for now
 	"codeReview", // kilocode_change
-	"about",
+	// "about", // kilocode_change: hidden for now
 ] as const
 
 type SectionName = (typeof sectionNames)[number] // kilocode_change
@@ -138,6 +138,27 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const confirmDialogHandler = useRef<() => void>()
 
 	const [cachedState, setCachedState] = useState(() => extensionState)
+
+	// Fetch Profile Data
+	const [profileEmail, setProfileEmail] = useState<string>("loading...")
+	const [profilePlan, setProfilePlan] = useState<string>("Free Plan")
+
+	useEffect(() => {
+		vscode.postMessage({ type: "fetchProfileDataRequest" })
+		const handleProfileResponse = (event: MessageEvent) => {
+			const message = event.data
+			if (message.type === "profileDataResponse" && message.payload?.success) {
+				if (message.payload.data?.email) {
+					setProfileEmail(message.payload.data.email)
+				}
+				if (message.payload.data?.plan) {
+					setProfilePlan(message.payload.data.plan)
+				}
+			}
+		}
+		window.addEventListener("message", handleProfileResponse)
+		return () => window.removeEventListener("message", handleProfileResponse)
+	}, [])
 
 	// kilocode_change begin
 	useEffect(() => {
@@ -333,16 +354,17 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	// 	})
 	// }, [])
 
-	const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
-		setCachedState((prevState) => {
-			if (prevState.telemetrySetting === setting) {
-				return prevState
-			}
+	// kilocode_change: hidden for now - About section removed
+	// const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
+	// 	setCachedState((prevState) => {
+	// 		if (prevState.telemetrySetting === setting) {
+	// 			return prevState
+	// 		}
 
-			setChangeDetected(true)
-			return { ...prevState, telemetrySetting: setting }
-		})
-	}, [])
+	// 		setChangeDetected(true)
+	// 		return { ...prevState, telemetrySetting: setting }
+	// 	})
+	// }, [])
 
 	// const setOpenRouterImageApiKey = useCallback((apiKey: string) => {
 	// 	setCachedState((prevState) => {
@@ -589,8 +611,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "ui", icon: Glasses }, // kilocode_change: we have our own display section
 			// { id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Languages },
-			{ id: "mcp", icon: Server },
-			{ id: "about", icon: Info },
+			// { id: "mcp", icon: Server }, // kilocode_change: hidden for now
+			// { id: "about", icon: Info }, // kilocode_change: hidden for now
 		],
 		[], // kilocode_change
 	)
@@ -635,10 +657,10 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	}, [scrollToActiveTab])
 
 	return (
-		<Tab>
-			<TabHeader className="flex justify-between items-center gap-2">
+		<Tab className="flex flex-col h-full bg-vscode-editor-background">
+			<TabHeader className="flex justify-between items-center gap-2 border-b border-vscode-widget-border px-4 py-3 shrink-0">
 				<div className="flex items-center gap-1">
-					<h3 className="text-vscode-foreground m-0">{t("settings:header.title")}</h3>
+					<h3 className="text-vscode-foreground m-0 text-lg font-medium">{t("settings:header.title")}</h3>
 				</div>
 				<div className="flex gap-2">
 					<StandardTooltip
@@ -668,84 +690,136 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 			{/* Vertical tabs layout */}
 			<div ref={containerRef} className={cn(settingsTabsContainer, isCompactMode && "narrow")}>
-				{/* Tab sidebar */}
-				<TabList
-					value={activeTab}
-					onValueChange={(value) => handleTabChange(value as SectionName)}
-					className={cn(settingsTabList)}
-					data-compact={isCompactMode}
-					data-testid="settings-tab-list">
-					{sections.map(({ id, icon: Icon }) => {
-						const isSelected = id === activeTab
-						const onSelect = () => handleTabChange(id)
+				{/* Modern Sidebar layout wrapper */}
+				<div
+					className={cn(
+						"w-60 data-[compact=true]:w-16 flex-shrink-0 flex flex-col border-r border-vscode-widget-border bg-vscode-sideBar-background",
+					)}
+					data-compact={isCompactMode}>
+					{/* Profile Section */}
+					<div className="pt-6 pb-6 px-4 flex items-center justify-center gap-3">
+						<div className="w-10 h-10 rounded-full bg-vscode-editor-inactiveSelectionBackground text-vscode-foreground flex items-center justify-center font-medium shadow-sm border border-vscode-widget-border shrink-0">
+							{profileEmail ? profileEmail.charAt(0).toUpperCase() : "S"}
+						</div>
+						{!isCompactMode && (
+							<div className="flex flex-col min-w-0 overflow-hidden flex-1">
+								<span className="text-vscode-foreground font-medium truncate text-sm">
+									{profileEmail}
+								</span>
+								<span className="text-vscode-descriptionForeground text-xs truncate">
+									{profilePlan}
+								</span>
+							</div>
+						)}
+					</div>
 
-						// Base TabTrigger component definition
-						// We pass isSelected manually for styling, but onSelect is handled conditionally
-						const triggerComponent = (
-							<TabTrigger
-								ref={(element) => (tabRefs.current[id] = element)}
-								value={id}
-								isSelected={isSelected} // Pass manually for styling state
-								className={cn(
-									isSelected // Use manual isSelected for styling
-										? `${settingsTabTrigger} ${settingsTabTriggerActive}`
-										: settingsTabTrigger,
-									"focus:ring-0", // Remove the focus ring styling
-								)}
-								data-testid={`tab-${id}`}
-								data-compact={isCompactMode}>
-								<div className={cn("flex items-center gap-2", isCompactMode && "justify-center")}>
-									<Icon className="w-4 h-4" />
-									<span className="tab-label">
-										{id === "mcp"
-											? t(`kilocode:settings.sections.mcp`)
-											: t(`settings:sections.${id}`)}
-									</span>
-								</div>
-							</TabTrigger>
-						)
+					{/* Tab sidebar */}
+					<TabList
+						value={activeTab}
+						onValueChange={(value) => handleTabChange(value as SectionName)}
+						className={cn(settingsTabList)}
+						data-compact={isCompactMode}
+						data-testid="settings-tab-list">
+						{sections.map(({ id, icon: Icon }) => {
+							const isSelected = id === activeTab
+							const onSelect = () => handleTabChange(id)
 
-						if (isCompactMode) {
-							// Wrap in Tooltip and manually add onClick to the trigger
-							return (
-								<TooltipProvider key={id} delayDuration={300}>
-									<Tooltip>
-										<TooltipTrigger asChild onClick={onSelect}>
-											{/* Clone to avoid ref issues if triggerComponent itself had a key */}
-											{React.cloneElement(triggerComponent)}
-										</TooltipTrigger>
-										<TooltipContent side="right" className="text-base">
-											<p className="m-0">
-												{id === "mcp"
-													? t(`kilocode:settings.sections.mcp`)
-													: t(`settings:sections.${id}`)}
-											</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
+							// Base TabTrigger component definition
+							// We pass isSelected manually for styling, but onSelect is handled conditionally
+							const triggerComponent = (
+								<TabTrigger
+									ref={(element) => (tabRefs.current[id] = element)}
+									value={id}
+									isSelected={isSelected} // Pass manually for styling state
+									className={cn(
+										isSelected // Use manual isSelected for styling
+											? `${settingsTabTrigger} ${settingsTabTriggerActive}`
+											: settingsTabTrigger,
+										"focus:ring-0", // Remove the focus ring styling
+									)}
+									data-testid={`tab-${id}`}
+									data-compact={isCompactMode}>
+									<div className={cn("flex items-center gap-2", isCompactMode && "justify-center")}>
+										<Icon className="w-4 h-4" />
+										<span className="tab-label">{t(`settings:sections.${id}`)}</span>
+									</div>
+								</TabTrigger>
 							)
-						} else {
-							// Render trigger directly; TabList will inject onSelect via cloning
-							// Ensure the element passed to TabList has the key
-							return React.cloneElement(triggerComponent, { key: id })
-						}
-					})}
-				</TabList>
+
+							if (isCompactMode) {
+								// Wrap in Tooltip and manually add onClick to the trigger
+								return (
+									<TooltipProvider key={id} delayDuration={300}>
+										<Tooltip>
+											<TooltipTrigger asChild onClick={onSelect}>
+												{/* Clone to avoid ref issues if triggerComponent itself had a key */}
+												{React.cloneElement(triggerComponent)}
+											</TooltipTrigger>
+											<TooltipContent side="right" className="text-base">
+												<p className="m-0">{t(`settings:sections.${id}`)}</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								)
+							} else {
+								// Render trigger directly; TabList will inject onSelect via cloning
+								// Ensure the element passed to TabList has the key
+								return React.cloneElement(triggerComponent, { key: id })
+							}
+						})}
+					</TabList>
+
+					<div className={cn("pb-6 mt-8 flex", isCompactMode ? "px-2 justify-center" : "px-4")}>
+						<button
+							className={cn(
+								"flex items-center justify-center gap-2 text-red-500 hover:bg-red-500/20 rounded-md transition-colors border border-transparent hover:border-red-500/30 cursor-pointer",
+								isCompactMode ? "w-10 h-10 p-0" : "w-full py-2 px-4 bg-red-500/10",
+							)}
+							onClick={() => {
+								vscode.postMessage({ type: "rooCloudSignOut" })
+							}}
+							title="Log out">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								className="lucide lucide-log-out">
+								<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+								<polyline points="16 17 21 12 16 7" />
+								<line x1="21" x2="9" y1="12" y2="12" />
+							</svg>
+							{!isCompactMode && <span className="font-medium">Log Out</span>}
+						</button>
+					</div>
+				</div>
 
 				{/* Content area */}
-				<TabContent ref={contentRef} className="p-0 flex-1 overflow-auto">
-					{/* Providers Section */}
-					{activeTab === "providers" && (
-						<div>
-							<SectionHeader>
-								<div className="flex items-center gap-2">
-									<Webhook className="w-4" />
-									<div>{t("settings:sections.providers")}</div>
-								</div>
-							</SectionHeader>
+				<TabContent ref={contentRef} className="p-0 flex-1 overflow-auto bg-vscode-editor-background">
+					<div className="max-w-4xl mx-auto p-2 content-wrapper">
+						<div className="mb-1 ml-2 mt-2">
+							<h2 className="text-xl font-bold text-vscode-foreground m-0 p-0">
+								{t(`settings:sections.${activeTab}`)}
+							</h2>
+						</div>
 
-							<Section>
-								{/* <ApiConfigManager
+						{/* Providers Section */}
+						{activeTab === "providers" && (
+							<div>
+								<SectionHeader>
+									<div className="flex items-center gap-2">
+										<Webhook className="w-4" />
+										<div>{t("settings:sections.providers")}</div>
+									</div>
+								</SectionHeader>
+
+								<Section>
+									{/* <ApiConfigManager
 									currentApiConfigName={currentApiConfigName}
 									listApiConfigMeta={listApiConfigMeta}
 									onSelectConfig={(configName: string) =>
@@ -772,71 +846,71 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 										})
 									}
 								/> */}
-								<ApiOptions
-									uriScheme={uriScheme}
-									apiConfiguration={apiConfiguration}
-									setApiConfigurationField={setApiConfigurationField}
-									errorMessage={errorMessage}
-									setErrorMessage={setErrorMessage}
-									currentApiConfigName={currentApiConfigName}
-								/>
-							</Section>
-						</div>
-					)}
+									<ApiOptions
+										uriScheme={uriScheme}
+										apiConfiguration={apiConfiguration}
+										setApiConfigurationField={setApiConfigurationField}
+										errorMessage={errorMessage}
+										setErrorMessage={setErrorMessage}
+										currentApiConfigName={currentApiConfigName}
+									/>
+								</Section>
+							</div>
+						)}
 
-					{/* Auto-Approve Section */}
-					{activeTab === "autoApprove" && (
-						<AutoApproveSettings
-							showAutoApproveMenu={showAutoApproveMenu} // kilocode_change
-							yoloMode={yoloMode} // kilocode_change
-							alwaysAllowReadOnly={alwaysAllowReadOnly}
-							alwaysAllowReadOnlyOutsideWorkspace={alwaysAllowReadOnlyOutsideWorkspace}
-							alwaysAllowWrite={alwaysAllowWrite}
-							alwaysAllowWriteOutsideWorkspace={alwaysAllowWriteOutsideWorkspace}
-							alwaysAllowWriteProtected={alwaysAllowWriteProtected}
-							alwaysAllowBrowser={alwaysAllowBrowser}
-							alwaysApproveResubmit={alwaysApproveResubmit}
-							requestDelaySeconds={requestDelaySeconds}
-							alwaysAllowMcp={alwaysAllowMcp}
-							alwaysAllowModeSwitch={alwaysAllowModeSwitch}
-							alwaysAllowSubtasks={alwaysAllowSubtasks}
-							alwaysAllowExecute={alwaysAllowExecute}
-							alwaysAllowFollowupQuestions={alwaysAllowFollowupQuestions}
-							alwaysAllowUpdateTodoList={alwaysAllowUpdateTodoList}
-							// followupAutoApproveTimeoutMs={followupAutoApproveTimeoutMs}
-							allowedCommands={allowedCommands}
-							allowedMaxRequests={allowedMaxRequests ?? undefined}
-							allowedMaxCost={allowedMaxCost ?? undefined}
-							deniedCommands={deniedCommands}
-							setCachedStateField={setCachedStateField}
-						/>
-					)}
+						{/* Auto-Approve Section */}
+						{activeTab === "autoApprove" && (
+							<AutoApproveSettings
+								showAutoApproveMenu={showAutoApproveMenu} // kilocode_change
+								yoloMode={yoloMode} // kilocode_change
+								alwaysAllowReadOnly={alwaysAllowReadOnly}
+								alwaysAllowReadOnlyOutsideWorkspace={alwaysAllowReadOnlyOutsideWorkspace}
+								alwaysAllowWrite={alwaysAllowWrite}
+								alwaysAllowWriteOutsideWorkspace={alwaysAllowWriteOutsideWorkspace}
+								alwaysAllowWriteProtected={alwaysAllowWriteProtected}
+								alwaysAllowBrowser={alwaysAllowBrowser}
+								alwaysApproveResubmit={alwaysApproveResubmit}
+								requestDelaySeconds={requestDelaySeconds}
+								alwaysAllowMcp={alwaysAllowMcp}
+								alwaysAllowModeSwitch={alwaysAllowModeSwitch}
+								alwaysAllowSubtasks={alwaysAllowSubtasks}
+								alwaysAllowExecute={alwaysAllowExecute}
+								alwaysAllowFollowupQuestions={alwaysAllowFollowupQuestions}
+								alwaysAllowUpdateTodoList={alwaysAllowUpdateTodoList}
+								// followupAutoApproveTimeoutMs={followupAutoApproveTimeoutMs}
+								allowedCommands={allowedCommands}
+								allowedMaxRequests={allowedMaxRequests ?? undefined}
+								allowedMaxCost={allowedMaxCost ?? undefined}
+								deniedCommands={deniedCommands}
+								setCachedStateField={setCachedStateField}
+							/>
+						)}
 
-					{/* Slash Commands Section */}
-					{activeTab === "slashCommands" && <SlashCommandsSettings />}
+						{/* Slash Commands Section */}
+						{activeTab === "slashCommands" && <SlashCommandsSettings />}
 
-					{/* Browser Section */}
-					{activeTab === "browser" && (
-						<BrowserSettings
-							browserToolEnabled={browserToolEnabled}
-							browserViewportSize={browserViewportSize}
-							screenshotQuality={screenshotQuality}
-							remoteBrowserHost={remoteBrowserHost}
-							remoteBrowserEnabled={remoteBrowserEnabled}
-							setCachedStateField={setCachedStateField}
-						/>
-					)}
+						{/* Browser Section */}
+						{activeTab === "browser" && (
+							<BrowserSettings
+								browserToolEnabled={browserToolEnabled}
+								browserViewportSize={browserViewportSize}
+								screenshotQuality={screenshotQuality}
+								remoteBrowserHost={remoteBrowserHost}
+								remoteBrowserEnabled={remoteBrowserEnabled}
+								setCachedStateField={setCachedStateField}
+							/>
+						)}
 
-					{/* Checkpoints Section */}
-					{/* {activeTab === "checkpoints" && (
+						{/* Checkpoints Section */}
+						{/* {activeTab === "checkpoints" && (
 						<CheckpointSettings
 							enableCheckpoints={enableCheckpoints}
 							setCachedStateField={setCachedStateField}
 						/>
 					)} */}
 
-					{/* forked_change start display section */}
-					{/* {activeTab === "display" && (
+						{/* forked_change start display section */}
+						{/* {activeTab === "display" && (
 						<DisplaySettings
 							sendMessageOnEnter={sendMessageOnEnter}
 							showTimestamps={cachedState.showTimestamps} // kilocode_change
@@ -844,23 +918,23 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							setCachedStateField={setCachedStateField}
 						/>
 					)} */}
-					{/* forked_change end display section */}
+						{/* forked_change end display section */}
 
-					{/* Notifications Section */}
-					{activeTab === "notifications" && (
-						<NotificationSettings
-							ttsEnabled={ttsEnabled}
-							ttsSpeed={ttsSpeed}
-							soundEnabled={soundEnabled}
-							soundVolume={soundVolume}
-							systemNotificationsEnabled={systemNotificationsEnabled}
-							areSettingsCommitted={!isChangeDetected}
-							setCachedStateField={setCachedStateField}
-						/>
-					)}
+						{/* Notifications Section */}
+						{activeTab === "notifications" && (
+							<NotificationSettings
+								ttsEnabled={ttsEnabled}
+								ttsSpeed={ttsSpeed}
+								soundEnabled={soundEnabled}
+								soundVolume={soundVolume}
+								systemNotificationsEnabled={systemNotificationsEnabled}
+								areSettingsCommitted={!isChangeDetected}
+								setCachedStateField={setCachedStateField}
+							/>
+						)}
 
-					{/* Context Management Section */}
-					{/* {activeTab === "contextManagement" && (
+						{/* Context Management Section */}
+						{/* {activeTab === "contextManagement" && (
 						<ContextManagementSettings
 							autoCondenseContext={autoCondenseContext}
 							autoCondenseContextPercent={autoCondenseContextPercent}
@@ -881,27 +955,27 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)} */}
 
-					{/* Terminal Section */}
-					{activeTab === "terminal" && (
-						<TerminalSettings
-							terminalOutputLineLimit={terminalOutputLineLimit}
-							terminalOutputCharacterLimit={terminalOutputCharacterLimit}
-							terminalShellIntegrationTimeout={terminalShellIntegrationTimeout}
-							terminalShellIntegrationDisabled={terminalShellIntegrationDisabled}
-							terminalCommandDelay={terminalCommandDelay}
-							terminalPowershellCounter={terminalPowershellCounter}
-							terminalZshClearEolMark={terminalZshClearEolMark}
-							terminalZshOhMy={terminalZshOhMy}
-							terminalZshP10k={terminalZshP10k}
-							terminalZdotdir={terminalZdotdir}
-							terminalCompressProgressBar={terminalCompressProgressBar}
-							terminalCommandApiConfigId={terminalCommandApiConfigId} // kilocode_change
-							setCachedStateField={setCachedStateField}
-						/>
-					)}
+						{/* Terminal Section */}
+						{activeTab === "terminal" && (
+							<TerminalSettings
+								terminalOutputLineLimit={terminalOutputLineLimit}
+								terminalOutputCharacterLimit={terminalOutputCharacterLimit}
+								terminalShellIntegrationTimeout={terminalShellIntegrationTimeout}
+								terminalShellIntegrationDisabled={terminalShellIntegrationDisabled}
+								terminalCommandDelay={terminalCommandDelay}
+								terminalPowershellCounter={terminalPowershellCounter}
+								terminalZshClearEolMark={terminalZshClearEolMark}
+								terminalZshOhMy={terminalZshOhMy}
+								terminalZshP10k={terminalZshP10k}
+								terminalZdotdir={terminalZdotdir}
+								terminalCompressProgressBar={terminalCompressProgressBar}
+								terminalCommandApiConfigId={terminalCommandApiConfigId} // kilocode_change
+								setCachedStateField={setCachedStateField}
+							/>
+						)}
 
-					{/* Prompts Section */}
-					{/* {activeTab === "prompts" && (
+						{/* Prompts Section */}
+						{/* {activeTab === "prompts" && (
 						<PromptsSettings
 							customSupportPrompts={customSupportPrompts || {}}
 							setCustomSupportPrompts={setCustomSupportPromptsField}
@@ -912,16 +986,16 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)} */}
 
-					{/* UI Section */}
-					{activeTab === "ui" && (
-						<UISettings
-							reasoningBlockCollapsed={reasoningBlockCollapsed ?? true}
-							setCachedStateField={setCachedStateField}
-						/>
-					)}
+						{/* UI Section */}
+						{activeTab === "ui" && (
+							<UISettings
+								reasoningBlockCollapsed={reasoningBlockCollapsed ?? true}
+								setCachedStateField={setCachedStateField}
+							/>
+						)}
 
-					{/* Experimental Section */}
-					{/* {activeTab === "experimental" && (
+						{/* Experimental Section */}
+						{/* {activeTab === "experimental" && (
 						<ExperimentalSettings
 							setExperimentEnabled={setExperimentEnabled}
 							experiments={experiments}
@@ -944,33 +1018,34 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)} */}
 
-					{/* Language Section */}
-					{activeTab === "language" && (
-						<LanguageSettings language={language || "en"} setCachedStateField={setCachedStateField} />
-					)}
+						{/* Language Section */}
+						{activeTab === "language" && (
+							<LanguageSettings language={language || "en"} setCachedStateField={setCachedStateField} />
+						)}
 
-					{/* kilocode_change */}
-					{/* MCP Section */}
-					{activeTab === "mcp" && <McpView />}
+						{/* kilocode_change */}
+						{/* MCP Section - hidden for now */}
+						{/* {activeTab === "mcp" && <McpView />} */}
 
-					{/* Code Review Section */}
-					{activeTab === "codeReview" && (
-						<CodeReviewSettingsComponent
-							codeReviewSettings={
-								codeReviewSettings || {
-									enterpriseHost: "",
-									enterpriseApiKey: "",
-									reviewOnlyMode: false,
+						{/* Code Review Section */}
+						{activeTab === "codeReview" && (
+							<CodeReviewSettingsComponent
+								codeReviewSettings={
+									codeReviewSettings || {
+										enterpriseHost: "",
+										enterpriseApiKey: "",
+										reviewOnlyMode: false,
+									}
 								}
-							}
-							setCachedStateField={setCachedStateField}
-						/>
-					)}
+								setCachedStateField={setCachedStateField}
+							/>
+						)}
 
-					{/* About Section */}
-					{activeTab === "about" && (
+						{/* About Section - hidden for now */}
+						{/* {activeTab === "about" && (
 						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
-					)}
+					)} */}
+					</div>
 				</TabContent>
 			</div>
 

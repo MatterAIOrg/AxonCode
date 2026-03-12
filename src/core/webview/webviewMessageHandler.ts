@@ -2902,11 +2902,7 @@ ${comment.suggestion}
 			}
 			try {
 				// Call file search service with query from message
-				const results = await searchWorkspaceFiles(
-					message.query || "",
-					workspacePath,
-					20, // Use default limit, as filtering is now done in the backend
-				)
+				const results = await searchWorkspaceFiles(message.query || "", workspacePath, 100)
 
 				// Send results back to webview
 				await provider.postMessageToWebview({

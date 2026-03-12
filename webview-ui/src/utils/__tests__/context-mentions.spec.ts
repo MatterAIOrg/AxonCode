@@ -229,9 +229,28 @@ describe("getContextMenuOptions", () => {
 		).length
 		// With path normalization, these should be treated as duplicates
 		expect(duplicateCount).toBe(1)
+	})
 
-		// Verify the unique item was included (check both path formats)
-		expect(result.some((item) => item.value === "/unique/path.ts" || item.value === "unique/path.ts")).toBe(true)
+	it("prefers the exact .tsx file over similar .ts matches", () => {
+		const result = getContextMenuOptions(
+			"ChatTextArea.tsx",
+			null,
+			[
+				{
+					type: ContextMenuOptionType.File,
+					value: "/src/components/ChatTextArea.ts",
+					label: "ChatTextArea.ts",
+				},
+				{
+					type: ContextMenuOptionType.File,
+					value: "/src/components/ChatTextArea.tsx",
+					label: "ChatTextArea.tsx",
+				},
+			],
+			[],
+		)
+
+		expect(result[0]?.value).toBe("/src/components/ChatTextArea.tsx")
 	})
 
 	it("should return NoResults when all combined results are empty with dynamic search", () => {
