@@ -39,7 +39,7 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 	return (
 		<div
 			ref={containerRef}
-			className="py-1"
+			className=""
 			style={{
 				display: "flex",
 				flexWrap: "wrap",
@@ -70,10 +70,10 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 							onClick={() => handleDelete(index)}
 							style={{
 								position: "absolute",
-								top: -4,
-								right: -4,
-								width: 13,
-								height: 13,
+								top: -5,
+								right: -5,
+								width: 20,
+								height: 20,
 								borderRadius: "50%",
 								backgroundColor: "var(--vscode-badge-background)",
 								display: "flex",

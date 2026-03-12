@@ -1822,7 +1822,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						style={{
 							left: "16px",
 							zIndex: 2,
-							marginTop: "14px", // kilocode_change
+							marginTop: "4px",
 							marginBottom: 0,
 						}}
 					/>
