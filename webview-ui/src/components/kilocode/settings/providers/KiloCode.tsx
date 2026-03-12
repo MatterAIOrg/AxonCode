@@ -132,6 +132,9 @@ export const KiloCode = ({
 		<>
 			<div>
 				<label className="block font-bold text-lg">{t("kilocode:settings.provider.account")}</label>
+				{profileData?.email && (
+					<div className="text-sm text-[var(--vscode-descriptionForeground)] mt-1">{profileData.email}</div>
+				)}
 			</div>
 			{!hideKiloCodeButton &&
 				(apiConfiguration.kilocodeToken ? (
