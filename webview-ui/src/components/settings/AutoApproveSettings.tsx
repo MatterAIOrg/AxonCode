@@ -385,7 +385,10 @@ export const AutoApproveSettings = ({
 								className="grow"
 								data-testid="command-input"
 							/>
-							<Button className="h-8" onClick={handleAddCommand} data-testid="add-command-button">
+							<Button
+								className="h-8 bg-vscode-button-background text-vscode-button-foreground hover:bg-vscode-button-hoverBackground"
+								onClick={handleAddCommand}
+								data-testid="add-command-button">
 								{t("settings:autoApprove.execute.addButton")}
 							</Button>
 						</div>
@@ -434,7 +437,7 @@ export const AutoApproveSettings = ({
 								data-testid="denied-command-input"
 							/>
 							<Button
-								className="h-8"
+								className="h-8 bg-vscode-button-background text-vscode-button-foreground hover:bg-vscode-button-hoverBackground"
 								onClick={handleAddDeniedCommand}
 								data-testid="add-denied-command-button">
 								{t("settings:autoApprove.execute.addButton")}

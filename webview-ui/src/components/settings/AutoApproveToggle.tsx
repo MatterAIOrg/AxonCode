@@ -120,7 +120,9 @@ export const AutoApproveToggle = ({ onToggle, ...props }: AutoApproveToggleProps
 						data-testid={testId}
 						className={cn(
 							"h-7 px-2 rounded-md flex items-center gap-1.5 text-xs whitespace-nowrap",
-							!props[key] && "opacity-50",
+							props[key]
+								? "bg-vscode-button-background text-vscode-button-foreground hover:bg-vscode-button-hoverBackground"
+								: "opacity-50",
 						)}>
 						<span className={`codicon codicon-${icon} text-sm`} />
 						<span>{t(labelKey)}</span>

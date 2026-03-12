@@ -454,6 +454,7 @@ export type UserOrganizationWithApiKey = {
 }
 
 export type ProfileData = {
+	email: string
 	kilocodeToken: string
 	user: {
 		id: string
