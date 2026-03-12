@@ -4,10 +4,10 @@ import {
 	CheckCheck,
 	CircleUserRound,
 	GitPullRequest,
-	Info,
+	// Info, // kilocode_change: hidden for now
 	Languages,
 	LucideIcon,
-	Server,
+	// Server, // kilocode_change: hidden for now
 	SquareMousePointer,
 	SquareTerminal,
 	Webhook,
@@ -27,7 +27,7 @@ import React, {
 // kilocode_change
 import { ensureBodyPointerEventsRestored } from "@/utils/fixPointerEvents"
 
-import type { ProviderSettings, TelemetrySetting } from "@roo-code/types"
+import type { ProviderSettings } from "@roo-code/types"
 
 import {
 	AlertDialog,
@@ -55,8 +55,8 @@ import { SectionHeader } from "./SectionHeader"
 import { SetCachedStateField } from "./types"
 // import ApiConfigManager from "./ApiConfigManager"
 import deepEqual from "fast-deep-equal" // kilocode_change
-import McpView from "../kilocodeMcp/McpView" // kilocode_change
-import { About } from "./About"
+// import McpView from "../kilocodeMcp/McpView" // kilocode_change: hidden for now
+// import { About } from "./About" // kilocode_change: hidden for now
 import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
 import { BrowserSettings } from "./BrowserSettings"
@@ -97,9 +97,9 @@ const sectionNames = [
 	"ui",
 	"experimental",
 	"language",
-	"mcp",
+	// "mcp", // kilocode_change: hidden for now
 	"codeReview", // kilocode_change
-	"about",
+	// "about", // kilocode_change: hidden for now
 ] as const
 
 type SectionName = (typeof sectionNames)[number] // kilocode_change
@@ -333,16 +333,17 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	// 	})
 	// }, [])
 
-	const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
-		setCachedState((prevState) => {
-			if (prevState.telemetrySetting === setting) {
-				return prevState
-			}
+	// kilocode_change: hidden for now - About section removed
+	// const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
+	// 	setCachedState((prevState) => {
+	// 		if (prevState.telemetrySetting === setting) {
+	// 			return prevState
+	// 		}
 
-			setChangeDetected(true)
-			return { ...prevState, telemetrySetting: setting }
-		})
-	}, [])
+	// 		setChangeDetected(true)
+	// 		return { ...prevState, telemetrySetting: setting }
+	// 	})
+	// }, [])
 
 	// const setOpenRouterImageApiKey = useCallback((apiKey: string) => {
 	// 	setCachedState((prevState) => {
@@ -589,8 +590,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "ui", icon: Glasses }, // kilocode_change: we have our own display section
 			// { id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Languages },
-			{ id: "mcp", icon: Server },
-			{ id: "about", icon: Info },
+			// { id: "mcp", icon: Server }, // kilocode_change: hidden for now
+			// { id: "about", icon: Info }, // kilocode_change: hidden for now
 		],
 		[], // kilocode_change
 	)
@@ -950,8 +951,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					)}
 
 					{/* kilocode_change */}
-					{/* MCP Section */}
-					{activeTab === "mcp" && <McpView />}
+					{/* MCP Section - hidden for now */}
+					{/* {activeTab === "mcp" && <McpView />} */}
 
 					{/* Code Review Section */}
 					{activeTab === "codeReview" && (
@@ -967,10 +968,10 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)}
 
-					{/* About Section */}
-					{activeTab === "about" && (
+					{/* About Section - hidden for now */}
+					{/* {activeTab === "about" && (
 						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
-					)}
+					)} */}
 				</TabContent>
 			</div>
 
