@@ -25,6 +25,60 @@ function getBasename(filepath: string): string {
 	return filepath.split("/").pop() || filepath
 }
 
+function normalizeForSearch(value: string): string {
+	return value.toLowerCase()
+}
+
+function normalizePathValue(value: string): string {
+	return value.startsWith("/") ? value : `/${value}`
+}
+
+function hasFileExtension(value: string): boolean {
+	return /\.[a-z0-9]+$/i.test(value)
+}
+
+function rankContextMenuItems(items: ContextMenuQueryItem[], query: string): ContextMenuQueryItem[] {
+	const normalizedQuery = normalizeForSearch(query.trim().replace(/^@/, ""))
+	if (!normalizedQuery) {
+		return items
+	}
+
+	const getSignals = (item: ContextMenuQueryItem) => {
+		const value = item.value || ""
+		const basename = normalizeForSearch(getBasename(value))
+		const fullPath = normalizeForSearch(value)
+		const queryHasExtension = hasFileExtension(normalizedQuery)
+
+		return {
+			exactBasename: basename === normalizedQuery ? 1 : 0,
+			extensionExactness: queryHasExtension && basename.endsWith(normalizedQuery) ? 1 : 0,
+			exactPathSuffix: fullPath.endsWith(normalizedQuery) ? 1 : 0,
+			basenameStartsWith: basename.startsWith(normalizedQuery) ? 1 : 0,
+			basenameIncludes: basename.includes(normalizedQuery) ? 1 : 0,
+			isFile: item.type === ContextMenuOptionType.File ? 1 : 0,
+			basenameLength: basename.length,
+			pathLength: fullPath.length,
+		}
+	}
+
+	return [...items].sort((left, right) => {
+		const a = getSignals(left)
+		const b = getSignals(right)
+
+		return (
+			b.exactBasename - a.exactBasename ||
+			b.extensionExactness - a.extensionExactness ||
+			b.exactPathSuffix - a.exactPathSuffix ||
+			b.basenameStartsWith - a.basenameStartsWith ||
+			b.basenameIncludes - a.basenameIncludes ||
+			b.isFile - a.isFile ||
+			a.basenameLength - b.basenameLength ||
+			a.pathLength - b.pathLength ||
+			(left.value || "").localeCompare(right.value || "")
+		)
+	})
+}
+
 export function insertMention(
 	text: string,
 	position: number,
@@ -123,6 +177,8 @@ export function getContextMenuOptions(
 	_modes?: ModeConfig[],
 	_commands?: Command[],
 ): ContextMenuQueryItem[] {
+	const normalizedQuery = query.trim().replace(/^@/, "")
+
 	if (query === "") {
 		if (selectedType === ContextMenuOptionType.File) {
 			const files = queryItems
@@ -168,7 +224,7 @@ export function getContextMenuOptions(
 	// Helper to get normalized key for deduplication
 	const getItemKey = (item: ContextMenuQueryItem): string => {
 		if (item.type === ContextMenuOptionType.File || item.type === ContextMenuOptionType.Folder) {
-			return item.value!
+			return normalizePathValue(item.value!)
 		}
 		return `${item.type}-${item.value}`
 	}
@@ -200,7 +256,7 @@ export function getContextMenuOptions(
 	})
 
 	// Get fuzzy matching items
-	const fuzzyMatches = query ? fzf.find(query).map((result) => result.item.original) : []
+	const fuzzyMatches = normalizedQuery ? fzf.find(normalizedQuery).map((result) => result.item.original) : []
 
 	// Deduplicate results
 	const seen = new Set<string>()
@@ -211,7 +267,9 @@ export function getContextMenuOptions(
 		return true
 	})
 
-	return deduped.length > 0 ? deduped : [{ type: ContextMenuOptionType.NoResults }]
+	const ranked = rankContextMenuItems(deduped, normalizedQuery)
+
+	return ranked.length > 0 ? ranked : [{ type: ContextMenuOptionType.NoResults }]
 }
 
 export function shouldShowContextMenu(text: string, position: number): boolean {
