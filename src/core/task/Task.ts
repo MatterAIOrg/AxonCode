@@ -2289,9 +2289,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 										"$1\n\n**$2**",
 									)
 								}
-								if (formattedReasoning.includes("<think>")) {
-									formattedReasoning = formattedReasoning.replace(/<\/?think>/g, "")
-									formattedReasoning = formattedReasoning.replace(/<think>/g, "")
+								formattedReasoning = formattedReasoning.replace(/<\/?think>/g, "")
+								if (formattedReasoning.trim()) {
 									await this.say("reasoning", formattedReasoning, undefined, true)
 								}
 								break

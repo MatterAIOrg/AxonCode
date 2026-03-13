@@ -4,6 +4,7 @@ import {
 	CheckCheck,
 	CircleUserRound,
 	GitPullRequest,
+	Info,
 	// Info, // kilocode_change: hidden for now
 	Languages,
 	LucideIcon,
@@ -27,7 +28,7 @@ import React, {
 // kilocode_change
 import { ensureBodyPointerEventsRestored } from "@/utils/fixPointerEvents"
 
-import type { ProviderSettings } from "@roo-code/types"
+import type { ProviderSettings, TelemetrySetting } from "@roo-code/types"
 
 import {
 	AlertDialog,
@@ -71,6 +72,7 @@ import { Section } from "./Section"
 import { SlashCommandsSettings } from "./SlashCommandsSettings"
 import { TerminalSettings } from "./TerminalSettings"
 import { UISettings } from "./UISettings"
+import { About } from "./About"
 
 export const settingsTabsContainer =
 	"flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden bg-vscode-editor-background"
@@ -99,7 +101,7 @@ const sectionNames = [
 	"language",
 	// "mcp", // kilocode_change: hidden for now
 	"codeReview", // kilocode_change
-	// "about", // kilocode_change: hidden for now
+	"about", // kilocode_change: hidden for now
 ] as const
 
 type SectionName = (typeof sectionNames)[number] // kilocode_change
@@ -354,17 +356,16 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	// 	})
 	// }, [])
 
-	// kilocode_change: hidden for now - About section removed
-	// const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
-	// 	setCachedState((prevState) => {
-	// 		if (prevState.telemetrySetting === setting) {
-	// 			return prevState
-	// 		}
+	const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
+		setCachedState((prevState) => {
+			if (prevState.telemetrySetting === setting) {
+				return prevState
+			}
 
-	// 		setChangeDetected(true)
-	// 		return { ...prevState, telemetrySetting: setting }
-	// 	})
-	// }, [])
+			setChangeDetected(true)
+			return { ...prevState, telemetrySetting: setting }
+		})
+	}, [])
 
 	// const setOpenRouterImageApiKey = useCallback((apiKey: string) => {
 	// 	setCachedState((prevState) => {
@@ -612,7 +613,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Languages },
 			// { id: "mcp", icon: Server }, // kilocode_change: hidden for now
-			// { id: "about", icon: Info }, // kilocode_change: hidden for now
+			{ id: "about", icon: Info }, // kilocode_change: hidden for now
 		],
 		[], // kilocode_change
 	)
@@ -1042,9 +1043,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						)}
 
 						{/* About Section - hidden for now */}
-						{/* {activeTab === "about" && (
-						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
-					)} */}
+						{activeTab === "about" && (
+							<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
+						)}
 					</div>
 				</TabContent>
 			</div>
