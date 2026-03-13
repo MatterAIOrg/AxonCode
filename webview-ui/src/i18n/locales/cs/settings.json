@@ -939,7 +939,7 @@
 		"useCustomModel": "Použít vlastní: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Pokud máte nějaké dotazy nebo zpětnou vazbu, neváhejte otevřít problém na <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> nebo se připojte k <redditLink>reddit.com/r/matter_ai</redditLink> nebo <discordLink>discord.gg/fJU5DvanU3</discordLink>.",
+		"feedback": "Pokud máte nějaké dotazy nebo zpětnou vazbu, neváhejte otevřít problém na <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> nebo se připojte k <redditLink>reddit.com/r/matter_ai</redditLink> nebo <discordLink>discord.gg/fJU5DvanU3</discordLink>.",
 		"support": "Pro finanční dotazy kontaktujte prosím zákaznickou podporu na <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Povolit hlášení chyb a používání",

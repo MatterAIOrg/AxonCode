@@ -918,7 +918,7 @@
 		"useCustomModel": "ใช้แบบกำหนดเอง: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "หากคุณมีคำถามหรือข้อเสนอแนะ โปรดเปิด issue ที่ <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> หรือเข้าร่วม <redditLink>reddit.com/r/matter_ai</redditLink> หรือ <discordLink>discord.gg/fJU5DvanU3</discordLink>",
+		"feedback": "หากคุณมีคำถามหรือข้อเสนอแนะ โปรดเปิด issue ที่ <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> หรือเข้าร่วม <redditLink>reddit.com/r/matter_ai</redditLink> หรือ <discordLink>discord.gg/fJU5DvanU3</discordLink>",
 		"support": "สำหรับคำถามด้านการเงิน โปรดติดต่อฝ่ายสนับสนุนลูกค้าที่ <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "อนุญาตการรายงานข้อผิดพลาดและการใช้งาน",

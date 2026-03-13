@@ -878,7 +878,7 @@
 		"useCustomModel": "Gunakan kustom: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Jika kamu punya pertanyaan atau feedback, jangan ragu untuk membuka issue di <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> atau bergabung <redditLink>reddit.com/r/matter_ai</redditLink> atau <discordLink>discord.gg/fJU5DvanU3</discordLink>",
+		"feedback": "Jika kamu punya pertanyaan atau feedback, jangan ragu untuk membuka issue di <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> atau bergabung <redditLink>reddit.com/r/matter_ai</redditLink> atau <discordLink>discord.gg/fJU5DvanU3</discordLink>",
 		"support": "Untuk pertanyaan keuangan, silakan hubungi Customer Support di <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Izinkan pelaporan error dan penggunaan",

@@ -928,7 +928,7 @@
 		"useCustomModel": "استخدام مخصص: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "عندك سؤال أو ملاحظة؟ افتح تذكرة في <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> أو انضم لـ <redditLink>r/kilocode</redditLink> أو <discordLink>discord.gg/fJU5DvanU3</discordLink>.",
+		"feedback": "عندك سؤال أو ملاحظة؟ افتح تذكرة في <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> أو انضم لـ <redditLink>r/kilocode</redditLink> أو <discordLink>discord.gg/fJU5DvanU3</discordLink>.",
 		"support": "للاستفسارات المالية: <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "السماح بتقارير الأخطاء والاستخدام",

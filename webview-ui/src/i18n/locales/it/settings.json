@@ -858,7 +858,7 @@
 		"useCustomModel": "Usa personalizzato: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Se hai domande o feedback, sentiti libero di aprire un issue su <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> o unirti a <redditLink>reddit.com/r/matter_ai</redditLink> o <discordLink>discord.gg/fJU5DvanU3</discordLink>",
+		"feedback": "Se hai domande o feedback, sentiti libero di aprire un issue su <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> o unirti a <redditLink>reddit.com/r/matter_ai</redditLink> o <discordLink>discord.gg/fJU5DvanU3</discordLink>",
 		"support": "Per domande finanziarie, contatta il Supporto Clienti a <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Consenti segnalazioni di errori e utilizzo",
