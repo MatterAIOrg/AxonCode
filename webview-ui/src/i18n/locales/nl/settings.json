@@ -857,7 +857,7 @@
 		"useCustomModel": "Aangepast gebruiken: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Heb je vragen of feedback? Open gerust een issue op <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> of sluit je aan bij <redditLink>reddit.com/r/matter_ai</redditLink> of <discordLink>discord.gg/fJU5DvanU3</discordLink>",
+		"feedback": "Heb je vragen of feedback? Open gerust een issue op <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> of sluit je aan bij <redditLink>reddit.com/r/matter_ai</redditLink> of <discordLink>discord.gg/fJU5DvanU3</discordLink>",
 		"support": "Voor financiële vragen kunt u contact opnemen met de klantenservice via <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Fout- en gebruiksrapportage toestaan",

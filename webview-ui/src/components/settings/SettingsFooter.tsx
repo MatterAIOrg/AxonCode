@@ -14,7 +14,7 @@ export const SettingsFooter = ({ version, className, ...props }: SettingsFooterP
 		<p style={{ wordWrap: "break-word", margin: 0, padding: 0 }}>
 			If you have any questions or feedback, feel free to open an issue at{" "}
 			<VSCodeLink href="https://github.com/MatterAIOrg/Orbital-Extension" style={{ display: "inline" }}>
-				github.com/MatterAIOrg/AxonCode
+				github.com/MatterAIOrg/Orbital-Extension
 			</VSCodeLink>{" "}
 			or join{" "}
 			<VSCodeLink href="https://www.reddit.com/r/matter_ai/" style={{ display: "inline" }}>

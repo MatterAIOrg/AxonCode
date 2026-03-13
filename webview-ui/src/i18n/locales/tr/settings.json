@@ -858,7 +858,7 @@
 		"useCustomModel": "Özel kullan: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "Herhangi bir sorunuz veya geri bildiriminiz varsa, <githubLink>github.com/MatterAIOrg/AxonCode</githubLink> adresinde bir konu açmaktan veya <redditLink>reddit.com/r/matter_ai</redditLink> ya da <discordLink>discord.gg/fJU5DvanU3</discordLink>'a katılmaktan çekinmeyin",
+		"feedback": "Herhangi bir sorunuz veya geri bildiriminiz varsa, <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> adresinde bir konu açmaktan veya <redditLink>reddit.com/r/matter_ai</redditLink> ya da <discordLink>discord.gg/fJU5DvanU3</discordLink>'a katılmaktan çekinmeyin",
 		"support": "Mali konular için lütfen <supportLink>https://www.matterai.so/contact</supportLink> adresinden Müşteri Desteği ile iletişime geçin",
 		"telemetry": {
 			"label": "Hata ve kullanım raporlamaya izin ver",
