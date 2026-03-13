@@ -2883,7 +2883,9 @@ ${comment.suggestion}
 			)
 
 			if (answer === githubIssuesText) {
-				await vscode.env.openExternal(vscode.Uri.parse("https://github.com/MatterAIOrg/AxonCode/issues"))
+				await vscode.env.openExternal(
+					vscode.Uri.parse("hhttps://github.com/MatterAIOrg/Orbital-Extension/issues"),
+				)
 			} else if (answer === discordText) {
 				await vscode.env.openExternal(vscode.Uri.parse("https://discord.gg/fxrhCFGhkP"))
 			} else if (answer === customerSupport) {

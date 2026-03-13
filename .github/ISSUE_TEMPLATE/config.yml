@@ -1,10 +1,10 @@
 blank_issues_enabled: false
 contact_links:
     - name: Feature Request / Idea
-      url: https://github.com/MatterAIOrg/AxonCode/discussions/new?category=1-feature-requests
+      url: hhttps://github.com/MatterAIOrg/Orbital-Extension/discussions/new?category=1-feature-requests
       about: Submit a feature request (check Discussions first to prevent duplicates).
     - name: Design Improvement
-      url: https://github.com/MatterAIOrg/AxonCode/discussions/categories/2-design-improvements
+      url: hhttps://github.com/MatterAIOrg/Orbital-Extension/discussions/categories/2-design-improvements
       about: Suggestions for better design (where the current UI/UX is not clear).
     - name: Leave a Review
       url: https://marketplace.visualstudio.com/items?itemName=matterai.axon-code&ssr=false#review-details

@@ -75,7 +75,7 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 		if (!model.inputPrice && !model.outputPrice) {
 			return 0
 		}
-		// https://github.com/MatterAIOrg/AxonCode-backend/blob/eb3d382df1e933a089eea95b9c4387db0c676e35/src/lib/processUsage.ts#L281
+		// hhttps://github.com/MatterAIOrg/Orbital-Extension-backend/blob/eb3d382df1e933a089eea95b9c4387db0c676e35/src/lib/processUsage.ts#L281
 		if (lastUsage.is_byok) {
 			return lastUsage.cost_details?.upstream_inference_cost || 0
 		}

@@ -34,7 +34,7 @@
 		"ui": "Uživatelské rozhraní",
 		"experimental": "Experimentální",
 		"language": "Jazyk",
-		"about": "O Axon Code",
+		"developerTools": "Vývojářské nástroje",
 		"codeReview": "AI Code Reviews"
 	},
 	"slashCommands": {

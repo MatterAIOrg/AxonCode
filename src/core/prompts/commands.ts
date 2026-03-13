@@ -122,7 +122,7 @@ Usage:
 <title>Title of the issue</title>
 <description>Detailed description of the issue, including steps to reproduce if relevant.</description>
 </report_bug>
-When you call the report_bug tool, the issue will be created at @https://github.com/MatterAIOrg/AxonCode/issues
+When you call the report_bug tool, the issue will be created at @hhttps://github.com/MatterAIOrg/Orbital-Extension/issues
 The user provided the following input when they indicated that they wanted to submit a bug report.
 <user_input>
 ${userInput}

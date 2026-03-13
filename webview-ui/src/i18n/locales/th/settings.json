@@ -35,7 +35,7 @@
 		"ui": "UI",
 		"experimental": "ทดลอง",
 		"language": "ภาษา",
-		"about": "เกี่ยวกับ Axon Code",
+		"developerTools": "เครื่องมือนักพัฒนา",
 		"codeReview": "AI Code Reviews"
 	},
 	"slashCommands": {

@@ -63,6 +63,40 @@ let authStateChangedHandler: ((data: { state: AuthState; previousState: AuthStat
 let settingsUpdatedHandler: (() => void) | undefined
 let userInfoHandler: ((data: { userInfo: CloudUserInfo }) => Promise<void>) | undefined
 
+const CODE_INDEX_STARTUP_DELAY_MS = 10_000
+
+function scheduleCodeIndexInitialization(
+	context: vscode.ExtensionContext,
+	contextProxy: ContextProxy,
+	outputChannel: vscode.OutputChannel,
+) {
+	if (!vscode.workspace.workspaceFolders?.length) {
+		return
+	}
+
+	const timeout = setTimeout(async () => {
+		for (const folder of vscode.workspace.workspaceFolders ?? []) {
+			const manager = CodeIndexManager.getInstance(context, folder.uri.fsPath)
+
+			if (!manager) {
+				continue
+			}
+
+			try {
+				await manager.initialize(contextProxy)
+			} catch (error) {
+				outputChannel.appendLine(
+					`[CodeIndexManager] Error during deferred initialization for ${folder.uri.fsPath}: ${error instanceof Error ? error.message : String(error)}`,
+				)
+			}
+		}
+	}, CODE_INDEX_STARTUP_DELAY_MS)
+
+	context.subscriptions.push({
+		dispose: () => clearTimeout(timeout),
+	})
+}
+
 // This method is called when your extension is activated.
 // Your extension is activated the very first time the command is executed.
 export async function activate(context: vscode.ExtensionContext) {
@@ -131,24 +165,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const contextProxy = await ContextProxy.getInstance(context)
 
-	// Initialize code index managers for all workspace folders.
-	const codeIndexManagers: CodeIndexManager[] = []
-
+	// Create code index managers now, but defer initialization until after startup settles.
 	if (vscode.workspace.workspaceFolders) {
 		for (const folder of vscode.workspace.workspaceFolders) {
 			const manager = CodeIndexManager.getInstance(context, folder.uri.fsPath)
 
 			if (manager) {
-				codeIndexManagers.push(manager)
-
-				try {
-					await manager.initialize(contextProxy)
-				} catch (error) {
-					outputChannel.appendLine(
-						`[CodeIndexManager] Error during background CodeIndexManager configuration/indexing for ${folder.uri.fsPath}: ${error.message || error}`,
-					)
-				}
-
 				context.subscriptions.push(manager)
 			}
 		}
@@ -396,6 +418,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		})
 	}
+
+	scheduleCodeIndexInitialization(context, contextProxy, outputChannel)
 
 	await checkAndRunAutoLaunchingTask(context) // kilocode_change
 

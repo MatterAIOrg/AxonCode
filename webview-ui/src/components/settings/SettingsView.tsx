@@ -4,7 +4,6 @@ import {
 	CheckCheck,
 	CircleUserRound,
 	GitPullRequest,
-	Info,
 	// Info, // kilocode_change: hidden for now
 	Languages,
 	LucideIcon,
@@ -12,6 +11,7 @@ import {
 	SquareMousePointer,
 	SquareTerminal,
 	Webhook,
+	Wrench,
 } from "lucide-react"
 import React, {
 	forwardRef,
@@ -66,13 +66,13 @@ import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewS
 // import { ContextManagementSettings } from "./ContextManagementSettings"
 // import { DisplaySettings } from "./DisplaySettings" // kilocode_change
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { About } from "./About"
 import { LanguageSettings } from "./LanguageSettings"
 import { NotificationSettings } from "./NotificationSettings"
 import { Section } from "./Section"
 import { SlashCommandsSettings } from "./SlashCommandsSettings"
 import { TerminalSettings } from "./TerminalSettings"
 import { UISettings } from "./UISettings"
-import { About } from "./About"
 
 export const settingsTabsContainer =
 	"flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden bg-vscode-editor-background"
@@ -101,7 +101,7 @@ const sectionNames = [
 	"language",
 	// "mcp", // kilocode_change: hidden for now
 	"codeReview", // kilocode_change
-	"about", // kilocode_change: hidden for now
+	"developerTools", // kilocode_change: renamed from about
 ] as const
 
 type SectionName = (typeof sectionNames)[number] // kilocode_change
@@ -613,7 +613,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Languages },
 			// { id: "mcp", icon: Server }, // kilocode_change: hidden for now
-			{ id: "about", icon: Info }, // kilocode_change: hidden for now
+			{ id: "developerTools", icon: Wrench }, // kilocode_change: renamed from about with wrench icon
 		],
 		[], // kilocode_change
 	)
@@ -1031,19 +1031,13 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						{/* Code Review Section */}
 						{activeTab === "codeReview" && (
 							<CodeReviewSettingsComponent
-								codeReviewSettings={
-									codeReviewSettings || {
-										enterpriseHost: "",
-										enterpriseApiKey: "",
-										reviewOnlyMode: false,
-									}
-								}
+								codeReviewSettings={codeReviewSettings || {}}
 								setCachedStateField={setCachedStateField}
 							/>
 						)}
 
-						{/* About Section - hidden for now */}
-						{activeTab === "about" && (
+						{/* Developer Tools Section */}
+						{activeTab === "developerTools" && (
 							<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
 						)}
 					</div>

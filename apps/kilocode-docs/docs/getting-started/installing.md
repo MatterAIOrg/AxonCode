@@ -73,8 +73,8 @@ If you prefer to download and install the VSIX file directly:
 
 1. **Download the VSIX file:**
 
-    - Find official releases on the [Axon Code GitHub Releases page](https://github.com/MatterAIOrg/AxonCode/releases)
-    - Download the `.vsix` file from the [latest release](https://github.com/MatterAIOrg/AxonCode/releases/latest)
+    - Find official releases on the [Axon Code GitHub Releases page](hhttps://github.com/MatterAIOrg/Orbital-Extension/releases)
+    - Download the `.vsix` file from the [latest release](hhttps://github.com/MatterAIOrg/Orbital-Extension/releases/latest)
 
 2. **Install in VS Code:**
     - Open VS Code
@@ -106,5 +106,5 @@ If you prefer to download and install the VSIX file directly:
 If you encounter issues not covered here:
 
 - Join our [Discord community](https://discord.gg/fJU5DvanU3) for real-time support
-- Submit issues on [GitHub](https://github.com/MatterAIOrg/AxonCode/issues)
+- Submit issues on [GitHub](hhttps://github.com/MatterAIOrg/Orbital-Extension/issues)
 - Visit our [Reddit community](https://www.reddit.com/r/matter_ai)
