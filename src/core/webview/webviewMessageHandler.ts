@@ -1041,6 +1041,11 @@ export const webviewMessageHandler = async (
 				await provider.bringTaskToForeground(message.taskId)
 			}
 			break
+		case "dismissBackgroundTask":
+			if (message.taskId) {
+				await provider.dismissBackgroundTask(message.taskId)
+			}
+			break
 		case "webviewDidLaunch":
 			// Load custom modes first
 			const customModes = await provider.customModesManager.getCustomModes()

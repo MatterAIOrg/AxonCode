@@ -639,7 +639,7 @@ input[cmdk-input]:focus {
 		90deg,
 		var(--vscode-foreground) 0%,
 		var(--vscode-foreground) 40%,
-		var(--vscode-button-background) 50%,
+		color-mix(in srgb, var(--vscode-foreground) 55%, transparent) 50%,
 		var(--vscode-foreground) 60%,
 		var(--vscode-foreground) 100%
 	);
@@ -648,6 +648,28 @@ input[cmdk-input]:focus {
 	background-clip: text;
 	animation: shimmer 2s linear infinite;
 	color: transparent;
+}
+
+.card-shimmer {
+	position: relative;
+	overflow: hidden;
+}
+
+.card-shimmer::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		110deg,
+		transparent 0%,
+		transparent 35%,
+		color-mix(in srgb, var(--vscode-foreground) 10%, transparent) 50%,
+		transparent 65%,
+		transparent 100%
+	);
+	background-size: 200% 100%;
+	animation: shimmer 2.2s linear infinite;
+	pointer-events: none;
 }
 
 @keyframes matter-progress-pulse {

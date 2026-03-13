@@ -466,7 +466,7 @@ export type ExtensionState = Pick<
 	backgroundRunningTasks?: Array<{
 		taskId: string
 		taskLabel: string
-		isCompleted: boolean
+		status: "running" | "completed" | "waiting_approval" | "waiting_input"
 		apiProvider?: string
 		apiModelId?: string
 	}>

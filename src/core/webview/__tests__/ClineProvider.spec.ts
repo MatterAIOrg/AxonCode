@@ -156,6 +156,7 @@ vi.mock("vscode", () => ({
 		showInformationMessage: vi.fn(),
 		showWarningMessage: vi.fn(),
 		showErrorMessage: vi.fn(),
+		onDidChangeWindowState: vi.fn(() => ({ dispose: vi.fn() })),
 		onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
 		createTextEditorDecorationType: vi.fn(() => ({ dispose: vi.fn() })), // kilocode_change
 	},
@@ -741,6 +742,56 @@ describe("ClineProvider", () => {
 			// The fix ensures clearTask is called, not finishSubTask
 			expect(clearTaskSpy).toHaveBeenCalled()
 			expect(finishSubTaskSpy).not.toHaveBeenCalled()
+		})
+	})
+
+	describe("background task status", () => {
+		test("marks approval asks as waiting on approval", () => {
+			const status = (provider as any).getBackgroundTaskStatus({
+				abort: false,
+				abandoned: false,
+				taskAsk: { ask: "tool" },
+				isStreaming: false,
+				isWaitingForAskResponse: true,
+				presentAssistantMessageLocked: false,
+				currentStreamingContentIndex: 0,
+				assistantMessageContent: [],
+				didCompleteReadingStream: true,
+			})
+
+			expect(status).toBe("waiting_approval")
+		})
+
+		test("marks quiescent tasks as completed", () => {
+			const status = (provider as any).getBackgroundTaskStatus({
+				abort: false,
+				abandoned: false,
+				taskAsk: undefined,
+				isStreaming: false,
+				isWaitingForAskResponse: false,
+				presentAssistantMessageLocked: false,
+				currentStreamingContentIndex: 0,
+				assistantMessageContent: [],
+				didCompleteReadingStream: true,
+			})
+
+			expect(status).toBe("completed")
+		})
+
+		test("marks active background work as running", () => {
+			const status = (provider as any).getBackgroundTaskStatus({
+				abort: false,
+				abandoned: false,
+				taskAsk: undefined,
+				isStreaming: true,
+				isWaitingForAskResponse: false,
+				presentAssistantMessageLocked: false,
+				currentStreamingContentIndex: 0,
+				assistantMessageContent: [],
+				didCompleteReadingStream: false,
+			})
+
+			expect(status).toBe("running")
 		})
 	})
 

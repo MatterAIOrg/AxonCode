@@ -80,6 +80,7 @@ export interface WebviewMessage {
 		| "shareCurrentTask"
 		| "showTaskWithId"
 		| "deleteTaskWithId"
+		| "dismissBackgroundTask"
 		| "exportTaskWithId"
 		| "importSettings"
 		| "toggleToolAutoApprove"
@@ -193,6 +194,7 @@ export interface WebviewMessage {
 		| "maxOpenTabsContext"
 		| "maxWorkspaceFiles"
 		| "switchToBackgroundTask" // multi-chat
+		| "dismissBackgroundTask" // multi-chat
 		| "humanRelayResponse"
 		| "updateTaskModel" // Task-local model update for isolation
 		| "humanRelayCancel"
@@ -388,7 +390,7 @@ export interface WebviewMessage {
 	hasSystemPromptOverride?: boolean
 	terminalOperation?: "continue" | "abort"
 	messageTs?: number
-	taskId?: string // For switchToBackgroundTask
+	taskId?: string // For switchToBackgroundTask and dismissBackgroundTask
 	restoreCheckpoint?: boolean
 	historyPreviewCollapsed?: boolean
 	filters?: { type?: string; search?: string; tags?: string[] }

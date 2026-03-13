@@ -561,6 +561,33 @@ export class ClineProvider
 
 		await this.postStateToWebview()
 	}
+
+	public async dismissBackgroundTask(taskId: string) {
+		const bgStack = this.backgroundTasks.get(taskId)
+		if (!bgStack || bgStack.length === 0) {
+			this.log(`[dismissBackgroundTask] Task ${taskId} not found in background map`)
+			return
+		}
+
+		for (const task of [...bgStack].reverse()) {
+			try {
+				await task.abortTask(true)
+			} catch (e) {
+				this.log(
+					`[dismissBackgroundTask] background task abort failed: ${e instanceof Error ? e.message : String(e)}`,
+				)
+			}
+
+			const cleanupFunctions = this.taskEventListeners.get(task)
+			if (cleanupFunctions) {
+				cleanupFunctions.forEach((cleanup) => cleanup())
+			}
+			this.taskEventListeners.delete(task)
+		}
+
+		this.backgroundTasks.delete(taskId)
+		await this.postStateToWebview()
+	}
 	// kilocode_change: multi-chat support end
 
 	getTaskStackSize(): number {
@@ -1995,6 +2022,45 @@ ${prompt}
 		return this.mergeCommandLists("deniedCommands", "denied", globalStateCommands)
 	}
 
+	private getBackgroundTaskStatus(task: Task): "running" | "completed" | "waiting_approval" | "waiting_input" {
+		const askType = task.taskAsk?.ask
+
+		if (task.abort || task.abandoned) {
+			return "completed"
+		}
+
+		if (
+			askType === "tool" ||
+			askType === "command" ||
+			askType === "browser_action_launch" ||
+			askType === "use_mcp_server" ||
+			askType === "auto_approval_max_req_reached"
+		) {
+			return "waiting_approval"
+		}
+
+		if (askType === "completion_result" || askType === "resume_completed_task") {
+			return "completed"
+		}
+
+		if (askType) {
+			return "waiting_input"
+		}
+
+		const hasPendingAssistantWork =
+			task.isStreaming ||
+			task.isWaitingForAskResponse ||
+			task.presentAssistantMessageLocked ||
+			task.currentStreamingContentIndex < task.assistantMessageContent.length ||
+			!task.didCompleteReadingStream
+
+		if (hasPendingAssistantWork) {
+			return "running"
+		}
+
+		return "completed"
+	}
+
 	/**
 	 * Common utility for merging command lists from global state and workspace configuration.
 	 * Implements the Command Denylist feature's merging strategy with proper validation.
@@ -2201,10 +2267,7 @@ ${prompt}
 							: "Image Task"
 						: "New Task")
 
-				const isCompleted =
-					rootTask.abandoned ||
-					rootTask.abort ||
-					rootTask.clineMessages.some((msg) => msg.type === "say" && msg.say === "completion_result")
+				const status = this.getBackgroundTaskStatus(rootTask)
 
 				// Get model information from task's API configuration
 				const apiProvider = rootTask.apiConfiguration?.apiProvider
@@ -2256,13 +2319,13 @@ ${prompt}
 					}
 				}
 
-				return { taskId, taskLabel, isCompleted, apiProvider, apiModelId, ts: historyItem?.ts || 0 }
+				return { taskId, taskLabel, status, apiProvider, apiModelId, ts: historyItem?.ts || 0 }
 			})
 			.sort((a, b) => (b.ts as number) - (a.ts as number))
-			.map(({ taskId, taskLabel, isCompleted, apiProvider, apiModelId }) => ({
+			.map(({ taskId, taskLabel, status, apiProvider, apiModelId }) => ({
 				taskId,
 				taskLabel,
-				isCompleted,
+				status,
 				apiProvider,
 				apiModelId,
 			}))

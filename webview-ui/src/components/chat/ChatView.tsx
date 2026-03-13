@@ -68,8 +68,9 @@ import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 // import ProfileViolationWarning from "./ProfileViolationWarning" kilocode_change: unused
-import { LinkSquare01Icon, PlayCircleIcon } from "@/utils/customIcons"
+import { ListVideoIcon } from "@/utils/customIcons"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { X } from "lucide-react"
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
@@ -656,6 +657,28 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 		return false
 	}, [modifiedMessages, clineAsk, enableButtons, primaryButtonText])
+
+	const backgroundTaskStatusMeta = useMemo(
+		() => ({
+			running: {
+				dotClassName: "bg-[var(--vscode-charts-blue)] animate-pulse",
+				label: "Running in background",
+			},
+			completed: {
+				dotClassName: "bg-[var(--vscode-testing-iconPassed)]",
+				label: "Completed",
+			},
+			waiting_approval: {
+				dotClassName: "bg-[var(--vscode-charts-yellow)]",
+				label: "Waiting on approval",
+			},
+			waiting_input: {
+				dotClassName: "bg-[var(--vscode-charts-yellow)]",
+				label: "Waiting for input",
+			},
+		}),
+		[],
+	)
 
 	const markFollowUpAsAnswered = useCallback(() => {
 		const lastFollowUpMessage = messagesRef.current.findLast((msg: ClineMessage) => msg.ask === "followup")
@@ -2449,66 +2472,78 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							{/* Background tasks - Hidden in review only mode */}
 							{!isReviewOnlyMode && backgroundRunningTasks && backgroundRunningTasks.length > 0 && (
 								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)] max-h-[50%] flex flex-col overflow-hidden">
-									<div className="flex flex-row items-center gap-1 mb-2 shrink-0">
-										<PlayCircleIcon className="w-4 h-4 rtl:-scale-x-100" />
-										<span className="text-md font-semibold text-vscode-foreground">
-											Background Tasks
+									<div className="flex flex-row items-center gap-1 mb-1 shrink-0">
+										<ListVideoIcon className="w-3 h-3 rtl:-scale-x-100" />
+										<span className="text-sm font-semibold text-vscode-foreground">
+											Background Agents
 										</span>
-										<span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
-											{backgroundRunningTasks.filter((t) => !t.isCompleted).length} running
-										</span>
+										{/* <span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
+											{backgroundRunningTasks.filter((t) => t.status === "running").length}{" "}
+											running
+										</span> */}
 									</div>
 									<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
-										{backgroundRunningTasks.map((bt) => (
-											<div
-												key={bt.taskId}
-												className="flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors"
-												onClick={() => {
-													vscode.postMessage({
-														type: "switchToBackgroundTask",
-														taskId: bt.taskId,
-													})
-												}}>
-												<div className="flex-1 flex flex-col gap-1 min-w-0">
-													<div className="flex items-center gap-2">
-														<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
-															{bt.taskLabel || "New Task"}
-														</span>
-													</div>
-													<div className="flex items-center gap-2">
-														{bt.isCompleted ? (
+										{backgroundRunningTasks.map((bt) => {
+											const resolvedStatus =
+												bt.status ??
+												((bt as { isCompleted?: boolean }).isCompleted
+													? "completed"
+													: "running")
+											const statusMeta = backgroundTaskStatusMeta[resolvedStatus]
+											const isRunning = resolvedStatus === "running"
+
+											return (
+												<div
+													key={bt.taskId}
+													className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
+													onClick={() => {
+														vscode.postMessage({
+															type: "switchToBackgroundTask",
+															taskId: bt.taskId,
+														})
+													}}>
+													<div className="flex-1 flex flex-col gap-1 min-w-0">
+														<div className="flex items-center gap-2">
+															<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
+																{bt.taskLabel || "New Task"}
+															</span>
+														</div>
+														<div className="flex items-center gap-2">
 															<>
-																<span className="flex items-center justify-center w-2 h-2 rounded-full bg-[var(--vscode-testing-iconPassed)]" />
+																<span
+																	className={`flex items-center justify-center w-2 h-2 rounded-full ${statusMeta.dotClassName}`}
+																/>
 																<span className="text-xs text-[var(--vscode-descriptionForeground)]">
-																	Completed
+																	{statusMeta.label}
 																</span>
 															</>
-														) : (
-															<>
-																<span className="flex items-center justify-center w-2 h-2 rounded-full bg-[var(--vscode-charts-blue)] animate-pulse" />
-																<span className="text-xs text-[var(--vscode-descriptionForeground)]">
-																	Running in background
-																</span>
-															</>
-														)}
-														{bt.apiModelId && (
-															<div className="flex items-center gap-2">
-																<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/40" />
-																<span className="text-xs text-[var(--vscode-descriptionForeground)] truncate max-w-[150px]">
-																	{bt.apiModelId}
-																</span>
-															</div>
-														)}
+															{bt.apiModelId && (
+																<div className="flex items-center gap-2">
+																	<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/40" />
+																	<span className="text-xs text-[var(--vscode-descriptionForeground)] truncate max-w-[150px]">
+																		{bt.apiModelId}
+																	</span>
+																</div>
+															)}
+														</div>
 													</div>
+													<button
+														type="button"
+														className="shrink-0 inline-flex items-center justify-center rounded-sm p-1 text-[var(--vscode-descriptionForeground)] hover:bg-[var(--vscode-toolbar-hoverBackground)] hover:text-[var(--vscode-foreground)] transition-colors"
+														title="Remove task from background list"
+														onClick={(event) => {
+															event.preventDefault()
+															event.stopPropagation()
+															vscode.postMessage({
+																type: "dismissBackgroundTask",
+																taskId: bt.taskId,
+															})
+														}}>
+														<X className="size-3" />
+													</button>
 												</div>
-												<VSCodeButton
-													appearance="icon"
-													className="shrink-0"
-													title="Resume task">
-													<LinkSquare01Icon className="size-3" />
-												</VSCodeButton>
-											</div>
-										))}
+											)
+										})}
 									</div>
 								</div>
 							)}
