@@ -187,6 +187,38 @@ describe("OpenRouterHandler", () => {
 			)
 		})
 
+		it("yields reasoning chunks from reasoning_content deltas", async () => {
+			const handler = new OpenRouterHandler(mockOptions)
+
+			const mockStream = {
+				async *[Symbol.asyncIterator]() {
+					yield {
+						id: "test-id",
+						choices: [{ delta: { reasoning_content: "Working through the answer." } }],
+					}
+					yield {
+						id: "test-id",
+						choices: [{ delta: { content: "Final answer" } }],
+					}
+				},
+			}
+
+			const mockCreate = vitest.fn().mockResolvedValue(mockStream)
+			;(OpenAI as any).prototype.chat = {
+				completions: { create: mockCreate },
+			} as any
+
+			const chunks = []
+			for await (const chunk of handler.createMessage("test system prompt", [])) {
+				chunks.push(chunk)
+			}
+
+			expect(chunks).toEqual([
+				{ type: "reasoning", text: "Working through the answer." },
+				{ type: "text", text: "Final answer" },
+			])
+		})
+
 		it("supports the middle-out transform", async () => {
 			const handler = new OpenRouterHandler({
 				...mockOptions,

@@ -208,7 +208,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	backgroundRunningTasks?: Array<{
 		taskId: string
 		taskLabel: string
-		isCompleted: boolean
+		status: "running" | "completed" | "waiting_approval" | "waiting_input"
 		apiProvider?: string
 		apiModelId?: string
 	}> // kilocode_change: multi-chat support

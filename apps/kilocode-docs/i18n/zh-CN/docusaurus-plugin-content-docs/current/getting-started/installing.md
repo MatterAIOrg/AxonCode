@@ -73,8 +73,8 @@ Kilo Code是一款VS Code扩展，可将AI编程助手直接集成到编辑器�
 
 1. **下载VSIX文件：**
 
-    - 在[Axon Code GitHub Releases页面](https://github.com/MatterAIOrg/AxonCode/releases)查找正式版本
-    - 从[最新版本](https://github.com/MatterAIOrg/AxonCode/releases/latest)下载`.vsix`文件
+    - 在[Axon Code GitHub Releases页面](https://github.com/MatterAIOrg/Orbital-Extension/releases)查找正式版本
+    - 从[最新版本](https://github.com/MatterAIOrg/Orbital-Extension/releases/latest)下载`.vsix`文件
 
 2. **在VS Code中安装：**
     - 打开VS Code
@@ -106,5 +106,5 @@ Kilo Code是一款VS Code扩展，可将AI编程助手直接集成到编辑器�
 若遇到其他问题：
 
 - 加入[Discord社区](https://discord.gg/fJU5DvanU3)获取实时支持
-- 在[GitHub](https://github.com/MatterAIOrg/AxonCode/issues)提交问题报告
+- 在[GitHub](https://github.com/MatterAIOrg/Orbital-Extension/issues)提交问题报告
 - 访问[Reddit社区](https://www.reddit.com/r/matter_ai)

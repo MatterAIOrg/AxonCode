@@ -11,6 +11,7 @@ import {
 	SquareMousePointer,
 	SquareTerminal,
 	Webhook,
+	Wrench,
 } from "lucide-react"
 import React, {
 	forwardRef,
@@ -27,7 +28,7 @@ import React, {
 // kilocode_change
 import { ensureBodyPointerEventsRestored } from "@/utils/fixPointerEvents"
 
-import type { ProviderSettings } from "@roo-code/types"
+import type { ProviderSettings, TelemetrySetting } from "@roo-code/types"
 
 import {
 	AlertDialog,
@@ -65,6 +66,7 @@ import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewS
 // import { ContextManagementSettings } from "./ContextManagementSettings"
 // import { DisplaySettings } from "./DisplaySettings" // kilocode_change
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { About } from "./About"
 import { LanguageSettings } from "./LanguageSettings"
 import { NotificationSettings } from "./NotificationSettings"
 import { Section } from "./Section"
@@ -99,7 +101,7 @@ const sectionNames = [
 	"language",
 	// "mcp", // kilocode_change: hidden for now
 	"codeReview", // kilocode_change
-	// "about", // kilocode_change: hidden for now
+	"developerTools", // kilocode_change: renamed from about
 ] as const
 
 type SectionName = (typeof sectionNames)[number] // kilocode_change
@@ -354,17 +356,16 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	// 	})
 	// }, [])
 
-	// kilocode_change: hidden for now - About section removed
-	// const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
-	// 	setCachedState((prevState) => {
-	// 		if (prevState.telemetrySetting === setting) {
-	// 			return prevState
-	// 		}
+	const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
+		setCachedState((prevState) => {
+			if (prevState.telemetrySetting === setting) {
+				return prevState
+			}
 
-	// 		setChangeDetected(true)
-	// 		return { ...prevState, telemetrySetting: setting }
-	// 	})
-	// }, [])
+			setChangeDetected(true)
+			return { ...prevState, telemetrySetting: setting }
+		})
+	}, [])
 
 	// const setOpenRouterImageApiKey = useCallback((apiKey: string) => {
 	// 	setCachedState((prevState) => {
@@ -612,7 +613,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Languages },
 			// { id: "mcp", icon: Server }, // kilocode_change: hidden for now
-			// { id: "about", icon: Info }, // kilocode_change: hidden for now
+			{ id: "developerTools", icon: Wrench }, // kilocode_change: renamed from about with wrench icon
 		],
 		[], // kilocode_change
 	)
@@ -1030,21 +1031,15 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						{/* Code Review Section */}
 						{activeTab === "codeReview" && (
 							<CodeReviewSettingsComponent
-								codeReviewSettings={
-									codeReviewSettings || {
-										enterpriseHost: "",
-										enterpriseApiKey: "",
-										reviewOnlyMode: false,
-									}
-								}
+								codeReviewSettings={codeReviewSettings || {}}
 								setCachedStateField={setCachedStateField}
 							/>
 						)}
 
-						{/* About Section - hidden for now */}
-						{/* {activeTab === "about" && (
-						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
-					)} */}
+						{/* Developer Tools Section */}
+						{activeTab === "developerTools" && (
+							<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
+						)}
 					</div>
 				</TabContent>
 			</div>

@@ -82,6 +82,7 @@ vi.mock("vscode", () => {
 
 	return {
 		TabInputTextDiff: vi.fn(),
+		ThemeColor: vi.fn((id: string) => ({ id })),
 		CodeActionKind: {
 			QuickFix: { value: "quickfix" },
 			RefactorRewrite: { value: "refactor.rewrite" },
@@ -95,6 +96,7 @@ vi.mock("vscode", () => {
 				dispose: vi.fn(),
 			}),
 			visibleTextEditors: [mockTextEditor],
+			onDidChangeWindowState: vi.fn(() => mockDisposable),
 			tabGroups: {
 				all: [mockTabGroup],
 				close: vi.fn(),
@@ -1721,6 +1723,46 @@ describe("Cline", () => {
 
 			// The skip flag should be reset after the call
 			expect((task as any).skipPrevResponseIdOnce).toBe(false)
+		})
+
+		it("should render plain reasoning chunks without think tags", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+				context: mockExtensionContext,
+			})
+
+			mockProvider.getState = vi.fn().mockResolvedValue({
+				apiConfiguration: mockApiConfig,
+			})
+
+			const saySpy = vi.spyOn(task, "say")
+
+			const mockStream = {
+				async *[Symbol.asyncIterator]() {
+					yield { type: "reasoning", text: "Working through the answer." }
+					yield { type: "text", text: "Done." }
+				},
+				async next() {
+					return { done: true, value: undefined }
+				},
+				async return() {
+					return { done: true, value: undefined }
+				},
+				async throw(e: any) {
+					throw e
+				},
+				[Symbol.asyncDispose]: async () => {},
+			} as AsyncGenerator<ApiStreamChunk>
+
+			vi.spyOn(task.api, "createMessage").mockReturnValue(mockStream)
+
+			const iterator = task.attemptApiRequest(0)
+			await iterator.next()
+
+			expect(saySpy).toHaveBeenCalledWith("reasoning", "Working through the answer.", undefined, true)
 		})
 	})
 	describe("abortTask", () => {

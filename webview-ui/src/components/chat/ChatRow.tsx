@@ -97,39 +97,81 @@ const headerStyle: React.CSSProperties = {
 }
 
 // Build a GitHub-style unified diff for fileEdit when backend doesn't supply one
+const stripTruncationMarker = (value: string) =>
+	value
+		.replace(/\n?\.\.\.\(truncated\)\s*$/g, "")
+		.replace(/\n?\.\.\. \(truncated\)\s*$/g, "")
+		.trimEnd()
+
 const buildFileEditDiff = (tool: ClineSayTool): string | undefined => {
 	const path = tool.path || "file"
-	const oldText = (tool.search ?? "").trimEnd()
-	const newText = (tool.replace ?? tool.content ?? "").trimEnd()
+	const oldText = stripTruncationMarker((tool.search ?? "").trimEnd())
+	const newText = stripTruncationMarker((tool.replace ?? tool.content ?? "").trimEnd())
 
 	if (!oldText && !newText) return undefined
 
 	const oldLines = oldText.split(/\r?\n/)
 	const newLines = newText.split(/\r?\n/)
+	let leadingContext = 0
+
+	while (
+		leadingContext < oldLines.length &&
+		leadingContext < newLines.length &&
+		oldLines[leadingContext] === newLines[leadingContext]
+	) {
+		leadingContext += 1
+	}
+
+	let trailingContext = 0
+	while (
+		trailingContext < oldLines.length - leadingContext &&
+		trailingContext < newLines.length - leadingContext &&
+		oldLines[oldLines.length - 1 - trailingContext] === newLines[newLines.length - 1 - trailingContext]
+	) {
+		trailingContext += 1
+	}
+
+	const contextBefore = leadingContext > 0 ? [oldLines[leadingContext - 1]] : []
+	const contextAfter = trailingContext > 0 ? [oldLines[oldLines.length - trailingContext]] : []
+	const changedOldLines = oldLines.slice(leadingContext, Math.max(leadingContext, oldLines.length - trailingContext))
+	const changedNewLines = newLines.slice(leadingContext, Math.max(leadingContext, newLines.length - trailingContext))
+	const visibleOldLines = [...contextBefore, ...changedOldLines, ...contextAfter]
+	const visibleNewLines = [...contextBefore, ...changedNewLines, ...contextAfter]
 
 	const lines: string[] = []
 	lines.push(`--- a/${path}`)
 	lines.push(`+++ b/${path}`)
 
 	// Calculate hunk header with line numbers
-	const oldStart = 1
-	const oldCount = oldLines.length
-	const newStart = 1
-	const newCount = newLines.length
+	const contextOffset = contextBefore.length
+	const hunkStart = Math.max(1, (tool.startLine ?? 1) + leadingContext - contextOffset)
+	const oldStart = hunkStart
+	const oldCount = visibleOldLines.length
+	const newStart = hunkStart
+	const newCount = visibleNewLines.length
 	lines.push(`@@ -${oldStart},${oldCount} +${newStart},${newCount} @@`)
 
-	// Add old lines with - prefix
-	for (const line of oldLines) {
+	for (const line of contextBefore) {
+		lines.push(` ${line}`)
+	}
+
+	for (const line of changedOldLines) {
 		lines.push(`-${line}`)
 	}
 
-	// Add new lines with + prefix
-	for (const line of newLines) {
+	for (const line of changedNewLines) {
 		lines.push(`+${line}`)
+	}
+
+	for (const line of contextAfter) {
+		lines.push(` ${line}`)
 	}
 
 	return lines.join("\n")
 }
+
+const hasTruncatedDiffContent = (diff?: string | null) =>
+	Boolean(diff && (diff.includes("...(truncated)") || diff.includes("... (truncated)")))
 
 const computeDiffStats = (diff?: string | null) => {
 	if (!diff) return null
@@ -551,7 +593,9 @@ export const ChatRowContent = ({
 					</div>
 				)
 			case "fileEdit": {
-				const fileEditDiff = tool.diff ?? buildFileEditDiff(tool)
+				const fallbackFileEditDiff = buildFileEditDiff(tool)
+				const fileEditDiff =
+					tool.diff && !hasTruncatedDiffContent(tool.diff) ? tool.diff : (fallbackFileEditDiff ?? tool.diff)
 				const diffStats = computeDiffStats(fileEditDiff)
 				// Use startLine from tool if available, otherwise extract from diff
 				const editLineNumber = tool.startLine ?? extractFirstLineNumberFromDiff(fileEditDiff)

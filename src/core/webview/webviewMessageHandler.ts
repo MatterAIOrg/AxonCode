@@ -1041,6 +1041,11 @@ export const webviewMessageHandler = async (
 				await provider.bringTaskToForeground(message.taskId)
 			}
 			break
+		case "dismissBackgroundTask":
+			if (message.taskId) {
+				await provider.dismissBackgroundTask(message.taskId)
+			}
+			break
 		case "webviewDidLaunch":
 			// Load custom modes first
 			const customModes = await provider.customModesManager.getCustomModes()
@@ -2878,7 +2883,9 @@ ${comment.suggestion}
 			)
 
 			if (answer === githubIssuesText) {
-				await vscode.env.openExternal(vscode.Uri.parse("https://github.com/MatterAIOrg/AxonCode/issues"))
+				await vscode.env.openExternal(
+					vscode.Uri.parse("https://github.com/MatterAIOrg/Orbital-Extension/issues"),
+				)
 			} else if (answer === discordText) {
 				await vscode.env.openExternal(vscode.Uri.parse("https://discord.gg/fxrhCFGhkP"))
 			} else if (answer === customerSupport) {
