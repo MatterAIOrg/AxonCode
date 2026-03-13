@@ -57,7 +57,7 @@ git checkout -b your-branch-name
     git push origin your-branch-name
     ```
 
-2. Go to the [Axon Code repository](hhttps://github.com/MatterAIOrg/Orbital-Extension)
+2. Go to the [Axon Code repository](https://github.com/MatterAIOrg/Orbital-Extension)
 
 3. Click "New Pull Request" and select "compare across forks"
 
@@ -77,7 +77,7 @@ Custom modes are a powerful way to extend Axon Code's capabilities. To create an
 
 2. Test your mode thoroughly
 
-3. Share your mode with the community by submitting a [GitHub Discussion](hhttps://github.com/MatterAIOrg/Orbital-Extension/discussions)
+3. Share your mode with the community by submitting a [GitHub Discussion](https://github.com/MatterAIOrg/Orbital-Extension/discussions)
 
 ## Documentation Contributions
 
@@ -107,14 +107,14 @@ When participating in the Axon Code community:
 - Be respectful and inclusive
 - Provide constructive feedback
 - Help newcomers get started
-- Follow the [Code of Conduct](hhttps://github.com/MatterAIOrg/Orbital-Extension/blob/main/CODE_OF_CONDUCT.md)
+- Follow the [Code of Conduct](https://github.com/MatterAIOrg/Orbital-Extension/blob/main/CODE_OF_CONDUCT.md)
 
 ## Getting Help
 
 If you need help with your contribution:
 
 - Join our [Discord community](https://discord.gg/fJU5DvanU3) for real-time support
-- Ask questions on [GitHub Discussions](hhttps://github.com/MatterAIOrg/Orbital-Extension/discussions)
+- Ask questions on [GitHub Discussions](https://github.com/MatterAIOrg/Orbital-Extension/discussions)
 - Visit our [Reddit community](https://www.reddit.com/r/matter_ai)
 
 ## Recognition

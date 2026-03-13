@@ -43,7 +43,7 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 					<Trans
 						i18nKey="settings:footer.feedback"
 						components={{
-							githubLink: <VSCodeLink href="hhttps://github.com/MatterAIOrg/Orbital-Extension" />,
+							githubLink: <VSCodeLink href="https://github.com/MatterAIOrg/Orbital-Extension" />,
 							redditLink: <VSCodeLink href="https://reddit.com/r/matter_ai" />,
 							discordLink: <VSCodeLink href="https://discord.gg/fJU5DvanU3" />,
 						}}

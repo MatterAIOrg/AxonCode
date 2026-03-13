@@ -6,7 +6,7 @@ body:
       attributes:
           value: |
               Thank you for contributing! Please search similar issues first to see if your bug is already known:
-              hhttps://github.com/MatterAIOrg/Orbital-Extension/issues
+              https://github.com/MatterAIOrg/Orbital-Extension/issues
 
     - type: dropdown
       id: plugin-type

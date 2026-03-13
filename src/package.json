@@ -24,7 +24,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "hhttps://github.com/MatterAIOrg/Orbital-Extension"
+		"url": "https://github.com/MatterAIOrg/Orbital-Extension"
 	},
 	"homepage": "https://matterai.so",
 	"categories": [

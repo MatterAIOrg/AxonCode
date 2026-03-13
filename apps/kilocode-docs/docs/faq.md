@@ -175,7 +175,7 @@ Yes, you can create your own MCP servers to add custom functionality to Axon Cod
 - Check your internet connection.
 - Check the status of your chosen API provider.
 - Try restarting VS Code.
-- If the problem persists, report the issue on [GitHub](hhttps://github.com/MatterAIOrg/Orbital-Extension/issues) or [Discord](https://discord.gg/fJU5DvanU3).
+- If the problem persists, report the issue on [GitHub](https://github.com/MatterAIOrg/Orbital-Extension/issues) or [Discord](https://discord.gg/fJU5DvanU3).
 
 ### I'm seeing an error message. What does it mean?
 
@@ -187,4 +187,4 @@ Axon Code uses VS Code's built-in file editing capabilities. You can use the sta
 
 ### How do I report a bug or suggest a feature?
 
-Please report bugs or suggest features on the Axon Code [Issues page](hhttps://github.com/MatterAIOrg/Orbital-Extension/issues) and [Feature Requests page](hhttps://github.com/MatterAIOrg/Orbital-Extension/discussions/categories/ideas).
+Please report bugs or suggest features on the Axon Code [Issues page](https://github.com/MatterAIOrg/Orbital-Extension/issues) and [Feature Requests page](https://github.com/MatterAIOrg/Orbital-Extension/discussions/categories/ideas).
