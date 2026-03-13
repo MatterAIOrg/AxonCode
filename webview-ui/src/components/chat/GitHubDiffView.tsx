@@ -188,7 +188,7 @@ const GitHubDiffView = memo(
 						<div
 							className="rounded-xl overflow-auto scrollbar-hide min-w-0"
 							style={{
-								maxHeight: "28rem",
+								maxHeight: "20rem",
 								border: "1px solid var(--vscode-editorWidget-border)",
 								background: "var(--vscode-editorWidget-background)",
 								boxShadow:
