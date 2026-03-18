@@ -1,6 +1,6 @@
 {
 	"welcome": {
-		"greeting": "Welcome to Axon Code, By MatterAI",
+		"greeting": "Welcome to Orbital, By MatterAI",
 		"tagline": "The AI Engineering Agent",
 		"introText1": "Boost your engineering productivity with the complete AI Engineer to Build, Debug and Review your code.",
 		"introText2": "Create a free account with $5 credits every month!",
@@ -12,8 +12,8 @@
 	},
 	"lowCreditWarning": {
 		"addCredit": "Upgrade Plan",
-		"lowBalance": "Your Axon Code balance is empty",
-		"newOrganization": "Using Axon for work?"
+		"lowBalance": "Your Orbital balance is empty",
+		"newOrganization": "Using Orbital for work?"
 	},
 	"memoryWarning": {
 		"message": "Memory usage is at {{percentage}}%. Please restart your IDE to prevent crashes."
