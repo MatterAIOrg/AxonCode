@@ -10,6 +10,7 @@ export const commandExecutionStatusSchema = z.discriminatedUnion("status", [
 		status: z.literal("started"),
 		pid: z.number().optional(),
 		command: z.string(),
+		startTime: z.number().optional(),
 	}),
 	z.object({
 		executionId: z.string(),

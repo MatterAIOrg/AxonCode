@@ -221,7 +221,13 @@ export async function executeCommand(
 		},
 		onShellExecutionStarted: (pid: number | undefined) => {
 			console.log(`[executeCommand] onShellExecutionStarted: ${pid}`)
-			const status: CommandExecutionStatus = { executionId, status: "started", pid, command }
+			const status: CommandExecutionStatus = {
+				executionId,
+				status: "started",
+				pid,
+				command,
+				startTime: Date.now(),
+			}
 			provider?.postMessageToWebview({ type: "commandExecutionStatus", text: JSON.stringify(status) })
 		},
 		onShellExecutionComplete: (details: ExitCodeDetails) => {
