@@ -2695,7 +2695,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			)}
 
 			{/* kilocode_change: Show notification when monthly limit is exhausted */}
-			{isUsageExhausted && (
+			{isUsageExhausted && !task && (
 				<div className="w-full min-w-0 px-4 mb-4">
 					<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
 						<div className="flex flex-col gap-2">

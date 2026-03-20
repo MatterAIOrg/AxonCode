@@ -1495,48 +1495,27 @@ export const ChatRowContent = ({
 
 					if (isOutOfCreditsMessage) {
 						return (
-							<div className="bg-[var(--vscode-editor-background)] ml-0 my-2 mr-2 rounded-xl p-4 border border-[var(--color-matterai-red)]">
-								<div
-									style={{
-										display: "flex",
-										alignItems: "center",
-										gap: "8px",
-										marginBottom: "12px",
-									}}>
-									<span
-										className="codicon codicon-warning"
-										style={{
-											color: "var(--color-matterai-red)",
-											fontSize: "18px",
-										}}></span>
-									<div
-										style={{
-											fontWeight: "bold",
-											fontSize: "14px",
-											color: "var(--vscode-foreground)",
-										}}>
-										Your plan is out of credits
+							<div className="w-full min-w-0 my-2 pr-1">
+								<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
+									<div className="flex flex-col gap-2">
+										<span className="text-lg font-medium text-[var(--vscode-foreground)]">
+											You are out of Orbital Credits
+										</span>
+										<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
+											To continue using Orbital, upgrade your plan or switch to Auto model.
+										</span>
 									</div>
+									<button
+										className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
+										onClick={() =>
+											vscode.postMessage({
+												type: "openExternal",
+												url: "https://app.matterai.so/orbital",
+											})
+										}>
+										Upgrade
+									</button>
 								</div>
-								<div
-									style={{
-										marginBottom: "16px",
-										color: "var(--vscode-foreground)",
-										fontSize: "13px",
-									}}>
-									Purchase or upgrade your paid plan to continue using the service.
-								</div>
-								<VSCodeButton
-									appearance="primary"
-									onClick={(e) => {
-										e.preventDefault()
-										vscode.postMessage({
-											type: "openInBrowser",
-											url: "https://app.matterai.so/billing?tab=axon-code",
-										})
-									}}>
-									Purchase / Upgrade Plan
-								</VSCodeButton>
 							</div>
 						)
 					}
