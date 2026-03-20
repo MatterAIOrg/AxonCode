@@ -1,5 +1,5 @@
 import { ChevronDown, OctagonX } from "lucide-react"
-import { memo, useCallback, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 
 import { CommandExecutionStatus, commandExecutionStatusSchema } from "@roo-code/types"
@@ -65,6 +65,9 @@ export const CommandExecution = memo(
 		const [isExpanded, setIsExpanded] = useState(terminalShellIntegrationDisabled)
 		const [streamingOutput, setStreamingOutput] = useState("")
 		const [status, setStatus] = useState<CommandExecutionStatus | null>(null)
+		const [elapsedSeconds, setElapsedSeconds] = useState<number>(0)
+		const [completedSeconds, setCompletedSeconds] = useState<number | null>(null)
+		const startTimeRef = useRef<number | null>(null)
 
 		// The command's output can either come from the text associated with the
 		// task message (this is the case for completed commands) or from the
@@ -136,6 +139,7 @@ export const CommandExecution = memo(
 
 						switch (data.status) {
 							case "started":
+								startTimeRef.current = data.startTime ?? null
 								setStatus(data)
 								break
 							case "output":
@@ -156,45 +160,87 @@ export const CommandExecution = memo(
 
 		useEvent("message", onMessage)
 
+		// Timer effect for showing "Running for X seconds"
+		useEffect(() => {
+			if (status?.status === "started" && startTimeRef.current) {
+				const startTime = startTimeRef.current
+
+				// Update elapsed time every second
+				const interval = setInterval(() => {
+					const elapsed = Math.floor((Date.now() - startTime) / 1000)
+					setElapsedSeconds(elapsed)
+				}, 1000)
+
+				// Initial calculation
+				setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000))
+
+				return () => clearInterval(interval)
+			}
+		}, [status])
+
+		// Calculate final duration when command completes
+		useEffect(() => {
+			if (status?.status === "exited" && startTimeRef.current) {
+				const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
+				setCompletedSeconds(elapsed)
+			}
+		}, [status])
+
 		return (
 			<>
 				<div className="flex flex-row items-center justify-between gap-2 mb-1">
 					<div className="flex flex-row items-center gap-2">
-						{icon}
-						{title}
-						{status?.status === "exited" && (
-							<div className="flex flex-row items-center gap-2 font-mono text-xs">
+						{/* Status display: running, completed, or initial */}
+						{status?.status === "started" ? (
+							<div className="flex flex-row items-center gap-2">
+								<div className="rounded-full size-2 bg-green-500 animate-pulse" />
+								<span className="font-medium">Running Command for {elapsedSeconds}s</span>
+								{status.pid && (
+									<span className="font-mono text-xs opacity-70">(PID: {status.pid})</span>
+								)}
+							</div>
+						) : status?.status === "exited" ? (
+							<div className="flex flex-row items-center gap-2">
+								<span className="font-medium">Command</span>
+								{completedSeconds !== null && (
+									<span className="font-mono text-xs opacity-70 pt-0.5">
+										Ran for {completedSeconds}s
+									</span>
+								)}
 								<StandardTooltip
 									content={t("chat.commandExecution.exitStatus", { exitStatus: status.exitCode })}>
 									<div
 										className={cn(
-											"rounded-full size-2",
+											"rounded-full size-2 mt-0.5",
 											status.exitCode === 0 ? "bg-green-600" : "bg-red-600",
 										)}
 									/>
 								</StandardTooltip>
 							</div>
+						) : (
+							<>
+								{icon}
+								{title}
+							</>
 						)}
 					</div>
-					<div className=" flex flex-row items-center justify-between gap-2 px-1">
+					<div className="flex flex-row items-center justify-between gap-2 px-1">
 						<div className="flex flex-row items-center gap-1">
+							{/* Abort button when running */}
 							{status?.status === "started" && (
-								<div className="flex flex-row items-center gap-2 font-mono text-xs">
-									{status.pid && <div className="whitespace-nowrap">(PID: {status.pid})</div>}
-									<StandardTooltip content={t("chat:commandExecution.abort")}>
-										<Button
-											variant="ghost"
-											size="icon"
-											onClick={() =>
-												vscode.postMessage({
-													type: "terminalOperation",
-													terminalOperation: "abort",
-												})
-											}>
-											<OctagonX className="size-4" />
-										</Button>
-									</StandardTooltip>
-								</div>
+								<StandardTooltip content={t("chat:commandExecution.abort")}>
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() =>
+											vscode.postMessage({
+												type: "terminalOperation",
+												terminalOperation: "abort",
+											})
+										}>
+										<OctagonX className="size-4" />
+									</Button>
+								</StandardTooltip>
 							)}
 
 							{output.length > 0 && (

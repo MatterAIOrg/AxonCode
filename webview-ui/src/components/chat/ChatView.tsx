@@ -34,7 +34,7 @@ import { getAllModes } from "@roo/modes"
 import { ProfileValidator } from "@roo/ProfileValidator"
 import { safeJsonParse } from "@roo/safeJsonParse"
 import { getLatestTodo } from "@roo/todo"
-import { AudioType } from "@roo/WebviewMessage"
+import { AudioType, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
@@ -272,6 +272,36 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		const w = window as any
 		return w.ICONS_BASE_URI || ""
 	})
+
+	// kilocode_change: Profile data state for usage tracking
+	const [profileData, setProfileData] = useState<ProfileData | null>(null)
+
+	// Fetch profile data for usage tracking
+	useEffect(() => {
+		if (apiConfiguration?.kilocodeToken) {
+			vscode.postMessage({ type: "fetchProfileDataRequest" })
+		}
+	}, [apiConfiguration?.kilocodeToken])
+
+	// Listen for profile data response
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent<WebviewMessage>) => {
+			const message = event.data
+			if (message.type === "profileDataResponse") {
+				const payload = message.payload as any
+				if (payload?.success && payload.data) {
+					setProfileData(payload.data)
+				}
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
+	}, [])
+
+	// Check if usage is over 98% (near exhaustion warning)
+	const isUsageExhausted =
+		profileData && typeof profileData.usagePercentage === "number" && profileData.usagePercentage >= 98
 
 	const clineAskRef = useRef(clineAsk)
 	useEffect(() => {
@@ -2664,11 +2694,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				</div>
 			)}
 
+			{/* kilocode_change: Show notification when monthly limit is exhausted */}
+			{isUsageExhausted && !task && (
+				<div className="w-full min-w-0 px-4 mb-4">
+					<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
+						<div className="flex flex-col gap-2">
+							<span className="text-lg font-medium text-[var(--vscode-foreground)]">
+								You are out of Orbital Credits
+							</span>
+							<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
+								To continue using Orbital, upgrade your plan or switch to Auto model.
+							</span>
+						</div>
+						<button
+							className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
+							onClick={() =>
+								vscode.postMessage({ type: "openExternal", url: "https://app.matterai.so/orbital" })
+							}>
+							Upgrade
+						</button>
+					</div>
+				</div>
+			)}
+
 			{!task && (
 				<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1.5"}`}>
 					<VSCodeButton
 						appearance="secondary"
-						className="flex w-full min-w-full"
+						className="flex w-full min-w-full code-review-btn"
 						onClick={() => {
 							setShowSourceControl(true)
 							// If there's an error, automatically retry when opening
