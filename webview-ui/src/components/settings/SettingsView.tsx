@@ -8,9 +8,9 @@ import {
 	Languages,
 	LucideIcon,
 	// Server, // kilocode_change: hidden for now
+	Plug,
 	SquareMousePointer,
 	SquareTerminal,
-	Webhook,
 	Wrench,
 } from "lucide-react"
 import React, {
@@ -73,6 +73,7 @@ import { Section } from "./Section"
 import { SlashCommandsSettings } from "./SlashCommandsSettings"
 import { TerminalSettings } from "./TerminalSettings"
 import { UISettings } from "./UISettings"
+import { ThirdPartyProviders } from "./ThirdPartyProviders"
 
 export const settingsTabsContainer =
 	"flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden bg-vscode-editor-background"
@@ -87,6 +88,7 @@ export interface SettingsViewRef {
 }
 const sectionNames = [
 	"providers",
+	"thirdPartyProviders",
 	"autoApprove",
 	"slashCommands",
 	"browser",
@@ -599,6 +601,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const sections: { id: SectionName; icon: LucideIcon }[] = useMemo(
 		() => [
 			{ id: "providers", icon: CircleUserRound },
+			{ id: "thirdPartyProviders", icon: Plug },
 			{ id: "codeReview", icon: GitPullRequest },
 			{ id: "autoApprove", icon: CheckCheck },
 			// { id: "slashCommands", icon: SquareSlash }, // kilocode_change: needs work to be re-introduced
@@ -814,7 +817,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							<div>
 								<SectionHeader>
 									<div className="flex items-center gap-2">
-										<Webhook className="w-4" />
+										<CircleUserRound className="w-4" />
 										<div>{t("settings:sections.providers")}</div>
 									</div>
 								</SectionHeader>
@@ -854,6 +857,25 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 										errorMessage={errorMessage}
 										setErrorMessage={setErrorMessage}
 										currentApiConfigName={currentApiConfigName}
+									/>
+								</Section>
+							</div>
+						)}
+
+						{/* Third Party Providers Section */}
+						{activeTab === "thirdPartyProviders" && (
+							<div>
+								<SectionHeader>
+									<div className="flex items-center gap-2">
+										<Plug className="w-4" />
+										<div>{t("settings:sections.thirdPartyProviders")}</div>
+									</div>
+								</SectionHeader>
+
+								<Section>
+									<ThirdPartyProviders
+										apiConfiguration={apiConfiguration}
+										setApiConfigurationField={setApiConfigurationField}
 									/>
 								</Section>
 							</div>

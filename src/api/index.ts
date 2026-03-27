@@ -120,6 +120,32 @@ export interface ApiHandler {
 export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 	const { apiProvider, ...options } = configuration
 
+	// Handle third-party provider model selection
+	// If a third-party model is selected, route through OpenAI handler with custom base URL
+	if (options.thirdPartySelectedModel) {
+		const [provider, ...modelParts] = options.thirdPartySelectedModel.split(":")
+		const modelId = modelParts.join(":")
+
+		const providerBaseUrls: Record<string, string> = {
+			ollama: "http://localhost:11434/v1",
+			opencode: "https://opencode.ai/zen/go/v1",
+		}
+
+		const baseUrl = providerBaseUrls[provider]
+		if (baseUrl && modelId) {
+			// Get API key if available (for OpenCode)
+			const apiKey = provider === "opencode" ? options.thirdPartyProviders?.opencode?.apiKey : undefined
+
+			// Create OpenAI handler with third-party provider settings
+			return new OpenAiHandler({
+				...options,
+				openAiBaseUrl: baseUrl,
+				openAiModelId: modelId,
+				...(apiKey ? { openAiApiKey: apiKey } : {}),
+			})
+		}
+	}
+
 	switch (apiProvider) {
 		// forked_change start
 		case "kilocode":

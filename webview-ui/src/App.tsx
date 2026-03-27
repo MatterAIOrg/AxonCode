@@ -70,6 +70,7 @@ const tabsByMessageAction: Partial<Record<NonNullable<ExtensionMessage["action"]
 	historyButtonClicked: "history",
 	profileButtonClicked: "profile",
 	memoriesButtonClicked: "memories",
+	settingsFocus: "settings",
 	// marketplaceButtonClicked: "marketplace",
 	// cloudButtonClicked: "cloud", // kilocode_change: no cloud
 }
@@ -175,7 +176,8 @@ const App = () => {
 				} else {
 					// Handle other actions using the mapping
 					const newTab = tabsByMessageAction[message.action]
-					const section = message.values?.section as string | undefined
+					// Extract section from values or from targetSection (for settingsFocus action)
+					const section = (message.values?.section as string | undefined) || message.targetSection
 					const marketplaceTab = message.values?.marketplaceTab as string | undefined
 
 					if (newTab) {
