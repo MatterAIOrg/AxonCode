@@ -5,10 +5,16 @@ export interface ThirdPartyProviderConfig {
 	baseUrl: string
 	apiKey?: string
 	modelsEndpoint?: string // Optional custom endpoint for fetching models
+	alwaysEnabled?: boolean // If true, provider is always enabled without settings
 }
 
 // Provider configurations
 const PROVIDER_CONFIGS: Record<string, ThirdPartyProviderConfig> = {
+	matterai3p: {
+		baseUrl: "https://api2.matterai.so/v1",
+		modelsEndpoint: "https://api.matterai.so/v1/models/matterai3p",
+		alwaysEnabled: true, // Always enabled, no settings required
+	},
 	ollama: {
 		baseUrl: "http://localhost:11434/v1",
 	},
@@ -90,4 +96,16 @@ export function getThirdPartyProviderBaseUrl(provider: string): string {
 // Helper function to check if a provider requires an API key
 export function thirdPartyProviderRequiresApiKey(provider: string): boolean {
 	return provider === "opencode" // Ollama typically doesn't require auth for local instances
+}
+
+// Helper function to check if a provider is always enabled (no settings required)
+export function isThirdPartyProviderAlwaysEnabled(provider: string): boolean {
+	return PROVIDER_CONFIGS[provider]?.alwaysEnabled === true
+}
+
+// Get list of always-enabled providers
+export function getAlwaysEnabledProviders(): string[] {
+	return Object.entries(PROVIDER_CONFIGS)
+		.filter(([, config]) => config.alwaysEnabled)
+		.map(([provider]) => provider)
 }

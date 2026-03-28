@@ -13,6 +13,51 @@ import { getModelIdKey, getSelectedModelId } from "../hooks/useSelectedModel"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { Settings } from "lucide-react"
 
+/**
+ * Sanitizes a model ID to create a user-friendly display name.
+ * Examples:
+ * - matterai3p:@cf/moonshotai/kimi-k2.5 → "Kimi K2.5 (Moonshotai)" (extracts vendor from path)
+ * - ollama:llama3.2:latest → "Llama3.2 (Ollama)" (uses provider name)
+ * - opencode:gpt-4-turbo → "Gpt-4-turbo (Opencode)" (uses provider name)
+ */
+const sanitizeModelLabel = (modelId: string, provider: string): string => {
+	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:")
+	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode):/, "")
+
+	// For matterai3p, extract vendor from path (e.g., "@cf/moonshotai/kimi-k2.5" → "Kimi K2.5 (Moonshotai)")
+	if (provider === "matterai3p" && withoutProviderPrefix.includes("/")) {
+		const segments = withoutProviderPrefix.split("/").filter(Boolean)
+		if (segments.length >= 2) {
+			// Get the last segment as model name, second to last as vendor
+			const modelName = segments[segments.length - 1]
+			const vendor = segments[segments.length - 2]
+
+			// Format model name: replace hyphens/underscores with spaces, title case
+			const formattedModelName = modelName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+
+			// Format vendor: title case
+			const formattedVendor = vendor.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+
+			return `${formattedModelName} (${formattedVendor})`
+		}
+	}
+
+	// For other providers (ollama, opencode), use provider name in brackets
+	// Handle IDs with ":" (like "llama3.2:latest"), take the first part
+	let cleanName = withoutProviderPrefix
+	if (withoutProviderPrefix.includes(":")) {
+		cleanName = withoutProviderPrefix.split(":")[0]
+	}
+
+	// Format the name: title case
+	const formattedName = cleanName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+
+	// Capitalize provider name
+	const formattedProvider = provider.charAt(0).toUpperCase() + provider.slice(1)
+
+	return `${formattedName} (${formattedProvider})`
+}
+
 interface ModelSelectorProps {
 	currentApiConfigName?: string
 	apiConfiguration: ProviderSettings
@@ -44,27 +89,47 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 	const opencodeEnabled = apiConfiguration?.thirdPartyProviders?.opencode?.enabled || false
 
 	// Fetch third-party models using hooks
+	// matterai3p is always enabled (no settings required)
+	const { data: matterai3pModels, refetch: refetchMatterai3pModels } = useThirdPartyModels("matterai3p", true)
 	const { data: ollamaModels, refetch: refetchOllamaModels } = useThirdPartyModels("ollama", ollamaEnabled)
 	const { data: opencodeModels, refetch: refetchOpencodeModels } = useThirdPartyModels("opencode", opencodeEnabled)
 
 	// Refresh all third-party models
 	const handleRefreshModels = useCallback(() => {
+		refetchMatterai3pModels()
 		if (ollamaEnabled) {
 			refetchOllamaModels()
 		}
 		if (opencodeEnabled) {
 			refetchOpencodeModels()
 		}
-	}, [ollamaEnabled, opencodeEnabled, refetchOllamaModels, refetchOpencodeModels])
+	}, [ollamaEnabled, opencodeEnabled, refetchMatterai3pModels, refetchOllamaModels, refetchOpencodeModels])
 
+	// Separate matterai3p models (always shown after Axon models)
+	const matterai3pOptions = useMemo(() => {
+		const models: { [key: string]: { label: string; provider: string } } = {}
+		if (matterai3pModels) {
+			for (const [modelId, _modelInfo] of Object.entries(matterai3pModels)) {
+				// Always sanitize the label for consistent display
+				models[modelId] = {
+					label: sanitizeModelLabel(modelId, "matterai3p"),
+					provider: "matterai3p",
+				}
+			}
+		}
+		return models
+	}, [matterai3pModels])
+
+	// Other third-party models (shown after matterai3p)
 	const thirdPartyModels = useMemo(() => {
 		const models: { [key: string]: { label: string; provider: string } } = {}
 
 		// Add Ollama models
 		if (ollamaEnabled && ollamaModels) {
-			for (const [modelId, modelInfo] of Object.entries(ollamaModels)) {
+			for (const [modelId, _modelInfo] of Object.entries(ollamaModels)) {
+				// Always sanitize the label for consistent display
 				models[modelId] = {
-					label: modelInfo.description || modelId.replace("ollama:", ""),
+					label: sanitizeModelLabel(modelId, "ollama"),
 					provider: "ollama",
 				}
 			}
@@ -72,9 +137,10 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 
 		// Add OpenCode models
 		if (opencodeEnabled && opencodeModels) {
-			for (const [modelId, modelInfo] of Object.entries(opencodeModels)) {
+			for (const [modelId, _modelInfo] of Object.entries(opencodeModels)) {
+				// Always sanitize the label for consistent display
 				models[modelId] = {
-					label: modelInfo.description || modelId.replace("opencode:", ""),
+					label: sanitizeModelLabel(modelId, "opencode"),
 					provider: "opencode",
 				}
 			}
@@ -85,7 +151,10 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 
 	const options = useMemo(() => {
 		// Check if selected model is a third-party model
-		const isSelectedThirdParty = selectedModelId?.startsWith("ollama:") || selectedModelId?.startsWith("opencode:")
+		const isSelectedThirdParty =
+			selectedModelId?.startsWith("ollama:") ||
+			selectedModelId?.startsWith("opencode:") ||
+			selectedModelId?.startsWith("matterai3p:")
 
 		// Only add to missingModelIds if it's not a third-party model and not already in the list
 		const missingModelIds =
@@ -109,7 +178,16 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			}
 		})
 
-		// Add third-party provider models
+		// Add matterai3p models (always shown after Axon models)
+		const matterai3pOpts = Object.entries(matterai3pOptions).map(([modelId, { label }]) => ({
+			value: modelId,
+			label,
+			type: DropdownOptionType.ITEM,
+			disabled: false,
+			isProModelDisabled: false,
+		}))
+
+		// Add other third-party provider models (shown after matterai3p)
 		const thirdPartyOptions = Object.entries(thirdPartyModels).map(([modelId, { label }]) => ({
 			value: modelId,
 			label,
@@ -127,8 +205,9 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			isProModelDisabled: false,
 		}
 
-		return [...allOptions, ...thirdPartyOptions, configureOption]
-	}, [modelsIds, providerModels, selectedModelId, proModelIds, proModelsEnabled, thirdPartyModels])
+		// Order: Axon models -> matterai3p models -> other 3p models -> configure
+		return [...allOptions, ...matterai3pOpts, ...thirdPartyOptions, configureOption]
+	}, [modelsIds, providerModels, selectedModelId, proModelIds, proModelsEnabled, matterai3pOptions, thirdPartyModels])
 
 	const disabled = isLoading || isError
 
@@ -144,9 +223,16 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 
 		// Handle third-party provider models
 		// Third-party models use OpenAI-compatible API with custom base URL
-		if (value.startsWith("ollama:") || value.startsWith("opencode:")) {
+		if (value.startsWith("ollama:") || value.startsWith("opencode:") || value.startsWith("matterai3p:")) {
 			const [_provider, ...modelParts] = value.split(":")
 			const modelId = modelParts.join(":") // Handle model IDs that might contain colons
+
+			// Log for debugging
+			console.log("[ModelSelector] Third-party model selected:", {
+				fullValue: value,
+				extractedModelId: modelId,
+				provider: _provider,
+			})
 
 			// Build the configuration for third-party provider
 			// We use the "openai" provider with custom base URL since both Ollama and OpenCode
@@ -228,7 +314,10 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 
 	const renderItem = (option: DropdownOption & { isProModelDisabled?: boolean }) => {
 		const isConfigureOption = option.value === "__configure_models__"
-		const isThirdPartyModel = option.value.startsWith("ollama:") || option.value.startsWith("opencode:")
+		const isThirdPartyModel =
+			option.value.startsWith("ollama:") ||
+			option.value.startsWith("opencode:") ||
+			option.value.startsWith("matterai3p:")
 
 		return (
 			<div className="flex items-center justify-start gap-1 flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
@@ -294,7 +383,7 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			triggerIcon={true}
 			itemClassName="group"
 			renderItem={renderItem}
-			onRefresh={ollamaEnabled || opencodeEnabled ? handleRefreshModels : undefined}
+			onRefresh={handleRefreshModels} // Always show refresh since matterai3p is always enabled
 		/>
 	)
 }
