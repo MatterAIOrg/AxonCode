@@ -69,6 +69,7 @@ import { searchCommits } from "../../utils/git"
 import { exportSettings, importSettingsWithFeedback } from "../config/importExport"
 import { getOpenAiModels } from "../../api/providers/openai"
 import { getVsCodeLmModels } from "../../api/providers/vscode-lm"
+import { getThirdPartyModels } from "../../api/providers/fetchers/thirdparty"
 import { openMention } from "../mentions"
 import { getWorkspacePath } from "../../utils/path"
 import { Mode, defaultModeSlug } from "../../shared/modes"
@@ -1774,6 +1775,41 @@ ${comment.suggestion}
 			}
 
 			break
+		case "requestThirdPartyModels":
+			if (message?.provider) {
+				try {
+					// Get API key from provider state if available
+					const { apiConfiguration } = await provider.getState()
+					const providerConfig =
+						apiConfiguration?.thirdPartyProviders?.[
+							message.provider as keyof typeof apiConfiguration.thirdPartyProviders
+						]
+					let apiKey = providerConfig?.apiKey
+					// matterai3p requires kilocodeToken for authentication
+					if (message.provider === "matterai3p") {
+						apiKey = apiConfiguration?.kilocodeToken
+					}
+
+					const models = await getThirdPartyModels(message.provider, apiKey)
+					provider.postMessageToWebview({
+						type: "thirdPartyModels",
+						thirdPartyModels: {
+							provider: message.provider,
+							models,
+						},
+					})
+				} catch (error) {
+					console.error(`Failed to fetch ${message.provider} models:`, error)
+					provider.postMessageToWebview({
+						type: "thirdPartyModels",
+						thirdPartyModels: {
+							provider: message.provider,
+							models: {},
+						},
+					})
+				}
+			}
+			break
 		case "requestVsCodeLmModels":
 			const vsCodeLmModels = await getVsCodeLmModels()
 			// TODO: Cache like we do for OpenRouter, etc?
@@ -1814,6 +1850,10 @@ ${comment.suggestion}
 			if (message.url) {
 				vscode.env.openExternal(vscode.Uri.parse(message.url))
 			}
+			break
+		case "openSettings":
+			// Open the settings view with a specific section
+			vscode.commands.executeCommand("axon-code.settingsFocus", message.targetSection)
 			break
 		case "checkpointDiff":
 			const result = checkoutDiffPayloadSchema.safeParse(message.payload)
@@ -3070,6 +3110,8 @@ ${comment.suggestion}
 							...state.apiConfiguration,
 							apiProvider: message.apiProvider as any,
 							[field]: message.apiModelId,
+							// Update or clear third-party model selection
+							thirdPartySelectedModel: message.thirdPartySelectedModel,
 						}
 						await provider.contextProxy.setProviderSettings(updatedConfig)
 						// Update webview state to reflect the model change

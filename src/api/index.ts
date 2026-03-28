@@ -120,6 +120,39 @@ export interface ApiHandler {
 export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 	const { apiProvider, ...options } = configuration
 
+	// Handle third-party provider model selection
+	// If a third-party model is selected, route through OpenAI handler with custom base URL
+	if (options.thirdPartySelectedModel) {
+		const [provider, ...modelParts] = options.thirdPartySelectedModel.split(":")
+		const modelId = modelParts.join(":")
+
+		const providerBaseUrls: Record<string, string> = {
+			matterai3p: "https://api2.matterai.so/v1",
+			ollama: "http://localhost:11434/v1",
+			opencode: "https://opencode.ai/zen/go/v1",
+		}
+
+		const baseUrl = providerBaseUrls[provider]
+		if (baseUrl && modelId) {
+			// Get API key based on provider
+			let apiKey: string | undefined
+			if (provider === "opencode") {
+				apiKey = options.thirdPartyProviders?.opencode?.apiKey
+			} else if (provider === "matterai3p") {
+				// Use kilocodeToken for matterai3p authentication
+				apiKey = options.kilocodeToken
+			}
+
+			// Create OpenAI handler with third-party provider settings
+			return new OpenAiHandler({
+				...options,
+				openAiBaseUrl: baseUrl,
+				openAiModelId: modelId,
+				...(apiKey ? { openAiApiKey: apiKey } : {}),
+			})
+		}
+	}
+
 	switch (apiProvider) {
 		// forked_change start
 		case "kilocode":

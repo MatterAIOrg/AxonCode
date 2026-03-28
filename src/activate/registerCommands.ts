@@ -144,6 +144,25 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 		// Also explicitly post the visibility message to trigger scroll reliably
 		visibleProvider.postMessageToWebview({ type: "action", action: "didBecomeVisible" })
 	},
+	settingsFocus: (targetSection?: string) => {
+		const visibleProvider = getVisibleProviderOrLog(outputChannel)
+
+		if (!visibleProvider) {
+			return
+		}
+
+		TelemetryService.instance.captureTitleButtonClicked("settings")
+
+		visibleProvider.postMessageToWebview({ type: "action", action: "settingsButtonClicked" })
+		// Send the target section to scroll to
+		visibleProvider.postMessageToWebview({
+			type: "action",
+			action: "settingsFocus",
+			targetSection,
+		})
+		// Also explicitly post the visibility message to trigger scroll reliably
+		visibleProvider.postMessageToWebview({ type: "action", action: "didBecomeVisible" })
+	},
 	historyButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
 

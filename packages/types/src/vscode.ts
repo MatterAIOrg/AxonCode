@@ -46,6 +46,7 @@ export const commandIds = [
 	"marketplaceButtonClicked",
 	"cloudButtonClicked",
 	"settingsButtonClicked",
+	"settingsFocus", // kilocode_change: Third-party providers settings
 
 	"openInNewTab",
 

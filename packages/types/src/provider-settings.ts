@@ -429,6 +429,25 @@ const kilocodeSchema = baseProviderSettingsSchema.extend({
 	kilocodeTesterWarningsDisabledUntil: z.number().optional(), // Timestamp for disabling KILOCODE-TESTER warnings
 })
 
+// Third-party provider settings for Ollama and OpenCode
+const thirdPartyProviderSettingsSchema = z.object({
+	enabled: z.boolean().optional(),
+	apiKey: z.string().optional(),
+})
+
+const thirdPartyProvidersSchema = z
+	.object({
+		ollama: thirdPartyProviderSettingsSchema.optional(),
+		opencode: thirdPartyProviderSettingsSchema.optional(),
+	})
+	.optional()
+
+// Field to track currently selected third-party model (e.g., "ollama:llama3.2" or "opencode:gpt-4")
+const thirdPartySelectedModelSchema = z.string().optional()
+
+export type ThirdPartyProviderSettings = z.infer<typeof thirdPartyProviderSettingsSchema>
+export type ThirdPartyProvidersConfig = z.infer<typeof thirdPartyProvidersSchema>
+
 export const virtualQuotaFallbackProfileDataSchema = z.object({
 	profileName: z.string().optional(),
 	profileId: z.string().optional(),
@@ -585,6 +604,8 @@ export const providerSettingsSchema = z.object({
 	...vercelAiGatewaySchema.shape,
 	...codebaseIndexProviderSchema.shape,
 	...ovhcloudSchema.shape, // kilocode_change
+	thirdPartyProviders: thirdPartyProvidersSchema, // Third-party providers (Ollama, OpenCode)
+	thirdPartySelectedModel: thirdPartySelectedModelSchema, // Currently selected third-party model
 })
 
 export type ProviderSettings = z.infer<typeof providerSettingsSchema>
@@ -592,7 +613,11 @@ export type ProviderSettings = z.infer<typeof providerSettingsSchema>
 export const providerSettingsWithIdSchema = providerSettingsSchema.extend({ id: z.string().optional() })
 
 export const discriminatedProviderSettingsWithIdSchema = providerSettingsSchemaDiscriminated.and(
-	z.object({ id: z.string().optional() }),
+	z.object({
+		id: z.string().optional(),
+		thirdPartyProviders: thirdPartyProvidersSchema,
+		thirdPartySelectedModel: thirdPartySelectedModelSchema,
+	}),
 )
 
 export type ProviderSettingsWithId = z.infer<typeof providerSettingsWithIdSchema>

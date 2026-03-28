@@ -1,6 +1,6 @@
 import { CaretUpIcon } from "@radix-ui/react-icons"
 import { Fzf } from "fzf"
-import { Infinity as InfinityIC, ListTodo, LucideIcon, MessagesSquare } from "lucide-react"
+import { Infinity as InfinityIC, ListTodo, LucideIcon, MessagesSquare, RefreshCw, X } from "lucide-react"
 import * as React from "react"
 
 import { Popover, PopoverContent, PopoverTrigger, StandardTooltip } from "@/components/ui"
@@ -60,6 +60,7 @@ export interface SelectDropdownProps {
 	renderItem?: (option: DropdownOption) => React.ReactNode
 	disableSearch?: boolean
 	triggerIcon?: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>> | boolean | undefined // kilocode_change
+	onRefresh?: () => void // kilocode_change: callback for refreshing model list
 }
 
 export const SelectDropdown = React.memo(
@@ -82,13 +83,14 @@ export const SelectDropdown = React.memo(
 				renderItem,
 				disableSearch = false,
 				triggerIcon = CaretUpIcon, // kilocode_change
+				onRefresh, // kilocode_change
 			},
 			ref,
 		) => {
 			// const { t } = useTranslation()
 			const [open, setOpen] = React.useState(initiallyOpen) // kilocode_change
 			const [searchValue, setSearchValue] = React.useState("")
-			// const searchInputRef = React.useRef<HTMLInputElement>(null)
+			const searchInputRef = React.useRef<HTMLInputElement>(null)
 			const portalContainer = useRooPortal("roo-portal")
 
 			// forked_change start
@@ -118,11 +120,11 @@ export const SelectDropdown = React.memo(
 				}
 			}, [])
 
-			// // Clear search and focus input
-			// const onClearSearch = React.useCallback(() => {
-			// 	setSearchValue("")
-			// 	searchInputRef.current?.focus()
-			// }, [])
+			// Clear search and focus input
+			const onClearSearch = React.useCallback(() => {
+				setSearchValue("")
+				searchInputRef.current?.focus()
+			}, [])
 
 			// Filter options based on search value using Fzf for fuzzy search
 			// Memoize searchable items to avoid recreating them on every search
@@ -261,26 +263,35 @@ export const SelectDropdown = React.memo(
 						className={cn("p-0 overflow-hidden", contentClassName)}>
 						<div className="flex flex-col w-min-content">
 							{/* Search input */}
-							{/* {!disableSearch && (
-								<div className="relative p-2 border-b border-vscode-dropdown-border">
+							{!disableSearch && (
+								<div className="relative p-2 border-b border-vscode-dropdown-border flex items-center gap-2">
 									<input
 										aria-label="Search"
 										ref={searchInputRef}
 										value={searchValue}
 										onChange={(e) => setSearchValue(e.target.value)}
-										placeholder={t("common:ui.search_placeholder")}
-										className="w-full h-8 px-2 py-1 text-xs bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border rounded focus:outline-0"
+										placeholder="Search models..."
+										className="flex-1 h-8 px-2 py-1 text-xs bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border rounded focus:outline-0"
 									/>
 									{searchValue.length > 0 && (
-										<div className="absolute right-4 top-0 bottom-0 flex items-center justify-center">
-											<X
-												className="text-vscode-input-foreground opacity-50 hover:opacity-100 size-4 p-0.5 cursor-pointer"
-												onClick={onClearSearch}
+										<X
+											className="text-vscode-input-foreground opacity-50 hover:opacity-100 size-4 p-0.5 cursor-pointer"
+											onClick={onClearSearch}
+										/>
+									)}
+									{onRefresh && (
+										<StandardTooltip content="Refresh model list">
+											<RefreshCw
+												className="text-vscode-input-foreground opacity-50 hover:opacity-100 size-4 cursor-pointer"
+												onClick={(e) => {
+													e.stopPropagation()
+													onRefresh()
+												}}
 											/>
-										</div>
+										</StandardTooltip>
 									)}
 								</div>
-							)} */}
+							)}
 
 							{/* Dropdown items - Use windowing for large lists */}
 							{/* kilocode_change: different max height: max-h-82 */}

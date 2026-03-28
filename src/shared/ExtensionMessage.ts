@@ -92,6 +92,7 @@ export interface ExtensionMessage {
 		| "openAiModels"
 		| "ollamaModels"
 		| "lmStudioModels"
+		| "thirdPartyModels"
 		| "vsCodeLmModels"
 		| "huggingFaceModels"
 		| "vsCodeLmApiAvailable"
@@ -188,6 +189,7 @@ export interface ExtensionMessage {
 		| "switchTab"
 		| "focusChatInput" // kilocode_change
 		| "toggleAutoApprove"
+		| "settingsFocus" // kilocode_change: Third-party providers settings
 	invoke?: "newChat" | "sendMessage" | "primaryButtonClick" | "secondaryButtonClick" | "setChatBoxMessage"
 	state?: ExtensionState
 	images?: string[]
@@ -202,6 +204,7 @@ export interface ExtensionMessage {
 	openAiModels?: string[]
 	ollamaModels?: ModelRecord
 	lmStudioModels?: ModelRecord
+	thirdPartyModels?: { provider: string; models: ModelRecord }
 	vsCodeLmModels?: { vendor?: string; family?: string; version?: string; id?: string }[]
 	huggingFaceModels?: Array<{
 		id: string
@@ -250,6 +253,8 @@ export interface ExtensionMessage {
 	userInfo?: CloudUserInfo
 	organizationAllowList?: OrganizationAllowList
 	tab?: string
+	targetSection?: string // kilocode_change: For settingsFocus action
+	provider?: string // kilocode_change: For thirdPartyModels
 	// kilocode_change: Rules data
 	globalRules?: ClineRulesToggles
 	localRules?: ClineRulesToggles

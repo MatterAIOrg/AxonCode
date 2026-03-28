@@ -391,7 +391,17 @@ export class ProviderSettingsManager {
 
 				// Filter out settings from other providers.
 				const filteredConfig = discriminatedProviderSettingsWithIdSchema.parse(config)
-				providerProfiles.apiConfigs[name] = { ...filteredConfig, id }
+
+				// Explicitly preserve third-party provider settings which may be stripped by the discriminated union
+				const { thirdPartyProviders, thirdPartySelectedModel } = config
+
+				providerProfiles.apiConfigs[name] = {
+					...filteredConfig,
+					id,
+					// Preserve third-party provider settings
+					thirdPartyProviders,
+					thirdPartySelectedModel,
+				}
 				await this.store(providerProfiles)
 				return id
 			})

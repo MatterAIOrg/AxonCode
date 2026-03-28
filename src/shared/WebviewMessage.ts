@@ -95,6 +95,8 @@ export interface WebviewMessage {
 		| "requestOpenAiModels"
 		| "requestOllamaModels"
 		| "requestLmStudioModels"
+		| "requestThirdPartyModels"
+		| "openSettings"
 		| "requestVsCodeLmModels"
 		| "requestHuggingFaceModels"
 		| "openImage"
@@ -407,12 +409,15 @@ export interface WebviewMessage {
 	apiProvider?: string // For updateTaskModel
 	apiModelId?: string // For updateTaskModel
 	checkOnly?: boolean // For deleteCustomMode check
-	upsellId?: string // For dismissUpsell
+	upsellId?: string // For dismissUpsells
 	list?: string[] // For dismissedUpsells response
 	organizationId?: string | null // For organization switching
 	showAllWorkspaces?: boolean // kilocode_change: For get_memories
 	memories?: MemoryItem[] // kilocode_change: For memories_response
 	memoryId?: string // kilocode_change: For delete_memory
+	provider?: string // For requestThirdPartyModels
+	targetSection?: string // For openSettings
+	thirdPartySelectedModel?: string // For updateTaskModel
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean
