@@ -178,7 +178,11 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			const isFireworks = this.options.openAiBaseUrl?.includes("fireworks.ai")
 			const messagesToSend = isFireworks
 				? convertedMessages.map((msg) => {
-						const { reasoning, reasoning_content, ...rest } = msg as any
+						const { reasoning, reasoning_content, ...rest } =
+							msg as OpenAI.Chat.Completions.ChatCompletionMessageParam & {
+								reasoning?: unknown
+								reasoning_content?: unknown
+							}
 						return rest
 					})
 				: convertedMessages
@@ -190,34 +194,11 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 
 			let stream
 			try {
-				// Log request for Fireworks debugging
-				if (isFireworks) {
-					console.log("[Fireworks] Request:", {
-						baseURL: this.options.openAiBaseUrl,
-						model: modelId,
-						apiKey: this.options.openAiApiKey
-							? `${this.options.openAiApiKey.substring(0, 8)}...`
-							: "not-set",
-						messagesCount: messagesToSend.length,
-						requestOptions: {
-							...requestParams,
-							messages: messagesToSend.map((m) => ({
-								role: m.role,
-								content:
-									typeof m.content === "string" ? m.content.substring(0, 100) + "..." : "[complex]",
-							})),
-						},
-					})
-				}
 				stream = await this.client.chat.completions.create(
 					requestParams,
 					isAzureAiInference ? { path: OPENAI_AZURE_AI_INFERENCE_PATH } : this.customRequestOptions(metadata),
 				)
 			} catch (error) {
-				// Log error for Fireworks debugging
-				if (isFireworks) {
-					console.error("[Fireworks] Error:", error)
-				}
 				throw handleOpenAIError(error, this.providerName)
 			}
 
