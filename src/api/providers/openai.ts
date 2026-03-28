@@ -96,7 +96,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 		const ark = modelUrl.includes(".volces.com")
 
 		if (modelId.includes("o1") || modelId.includes("o3") || modelId.includes("o4")) {
-			yield* this.handleO3FamilyMessage(modelId, systemPrompt, messages)
+			yield* this.handleO3FamilyMessage(modelId, systemPrompt, messages, metadata)
 			return
 		}
 
@@ -178,7 +178,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			try {
 				stream = await this.client.chat.completions.create(
 					requestOptions,
-					isAzureAiInference ? { path: OPENAI_AZURE_AI_INFERENCE_PATH } : {},
+					isAzureAiInference ? { path: OPENAI_AZURE_AI_INFERENCE_PATH } : this.customRequestOptions(metadata),
 				)
 			} catch (error) {
 				throw handleOpenAIError(error, this.providerName)
@@ -350,6 +350,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 		modelId: string,
 		systemPrompt: string,
 		messages: Anthropic.Messages.MessageParam[],
+		metadata?: ApiHandlerCreateMessageMetadata,
 	): ApiStream {
 		const modelInfo = this.getModel().info
 		const methodIsAzureAiInference = this._isAzureAiInference(this.options.openAiBaseUrl)
@@ -411,7 +412,9 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			try {
 				response = await this.client.chat.completions.create(
 					requestOptions,
-					methodIsAzureAiInference ? { path: OPENAI_AZURE_AI_INFERENCE_PATH } : {},
+					methodIsAzureAiInference
+						? { path: OPENAI_AZURE_AI_INFERENCE_PATH }
+						: this.customRequestOptions(metadata),
 				)
 			} catch (error) {
 				throw handleOpenAIError(error, this.providerName)
@@ -480,6 +483,20 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			// Using max_completion_tokens as max_tokens is deprecated
 			requestOptions.max_completion_tokens = this.options.modelMaxTokens || modelInfo.maxTokens
 		}
+	}
+
+	/**
+	 * Returns custom request options including headers for task tracking
+	 * This matches the behavior of OpenRouterHandler for internal tracking
+	 */
+	customRequestOptions(metadata?: ApiHandlerCreateMessageMetadata): { headers: Record<string, string> } | undefined {
+		const headers: Record<string, string> = {}
+
+		if (metadata?.taskId) {
+			headers["X-AXON-TASK-ID"] = metadata.taskId
+		}
+
+		return Object.keys(headers).length > 0 ? { headers } : undefined
 	}
 }
 
