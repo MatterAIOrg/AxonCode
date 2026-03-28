@@ -417,6 +417,7 @@ export interface WebviewMessage {
 	memoryId?: string // kilocode_change: For delete_memory
 	provider?: string // For requestThirdPartyModels
 	targetSection?: string // For openSettings
+	thirdPartySelectedModel?: string // For updateTaskModel
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean

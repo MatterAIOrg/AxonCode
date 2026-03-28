@@ -250,8 +250,9 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 				// Update task-local configuration for isolation
 				vscode.postMessage({
 					type: "updateTaskModel",
-					apiProvider: "openai",
+					apiProvider: apiConfiguration?.apiProvider,
 					apiModelId: modelId,
+					thirdPartySelectedModel: value,
 				})
 			} else if (currentApiConfigName) {
 				vscode.postMessage({

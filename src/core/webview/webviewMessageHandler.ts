@@ -1784,7 +1784,11 @@ ${comment.suggestion}
 						apiConfiguration?.thirdPartyProviders?.[
 							message.provider as keyof typeof apiConfiguration.thirdPartyProviders
 						]
-					const apiKey = providerConfig?.apiKey
+					let apiKey = providerConfig?.apiKey
+					// matterai3p requires kilocodeToken for authentication
+					if (message.provider === "matterai3p") {
+						apiKey = apiConfiguration?.kilocodeToken
+					}
 
 					const models = await getThirdPartyModels(message.provider, apiKey)
 					provider.postMessageToWebview({
@@ -3106,8 +3110,8 @@ ${comment.suggestion}
 							...state.apiConfiguration,
 							apiProvider: message.apiProvider as any,
 							[field]: message.apiModelId,
-							// Clear third-party model selection when switching to Axon model
-							thirdPartySelectedModel: undefined,
+							// Update or clear third-party model selection
+							thirdPartySelectedModel: message.thirdPartySelectedModel,
 						}
 						await provider.contextProxy.setProviderSettings(updatedConfig)
 						// Update webview state to reflect the model change
