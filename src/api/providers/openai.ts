@@ -174,13 +174,50 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			addNativeToolCallsToParams(requestOptions, this.options, metadata)
 			// forked_change end
 
+			// Fireworks doesn't support reasoning fields in messages - strip them
+			const isFireworks = this.options.openAiBaseUrl?.includes("fireworks.ai")
+			const messagesToSend = isFireworks
+				? convertedMessages.map((msg) => {
+						const { reasoning, reasoning_content, ...rest } = msg as any
+						return rest
+					})
+				: convertedMessages
+
+			const requestParams = {
+				...requestOptions,
+				messages: messagesToSend,
+			}
+
 			let stream
 			try {
+				// Log request for Fireworks debugging
+				if (isFireworks) {
+					console.log("[Fireworks] Request:", {
+						baseURL: this.options.openAiBaseUrl,
+						model: modelId,
+						apiKey: this.options.openAiApiKey
+							? `${this.options.openAiApiKey.substring(0, 8)}...`
+							: "not-set",
+						messagesCount: messagesToSend.length,
+						requestOptions: {
+							...requestParams,
+							messages: messagesToSend.map((m) => ({
+								role: m.role,
+								content:
+									typeof m.content === "string" ? m.content.substring(0, 100) + "..." : "[complex]",
+							})),
+						},
+					})
+				}
 				stream = await this.client.chat.completions.create(
-					requestOptions,
+					requestParams,
 					isAzureAiInference ? { path: OPENAI_AZURE_AI_INFERENCE_PATH } : this.customRequestOptions(metadata),
 				)
 			} catch (error) {
+				// Log error for Fireworks debugging
+				if (isFireworks) {
+					console.error("[Fireworks] Error:", error)
+				}
 				throw handleOpenAIError(error, this.providerName)
 			}
 

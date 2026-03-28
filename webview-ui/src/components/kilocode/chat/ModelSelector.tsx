@@ -21,8 +21,8 @@ import { Settings } from "lucide-react"
  * - opencode:gpt-4-turbo → "Gpt-4-turbo (Opencode)" (uses provider name)
  */
 const sanitizeModelLabel = (modelId: string, provider: string): string => {
-	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:")
-	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode):/, "")
+	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:", "fireworks:")
+	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode|fireworks):/, "")
 
 	// For matterai3p, extract vendor from path (e.g., "@cf/moonshotai/kimi-k2.5" → "Kimi K2.5 (Moonshotai)")
 	if (provider === "matterai3p" && withoutProviderPrefix.includes("/")) {
@@ -40,6 +40,18 @@ const sanitizeModelLabel = (modelId: string, provider: string): string => {
 
 			return `${formattedModelName} (${formattedVendor})`
 		}
+	}
+
+	// For Fireworks, extract the model name from the path
+	if (provider === "fireworks" && withoutProviderPrefix.includes("/")) {
+		const segments = withoutProviderPrefix.split("/").filter(Boolean)
+		const modelName = segments[segments.length - 1] // Get last segment
+		// Special case for kimi-k2p5-turbo -> "Kimi K2.5 Turbo"
+		if (modelName === "kimi-k2p5-turbo") {
+			return "Kimi K2.5 Turbo (Fireworks)"
+		}
+		const formattedModelName = modelName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+		return `${formattedModelName} (Fireworks)`
 	}
 
 	// For other providers (ollama, opencode), use provider name in brackets
@@ -87,12 +99,17 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 	// Get third-party provider settings
 	const ollamaEnabled = apiConfiguration?.thirdPartyProviders?.ollama?.enabled || false
 	const opencodeEnabled = apiConfiguration?.thirdPartyProviders?.opencode?.enabled || false
+	const fireworksEnabled = apiConfiguration?.thirdPartyProviders?.fireworks?.enabled || false
 
 	// Fetch third-party models using hooks
 	// matterai3p is always enabled (no settings required)
 	const { data: matterai3pModels, refetch: refetchMatterai3pModels } = useThirdPartyModels("matterai3p", true)
 	const { data: ollamaModels, refetch: refetchOllamaModels } = useThirdPartyModels("ollama", ollamaEnabled)
 	const { data: opencodeModels, refetch: refetchOpencodeModels } = useThirdPartyModels("opencode", opencodeEnabled)
+	const { data: fireworksModels, refetch: refetchFireworksModels } = useThirdPartyModels(
+		"fireworks",
+		fireworksEnabled,
+	)
 
 	// Refresh all third-party models
 	const handleRefreshModels = useCallback(() => {
@@ -103,7 +120,18 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 		if (opencodeEnabled) {
 			refetchOpencodeModels()
 		}
-	}, [ollamaEnabled, opencodeEnabled, refetchMatterai3pModels, refetchOllamaModels, refetchOpencodeModels])
+		if (fireworksEnabled) {
+			refetchFireworksModels()
+		}
+	}, [
+		ollamaEnabled,
+		opencodeEnabled,
+		fireworksEnabled,
+		refetchMatterai3pModels,
+		refetchOllamaModels,
+		refetchOpencodeModels,
+		refetchFireworksModels,
+	])
 
 	// Separate matterai3p models (always shown after Axon models)
 	const matterai3pOptions = useMemo(() => {
@@ -146,15 +174,27 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			}
 		}
 
+		// Add Fireworks models
+		if (fireworksEnabled && fireworksModels) {
+			for (const [modelId, _modelInfo] of Object.entries(fireworksModels)) {
+				// Always sanitize the label for consistent display
+				models[modelId] = {
+					label: sanitizeModelLabel(modelId, "fireworks"),
+					provider: "fireworks",
+				}
+			}
+		}
+
 		return models
-	}, [ollamaEnabled, opencodeEnabled, ollamaModels, opencodeModels])
+	}, [ollamaEnabled, opencodeEnabled, fireworksEnabled, ollamaModels, opencodeModels, fireworksModels])
 
 	const options = useMemo(() => {
 		// Check if selected model is a third-party model
 		const isSelectedThirdParty =
 			selectedModelId?.startsWith("ollama:") ||
 			selectedModelId?.startsWith("opencode:") ||
-			selectedModelId?.startsWith("matterai3p:")
+			selectedModelId?.startsWith("matterai3p:") ||
+			selectedModelId?.startsWith("fireworks:")
 
 		// Only add to missingModelIds if it's not a third-party model and not already in the list
 		const missingModelIds =
@@ -223,7 +263,12 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 
 		// Handle third-party provider models
 		// Third-party models use OpenAI-compatible API with custom base URL
-		if (value.startsWith("ollama:") || value.startsWith("opencode:") || value.startsWith("matterai3p:")) {
+		if (
+			value.startsWith("ollama:") ||
+			value.startsWith("opencode:") ||
+			value.startsWith("matterai3p:") ||
+			value.startsWith("fireworks:")
+		) {
 			const [_provider, ...modelParts] = value.split(":")
 			const modelId = modelParts.join(":") // Handle model IDs that might contain colons
 
@@ -318,7 +363,8 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 		const isThirdPartyModel =
 			option.value.startsWith("ollama:") ||
 			option.value.startsWith("opencode:") ||
-			option.value.startsWith("matterai3p:")
+			option.value.startsWith("matterai3p:") ||
+			option.value.startsWith("fireworks:")
 
 		return (
 			<div className="flex items-center justify-start gap-1 flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
