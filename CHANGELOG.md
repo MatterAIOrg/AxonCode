@@ -1,5 +1,93 @@
 # Changelog
 
+## [v5.7.2] - 2026-03-29
+
+### Added
+
+- Third-party provider support with Fireworks, Ollama, and OpenCode integrations
+
+---
+
+## [v5.7.1] - 2026-03-28
+
+### Changed
+
+- Minor release updates and stability improvements
+
+---
+
+## [v5.7.0] - 2026-03-20
+
+### Changed
+
+- Major release with enhanced provider integrations
+
+---
+
+## [v5.6.5] - 2026-03-14
+
+### Changed
+
+- Updated git repository URL across all localization files
+- Minor stability improvements
+
+---
+
+## [v5.6.4] - 2026-03-13
+
+### Changed
+
+- Name cleanup and branding consistency updates
+- Improved CSS styling for better UI consistency
+
+---
+
+## [v5.6.3] - 2026-03-12
+
+### Changed
+
+- Improved reasoning flow with enhanced time tracking
+- Better reasoning block display and interaction
+
+---
+
+## [v5.6.2] - 2026-03-10
+
+### Added
+
+- Fade-up and shimmer animations for ChatRow, ChatView, and ReasoningBlock components
+- Enhanced visual feedback with smooth animation effects
+
+### Changed
+
+- UI cleanups across chat components
+- Improved chat message rendering and layout
+
+---
+
+## [v5.6.1] - 2026-03-08
+
+### Changed
+
+- Monthly usage percentage display update in settings
+- Enhanced usage tracking UI in BottomApiConfig component
+
+---
+
+## [v5.6.0] - 2026-03-08
+
+### Added
+
+- Split high think models for better model organization
+- Enhanced OpenRouter model providers hook
+
+### Changed
+
+- Tool cleanups and optimizations
+- Improved model selection handling
+
+---
+
 ## [v5.5.7] - 2026-03-06
 
 ### Added

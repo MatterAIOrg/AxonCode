@@ -22,6 +22,9 @@ const PROVIDER_CONFIGS: Record<string, ThirdPartyProviderConfig> = {
 		baseUrl: "https://opencode.ai/zen/go/v1",
 		modelsEndpoint: "https://api.matterai.so/v1/models/opencode",
 	},
+	fireworks: {
+		baseUrl: "https://api.fireworks.ai/inference/v1",
+	},
 }
 
 export async function getThirdPartyModels(provider: string, apiKey?: string): Promise<Record<string, ModelInfo>> {
@@ -31,6 +34,20 @@ export async function getThirdPartyModels(provider: string, apiKey?: string): Pr
 	}
 
 	const models: Record<string, ModelInfo> = {}
+
+	// Fireworks has a hardcoded model
+	if (provider === "fireworks") {
+		models["fireworks:accounts/fireworks/routers/kimi-k2p5-turbo"] = {
+			...openAiModelInfoSaneDefaults,
+			description: "Kimi K2.5 Turbo (Fireworks Fire Pass)",
+			contextWindow: 128000,
+			supportsImages: true,
+			supportsPromptCache: false,
+			supportsComputerUse: false,
+			maxTokens: 8192,
+		}
+		return models
+	}
 
 	try {
 		// Use custom models endpoint if provided, otherwise use the standard /models endpoint
@@ -95,7 +112,7 @@ export function getThirdPartyProviderBaseUrl(provider: string): string {
 
 // Helper function to check if a provider requires an API key
 export function thirdPartyProviderRequiresApiKey(provider: string): boolean {
-	return provider === "opencode" // Ollama typically doesn't require auth for local instances
+	return provider === "opencode" || provider === "fireworks" // Ollama typically doesn't require auth for local instances
 }
 
 // Helper function to check if a provider is always enabled (no settings required)

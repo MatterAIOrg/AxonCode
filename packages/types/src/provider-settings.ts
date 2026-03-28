@@ -429,7 +429,7 @@ const kilocodeSchema = baseProviderSettingsSchema.extend({
 	kilocodeTesterWarningsDisabledUntil: z.number().optional(), // Timestamp for disabling KILOCODE-TESTER warnings
 })
 
-// Third-party provider settings for Ollama and OpenCode
+// Third-party provider settings for Ollama, OpenCode, and Fireworks
 const thirdPartyProviderSettingsSchema = z.object({
 	enabled: z.boolean().optional(),
 	apiKey: z.string().optional(),
@@ -439,6 +439,7 @@ const thirdPartyProvidersSchema = z
 	.object({
 		ollama: thirdPartyProviderSettingsSchema.optional(),
 		opencode: thirdPartyProviderSettingsSchema.optional(),
+		fireworks: thirdPartyProviderSettingsSchema.optional(),
 	})
 	.optional()
 
