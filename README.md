@@ -1,12 +1,14 @@
 <div align="center">
 
-![Axon Code Logo](https://res.cloudinary.com/dxvbskvxm/image/upload/v1766239089/184_b2mxbw.webp)
+![Orbital Logo](https://res.cloudinary.com/dxvbskvxm/image/upload/v1774840367/orbital-readme_bcxlxc.webp)
 
-# Axon Code
+# ORBITAL
 
-**Enterprise-grade AI-powered coding companion for VS Code, JetBrains, and CLI**
+**AI Coding Agent — Your AI-powered coding companion with its own IDE and extensions for VS Code, Cursor, Windsurf, and more.**
 
+[![Download Mac App](https://img.shields.io/badge/Download-Mac_App-000000?style=flat-square&logo=apple&logoColor=white)](https://www.matterai.so/orbital)
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/MatterAI.axon-code.svg?label=VS%20Code%20Marketplace&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=MatterAI.axon-code)
+[![Open VSX Registry](https://img.shields.io/badge/Open_VSX-Registry-0098FF?style=flat-square&logo=eclipse&logoColor=white)](https://open-vsx.org/extension/matterai/axon-code)
 [![Twitter](https://img.shields.io/twitter/follow/matteraiorg?style=flat-square&logo=x&color=555)](https://x.com/matteraiorg)
 [![Blog](https://img.shields.io/badge/Blog-555?style=flat-square&logo=substack&logoColor=white)](https://matterai.so/blog)
 [![Discord](https://img.shields.io/discord/1277592395709546548?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/fJU5DvanU3)
@@ -18,21 +20,21 @@
 
 ## 🚀 Overview
 
-Axon Code delivers frontier model performance directly into your development environment, providing intelligent workflows, autonomous task execution, and deep codebase understanding. Built for enterprise-grade productivity with cutting-edge AI capabilities.
+Orbital delivers frontier model performance directly into your development environment, providing intelligent workflows, autonomous task execution, and deep codebase understanding. Built for enterprise-grade productivity with cutting-edge AI capabilities.
 
-![Demo](https://github.com/MatterAIOrg/public-assets/blob/34ba86e008bae7a8b41283222947249edd822b93/axon-vscode-demo-fast.gif)
+![Demo](https://github.com/MatterAIOrg/public-assets/blob/b23c2c33969ddeef60343bea54c55738c332cfae/Orbital-readme.gif)
 
 ## ✨ Key Features
 
-| Feature                  | Status | Description                                            |
-| ------------------------ | ------ | ------------------------------------------------------ |
-| **Agent Mode**           | ✅     | Autonomous task execution with intelligent planning    |
-| **Plan Mode**            | ✅     | Structured approach to complex coding challenges       |
-| \*\*AI Code Reviews      | ✅     | Detailed code reviews with suggestions and 1-click fix |
-| **Agentic Tool Calling** | ✅     | Advanced tool integration for comprehensive workflows  |
-| **Advanced Reasoning**   | ✅     | Deep code understanding and problem-solving            |
-| **Codebase Indexing**    | ✅     | Intelligent code navigation and search                 |
-| **Tab Auto-Complete**    | 🔄     | Smart code completion (Coming Soon)                    |
+| Feature                  | Status | Description                                                        |
+| ------------------------ | ------ | ------------------------------------------------------------------ |
+| **Agent Mode**           | ✅     | Autonomous coding — let Orbital handle complex tasks independently |
+| **Plan Mode**            | ✅     | Strategic planning — generate comprehensive implementation plans   |
+| **AI Code Reviews**      | ✅     | Automatic reviews of all local changes with 1-click fixes          |
+| **Agentic Tool Calling** | ✅     | Smart tool use — intelligent use of development tools and APIs     |
+| **Advanced Reasoning**   | ✅     | Deep understanding of context, requirements, and trade-offs        |
+| **Codebase Indexing**    | ✅     | Complete context — automatically indexes your entire codebase      |
+| **Tab Auto-Complete**    | 🔄     | Lightning fast completions as you type (Coming Soon)               |
 
 ## AI Code Reviews Demo
 
@@ -40,13 +42,16 @@ Axon Code delivers frontier model performance directly into your development env
 
 ## 🛠️ Supported Platforms
 
-- **Visual Studio Code** - Full extension support
-- **JetBrains IDEs** - Coming Soon
-- **Command Line Interface** - Coming soon
+- **Orbital IDE** — Dedicated AI-first IDE
+- **Visual Studio Code** — Full extension support
+- **Cursor** — Full extension support
+- **Windsurf** — Full extension support
+- **JetBrains IDEs** — Coming Soon
+- **Command Line Interface** — Coming Soon
 
 ## 🔧 Agentic Tools
 
-Axon Code provides a comprehensive suite of intelligent tools:
+Orbital provides a comprehensive suite of intelligent tools:
 
 ### Core Development Tools
 
@@ -80,13 +85,13 @@ Axon Code provides a comprehensive suite of intelligent tools:
 
 ## 🤖 AI Models
 
-Choose the right model for your workflow:
+Choose the right model for your workflow — switch seamlessly between efficiency and power:
 
-| Model             | Use Case              | Capabilities                                 |
-| ----------------- | --------------------- | -------------------------------------------- |
-| **`axon-code`**   | Daily coding tasks    | High intelligence, balanced performance      |
-| **`axon-code-2`** | Complex agentic tasks | Maximum intelligence, long-running workflows |
-| **`axon-mini`**   | Quick tasks           | Lightweight, low-effort operations           |
+| Model             | Credit Usage | Use Case              | Capabilities                                                                |
+| ----------------- | ------------ | --------------------- | --------------------------------------------------------------------------- |
+| **`axon-mini`**   | 0.5x         | Quick tasks           | Lightweight, fast, cost-effective for high-volume usage                     |
+| **`axon-code`**   | 0.8x         | Daily coding tasks    | High intelligence, balanced performance, best for regular coding            |
+| **`axon-code-2`** | 1x           | Complex agentic tasks | Maximum intelligence, complex context harness, best for complex development |
 
 ## 📦 Installation
 
@@ -127,7 +132,32 @@ npm install -g @matterai/axon-code
 
 ## 💰 Pricing
 
+Simple, transparent pricing. All plans include access to all models.
+
+| Plan          | Monthly | Credits | Value      | Best For                |
+| ------------- | ------- | ------- | ---------- | ----------------------- |
+| **Free**      | $0      | $5      | —          | Perfect for testing     |
+| **Developer** | $10     | $20     | 2x value   | Great for side projects |
+| **Pro** ⭐    | $20     | $50     | 2.5x value | Best for professionals  |
+| **Max**       | $50     | $150    | 3x value   | Power users & teams     |
+
 Visit our [pricing page](https://www.matterai.so/pricing) for detailed plans and enterprise solutions.
+
+## 📊 Analytics
+
+Track your coding productivity with powerful analytics:
+
+- **Credit Tracking** — No budget surprises—monitor your credit usage as you code
+- **Daily Code Velocity** — Visualize lines added, modified, and removed over time
+- **Net Time Saved** — See exactly how much time Orbital saves you each day
+- **Granular Analytics** — Team-Level, Engineer-Level, and Repo-Level breakdowns
+
+## 🌟 Why Developers Love Orbital
+
+- **50% faster** code writing with intelligent completions
+- **Catch bugs early** with real-time code analysis
+- **Learn faster** with instant code explanations
+- **Better code quality** with AI-powered suggestions
 
 ## 🤝 Contributing
 
@@ -167,6 +197,8 @@ Join our growing community:
 <div align="center">
 
 **Built with ❤️ by the MatterAI Team**
+
+_Universal AI Super Intelligence_
 
 [![MatterAI](https://img.shields.io/badge/MatterAI-Enterprise_AI-blue?style=flat-square)](https://matterai.so)
 
