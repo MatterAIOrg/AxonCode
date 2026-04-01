@@ -1120,6 +1120,37 @@ export const ChatRowContent = ({
 						</div>
 					</div>
 				)
+			case "lsp":
+				return (
+					<div className={`flex ${isExpanded ? "flex-col" : "flex-row"} gap-1`}>
+						<div style={headerStyle}>
+							<span style={{}}>
+								{message.type === "ask" ? (
+									<Trans
+										i18nKey="chat:lsp.wantsToUse"
+										components={{ code: <code className="font-medium">{tool.operation}</code> }}
+										values={{ operation: tool.operation, path: tool.path }}
+									/>
+								) : (
+									<Trans
+										i18nKey="chat:lsp.didUse"
+										components={{ code: <code className="font-medium">{tool.operation}</code> }}
+										values={{ operation: tool.operation, path: tool.path }}
+									/>
+								)}
+							</span>
+						</div>
+						<div className="">
+							<CodeAccordian
+								path={tool.path}
+								code={tool.content}
+								language="markdown"
+								isExpanded={isExpanded}
+								onToggleExpand={handleToggleExpand}
+							/>
+						</div>
+					</div>
+				)
 			case "switchMode":
 				return (
 					<>

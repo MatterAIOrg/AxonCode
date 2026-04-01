@@ -59,6 +59,8 @@ export const toolParamNames = [
 	"replace",
 	"use_regex",
 	"ignore_case",
+	"operation",
+	"character",
 	// forked_change start
 	"title",
 	"description",
@@ -139,6 +141,11 @@ export interface ListFilesToolUse extends ToolUse {
 export interface ListCodeDefinitionNamesToolUse extends ToolUse {
 	name: "list_code_definition_names"
 	params: Partial<Pick<Record<ToolParamName, string>, "path">>
+}
+
+export interface LspToolUse extends ToolUse {
+	name: "lsp"
+	params: Partial<Pick<Record<ToolParamName, string>, "operation" | "file_path" | "line" | "character">>
 }
 
 export interface BrowserActionToolUse extends ToolUse {
@@ -245,6 +252,7 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	search_files: "search files",
 	list_files: "list files",
 	list_code_definition_names: "list definitions",
+	lsp: "LSP code intelligence",
 	browser_action: "use a browser",
 	use_mcp_tool: "use mcp tools",
 	access_mcp_resource: "access mcp resources",
@@ -279,6 +287,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 			"search_files",
 			"list_files",
 			"list_code_definition_names",
+			"lsp",
 			"codebase_search",
 			"check_past_chat_memories",
 			"use_skill",

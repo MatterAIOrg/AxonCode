@@ -228,6 +228,10 @@
 		"didSearch_other": "Found {{count}} results",
 		"resultTooltip": "Similarity score: {{score}} (click to open file)"
 	},
+	"lsp": {
+		"wantsToUse": "LSP <code>{{operation}}</code> on <code>{{path}}</code>",
+		"didUse": "LSP <code>{{operation}}</code> on <code>{{path}}</code>"
+	},
 	"commandOutput": "Command Output",
 	"commandExecution": {
 		"abort": "Abort",

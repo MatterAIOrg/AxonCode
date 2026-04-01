@@ -31,6 +31,7 @@ import { useMcpToolTool } from "../tools/useMcpToolTool"
 import { writeToFileTool } from "../tools/writeToFileTool"
 
 import { generateImageTool } from "../tools/generateImageTool"
+import { lspTool } from "../tools/lspTool"
 import { planFileEditTool } from "../tools/planFileEditTool"
 import { readPlanFileTool } from "../tools/readPlanFileTool"
 import { listPlanFilesTool } from "../tools/listPlanFilesTool"
@@ -223,6 +224,8 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.path}']`
 					case "list_code_definition_names":
 						return `[${block.name} for '${block.params.path}']`
+					case "lsp":
+						return `[${block.name} ${block.params.operation} at '${block.params.file_path}:${block.params.line}:${block.params.character}']`
 					case "browser_action":
 						return `[${block.name} for '${block.params.action}']`
 					case "use_mcp_tool":
@@ -265,6 +268,8 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name}]`
 					case "check_past_chat_memories":
 						return `[${block.name} for '${block.params.regex}']`
+					case "use_skill":
+						return `[${block.name} for '${block.params.skill_name}']`
 					case "web_fetch":
 						return `[${block.name} for '${block.params.url}']`
 					case "web_search":
@@ -580,6 +585,9 @@ export async function presentAssistantMessage(cline: Task) {
 						pushToolResult,
 						removeClosingTag,
 					)
+					break
+				case "lsp":
+					await lspTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
 				case "search_files":
 					await searchFilesTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)

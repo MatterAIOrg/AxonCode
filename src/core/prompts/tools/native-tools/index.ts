@@ -6,6 +6,7 @@ import executeCommand from "./execute_command"
 // import fetchInstructions from "./fetch_instructions"
 import listCodeDefinitionNames from "./list_code_definition_names"
 import listFiles from "./list_files"
+import lsp from "./lsp"
 // import newTask from "./new_task"
 import { read_file_single } from "./read_file"
 // import runSlashCommand from "./run_slash_command"
@@ -40,6 +41,7 @@ export const nativeTools = [
 	// insertContent,
 	listCodeDefinitionNames,
 	listFiles,
+	lsp,
 	// newTask,
 	planFileEdit,
 	readPlanFile,

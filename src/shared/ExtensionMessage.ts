@@ -498,6 +498,7 @@ export interface ClineSayTool {
 		| "listFilesTopLevel"
 		| "listFilesRecursive"
 		| "listCodeDefinitionNames"
+		| "lsp"
 		| "searchFiles"
 		| "switchMode"
 		| "newTask"
@@ -536,6 +537,10 @@ export interface ClineSayTool {
 	query?: string
 	offset?: number
 	limit?: number
+	// LSP tool properties
+	operation?: string
+	character?: number
+	line?: number
 	batchFiles?: Array<{
 		path: string
 		lineSnippet: string
