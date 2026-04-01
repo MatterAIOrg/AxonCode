@@ -16,6 +16,7 @@ import { editFileTool } from "../tools/editFileTool" // kilocode_change: Morph f
 import { executeCommandTool } from "../tools/executeCommandTool"
 import { fetchInstructionsTool } from "../tools/fetchInstructionsTool"
 import { fileEditTool } from "../tools/fileEditTool"
+import { fileWriteTool } from "../tools/fileWriteTool"
 import { insertContentTool } from "../tools/insertContentTool"
 import { listCodeDefinitionNamesTool } from "../tools/listCodeDefinitionNamesTool"
 import { listFilesTool } from "../tools/listFilesTool"
@@ -210,6 +211,8 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.path}']`
 					case "file_edit":
 						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
+					case "file_write":
+						return `[${block.name} for '${(block.params as any).file_path}']`
 					case "search_and_replace":
 						return `[${block.name} for '${block.params.path}']`
 					// forked_change start: Morph fast apply
@@ -534,6 +537,9 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				case "file_edit":
 					await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
+					break
+				case "file_write":
+					await fileWriteTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
 				// forked_change start: Morph fast apply
 				case "edit_file":

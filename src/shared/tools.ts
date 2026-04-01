@@ -198,6 +198,11 @@ export interface FileEditToolUse extends ToolUse {
 		Partial<Pick<Record<ToolParamName, string>, "replace_all" | "target_file">>
 }
 
+export interface FileWriteToolUse extends ToolUse {
+	name: "file_write"
+	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "content" | "line_count">>
+}
+
 // forked_change start: Morph fast apply
 export interface EditFileToolUse extends ToolUse {
 	name: "edit_file"
@@ -235,6 +240,7 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	write_to_file: "write files",
 	apply_diff: "apply changes",
 	file_edit: "replace text in files",
+	file_write: "write new files",
 	edit_file: "edit file", // kilocode_change: Morph fast apply
 	search_files: "search files",
 	list_files: "list files",
@@ -284,6 +290,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 		tools: [
 			"apply_diff",
 			"file_edit",
+			"file_write",
 			"edit_file", // kilocode_change: Morph fast apply
 			"write_to_file",
 			"insert_content",

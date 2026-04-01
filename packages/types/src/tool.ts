@@ -20,6 +20,7 @@ export const toolNames = [
 	"write_to_file",
 	"apply_diff",
 	"file_edit",
+	"file_write",
 	"insert_content",
 	"search_and_replace",
 	"search_files",

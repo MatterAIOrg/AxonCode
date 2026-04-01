@@ -13,6 +13,7 @@ import { read_file_single } from "./read_file"
 import searchFiles from "./search_files"
 // import switchMode from "./switch_mode"
 import fileEdit from "./file_edit"
+import fileWrite from "./file_write"
 import updateTodoList from "./update_todo_list"
 import codebaseSearch from "./codebase_search"
 import planFileEdit from "./plan_file_edit"
@@ -26,6 +27,7 @@ export const nativeTools = [
 	// apply_diff_single_file,
 	// apply_diff_multi_file,
 	fileEdit,
+	fileWrite,
 	askFollowupQuestion,
 	attemptCompletion,
 	checkPastChatMemories,

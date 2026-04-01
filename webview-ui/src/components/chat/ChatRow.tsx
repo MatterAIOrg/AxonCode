@@ -12,7 +12,6 @@ import { COMMAND_OUTPUT_STRING } from "@roo/combineCommandSequences"
 import { safeJsonParse } from "@roo/safeJsonParse"
 
 import { useExtensionState } from "@src/context/ExtensionStateContext"
-import { getLanguageFromPath } from "@src/utils/getLanguageFromPath"
 import { findMatchingResourceOrTemplate } from "@src/utils/mcp"
 import { removeLeadingNonAlphanumeric } from "@src/utils/removeLeadingNonAlphanumeric"
 import { vscode } from "@src/utils/vscode"
@@ -784,39 +783,56 @@ export const ChatRowContent = ({
 					/>
 				)
 			}
-			case "newFileCreated":
+			case "newFileCreated": {
+				// Build diff for new file (all additions)
+				const newFilePath = tool.path || "file"
+				const newFileContent = tool.content || ""
+				const newFileLines = newFileContent.split(/\r?\n/)
+				const newFileDiff =
+					newFileLines.length > 0
+						? [
+								`--- /dev/null`,
+								`+++ b/${newFilePath}`,
+								`@@ -0,0 +1,${newFileLines.length} @@`,
+								...newFileLines.map((line: string) => `+${line}`),
+							].join("\n")
+						: ""
+				const newFileDiffStats = computeDiffStats(newFileDiff)
+				const openNewFileWithLine = () => {
+					vscode.postMessage({
+						type: "openFile",
+						text: "./" + tool.path,
+						values: undefined,
+					})
+				}
 				return (
-					<div className="animate-fade-up">
-						<div style={headerStyle}>
+					<div
+						className={`animate-fade-up flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start w-full`}>
+						<div style={headerStyle} className="">
 							{tool.isProtected ? (
 								<span
 									className="codicon codicon-lock"
 									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
 								/>
-							) : (
-								toolIcon("new-file")
-							)}
+							) : // toolIcon("new-file")
+							null}
 							<span style={{}}>
 								{tool.isProtected
 									? t("chat:fileOperations.wantsToEditProtected")
 									: t("chat:fileOperations.wantsToCreate")}
 							</span>
 						</div>
-						<div className="">
-							<CodeAccordian
-								path={tool.path}
-								code={tool.content}
-								language={getLanguageFromPath(tool.path || "") || "log"}
+						<div className="w-full">
+							<GitHubDiffView
+								diff={newFileDiff}
+								filePath={tool.path}
+								isProtected={tool.isProtected}
+								isOutsideWorkspace={tool.isOutsideWorkspace}
+								diffStats={newFileDiffStats}
 								isLoading={message.partial}
 								isExpanded={isExpanded}
 								onToggleExpand={handleToggleExpand}
-								onJumpToFile={(line) =>
-									vscode.postMessage({
-										type: "openFile",
-										text: "./" + tool.path,
-										values: line ? { line } : undefined,
-									})
-								}
+								onOpenFile={openNewFileWithLine}
 							/>
 							{
 								// forked_change start
@@ -826,6 +842,7 @@ export const ChatRowContent = ({
 						</div>
 					</div>
 				)
+			}
 			case "readFile":
 				// Check if this is a batch file permission request
 				const isBatchRequest = message.type === "ask" && tool.batchFiles && Array.isArray(tool.batchFiles)
