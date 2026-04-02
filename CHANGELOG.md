@@ -1,5 +1,24 @@
 # Changelog
 
+## [v5.7.3] - 2026-04-02
+
+### Added
+
+- OAuth authentication support for MCP servers
+- LSP tool for code definition navigation
+- file_write tool implementation
+
+### Changed
+
+- Modernized settings panel UI with new card-based design
+- Reduced VSCodeButton size by 5% across all variants for better visual consistency
+
+### Fixed
+
+- Allow changing 3p models for existing tasks and fixed model display names
+
+---
+
 ## [v5.7.2] - 2026-03-29
 
 ### Added
