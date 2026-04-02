@@ -1,6 +1,6 @@
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { Download, Info, TriangleAlert, Upload } from "lucide-react"
+import { Download, TriangleAlert, Upload } from "lucide-react"
 import { HTMLAttributes } from "react"
 import { Trans } from "react-i18next"
 
@@ -12,8 +12,7 @@ import { cn } from "@/lib/utils"
 import { vscode } from "@/utils/vscode"
 
 import DangerButton from "../common/DangerButton"
-import { Section } from "./Section"
-import { SectionHeader } from "./SectionHeader"
+import { SettingsCard, SettingsRow } from "./ui/SettingsCard"
 
 type AboutProps = HTMLAttributes<HTMLDivElement> & {
 	telemetrySetting: TelemetrySetting
@@ -25,66 +24,55 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)} {...props}>
-			<div className={cn("ml-2", className)}>
-				<SectionHeader
+			<SettingsCard>
+				<SettingsRow
+					title="Version"
+					description={Package.sha ? `${Package.version} (${Package.sha.slice(0, 8)})` : Package.version}
+				/>
+
+				<SettingsRow
+					title="Support & Feedback"
 					description={
-						Package.sha
-							? `Version: ${Package.version} (${Package.sha.slice(0, 8)})`
-							: `Version: ${Package.version}`
-					}>
-					<div className="flex items-center gap-2">
-						<Info className="w-4" />
-						<div>{t("settings:sections.about")}</div>
+						<div className="flex flex-col gap-1">
+							<Trans
+								i18nKey="settings:footer.feedback"
+								components={{
+									githubLink: <VSCodeLink href="https://github.com/MatterAIOrg/Orbital-Extension" />,
+									redditLink: <VSCodeLink href="https://reddit.com/r/matter_ai" />,
+									discordLink: <VSCodeLink href="https://discord.gg/fJU5DvanU3" />,
+								}}
+							/>
+							<Trans
+								i18nKey="settings:footer.support"
+								components={{
+									supportLink: <VSCodeLink href="https://www.matterai.so/contact" />,
+								}}
+							/>
+						</div>
+					}
+				/>
+
+				<SettingsRow title="Data" description="Export, import, or reset your extension state.">
+					<div className="flex flex-wrap items-center gap-2 justify-end">
+						<VSCodeButton
+							appearance="secondary"
+							onClick={() => vscode.postMessage({ type: "exportSettings" })}>
+							<Upload className="w-3 pb-0.5" />
+							{t("settings:footer.settings.export")}
+						</VSCodeButton>
+						<VSCodeButton
+							appearance="secondary"
+							onClick={() => vscode.postMessage({ type: "importSettings" })}>
+							<Download className="w-3 pb-0.5" />
+							{t("settings:footer.settings.import")}
+						</VSCodeButton>
+						<DangerButton appearance="secondary" onClick={() => vscode.postMessage({ type: "resetState" })}>
+							<TriangleAlert className="w-3 pb-0.5" />
+							{t("settings:footer.settings.reset")}
+						</DangerButton>
 					</div>
-				</SectionHeader>
-			</div>
-			<Section>
-				<div>
-					<Trans
-						i18nKey="settings:footer.feedback"
-						components={{
-							githubLink: <VSCodeLink href="https://github.com/MatterAIOrg/Orbital-Extension" />,
-							redditLink: <VSCodeLink href="https://reddit.com/r/matter_ai" />,
-							discordLink: <VSCodeLink href="https://discord.gg/fJU5DvanU3" />,
-						}}
-					/>
-				</div>
-
-				{/* forked_change start */}
-				<div>
-					<Trans
-						i18nKey="settings:footer.support"
-						components={{
-							supportLink: <VSCodeLink href="https://www.matterai.so/contact" />,
-						}}
-					/>
-				</div>
-				{/* forked_change end */}
-
-				<div className="flex flex-wrap items-center gap-2 mt-2">
-					<VSCodeButton
-						appearance="primary"
-						onClick={() => vscode.postMessage({ type: "exportSettings" })}
-						className="w-28">
-						<Upload className="p-0.5" />
-						{t("settings:footer.settings.export")}
-					</VSCodeButton>
-					<VSCodeButton
-						appearance="primary"
-						onClick={() => vscode.postMessage({ type: "importSettings" })}
-						className="w-28">
-						<Download className="p-0.5" />
-						{t("settings:footer.settings.import")}
-					</VSCodeButton>
-					<DangerButton
-						appearance="primary"
-						onClick={() => vscode.postMessage({ type: "resetState" })}
-						className="w-28">
-						<TriangleAlert className="p-0.5" />
-						{t("settings:footer.settings.reset")}
-					</DangerButton>
-				</div>
-			</Section>
+				</SettingsRow>
+			</SettingsCard>
 		</div>
 	)
 }

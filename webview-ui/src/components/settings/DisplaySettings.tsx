@@ -1,11 +1,9 @@
 // kilocode_change - new file
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { Monitor } from "lucide-react"
 import { HTMLAttributes } from "react"
 
-import { Section } from "./Section"
-import { SectionHeader } from "./SectionHeader"
+import { SettingsCard, SettingsRow, SettingsSwitch } from "./ui/SettingsCard"
 import { SetCachedStateField } from "./types"
 
 type DisplaySettingsProps = HTMLAttributes<HTMLDivElement> & {
@@ -61,41 +59,30 @@ export const DisplaySettings = ({
 
 	return (
 		<div {...props}>
-			<SectionHeader>
-				<div className="flex items-center gap-2">
-					<Monitor className="w-4" />
-					<div>{t("settings:sections.display")}</div>
-				</div>
-			</SectionHeader>
+			<SettingsCard>
+				<SettingsRow
+					title={
+						<div className="flex items-center gap-2">
+							<Monitor className="w-4" />
+							{t("settings:display.showTimestamps.label")}
+						</div>
+					}
+					description={t("settings:display.showTimestamps.description")}>
+					<SettingsSwitch
+						checked={showTimestamps ?? false}
+						onChange={(checked) => setCachedStateField("showTimestamps", checked)}
+					/>
+				</SettingsRow>
 
-			<Section>
-				{/* Show Timestamps checkbox */}
-				<div className="mt-3">
-					<VSCodeCheckbox
-						checked={showTimestamps}
-						onChange={(e: any) => {
-							setCachedStateField("showTimestamps", e.target.checked)
-						}}>
-						<span className="font-medium">{t("settings:display.showTimestamps.label")}</span>
-					</VSCodeCheckbox>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
-						{t("settings:display.showTimestamps.description")}
-					</div>
-				</div>
-				{/* Send Message on Enter Setting */}
-				<div className="flex flex-col gap-1">
-					<VSCodeCheckbox
-						checked={sendMessageOnEnter}
-						onChange={(e) => {
-							setCachedStateField("sendMessageOnEnter", (e as any).target?.checked || false)
-						}}>
-						<span className="font-medium">{t("settings:display.sendMessageOnEnter.label")}</span>
-					</VSCodeCheckbox>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
-						{t("settings:display.sendMessageOnEnter.description")}
-					</div>
-				</div>
-			</Section>
+				<SettingsRow
+					title={t("settings:display.sendMessageOnEnter.label")}
+					description={t("settings:display.sendMessageOnEnter.description")}>
+					<SettingsSwitch
+						checked={sendMessageOnEnter ?? false}
+						onChange={(checked) => setCachedStateField("sendMessageOnEnter", checked)}
+					/>
+				</SettingsRow>
+			</SettingsCard>
 		</div>
 	)
 }

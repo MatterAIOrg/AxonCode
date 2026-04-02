@@ -1,17 +1,15 @@
-import { CheckCheck, X } from "lucide-react"
+import { X } from "lucide-react"
 import { HTMLAttributes, useState } from "react"
 
 import { Button, Input } from "@/components/ui"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { vscode } from "@/utils/vscode"
-import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApprovalState } from "@/hooks/useAutoApprovalState"
 import { useAutoApprovalToggles } from "@/hooks/useAutoApprovalToggles"
 import { AutoApproveToggle } from "./AutoApproveToggle"
-import { Section } from "./Section"
-import { SectionHeader } from "./SectionHeader"
+import { SettingsCard, SettingsRow, SettingsSwitch } from "./ui/SettingsCard"
 import { SetCachedStateField } from "./types"
 
 type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
@@ -63,13 +61,13 @@ type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 
 export const AutoApproveSettings = ({
 	alwaysAllowReadOnly,
-	alwaysAllowReadOnlyOutsideWorkspace,
+	alwaysAllowReadOnlyOutsideWorkspace: _alwaysAllowReadOnlyOutsideWorkspace,
 	alwaysAllowWrite,
-	alwaysAllowWriteOutsideWorkspace,
-	alwaysAllowWriteProtected,
+	alwaysAllowWriteOutsideWorkspace: _alwaysAllowWriteOutsideWorkspace,
+	alwaysAllowWriteProtected: _alwaysAllowWriteProtected,
 	alwaysAllowBrowser,
 	alwaysApproveResubmit,
-	requestDelaySeconds,
+	requestDelaySeconds: _requestDelaySeconds,
 	alwaysAllowMcp,
 	alwaysAllowModeSwitch,
 	alwaysAllowSubtasks,
@@ -78,13 +76,12 @@ export const AutoApproveSettings = ({
 	// followupAutoApproveTimeoutMs = 60000,
 	alwaysAllowUpdateTodoList,
 	allowedCommands,
-	allowedMaxRequests,
-	allowedMaxCost,
-	showAutoApproveMenu, // kilocode_change
-	yoloMode, // kilocode_change
+	allowedMaxRequests: _allowedMaxRequests,
+	allowedMaxCost: _allowedMaxCost,
+	showAutoApproveMenu: _showAutoApproveMenu, // kilocode_change
+	yoloMode: _yoloMode, // kilocode_change
 	deniedCommands,
 	setCachedStateField,
-	...props
 }: AutoApproveSettingsProps) => {
 	const { t } = useAppTranslation()
 	const [commandInput, setCommandInput] = useState("")
@@ -118,353 +115,169 @@ export const AutoApproveSettings = ({
 	}
 
 	return (
-		<div {...props}>
-			<SectionHeader>
-				<div className="flex items-center gap-2">
-					<CheckCheck className="w-4 h-4" />
-					<div>{t("settings:sections.autoApprove")}</div>
-				</div>
-			</SectionHeader>
-
-			{/* forked_change start */}
-			{/* <Section>
-				<div>
-					<VSCodeCheckbox
-						checked={showAutoApproveMenu}
-						onChange={(e: any) => setCachedStateField("showAutoApproveMenu", e.target.checked)}
-						data-testid="show-auto-approve-menu-checkbox">
-						<span className="font-medium">{t("settings:autoApprove.showMenu.label")}</span>
-					</VSCodeCheckbox>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
-						{t("settings:autoApprove.showMenu.description")}
-					</div>
-				</div>
-			</Section> */}
-
-			{/* YOLO MODE SECTION */}
-			{/* {process.env.NODE_ENV === "development" && (
-				<Section>
-					<div className="border-2 border-yellow-500 rounded-md p-4 bg-yellow-500/10">
-						<div className="flex items-center gap-2 mb-3">
-							<span className="text-2xl">⚠️</span>
-							<h3 className="text-lg font-bold text-yellow-500">YOLO Mode</h3>
-						</div>
-						<VSCodeCheckbox
-							checked={yoloMode ?? false}
-							onChange={(e: any) => setCachedStateField("yoloMode", e.target.checked)}
-							data-testid="yolo-mode-checkbox">
-							<span className="font-bold text-base">Enable YOLO Mode - Auto-approve EVERYTHING</span>
-						</VSCodeCheckbox>
-						<div className="text-vscode-descriptionForeground text-sm mt-2 pl-6">
-							<p className="mb-2">
-								When enabled,{" "}
-								<strong>all operations will be automatically approved without confirmation</strong>.
-							</p>
-							<p className="text-yellow-500 font-medium">
-								⚡ This includes file modifications, command execution, MCP tools, browser actions, and
-								all other operations. Use with extreme caution!
-							</p>
-						</div>
-					</div>
-				</Section>
-			)} */}
-
-			{/* {process.env.NODE_ENV === "development" && yoloMode && (
-				<Section>
-					<div className="bg-yellow-500/10 border border-yellow-500/30 rounded p-3 flex items-center gap-2">
-						<span className="text-lg">⚡</span>
-						<span className="text-sm font-medium text-yellow-500">
-							YOLO Mode is active - all auto-approval settings below are overridden
-						</span>
-					</div>
-				</Section>
-			)} */}
-			{/* forked_change end */}
-
-			<Section>
-				<div className="space-y-4">
-					<VSCodeCheckbox
-						checked={effectiveAutoApprovalEnabled}
-						aria-label={t("settings:autoApprove.toggleAriaLabel")}
+		<div className="flex flex-col gap-4">
+			<SettingsCard>
+				<SettingsRow
+					title={t("settings:autoApprove.enabled")}
+					description={t("settings:autoApprove.description")}>
+					<SettingsSwitch
+						checked={effectiveAutoApprovalEnabled ?? false}
 						onChange={() => {
 							const newValue = !(autoApprovalEnabled ?? false)
 							setAutoApprovalEnabled(newValue)
 							vscode.postMessage({ type: "autoApprovalEnabled", bool: newValue })
-						}}>
-						<span className="font-medium">{t("settings:autoApprove.enabled")}</span>
-					</VSCodeCheckbox>
-					{/* <div className="text-vscode-descriptionForeground text-sm mt-1">
-						<p>{t("settings:autoApprove.description")}</p>
-						<p>
-							<Trans
-								i18nKey="settings:autoApprove.toggleShortcut"
-								components={{
-									SettingsLink: (
-										<a
-											href="#"
-											className="text-vscode-textLink-foreground hover:underline cursor-pointer"
-											onClick={(e) => {
-												e.preventDefault()
-												// Send message to open keyboard shortcuts with search for toggle command
-												vscode.postMessage({
-													type: "openKeyboardShortcuts",
-													text: `${Package.name}.toggleAutoApprove`,
-												})
-											}}
-										/>
-									),
-								}}
-							/>
-						</p>
-					</div> */}
-
-					<AutoApproveToggle
-						alwaysAllowReadOnly={alwaysAllowReadOnly}
-						alwaysAllowWrite={alwaysAllowWrite}
-						alwaysAllowBrowser={alwaysAllowBrowser}
-						alwaysApproveResubmit={alwaysApproveResubmit}
-						alwaysAllowMcp={alwaysAllowMcp}
-						alwaysAllowModeSwitch={alwaysAllowModeSwitch}
-						alwaysAllowSubtasks={alwaysAllowSubtasks}
-						alwaysAllowExecute={alwaysAllowExecute}
-						alwaysAllowFollowupQuestions={alwaysAllowFollowupQuestions}
-						alwaysAllowUpdateTodoList={alwaysAllowUpdateTodoList}
-						onToggle={(key, value) => setCachedStateField(key, value)}
+						}}
 					/>
+				</SettingsRow>
+			</SettingsCard>
 
-					{/* <MaxLimitInputs
-						allowedMaxRequests={allowedMaxRequests}
-						allowedMaxCost={allowedMaxCost}
-						onMaxRequestsChange={(value) => setCachedStateField("allowedMaxRequests", value)}
-						onMaxCostChange={(value) => setCachedStateField("allowedMaxCost", value)}
-					/> */}
+			{effectiveAutoApprovalEnabled && (
+				<AutoApproveToggle
+					alwaysAllowReadOnly={alwaysAllowReadOnly}
+					alwaysAllowWrite={alwaysAllowWrite}
+					alwaysAllowBrowser={alwaysAllowBrowser}
+					alwaysApproveResubmit={alwaysApproveResubmit}
+					alwaysAllowMcp={alwaysAllowMcp}
+					alwaysAllowModeSwitch={alwaysAllowModeSwitch}
+					alwaysAllowSubtasks={alwaysAllowSubtasks}
+					alwaysAllowExecute={alwaysAllowExecute}
+					alwaysAllowFollowupQuestions={alwaysAllowFollowupQuestions}
+					alwaysAllowUpdateTodoList={alwaysAllowUpdateTodoList}
+					onToggle={(key, value) => setCachedStateField(key, value)}
+				/>
+			)}
+
+			{alwaysAllowExecute && effectiveAutoApprovalEnabled && (
+				<div className="mt-4">
+					<div className="mb-2 ml-1">
+						<h3 className="text-sm font-medium text-vscode-foreground m-0 px-1 py-1">Terminal Commands</h3>
+					</div>
+
+					<SettingsCard>
+						<SettingsRow
+							title={
+								<div>
+									<span className="block font-medium mb-1">
+										{t("settings:autoApprove.execute.allowedCommands")}
+									</span>
+									<div className="text-vscode-descriptionForeground text-xs mb-3">
+										{t("settings:autoApprove.execute.allowedCommandsDescription")}
+									</div>
+
+									<div className="flex flex-col gap-3">
+										<div className="flex gap-2 font-normal">
+											<Input
+												value={commandInput}
+												onChange={(e: any) => setCommandInput(e.target.value)}
+												onKeyDown={(e: any) => {
+													if (e.key === "Enter") {
+														e.preventDefault()
+														handleAddCommand()
+													}
+												}}
+												placeholder={t("settings:autoApprove.execute.commandPlaceholder")}
+												className="grow"
+												data-testid="command-input"
+											/>
+											<Button
+												className="h-8 bg-vscode-button-background text-vscode-button-foreground hover:bg-vscode-button-hoverBackground"
+												onClick={handleAddCommand}
+												data-testid="add-command-button">
+												{t("settings:autoApprove.execute.addButton")}
+											</Button>
+										</div>
+
+										<div className="flex flex-wrap gap-2 text-xs font-normal">
+											{(allowedCommands ?? []).map((cmd, index) => (
+												<Button
+													key={index}
+													variant="secondary"
+													data-testid={`remove-command-${index}`}
+													onClick={() => {
+														const newCommands = (allowedCommands ?? []).filter(
+															(_, i) => i !== index,
+														)
+														setCachedStateField("allowedCommands", newCommands)
+														vscode.postMessage({
+															type: "allowedCommands",
+															commands: newCommands,
+														})
+													}}>
+													<div className="flex flex-row items-center gap-1">
+														<div>{cmd}</div>
+														<X className="text-foreground scale-75" />
+													</div>
+												</Button>
+											))}
+										</div>
+									</div>
+								</div>
+							}
+						/>
+
+						<SettingsRow
+							title={
+								<div>
+									<span className="block font-medium mb-1">
+										{t("settings:autoApprove.execute.deniedCommands")}
+									</span>
+									<div className="text-vscode-descriptionForeground text-xs mb-3">
+										{t("settings:autoApprove.execute.deniedCommandsDescription")}
+									</div>
+
+									<div className="flex flex-col gap-3">
+										<div className="flex gap-2 font-normal">
+											<Input
+												value={deniedCommandInput}
+												onChange={(e: any) => setDeniedCommandInput(e.target.value)}
+												onKeyDown={(e: any) => {
+													if (e.key === "Enter") {
+														e.preventDefault()
+														handleAddDeniedCommand()
+													}
+												}}
+												placeholder={t("settings:autoApprove.execute.deniedCommandPlaceholder")}
+												className="grow"
+												data-testid="denied-command-input"
+											/>
+											<Button
+												className="h-8 bg-vscode-button-background text-vscode-button-foreground hover:bg-vscode-button-hoverBackground"
+												onClick={handleAddDeniedCommand}
+												data-testid="add-denied-command-button">
+												{t("settings:autoApprove.execute.addButton")}
+											</Button>
+										</div>
+
+										<div className="flex flex-wrap gap-2 text-xs font-normal">
+											{(deniedCommands ?? []).map((cmd, index) => (
+												<Button
+													key={index}
+													variant="secondary"
+													data-testid={`remove-denied-command-${index}`}
+													onClick={() => {
+														const newCommands = (deniedCommands ?? []).filter(
+															(_, i) => i !== index,
+														)
+														setCachedStateField("deniedCommands", newCommands)
+														vscode.postMessage({
+															type: "deniedCommands",
+															commands: newCommands,
+														})
+													}}>
+													<div className="flex flex-row items-center gap-1">
+														<div>{cmd}</div>
+														<X className="text-foreground scale-75" />
+													</div>
+												</Button>
+											))}
+										</div>
+									</div>
+								</div>
+							}
+						/>
+					</SettingsCard>
 				</div>
-
-				{/* ADDITIONAL SETTINGS */}
-
-				{/* {alwaysAllowReadOnly && (
-					<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
-						<div className="flex items-center gap-4 font-bold">
-							<span className="codicon codicon-eye" />
-							<div>{t("settings:autoApprove.readOnly.label")}</div>
-						</div>
-						<div>
-							<VSCodeCheckbox
-								checked={alwaysAllowReadOnlyOutsideWorkspace}
-								onChange={(e: any) =>
-									setCachedStateField("alwaysAllowReadOnlyOutsideWorkspace", e.target.checked)
-								}
-								data-testid="always-allow-readonly-outside-workspace-checkbox">
-								<span className="font-medium">
-									{t("settings:autoApprove.readOnly.outsideWorkspace.label")}
-								</span>
-							</VSCodeCheckbox>
-							<div className="text-vscode-descriptionForeground text-sm mt-1">
-								{t("settings:autoApprove.readOnly.outsideWorkspace.description")}
-							</div>
-						</div>
-					</div>
-				)}
-
-				{alwaysAllowWrite && (
-					<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
-						<div className="flex items-center gap-4 font-bold">
-							<span className="codicon codicon-edit" />
-							<div>{t("settings:autoApprove.write.label")}</div>
-						</div>
-						<div>
-							<VSCodeCheckbox
-								checked={alwaysAllowWriteOutsideWorkspace}
-								onChange={(e: any) =>
-									setCachedStateField("alwaysAllowWriteOutsideWorkspace", e.target.checked)
-								}
-								data-testid="always-allow-write-outside-workspace-checkbox">
-								<span className="font-medium">
-									{t("settings:autoApprove.write.outsideWorkspace.label")}
-								</span>
-							</VSCodeCheckbox>
-							<div className="text-vscode-descriptionForeground text-sm mt-1">
-								{t("settings:autoApprove.write.outsideWorkspace.description")}
-							</div>
-						</div>
-						<div>
-							<VSCodeCheckbox
-								checked={alwaysAllowWriteProtected}
-								onChange={(e: any) =>
-									setCachedStateField("alwaysAllowWriteProtected", e.target.checked)
-								}
-								data-testid="always-allow-write-protected-checkbox">
-								<span className="font-medium">{t("settings:autoApprove.write.protected.label")}</span>
-							</VSCodeCheckbox>
-							<div className="text-vscode-descriptionForeground text-sm mt-1 mb-3">
-								{t("settings:autoApprove.write.protected.description")}
-							</div>
-						</div>
-					</div>
-				)}
-
-				{alwaysApproveResubmit && (
-					<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
-						<div className="flex items-center gap-4 font-bold">
-							<span className="codicon codicon-refresh" />
-							<div>{t("settings:autoApprove.retry.label")}</div>
-						</div>
-						<div>
-							<div className="flex items-center gap-2">
-								<Slider
-									min={5}
-									max={100}
-									step={1}
-									value={[requestDelaySeconds]}
-									onValueChange={([value]) => setCachedStateField("requestDelaySeconds", value)}
-									data-testid="request-delay-slider"
-								/>
-								<span className="w-20">{requestDelaySeconds}s</span>
-							</div>
-							<div className="text-vscode-descriptionForeground text-sm mt-1">
-								{t("settings:autoApprove.retry.delayLabel")}
-							</div>
-						</div>
-					</div>
-				)}
-
-				{alwaysAllowFollowupQuestions && (
-					<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
-						<div className="flex items-center gap-4 font-bold">
-							<span className="codicon codicon-question" />
-							<div>{t("settings:autoApprove.followupQuestions.label")}</div>
-						</div>
-						<div>
-							<div className="flex items-center gap-2">
-								<Slider
-									min={1000}
-									max={300000}
-									step={1000}
-									value={[followupAutoApproveTimeoutMs]}
-									onValueChange={([value]) =>
-										setCachedStateField("followupAutoApproveTimeoutMs", value)
-									}
-									data-testid="followup-timeout-slider"
-								/>
-								<span className="w-20">{followupAutoApproveTimeoutMs / 1000}s</span>
-							</div>
-							<div className="text-vscode-descriptionForeground text-sm mt-1">
-								{t("settings:autoApprove.followupQuestions.timeoutLabel")}
-							</div>
-						</div>
-					</div>
-				)} */}
-
-				{alwaysAllowExecute && (
-					<div className="flex flex-col gap-3 pl-3 border-vscode-button-background">
-						<div className="flex items-center gap-4 font-bold">
-							<span className="codicon codicon-terminal" />
-							<div>{t("settings:autoApprove.execute.label")}</div>
-						</div>
-
-						<div>
-							<label className="block font-medium mb-1" data-testid="allowed-commands-heading">
-								{t("settings:autoApprove.execute.allowedCommands")}
-							</label>
-							<div className="text-vscode-descriptionForeground text-sm mt-1">
-								{t("settings:autoApprove.execute.allowedCommandsDescription")}
-							</div>
-						</div>
-
-						<div className="flex gap-2">
-							<Input
-								value={commandInput}
-								onChange={(e: any) => setCommandInput(e.target.value)}
-								onKeyDown={(e: any) => {
-									if (e.key === "Enter") {
-										e.preventDefault()
-										handleAddCommand()
-									}
-								}}
-								placeholder={t("settings:autoApprove.execute.commandPlaceholder")}
-								className="grow"
-								data-testid="command-input"
-							/>
-							<Button
-								className="h-8 bg-vscode-button-background text-vscode-button-foreground hover:bg-vscode-button-hoverBackground"
-								onClick={handleAddCommand}
-								data-testid="add-command-button">
-								{t("settings:autoApprove.execute.addButton")}
-							</Button>
-						</div>
-
-						<div className="flex flex-wrap gap-2">
-							{(allowedCommands ?? []).map((cmd, index) => (
-								<Button
-									key={index}
-									variant="secondary"
-									data-testid={`remove-command-${index}`}
-									onClick={() => {
-										const newCommands = (allowedCommands ?? []).filter((_, i) => i !== index)
-										setCachedStateField("allowedCommands", newCommands)
-										vscode.postMessage({ type: "allowedCommands", commands: newCommands })
-									}}>
-									<div className="flex flex-row items-center gap-1">
-										<div>{cmd}</div>
-										<X className="text-foreground scale-75" />
-									</div>
-								</Button>
-							))}
-						</div>
-
-						{/* Denied Commands Section */}
-						<div className="mt-6">
-							<label className="block font-medium mb-1" data-testid="denied-commands-heading">
-								{t("settings:autoApprove.execute.deniedCommands")}
-							</label>
-							<div className="text-vscode-descriptionForeground text-sm mt-1">
-								{t("settings:autoApprove.execute.deniedCommandsDescription")}
-							</div>
-						</div>
-
-						<div className="flex gap-2">
-							<Input
-								value={deniedCommandInput}
-								onChange={(e: any) => setDeniedCommandInput(e.target.value)}
-								onKeyDown={(e: any) => {
-									if (e.key === "Enter") {
-										e.preventDefault()
-										handleAddDeniedCommand()
-									}
-								}}
-								placeholder={t("settings:autoApprove.execute.deniedCommandPlaceholder")}
-								className="grow"
-								data-testid="denied-command-input"
-							/>
-							<Button
-								className="h-8 bg-vscode-button-background text-vscode-button-foreground hover:bg-vscode-button-hoverBackground"
-								onClick={handleAddDeniedCommand}
-								data-testid="add-denied-command-button">
-								{t("settings:autoApprove.execute.addButton")}
-							</Button>
-						</div>
-
-						<div className="flex flex-wrap gap-2">
-							{(deniedCommands ?? []).map((cmd, index) => (
-								<Button
-									key={index}
-									variant="secondary"
-									data-testid={`remove-denied-command-${index}`}
-									onClick={() => {
-										const newCommands = (deniedCommands ?? []).filter((_, i) => i !== index)
-										setCachedStateField("deniedCommands", newCommands)
-										vscode.postMessage({ type: "deniedCommands", commands: newCommands })
-									}}>
-									<div className="flex flex-row items-center gap-1">
-										<div>{cmd}</div>
-										<X className="text-foreground scale-75" />
-									</div>
-								</Button>
-							))}
-						</div>
-					</div>
-				)}
-			</Section>
+			)}
 		</div>
 	)
 }

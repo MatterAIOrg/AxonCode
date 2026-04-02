@@ -20,8 +20,7 @@ import {
 import { vscode } from "@/utils/vscode"
 import { buildDocLink } from "@/utils/docLinks"
 
-import { SectionHeader } from "./SectionHeader"
-import { Section } from "./Section"
+import { SettingsCard } from "./ui/SettingsCard"
 import { SlashCommandItem } from "../chat/SlashCommandItem"
 
 export const SlashCommandsSettings: React.FC = () => {
@@ -101,18 +100,14 @@ export const SlashCommandsSettings: React.FC = () => {
 	const projectCommands = commands?.filter((cmd) => cmd.source === "project") || []
 
 	return (
-		<div>
-			<SectionHeader>
-				<div className="flex items-center gap-2">
-					<SquareSlash className="w-4" />
-					<div>{t("settings:sections.slashCommands")}</div>
-				</div>
-			</SectionHeader>
-
-			<Section>
-				{/* Description section */}
-				<div className="mb-4">
-					<p className="text-sm text-vscode-descriptionForeground">
+		<>
+			<div className="flex flex-col gap-4">
+				<div>
+					<h3 className="text-sm font-medium text-vscode-foreground flex items-center gap-2 m-0 px-1 py-2">
+						<SquareSlash className="w-4" />
+						<span>{t("settings:sections.slashCommands")}</span>
+					</h3>
+					<div className="text-vscode-descriptionForeground text-xs px-1">
 						<Trans
 							i18nKey="settings:slashCommands.description"
 							components={{
@@ -127,113 +122,125 @@ export const SlashCommandsSettings: React.FC = () => {
 								),
 							}}
 						/>
-					</p>
+					</div>
 				</div>
 
 				{/* Global Commands Section */}
-				<div className="mb-6">
-					<div className="flex items-center gap-1.5 mb-2">
-						<Globe className="w-3 h-3" />
-						<h4 className="text-sm font-medium m-0">{t("chat:slashCommands.globalCommands")}</h4>
-					</div>
-					<div className="border border-vscode-panel-border rounded-md">
-						{globalCommands.map((command) => (
-							<SlashCommandItem
-								key={`global-${command.name}`}
-								command={command}
-								onDelete={handleDeleteClick}
-								onClick={handleCommandClick}
-							/>
-						))}
-						{/* New global command input */}
-						<div className="px-4 py-2 flex items-center gap-2 hover:bg-vscode-list-hoverBackground border-t border-vscode-panel-border">
-							<input
-								type="text"
-								value={globalNewName}
-								onChange={(e) => setGlobalNewName(e.target.value)}
-								placeholder={t("chat:slashCommands.newGlobalCommandPlaceholder")}
-								className="flex-1 bg-vscode-input-background text-vscode-input-foreground placeholder-vscode-input-placeholderForeground border border-vscode-input-border rounded px-2 py-1 text-sm focus:outline-none focus:border-vscode-focusBorder"
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										handleCreateCommand("global", globalNewName)
-									}
-								}}
-							/>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => handleCreateCommand("global", globalNewName)}
-								disabled={!globalNewName.trim()}
-								className="size-6 flex items-center justify-center opacity-60 hover:opacity-100">
-								<Plus className="w-4 h-4" />
-							</Button>
+				<div>
+					<SettingsCard>
+						<div className="flex flex-col">
+							<div className="px-4 py-3 flex items-center gap-2 border-b border-vscode-panel-border bg-vscode-settings-focusedRowBackground font-medium text-sm">
+								<Globe className="w-4 h-4" />
+								{t("chat:slashCommands.globalCommands")}
+							</div>
+							<div className="flex flex-col">
+								{globalCommands.map((command) => (
+									<SlashCommandItem
+										key={`global-${command.name}`}
+										command={command}
+										onDelete={handleDeleteClick}
+										onClick={handleCommandClick}
+									/>
+								))}
+								{/* New global command input */}
+								<div className="px-4 py-2 flex items-center gap-2 hover:bg-vscode-list-hoverBackground border-t border-vscode-panel-border">
+									<input
+										type="text"
+										value={globalNewName}
+										onChange={(e) => setGlobalNewName(e.target.value)}
+										placeholder={t("chat:slashCommands.newGlobalCommandPlaceholder")}
+										className="flex-1 bg-vscode-input-background text-vscode-input-foreground placeholder-vscode-input-placeholderForeground border border-vscode-input-border rounded px-2 py-1 text-sm focus:outline-none focus:border-vscode-focusBorder"
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												handleCreateCommand("global", globalNewName)
+											}
+										}}
+									/>
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() => handleCreateCommand("global", globalNewName)}
+										disabled={!globalNewName.trim()}
+										className="size-6 flex items-center justify-center opacity-60 hover:opacity-100">
+										<Plus className="w-4 h-4" />
+									</Button>
+								</div>
+							</div>
 						</div>
-					</div>
+					</SettingsCard>
 				</div>
 
 				{/* Workspace Commands Section - Only show if in a workspace */}
 				{hasWorkspace && (
-					<div className="mb-6">
-						<div className="flex items-center gap-1.5 mb-2">
-							<Folder className="w-3 h-3" />
-							<h4 className="text-sm font-medium m-0">{t("chat:slashCommands.workspaceCommands")}</h4>
-						</div>
-						<div className="border border-vscode-panel-border rounded-md">
-							{projectCommands.map((command) => (
-								<SlashCommandItem
-									key={`project-${command.name}`}
-									command={command}
-									onDelete={handleDeleteClick}
-									onClick={handleCommandClick}
-								/>
-							))}
-							{/* New workspace command input */}
-							<div className="px-4 py-2 flex items-center gap-2 hover:bg-vscode-list-hoverBackground border-t border-vscode-panel-border">
-								<input
-									type="text"
-									value={workspaceNewName}
-									onChange={(e) => setWorkspaceNewName(e.target.value)}
-									placeholder={t("chat:slashCommands.newWorkspaceCommandPlaceholder")}
-									className="flex-1 bg-vscode-input-background text-vscode-input-foreground placeholder-vscode-input-placeholderForeground border border-vscode-input-border rounded px-2 py-1 text-sm focus:outline-none focus:border-vscode-focusBorder"
-									onKeyDown={(e) => {
-										if (e.key === "Enter") {
-											handleCreateCommand("project", workspaceNewName)
-										}
-									}}
-								/>
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={() => handleCreateCommand("project", workspaceNewName)}
-									disabled={!workspaceNewName.trim()}
-									className="size-6 flex items-center justify-center opacity-60 hover:opacity-100">
-									<Plus className="w-4 h-4" />
-								</Button>
+					<div>
+						<SettingsCard>
+							<div className="flex flex-col">
+								<div className="px-4 py-3 flex items-center gap-2 border-b border-vscode-panel-border bg-vscode-settings-focusedRowBackground font-medium text-sm">
+									<Folder className="w-4 h-4" />
+									{t("chat:slashCommands.workspaceCommands")}
+								</div>
+								<div className="flex flex-col">
+									{projectCommands.map((command) => (
+										<SlashCommandItem
+											key={`project-${command.name}`}
+											command={command}
+											onDelete={handleDeleteClick}
+											onClick={handleCommandClick}
+										/>
+									))}
+									{/* New workspace command input */}
+									<div className="px-4 py-2 flex items-center gap-2 hover:bg-vscode-list-hoverBackground border-t border-vscode-panel-border">
+										<input
+											type="text"
+											value={workspaceNewName}
+											onChange={(e) => setWorkspaceNewName(e.target.value)}
+											placeholder={t("chat:slashCommands.newWorkspaceCommandPlaceholder")}
+											className="flex-1 bg-vscode-input-background text-vscode-input-foreground placeholder-vscode-input-placeholderForeground border border-vscode-input-border rounded px-2 py-1 text-sm focus:outline-none focus:border-vscode-focusBorder"
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													handleCreateCommand("project", workspaceNewName)
+												}
+											}}
+										/>
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() => handleCreateCommand("project", workspaceNewName)}
+											disabled={!workspaceNewName.trim()}
+											className="size-6 flex items-center justify-center opacity-60 hover:opacity-100">
+											<Plus className="w-4 h-4" />
+										</Button>
+									</div>
+								</div>
 							</div>
-						</div>
+						</SettingsCard>
 					</div>
 				)}
 
 				{/* Built-in Commands Section */}
 				{builtInCommands.length > 0 && (
-					<div className="mb-6">
-						<div className="flex items-center gap-1.5 mb-2">
-							<Settings className="w-3 h-3" />
-							<h4 className="text-sm font-medium m-0">{t("chat:slashCommands.builtInCommands")}</h4>
-						</div>
-						<div className="border border-vscode-panel-border rounded-md">
-							{builtInCommands.map((command) => (
-								<SlashCommandItem
-									key={`built-in-${command.name}`}
-									command={command}
-									onDelete={handleDeleteClick}
-									onClick={handleCommandClick}
-								/>
-							))}
-						</div>
+					<div>
+						<SettingsCard>
+							<div className="flex flex-col">
+								<div className="px-4 py-3 flex items-center gap-2 border-b border-vscode-panel-border bg-vscode-settings-focusedRowBackground font-medium text-sm">
+									<Settings className="w-4 h-4" />
+									{t("chat:slashCommands.builtInCommands")}
+								</div>
+								<div className="flex flex-col">
+									{builtInCommands.map((command) => (
+										<SlashCommandItem
+											key={`built-in-${command.name}`}
+											command={command}
+											onDelete={handleDeleteClick}
+											onClick={handleCommandClick}
+										/>
+									))}
+								</div>
+							</div>
+						</SettingsCard>
 					</div>
 				)}
-			</Section>
+			</div>
 
 			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
 				<AlertDialogContent>
@@ -253,6 +260,6 @@ export const SlashCommandsSettings: React.FC = () => {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-		</div>
+		</>
 	)
 }

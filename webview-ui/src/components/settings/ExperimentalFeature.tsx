@@ -1,5 +1,5 @@
-import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { SettingsRow, SettingsSwitch } from "./ui/SettingsCard"
 
 interface ExperimentalFeatureProps {
 	enabled: boolean
@@ -16,13 +16,8 @@ export const ExperimentalFeature = ({ enabled, onChange, experimentKey }: Experi
 	const descriptionKey = experimentKey ? `settings:experimental.${experimentKey}.description` : ""
 
 	return (
-		<div>
-			<div className="flex items-center gap-2">
-				<VSCodeCheckbox checked={enabled} onChange={(e: any) => onChange(e.target.checked)}>
-					<span className="font-medium">{t(nameKey)}</span>
-				</VSCodeCheckbox>
-			</div>
-			<p className="text-vscode-descriptionForeground text-sm mt-0">{t(descriptionKey)}</p>
-		</div>
+		<SettingsRow title={t(nameKey)} description={t(descriptionKey)}>
+			<SettingsSwitch checked={enabled} onChange={onChange} />
+		</SettingsRow>
 	)
 }

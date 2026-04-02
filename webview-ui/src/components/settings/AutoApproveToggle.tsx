@@ -1,8 +1,7 @@
 import type { GlobalSettings } from "@roo-code/types"
 
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { cn } from "@/lib/utils"
-import { Button, StandardTooltip } from "@/components/ui"
+import { SettingsCard, SettingsRow, SettingsSwitch } from "./ui/SettingsCard"
 
 type AutoApproveToggles = Pick<
 	GlobalSettings,
@@ -109,26 +108,20 @@ export const AutoApproveToggle = ({ onToggle, ...props }: AutoApproveToggleProps
 	const { t } = useAppTranslation()
 
 	return (
-		<div className={cn("flex flex-row flex-wrap gap-2 py-2")}>
-			{Object.values(autoApproveSettingsConfig).map(({ key, descriptionKey, labelKey, icon, testId }) => (
-				<StandardTooltip key={key} content={t(descriptionKey || "")}>
-					<Button
-						variant={props[key] ? "default" : "outline"}
-						onClick={() => onToggle(key, !props[key])}
-						aria-label={t(labelKey)}
-						aria-pressed={!!props[key]}
-						data-testid={testId}
-						className={cn(
-							"h-7 px-2 rounded-md flex items-center gap-1.5 text-xs whitespace-nowrap",
-							props[key]
-								? "bg-vscode-button-background text-vscode-button-foreground hover:bg-vscode-button-hoverBackground"
-								: "opacity-50",
-						)}>
-						<span className={`codicon codicon-${icon} text-sm`} />
-						<span>{t(labelKey)}</span>
-					</Button>
-				</StandardTooltip>
+		<SettingsCard className="mt-4">
+			{Object.values(autoApproveSettingsConfig).map(({ key, descriptionKey, labelKey, icon }) => (
+				<SettingsRow
+					key={key}
+					title={
+						<div className="flex items-center gap-2">
+							<span className={`codicon codicon-${icon}`} />
+							{t(labelKey)}
+						</div>
+					}
+					description={t(descriptionKey || "")}>
+					<SettingsSwitch checked={!!props[key]} onChange={() => onToggle(key, !props[key])} />
+				</SettingsRow>
 			))}
-		</div>
+		</SettingsCard>
 	)
 }
