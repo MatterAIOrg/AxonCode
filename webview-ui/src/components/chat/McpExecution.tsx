@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useMemo, useState, memo } from "react"
-import { Server, ChevronDown, ChevronRight } from "lucide-react"
-import { useEvent } from "react-use"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { ChevronDown, ChevronRight } from "lucide-react"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useEvent } from "react-use"
 
 import { McpExecutionStatus, mcpExecutionStatusSchema } from "@roo-code/types"
-import { ExtensionMessage, ClineAskUseMcpServer } from "../../../../src/shared/ExtensionMessage"
-import { safeJsonParse } from "../../../../src/shared/safeJsonParse"
-import { cn } from "@src/lib/utils"
 import { Button } from "@src/components/ui"
+import { cn } from "@src/lib/utils"
+import { vscode } from "@src/utils/vscode"
+import { ClineAskUseMcpServer, ExtensionMessage } from "../../../../src/shared/ExtensionMessage"
+import { safeJsonParse } from "../../../../src/shared/safeJsonParse"
 import CodeBlock from "../kilocode/common/CodeBlock" // kilocode_change
-import McpToolRow from "../mcp/McpToolRow"
-import { Markdown } from "./Markdown"
 
 interface McpExecutionProps {
 	executionId: string
@@ -120,6 +120,36 @@ export const McpExecution = ({
 	const formattedArgumentsText = argumentsData.formatted
 	const responseIsJson = responseData.isJson
 
+	// Get tool info
+	const toolInfo = useMemo(() => {
+		if (!useMcpServer?.toolName || !server?.tools) return null
+		return server.tools.find((t) => t.name === useMcpServer.toolName)
+	}, [useMcpServer?.toolName, server?.tools])
+
+	const isAlwaysAllowed = toolInfo?.alwaysAllow ?? false
+
+	// Handle allowlist toggle
+	const handleAllowlistTool = useCallback(() => {
+		if (!useMcpServer?.serverName || !useMcpServer?.toolName) return
+		vscode.postMessage({
+			type: "toggleToolAlwaysAllow",
+			serverName: useMcpServer.serverName,
+			source: server?.source || "global",
+			toolName: useMcpServer.toolName,
+			alwaysAllow: !isAlwaysAllowed,
+		})
+	}, [useMcpServer?.serverName, useMcpServer?.toolName, server?.source, isAlwaysAllowed])
+
+	// Parse arguments for display
+	const parsedArgs = useMemo(() => {
+		if (!formattedArgumentsText) return null
+		try {
+			return JSON.parse(formattedArgumentsText)
+		} catch {
+			return null
+		}
+	}, [formattedArgumentsText])
+
 	const onToggleResponseExpand = useCallback(() => {
 		setIsResponseExpanded(!isResponseExpanded)
 	}, [isResponseExpanded])
@@ -136,8 +166,11 @@ export const McpExecution = ({
 					if (result.success) {
 						const data = result.data
 
+						// Use executionId from useMcpServer if available, otherwise fall back to prop
+						const effectiveExecutionId = useMcpServer?.executionId || executionId
+
 						// Only update if this message is for our response
-						if (data.executionId === executionId) {
+						if (data.executionId === effectiveExecutionId) {
 							setStatus(data)
 
 							if (data.status === "output" && data.response) {
@@ -152,7 +185,7 @@ export const McpExecution = ({
 				}
 			}
 		},
-		[executionId],
+		[executionId, useMcpServer?.executionId],
 	)
 
 	useEvent("message", onMessage)
@@ -178,13 +211,105 @@ export const McpExecution = ({
 		}
 	}, [text, useMcpServer, initialServerName, initialToolName, serverName, toolName, isArguments])
 
+	// For use_mcp_tool, render a flat card layout matching the design
+	if (useMcpServer?.type === "use_mcp_tool") {
+		return (
+			<>
+				{/* Title: Run {ToolName} in {ServerName} */}
+				<div className="flex items-center gap-2 mb-1.5">
+					<span className="text-vscode-foreground">
+						Run {useMcpServer.toolName} in {useMcpServer.serverName}
+					</span>
+				</div>
+
+				{/* Parameters display - dark inner box */}
+				<div className="bg-vscode-input-background py-1.5 px-2 rounded-md flex flex-col gap-1">
+					{parsedArgs && Object.keys(parsedArgs).length > 0 ? (
+						Object.entries(parsedArgs).map(([key, value]) => (
+							<div key={key} className="flex items-baseline gap-1">
+								<span className="text-vscode-descriptionForeground text-sm shrink-0">{key}</span>
+								<span className="text-vscode-foreground text-sm font-medium break-all">
+									{typeof value === "string" ? value : JSON.stringify(value)}
+								</span>
+							</div>
+						))
+					) : (
+						<span className="text-vscode-descriptionForeground text-sm">No arguments</span>
+					)}
+				</div>
+
+				{/* Action bar - only show when pending (no status yet and no previous response) */}
+				{!status && !useMcpServer?.response && (
+					<div className="flex items-center justify-end mt-1">
+						<div className="flex items-center gap-2">
+							<span
+								className="text-vscode-descriptionForeground hover:text-vscode-foreground text-sm cursor-pointer"
+								onClick={() =>
+									vscode.postMessage({ type: "askResponse", askResponse: "noButtonClicked" })
+								}>
+								Skip
+							</span>
+							{alwaysAllowMcp && !isAlwaysAllowed && (
+								<VSCodeButton appearance="secondary" onClick={handleAllowlistTool}>
+									{t("tool.allowlistTool")}
+								</VSCodeButton>
+							)}
+							<VSCodeButton
+								appearance="primary"
+								onClick={() =>
+									vscode.postMessage({ type: "askResponse", askResponse: "yesButtonClicked" })
+								}>
+								Run
+							</VSCodeButton>
+						</div>
+					</div>
+				)}
+
+				{/* Status indicator - show after execution starts */}
+				{status && (
+					<div className="flex items-center gap-2 mt-2 text-xs font-mono">
+						<div
+							className={cn("rounded-full size-1.5", {
+								"bg-lime-400": status.status === "started" || status.status === "completed",
+								"bg-red-400": status.status === "error",
+							})}
+						/>
+						<span
+							className={cn({
+								"text-vscode-foreground": status.status === "started" || status.status === "completed",
+								"text-vscode-errorForeground": status.status === "error",
+							})}>
+							{status.status === "started"
+								? t("execution.running")
+								: status.status === "completed"
+									? t("execution.completed")
+									: t("execution.error")}
+						</span>
+						{status.status === "error" && "error" in status && status.error && (
+							<span className="text-vscode-errorForeground">({status.error})</span>
+						)}
+					</div>
+				)}
+
+				{/* Response section */}
+				<ResponseContainer
+					isExpanded={true}
+					response={formattedResponseText}
+					isJson={responseIsJson}
+					hasArguments={true}
+					isPartial={status ? status.status !== "completed" : false}
+				/>
+			</>
+		)
+	}
+
+	// For non-use_mcp_tool cases, keep the original collapsible layout
 	return (
 		<>
 			<div
 				className="flex flex-row items-center justify-between gap-2 mb-1 cursor-pointer select-none"
-				onClick={onToggleResponseExpand /* kilocode_change */}>
+				onClick={onToggleResponseExpand}>
 				<div className="flex flex-row items-center gap-1 flex-wrap">
-					<Server size={16} className="text-vscode-descriptionForeground" />
 					<div className="flex items-center gap-1 flex-wrap">
 						{serverName && <span className="font-bold text-vscode-foreground">{serverName}</span>}
 					</div>
@@ -217,7 +342,6 @@ export const McpExecution = ({
 							</div>
 						)}
 					</div>
-					{/* forked_change start - moved Chevron button */}
 					<Button
 						variant="ghost"
 						size="icon"
@@ -227,59 +351,18 @@ export const McpExecution = ({
 						}}>
 						{!isResponseExpanded ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
 					</Button>
-					{/* forked_change end - moved Chevron button */}
 				</div>
 			</div>
 
-			<div className={cn("w-full bg-vscode-editor-background rounded-xs p-2", !isResponseExpanded && "hidden")}>
-				{/* Tool information section */}
-				{useMcpServer?.type === "use_mcp_tool" && (
-					<div onClick={(e) => e.stopPropagation()}>
-						<McpToolRow
-							tool={{
-								name: useMcpServer.toolName || "",
-								description:
-									server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.description ||
-									"",
-								alwaysAllow:
-									server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.alwaysAllow ||
-									false,
-							}}
-							serverName={useMcpServer.serverName}
-							serverSource={server?.source}
-							alwaysAllowMcp={alwaysAllowMcp}
-							isInChatContext={true}
-						/>
-					</div>
-				)}
-				{!useMcpServer && toolName && serverName && (
-					<div onClick={(e) => e.stopPropagation()}>
-						<McpToolRow
-							tool={{
-								name: toolName || "",
-								description: "",
-								alwaysAllow: false,
-							}}
-							serverName={serverName}
-							serverSource={undefined}
-							alwaysAllowMcp={alwaysAllowMcp}
-							isInChatContext={true}
-						/>
-					</div>
-				)}
-
-				{/* Arguments section - display like command (always visible) */}
+			<div className={cn("w-full", !isResponseExpanded && "hidden")}>
+				{/* Arguments section */}
 				{(isArguments || useMcpServer?.arguments || argumentsText) && (
-					<div
-						className={cn({
-							"mt-1 pt-1":
-								!isArguments && (useMcpServer?.type === "use_mcp_tool" || (toolName && serverName)),
-						})}>
+					<div>
 						<CodeBlock source={formattedArgumentsText} language="json" />
 					</div>
 				)}
 
-				{/* Response section - use main collapse state for memory management */}
+				{/* Response section */}
 				<ResponseContainer
 					isExpanded={isResponseExpanded}
 					response={formattedResponseText}
@@ -297,9 +380,9 @@ McpExecution.displayName = "McpExecution"
 const ResponseContainerInternal = ({
 	isExpanded,
 	response,
-	isJson,
-	hasArguments,
-	isPartial = false,
+	// isJson,
+	// hasArguments,
+	// isPartial = false,
 }: {
 	isExpanded: boolean
 	response: string
@@ -317,20 +400,6 @@ const ResponseContainerInternal = ({
 			/>
 		)
 	}
-
-	return (
-		<div
-			className={cn("overflow-hidden", {
-				"max-h-96 overflow-y-auto mt-1 pt-1 border-t border-border/25": hasArguments,
-				"max-h-96 overflow-y-auto mt-1 pt-1": !hasArguments,
-			})}>
-			{isJson ? (
-				<CodeBlock source={response} language="json" />
-			) : (
-				<Markdown markdown={response} partial={isPartial} />
-			)}
-		</div>
-	)
 }
 
 const ResponseContainer = memo(ResponseContainerInternal)

@@ -28,6 +28,7 @@ import { searchFilesTool } from "../tools/searchFilesTool"
 import { getSimpleReadFileToolDescription, simpleReadFileTool } from "../tools/simpleReadFileTool"
 import { switchModeTool } from "../tools/switchModeTool"
 import { useMcpToolTool } from "../tools/useMcpToolTool"
+import { mcpAuthenticateTool } from "../tools/mcpAuthenticateTool"
 import { writeToFileTool } from "../tools/writeToFileTool"
 
 import { generateImageTool } from "../tools/generateImageTool"
@@ -229,6 +230,8 @@ export async function presentAssistantMessage(cline: Task) {
 					case "browser_action":
 						return `[${block.name} for '${block.params.action}']`
 					case "use_mcp_tool":
+						return `[${block.name} for '${block.params.server_name}']`
+					case "mcp_authenticate":
 						return `[${block.name} for '${block.params.server_name}']`
 					case "access_mcp_resource":
 						return `[${block.name} for '${block.params.server_name}']`
@@ -600,6 +603,9 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				case "use_mcp_tool":
 					await useMcpToolTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+					break
+				case "mcp_authenticate":
+					await mcpAuthenticateTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
 				case "access_mcp_resource":
 					await accessMcpResourceTool(

@@ -68,6 +68,45 @@
 		border-radius: 6px !important;
 		border: none !important;
 	}
+
+	/* MatterAI.so Button Styles - Primary CTA */
+	vscode-button.appearance-primary-matterai,
+	vscode-button.appearance-primary-matterai::part(control) {
+		background: linear-gradient(
+			135deg,
+			var(--color-matterai-accent, #c4fdff) 0%,
+			var(--color-matterai-green, #8bf4f7) 100%
+		) !important;
+		color: #000000 !important;
+		font-weight: 600 !important;
+		border-radius: 8px !important;
+		border: none !important;
+		padding: 12px 24px !important;
+		transition: all 0.2s ease-in-out !important;
+	}
+
+	vscode-button.appearance-primary-matterai:hover::part(control) {
+		opacity: 0.9;
+		transform: translateY(-1px);
+	}
+
+	/* MatterAI.so Button Styles - Secondary/Outline */
+	vscode-button.appearance-secondary-matterai,
+	vscode-button.appearance-secondary-matterai::part(control) {
+		background: transparent !important;
+		color: var(--color-matterai-subheading, #a3a3a3) !important;
+		font-weight: 500 !important;
+		border-radius: 8px !important;
+		border: 1px solid var(--color-matterai-border-subtle, #262626) !important;
+		padding: 12px 24px !important;
+		transition: all 0.2s ease-in-out !important;
+	}
+
+	vscode-button.appearance-secondary-matterai:hover::part(control) {
+		background: rgba(255, 255, 255, 0.05) !important;
+		border-color: var(--color-matterai-subheading, #a3a3a3) !important;
+		color: var(--color-matterai-heading, #ffffff) !important;
+	}
 }
 
 @theme {
@@ -200,6 +239,17 @@
 	--color-matterai-yellow: #fff0ac;
 	--color-matterai-blue-dark: #1a3b59;
 	--color-matterai-background-dark: #15181c;
+
+	/* MatterAI.so Theme Colors */
+	--color-matterai-heading: #ffffff;
+	--color-matterai-subheading: #a3a3a3;
+	--color-matterai-text-secondary: #737373;
+	--color-matterai-text-muted: #525252;
+	--color-matterai-surface: #0a0a0a;
+	--color-matterai-surface-elevated: #141414;
+	--color-matterai-border-subtle: #262626;
+	--color-matterai-accent: #c4fdff;
+	--color-matterai-accent-hover: #8bf4f7;
 }
 
 @layer base {

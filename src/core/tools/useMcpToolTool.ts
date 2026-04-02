@@ -4,13 +4,13 @@ import { formatResponse } from "../prompts/responses"
 import { ClineAskUseMcpServer } from "../../shared/ExtensionMessage"
 import { McpExecutionStatus } from "@roo-code/types"
 import { t } from "../../i18n"
-import { McpToolCallResponse } from "../../shared/mcp" // kilocode_change
+import { McpToolCallResponse, McpAuthError } from "../../shared/mcp" // kilocode_change
 import { summarizeSuccessfulMcpOutputWhenTooLong } from "./kilocode" // kilocode_change
 
 interface McpToolParams {
 	server_name?: string
 	tool_name?: string
-	arguments?: string
+	arguments?: string | Record<string, unknown>
 }
 
 type ValidationResult =
@@ -27,11 +27,26 @@ async function handlePartialRequest(
 	params: McpToolParams,
 	removeClosingTag: RemoveClosingTag,
 ): Promise<void> {
+	// Always include arguments field (even if empty object)
+	// Handle both string (from XML) and object (from native function calling)
+	let argumentsString: string
+	if (typeof params.arguments === "string") {
+		argumentsString = removeClosingTag("arguments", params.arguments) || "{}"
+	} else if (typeof params.arguments === "object" && params.arguments !== null) {
+		argumentsString = JSON.stringify(params.arguments)
+	} else {
+		argumentsString = "{}"
+	}
+
+	// Generate executionId early for consistent tracking
+	const executionId = cline.lastMessageTs?.toString() ?? Date.now().toString()
+
 	const partialMessage = JSON.stringify({
 		type: "use_mcp_tool",
 		serverName: removeClosingTag("server_name", params.server_name),
 		toolName: removeClosingTag("tool_name", params.tool_name),
-		arguments: removeClosingTag("arguments", params.arguments),
+		arguments: argumentsString,
+		executionId,
 	} satisfies ClineAskUseMcpServer)
 
 	await cline.ask("use_mcp_server", partialMessage, true).catch(() => {})
@@ -56,11 +71,21 @@ async function validateParams(
 		return { isValid: false }
 	}
 
-	let parsedArguments: Record<string, unknown> | undefined
+	let parsedArguments: Record<string, unknown> = {}
 
 	if (params.arguments) {
 		try {
-			parsedArguments = JSON.parse(params.arguments)
+			// Handle both string (from XML) and object (from native function calling)
+			if (typeof params.arguments === "string") {
+				const parsed = JSON.parse(params.arguments)
+				if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+					parsedArguments = parsed
+				}
+			} else if (typeof params.arguments === "object") {
+				// Already parsed (from native function calling)
+				parsedArguments = params.arguments
+			}
+			console.log("[MCP Debug] validateParams - parsed arguments:", parsedArguments)
 		} catch (error) {
 			cline.consecutiveMistakeCount++
 			cline.recordToolError("use_mcp_tool")
@@ -239,42 +264,75 @@ async function executeToolAndProcessResult(
 		toolName,
 	})
 
-	const toolResult = await cline.providerRef.deref()?.getMcpHub()?.callTool(serverName, toolName, parsedArguments)
+	// Debug logging
+	console.log("[MCP Debug] Executing tool:", toolName, "on server:", serverName)
+	console.log("[MCP Debug] Arguments:", JSON.stringify(parsedArguments, null, 2))
 
-	let toolResultPretty = "(No response)"
+	try {
+		console.log("[MCP Debug] About to call callTool with:", { serverName, toolName, parsedArguments })
+		const toolResult = await cline.providerRef.deref()?.getMcpHub()?.callTool(serverName, toolName, parsedArguments)
+		console.log("[MCP Debug] callTool result:", toolResult)
 
-	if (toolResult) {
-		// kilocode_change: await, add api parameter
-		const outputText = await processToolContent(cline, toolResult)
+		let toolResultPretty = "(No response)"
 
-		if (outputText) {
+		if (toolResult) {
+			// kilocode_change: await, add api parameter
+			const outputText = await processToolContent(cline, toolResult)
+
+			if (outputText) {
+				await sendExecutionStatus(cline, {
+					executionId,
+					status: "output",
+					response: outputText,
+				})
+
+				toolResultPretty = (toolResult.isError ? "Error:\n" : "") + outputText
+			}
+
+			// Send completion status
 			await sendExecutionStatus(cline, {
 				executionId,
-				status: "output",
-				response: outputText,
+				status: toolResult.isError ? "error" : "completed",
+				response: toolResultPretty,
+				error: toolResult.isError ? "Error executing MCP tool" : undefined,
 			})
-
-			toolResultPretty = (toolResult.isError ? "Error:\n" : "") + outputText
+		} else {
+			// Send error status if no result
+			await sendExecutionStatus(cline, {
+				executionId,
+				status: "error",
+				error: "No response from MCP server",
+			})
 		}
 
-		// Send completion status
-		await sendExecutionStatus(cline, {
-			executionId,
-			status: toolResult.isError ? "error" : "completed",
-			response: toolResultPretty,
-			error: toolResult.isError ? "Error executing MCP tool" : undefined,
-		})
-	} else {
-		// Send error status if no result
-		await sendExecutionStatus(cline, {
-			executionId,
-			status: "error",
-			error: "No response from MCP server",
-		})
-	}
+		await cline.say("mcp_server_response", toolResultPretty)
+		pushToolResult(formatResponse.toolResult(toolResultPretty))
+	} catch (error) {
+		// Handle authentication errors specially
+		if (error instanceof McpAuthError) {
+			const authMessage = `The MCP server "${error.serverName}" requires authentication.
 
-	await cline.say("mcp_server_response", toolResultPretty)
-	pushToolResult(formatResponse.toolResult(toolResultPretty))
+To authenticate with this server, use the mcp_authenticate tool:
+<mcp_authenticate>
+<server_name>${error.serverName}</server_name>
+</mcp_authenticate>
+
+This will initiate the OAuth flow and provide you with an authorization URL to complete authentication in your browser.`
+
+			await sendExecutionStatus(cline, {
+				executionId,
+				status: "error",
+				error: `Authentication required for ${error.serverName}`,
+			})
+
+			await cline.say("mcp_server_response", authMessage)
+			pushToolResult(formatResponse.toolError(authMessage))
+			return
+		}
+
+		// Re-throw other errors to be handled by the outer try-catch
+		throw error
+	}
 }
 
 export async function useMcpToolTool(
@@ -286,11 +344,13 @@ export async function useMcpToolTool(
 	removeClosingTag: RemoveClosingTag,
 ) {
 	try {
+		console.log("[MCP Debug] useMcpToolTool - raw block.params:", block.params)
 		const params: McpToolParams = {
 			server_name: block.params.server_name,
 			tool_name: block.params.tool_name,
 			arguments: block.params.arguments,
 		}
+		console.log("[MCP Debug] useMcpToolTool - extracted params:", params)
 
 		// Handle partial requests
 		if (block.partial) {
@@ -315,15 +375,28 @@ export async function useMcpToolTool(
 		// Reset mistake count on successful validation
 		cline.consecutiveMistakeCount = 0
 
-		// Get user approval
+		// Get user approval - always include arguments field (even if empty object)
+		// Handle both string (from XML) and object (from native function calling)
+		let argumentsString: string
+		if (typeof params.arguments === "string") {
+			argumentsString = params.arguments || "{}"
+		} else if (typeof params.arguments === "object" && params.arguments !== null) {
+			argumentsString = JSON.stringify(params.arguments)
+		} else {
+			argumentsString = "{}"
+		}
+
+		// Generate executionId for consistent tracking throughout the tool execution lifecycle
+		const executionId = Date.now().toString()
+
 		const completeMessage = JSON.stringify({
 			type: "use_mcp_tool",
 			serverName,
 			toolName,
-			arguments: params.arguments,
+			arguments: argumentsString,
+			executionId,
 		} satisfies ClineAskUseMcpServer)
 
-		const executionId = cline.lastMessageTs?.toString() ?? Date.now().toString()
 		const didApprove = await askApproval("use_mcp_server", completeMessage)
 
 		if (!didApprove) {

@@ -22,17 +22,21 @@ import { t } from "../../i18n"
 import { ClineProvider } from "../../core/webview/ClineProvider"
 import { GlobalFileNames } from "../../shared/globalFileNames"
 import {
+	McpAuthError,
 	McpResource,
 	McpResourceResponse,
 	McpResourceTemplate,
 	McpServer,
 	McpTool,
 	McpToolCallResponse,
+	McpOAuthConfig,
+	McpOAuthTokens,
 } from "../../shared/mcp"
 import { fileExistsAtPath } from "../../utils/fs"
 import { arePathsEqual, getWorkspacePath } from "../../utils/path"
 import { injectVariables } from "../../utils/config"
 import { NotificationService } from "./kilocode/NotificationService"
+import { McpOAuthProvider } from "./oauth-provider"
 
 // Discriminated union for connection states
 export type ConnectedMcpConnection = {
@@ -49,13 +53,34 @@ export type DisconnectedMcpConnection = {
 	transport: null
 }
 
-export type McpConnection = ConnectedMcpConnection | DisconnectedMcpConnection
+export type NeedsAuthMcpConnection = {
+	type: "needs-auth"
+	server: McpServer
+	client: null
+	transport: null
+	authUrl?: string
+	authState?: string
+}
+
+export type McpConnection = ConnectedMcpConnection | DisconnectedMcpConnection | NeedsAuthMcpConnection
 
 // Enum for disable reasons
 export enum DisableReason {
 	MCP_DISABLED = "mcpDisabled",
 	SERVER_DISABLED = "serverDisabled",
 }
+
+// OAuth configuration schema for URL-based servers
+const OAuthConfigSchema = z
+	.object({
+		clientId: z.string().optional(),
+		clientSecret: z.string().optional(),
+		callbackPort: z.number().min(1024).max(65535).optional(),
+		authServerMetadataUrl: z.string().url().optional(),
+		scopes: z.array(z.string()).optional(),
+		xaa: z.boolean().optional(),
+	})
+	.optional()
 
 // Base configuration schema for common settings
 const BaseConfigSchema = z.object({
@@ -92,6 +117,7 @@ const createServerTypeSchema = () => {
 			// Ensure no URL-based fields are present
 			url: z.undefined().optional(),
 			headers: z.undefined().optional(),
+			oauth: z.undefined().optional(),
 		})
 			.transform((data) => ({
 				...data,
@@ -103,6 +129,7 @@ const createServerTypeSchema = () => {
 			type: z.enum(["sse", "streamable-http"]).optional(),
 			url: z.string().url("URL must be a valid URL format"),
 			headers: z.record(z.string()).optional(),
+			oauth: OAuthConfigSchema,
 			// Ensure no stdio fields are present
 			command: z.undefined().optional(),
 			args: z.undefined().optional(),
@@ -637,6 +664,57 @@ export class McpHub {
 				workspaceFolder: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "",
 			})) as typeof config
 
+			// For URL-based servers, check for stored OAuth tokens and inject them
+			if (configInjected.type === "streamable-http" || configInjected.type === "sse") {
+				const oauthProvider = this.getOAuthProvider()
+				if (oauthProvider) {
+					try {
+						const tokens = await oauthProvider.getStoredTokens(name)
+						if (tokens && oauthProvider.isTokenValid(tokens)) {
+							// Inject the Bearer token into headers
+							configInjected.headers = {
+								...(configInjected.headers || {}),
+								Authorization: `Bearer ${tokens.accessToken}`,
+							}
+						} else if (tokens && tokens.refreshToken && oauthProvider.needsRefresh(tokens)) {
+							// Try to refresh the token
+							try {
+								const newTokens = await oauthProvider.refreshTokens(name, tokens.refreshToken)
+								configInjected.headers = {
+									...(configInjected.headers || {}),
+									Authorization: `Bearer ${newTokens.accessToken}`,
+								}
+							} catch (refreshError) {
+								console.warn(`Failed to refresh token for ${name}, will need re-auth:`, refreshError)
+								// Mark connection as needing auth
+								const needsAuthConnection: NeedsAuthMcpConnection = {
+									type: "needs-auth",
+									server: {
+										name,
+										config: JSON.stringify(configInjected),
+										status: "needs-auth",
+										disabled: configInjected.disabled,
+										source,
+										projectPath:
+											source === "project"
+												? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+												: undefined,
+										errorHistory: [],
+									},
+									client: null,
+									transport: null,
+								}
+								this.connections.push(needsAuthConnection)
+								await this.notifyWebviewOfServerChanges()
+								return
+							}
+						}
+					} catch (error) {
+						console.warn(`Error checking OAuth tokens for ${name}:`, error)
+					}
+				}
+			}
+
 			if (configInjected.type === "stdio") {
 				// On Windows, wrap commands with cmd.exe to handle non-exe executables like npx.ps1
 				// This is necessary for node version managers (fnm, nvm-windows, volta) that implement
@@ -649,10 +727,62 @@ export class McpHub {
 					configInjected.command.toLowerCase() === "cmd.exe" || configInjected.command.toLowerCase() === "cmd"
 
 				const command = isWindows && !isAlreadyWrapped ? "cmd.exe" : configInjected.command
-				const args =
+				let args =
 					isWindows && !isAlreadyWrapped
 						? ["/c", configInjected.command, ...(configInjected.args || [])]
-						: configInjected.args
+						: [...(configInjected.args || [])]
+
+				// Check if this is an mcp-remote wrapper and inject OAuth token if available
+				const mcpRemoteCheck = this.isMcpRemoteWrapper(configInjected)
+				if (mcpRemoteCheck.isWrapper && mcpRemoteCheck.remoteUrl) {
+					const oauthProvider = this.getOAuthProvider()
+					if (oauthProvider) {
+						try {
+							const tokens = await oauthProvider.getStoredTokens(name)
+							if (tokens && oauthProvider.isTokenValid(tokens)) {
+								// Inject the Bearer token via --header flag for mcp-remote
+								// mcp-remote supports: --header "Authorization: Bearer ${AUTH_TOKEN}"
+								args.push("--header", `Authorization: Bearer ${tokens.accessToken}`)
+								console.log(`Injecting OAuth token into mcp-remote for ${name}`)
+							} else if (tokens && tokens.refreshToken && oauthProvider.needsRefresh(tokens)) {
+								// Try to refresh the token
+								try {
+									const newTokens = await oauthProvider.refreshTokens(name, tokens.refreshToken)
+									args.push("--header", `Authorization: Bearer ${newTokens.accessToken}`)
+									console.log(`Refreshed and injected OAuth token into mcp-remote for ${name}`)
+								} catch (refreshError) {
+									console.warn(
+										`Failed to refresh token for ${name}, will need re-auth:`,
+										refreshError,
+									)
+									// Mark connection as needing auth
+									const needsAuthConnection: NeedsAuthMcpConnection = {
+										type: "needs-auth",
+										server: {
+											name,
+											config: JSON.stringify(configInjected),
+											status: "needs-auth",
+											disabled: configInjected.disabled,
+											source,
+											projectPath:
+												source === "project"
+													? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+													: undefined,
+											errorHistory: [],
+										},
+										client: null,
+										transport: null,
+									}
+									this.connections.push(needsAuthConnection)
+									await this.notifyWebviewOfServerChanges()
+									return
+								}
+							}
+						} catch (error) {
+							console.warn(`Error checking OAuth tokens for mcp-remote ${name}:`, error)
+						}
+					}
+				}
 
 				const client = new Client(
 					{
@@ -1166,6 +1296,31 @@ export class McpHub {
 			if (source && conn.server.source !== source) return true
 			return false
 		})
+	}
+
+	/**
+	 * Reconnects a server after OAuth authentication.
+	 * This deletes the existing connection and reconnects with fresh tokens.
+	 */
+	async reconnectServer(name: string, source?: "global" | "project"): Promise<void> {
+		// Find the server configuration before deleting
+		const connection = this.findConnection(name, source)
+		if (!connection) {
+			throw new Error(`Server "${name}" not found`)
+		}
+
+		// Store the config before deletion
+		const config = JSON.parse(connection.server.config)
+		const connectionSource = connection.server.source
+
+		// Delete the existing connection
+		await this.deleteConnection(name, connectionSource)
+
+		// Reconnect to the server (this will pick up new OAuth tokens)
+		await this.connectToServer(name, config, connectionSource)
+
+		// Notify webview of the reconnection
+		await this.notifyWebviewOfServerChanges()
 	}
 
 	async updateServerConnections(
@@ -1732,11 +1887,24 @@ export class McpHub {
 		source?: "global" | "project",
 	): Promise<McpToolCallResponse> {
 		const connection = this.findConnection(serverName, source)
-		if (!connection || connection.type !== "connected") {
+		if (!connection) {
 			throw new Error(
 				`No connection found for server: ${serverName}${source ? ` with source ${source}` : ""}. Please make sure to use MCP servers available under 'Connected MCP Servers'.`,
 			)
 		}
+
+		// Check if server needs authentication
+		if (connection.type === "needs-auth") {
+			throw new McpAuthError(
+				serverName,
+				`Server "${serverName}" requires authentication. Use the mcp_authenticate tool to initiate OAuth flow.`,
+			)
+		}
+
+		if (connection.type !== "connected") {
+			throw new Error(`Server "${serverName}" is not connected. Current status: ${connection.type}`)
+		}
+
 		if (connection.server.disabled) {
 			throw new Error(`Server "${serverName}" is disabled and cannot be used`)
 		}
@@ -1751,19 +1919,98 @@ export class McpHub {
 			timeout = 60 * 1000
 		}
 
-		return await connection.client.request(
-			{
-				method: "tools/call",
-				params: {
-					name: toolName,
-					arguments: toolArguments,
+		try {
+			console.log("[MCP Debug] callTool - sending request:", {
+				name: toolName,
+				arguments: toolArguments,
+			})
+			return await connection.client.request(
+				{
+					method: "tools/call",
+					params: {
+						name: toolName,
+						arguments: toolArguments,
+					},
 				},
+				CallToolResultSchema,
+				{
+					timeout,
+				},
+			)
+		} catch (error: any) {
+			console.log("[MCP Debug] callTool - error:", error)
+			// Check for authentication errors (401 or specific MCP auth error)
+			if (this.isAuthenticationError(error)) {
+				// Update connection status to needs-auth
+				await this.handleAuthenticationError(serverName, source)
+				throw new McpAuthError(
+					serverName,
+					`Server "${serverName}" returned an authentication error. Use the mcp_authenticate tool to re-authenticate.`,
+				)
+			}
+			throw error
+		}
+	}
+
+	/**
+	 * Checks if an error is an authentication error
+	 */
+	private isAuthenticationError(error: any): boolean {
+		if (!error) return false
+
+		// Check for HTTP 401 status
+		if (error.status === 401 || error.statusCode === 401 || error.code === 401) {
+			return true
+		}
+
+		// Check for MCP-specific auth error codes
+		if (error.code === "Unauthorized" || error.code === "AUTH_REQUIRED") {
+			return true
+		}
+
+		// Check error message for auth-related keywords
+		const message = error.message?.toLowerCase() || ""
+		if (
+			message.includes("unauthorized") ||
+			message.includes("authentication required") ||
+			message.includes("authentication failed") ||
+			message.includes("invalid token") ||
+			message.includes("token expired")
+		) {
+			return true
+		}
+
+		return false
+	}
+
+	/**
+	 * Handles authentication errors by updating connection status
+	 */
+	private async handleAuthenticationError(serverName: string, source?: "global" | "project"): Promise<void> {
+		const connection = this.findConnection(serverName, source)
+		if (!connection) return
+
+		// Update connection to needs-auth status
+		const needsAuthConnection: NeedsAuthMcpConnection = {
+			type: "needs-auth",
+			server: {
+				...connection.server,
+				status: "needs-auth" as const,
 			},
-			CallToolResultSchema,
-			{
-				timeout,
-			},
+			client: null,
+			transport: null,
+		}
+
+		// Replace the connection in the array
+		const index = this.connections.findIndex(
+			(conn) => conn.server.name === serverName && (source ? conn.server.source === source : true),
 		)
+		if (index !== -1) {
+			this.connections[index] = needsAuthConnection
+		}
+
+		// Notify webview of the status change
+		await this.notifyWebviewOfServerChanges()
 	}
 
 	/**
@@ -1928,6 +2175,331 @@ export class McpHub {
 				console.error(`Failed to refresh MCP connections after enabling: ${error}`)
 				vscode.window.showErrorMessage(t("mcp:errors.refresh_after_enable"))
 			}
+		}
+	}
+
+	// =========================================
+	// OAuth Authentication Methods
+	// =========================================
+
+	/**
+	 * Gets the OAuth provider instance for token management
+	 */
+	private getOAuthProvider(): McpOAuthProvider | null {
+		const provider = this.providerRef.deref()
+		if (!provider) {
+			console.error("McpHub: Cannot get OAuth provider")
+			return null
+		}
+		return new McpOAuthProvider(provider.context)
+	}
+
+	/**
+	 * Checks if a server configuration supports OAuth authentication.
+	 * Only SSE and streamable-http servers can support OAuth.
+	 */
+	public supportsOAuth(serverName: string, source?: "global" | "project"): boolean {
+		const connection = this.findConnection(serverName, source)
+		if (!connection) return false
+
+		try {
+			const config = JSON.parse(connection.server.config)
+			// Check if it's a URL-based server (sse or streamable-http)
+			if (config.type !== "sse" && config.type !== "streamable-http") {
+				return false
+			}
+			// Has OAuth configuration
+			return !!config.oauth || !!config.url
+		} catch {
+			return false
+		}
+	}
+
+	/**
+	 * Checks if a server currently needs authentication.
+	 */
+	public needsAuthentication(serverName: string, source?: "global" | "project"): boolean {
+		const connection = this.findConnection(serverName, source)
+		return connection?.type === "needs-auth"
+	}
+
+	/**
+	 * Detects if a stdio server is using mcp-remote as a wrapper.
+	 * mcp-remote is a tool that bridges stdio to remote HTTP MCP servers.
+	 */
+	private isMcpRemoteWrapper(serverConfig: any): { isWrapper: boolean; remoteUrl?: string } {
+		if (serverConfig.type && serverConfig.type !== "stdio") {
+			return { isWrapper: false }
+		}
+
+		// Check if command is npx and args contain mcp-remote with a URL
+		const command = serverConfig.command || ""
+		const args = serverConfig.args || []
+
+		// Check for npx -y mcp-remote <url> pattern
+		if (command === "npx" || command === "npx") {
+			const argsStr = args.join(" ")
+			// Look for mcp-remote followed by a URL
+			const mcpRemoteMatch = argsStr.match(/mcp-remote\s+(https?:\/\/[^\s]+)/)
+			if (mcpRemoteMatch) {
+				return { isWrapper: true, remoteUrl: mcpRemoteMatch[1] }
+			}
+		}
+
+		return { isWrapper: false }
+	}
+
+	/**
+	 * Starts the OAuth flow for a server that requires authentication.
+	 * Returns the authorization URL for the user to visit.
+	 */
+	public async startOAuthFlow(
+		serverName: string,
+		source?: "global" | "project",
+	): Promise<{
+		success: boolean
+		authUrl?: string
+		error?: string
+	}> {
+		const connection = this.findConnection(serverName, source)
+		if (!connection) {
+			return { success: false, error: `Server "${serverName}" not found` }
+		}
+
+		// Get server configuration
+		let serverConfig: any
+		try {
+			serverConfig = JSON.parse(connection.server.config)
+		} catch {
+			return { success: false, error: "Invalid server configuration" }
+		}
+
+		// Check if this is an mcp-remote wrapper for a remote server
+		const mcpRemoteCheck = this.isMcpRemoteWrapper(serverConfig)
+		const isMcpRemote = mcpRemoteCheck.isWrapper
+		const remoteUrl = mcpRemoteCheck.remoteUrl
+
+		// URL-based servers and mcp-remote wrappers support OAuth
+		if (serverConfig.type !== "sse" && serverConfig.type !== "streamable-http" && !isMcpRemote) {
+			return {
+				success: false,
+				error: "OAuth is only supported for SSE, streamable-http, and mcp-remote wrapped MCP servers",
+			}
+		}
+
+		// Get the server URL - either from config or from mcp-remote args
+		const serverUrl = serverConfig.url || remoteUrl
+		if (!serverUrl) {
+			return { success: false, error: "Server URL not configured" }
+		}
+
+		const oauthProvider = this.getOAuthProvider()
+		if (!oauthProvider) {
+			return { success: false, error: "OAuth provider not available" }
+		}
+
+		try {
+			// Get OAuth configuration from server config or discover from server
+			const oauthConfig: McpOAuthConfig = serverConfig.oauth || {}
+
+			// Start OAuth flow
+			const authUrl = await oauthProvider.startOAuthFlow({
+				serverName,
+				serverUrl,
+				clientId: oauthConfig.clientId,
+				clientSecret: oauthConfig.clientSecret,
+				scopes: oauthConfig.scopes,
+				callbackPort: oauthConfig.callbackPort,
+				authServerMetadataUrl: oauthConfig.authServerMetadataUrl,
+			})
+
+			// Update connection with auth URL
+			const index = this.connections.findIndex(
+				(conn) => conn.server.name === serverName && (source ? conn.server.source === source : true),
+			)
+			if (index !== -1) {
+				this.connections[index] = {
+					...this.connections[index],
+					type: "needs-auth",
+					server: {
+						...this.connections[index].server,
+						status: "needs-auth",
+						authUrl,
+						authState: "pending",
+					},
+				} as NeedsAuthMcpConnection
+			}
+
+			return { success: true, authUrl }
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			console.error(`Failed to start OAuth flow for ${serverName}:`, errorMessage)
+			return { success: false, error: errorMessage }
+		}
+	}
+
+	/**
+	 * Completes the OAuth flow after the user authorizes.
+	 * This is called by the URI handler when receiving the OAuth callback.
+	 */
+	public async completeOAuthFlow(
+		serverName: string,
+		code: string,
+		state: string,
+	): Promise<{ success: boolean; error?: string }> {
+		const connection = this.findConnection(serverName)
+		if (!connection) {
+			return { success: false, error: `Server "${serverName}" not found` }
+		}
+
+		const oauthProvider = this.getOAuthProvider()
+		if (!oauthProvider) {
+			return { success: false, error: "OAuth provider not available" }
+		}
+
+		try {
+			// Exchange authorization code for tokens
+			const tokens = await oauthProvider.completeOAuthFlow(serverName, code, state)
+
+			// Update connection status to connected and reconnect
+			const source = connection.server.source
+			const index = this.connections.findIndex(
+				(conn) => conn.server.name === serverName && (source ? conn.server.source === source : true),
+			)
+
+			if (index !== -1) {
+				// Remove the needs-auth connection and reconnect
+				this.connections.splice(index, 1)
+			}
+
+			// Reconnect the server with the new tokens
+			await this.connectServerWithTokens(serverName, source, tokens)
+
+			// Notify webview of the status change
+			await this.notifyWebviewOfServerChanges()
+
+			return { success: true }
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			console.error(`Failed to complete OAuth flow for ${serverName}:`, errorMessage)
+
+			// Update connection state to failed
+			const index = this.connections.findIndex((conn) => conn.server.name === serverName)
+			if (index !== -1) {
+				this.connections[index] = {
+					...this.connections[index],
+					type: "needs-auth",
+					server: {
+						...this.connections[index].server,
+						status: "needs-auth",
+						authState: "failed",
+						error: errorMessage,
+					},
+				} as NeedsAuthMcpConnection
+			}
+
+			return { success: false, error: errorMessage }
+		}
+	}
+
+	/**
+	 * Connects a server using stored OAuth tokens.
+	 */
+	private async connectServerWithTokens(
+		serverName: string,
+		source: "global" | "project" | undefined,
+		tokens: McpOAuthTokens,
+	): Promise<void> {
+		// Get the server configuration
+		const connection = this.connections.find(
+			(conn) => conn.server.name === serverName && (source ? conn.server.source === source : true),
+		)
+
+		if (!connection) {
+			throw new Error(`Server "${serverName}" not found`)
+		}
+
+		// Parse config and reconnect with tokens
+		const config = JSON.parse(connection.server.config)
+
+		// Add tokens to the transport headers
+		// This will be used by the transport layer for authentication
+		const headers: Record<string, string> = {
+			...config.headers,
+			Authorization: `Bearer ${tokens.accessToken}`,
+		}
+
+		// Update config with auth headers
+		config.headers = headers
+
+		// Delete the old connection
+		await this.deleteConnection(serverName, source || "global")
+
+		// Reconnect with the updated configuration
+		try {
+			await this.connectToServer(serverName, config, source || "global")
+		} catch (error) {
+			console.error(`Failed to reconnect server ${serverName} with tokens:`, error)
+			throw error
+		}
+	}
+
+	/**
+	 * Gets stored OAuth tokens for a server.
+	 */
+	public async getStoredTokens(serverName: string): Promise<McpOAuthTokens | null> {
+		const oauthProvider = this.getOAuthProvider()
+		if (!oauthProvider) return null
+
+		return oauthProvider.getStoredTokens(serverName)
+	}
+
+	/**
+	 * Checks if a server has valid stored tokens.
+	 */
+	public async hasValidTokens(serverName: string): Promise<boolean> {
+		const tokens = await this.getStoredTokens(serverName)
+		if (!tokens) return false
+
+		// Check if tokens are expired
+		if (tokens.expiresAt && tokens.expiresAt < Date.now()) {
+			return false
+		}
+
+		return true
+	}
+
+	/**
+	 * Clears stored OAuth tokens for a server.
+	 */
+	public async clearTokens(serverName: string): Promise<void> {
+		const oauthProvider = this.getOAuthProvider()
+		if (!oauthProvider) return
+
+		await oauthProvider.clearTokens(serverName)
+	}
+
+	/**
+	 * Refreshes expired tokens for a server.
+	 */
+	public async refreshTokens(serverName: string): Promise<McpOAuthTokens | null> {
+		const tokens = await this.getStoredTokens(serverName)
+		if (!tokens) return null
+
+		// Check if refresh is needed
+		if (!tokens.refreshToken || tokens.expiresAt > Date.now()) {
+			return tokens
+		}
+
+		const oauthProvider = this.getOAuthProvider()
+		if (!oauthProvider) return null
+
+		try {
+			const newTokens = await oauthProvider.refreshTokens(serverName, tokens.refreshToken)
+			return newTokens
+		} catch (error) {
+			console.error(`Failed to refresh tokens for ${serverName}:`, error)
+			return null
 		}
 	}
 

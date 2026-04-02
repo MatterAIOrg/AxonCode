@@ -619,6 +619,7 @@ export interface ClineAskUseMcpServer {
 	arguments?: string
 	uri?: string
 	response?: string
+	executionId?: string
 }
 
 export interface ClineApiReqInfo {

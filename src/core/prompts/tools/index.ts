@@ -27,6 +27,7 @@ import { getAskFollowupQuestionDescription } from "./ask-followup-question"
 import { getAttemptCompletionDescription } from "./attempt-completion"
 import { getUseMcpToolDescription } from "./use-mcp-tool"
 import { getAccessMcpResourceDescription } from "./access-mcp-resource"
+import { getMcpAuthenticateDescription } from "./mcp-authenticate"
 import { getSwitchModeDescription } from "./switch-mode"
 import { getNewTaskDescription } from "./new-task"
 import { getCodebaseSearchDescription } from "./codebase-search"
@@ -67,6 +68,7 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined 
 	attempt_completion: (args) => getAttemptCompletionDescription(args),
 	use_mcp_tool: (args) => getUseMcpToolDescription(args),
 	access_mcp_resource: (args) => getAccessMcpResourceDescription(args),
+	mcp_authenticate: (args) => getMcpAuthenticateDescription(args),
 	codebase_search: (args) => getCodebaseSearchDescription(args),
 	switch_mode: () => getSwitchModeDescription(),
 	new_task: (args) => getNewTaskDescription(args),
@@ -227,6 +229,7 @@ export {
 	getAttemptCompletionDescription,
 	getUseMcpToolDescription,
 	getAccessMcpResourceDescription,
+	getMcpAuthenticateDescription,
 	getSwitchModeDescription,
 	getInsertContentDescription,
 	getSearchAndReplaceDescription,

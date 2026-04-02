@@ -256,6 +256,7 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	browser_action: "use a browser",
 	use_mcp_tool: "use mcp tools",
 	access_mcp_resource: "access mcp resources",
+	mcp_authenticate: "authenticate mcp servers",
 	ask_followup_question: "ask questions",
 	attempt_completion: "complete tasks",
 	switch_mode: "switch modes",
@@ -322,7 +323,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 		tools: ["execute_command"],
 	},
 	mcp: {
-		tools: ["use_mcp_tool", "access_mcp_resource"],
+		tools: ["use_mcp_tool", "access_mcp_resource", "mcp_authenticate"],
 	},
 	modes: {
 		tools: ["switch_mode", "new_task"],

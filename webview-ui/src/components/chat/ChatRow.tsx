@@ -412,13 +412,7 @@ export const ChatRowContent = ({
 					return [null, null]
 				}
 				return [
-					isMcpServerResponding ? (
-						<ProgressIndicator />
-					) : (
-						<span
-							className="codicon codicon-server"
-							style={{ color: normalColor, marginBottom: "-1.5px" }}></span>
-					),
+					isMcpServerResponding ? <ProgressIndicator /> : null,
 					<span style={{ color: normalColor }}>
 						{mcpServerUse.type === "use_mcp_tool"
 							? t("chat:mcp.wantsToUseTool", { serverName: mcpServerUse.serverName })
@@ -1958,7 +1952,7 @@ export const ChatRowContent = ({
 								{icon}
 								{title}
 							</div>
-							<div className="w-full bg-vscode-editor-background border border-vscode-border rounded-xs p-2 mt-2">
+							<div className="w-full bg-vscode-editor-background border border-vscode-border rounded-lg px-2 py-1 mt-2">
 								{useMcpServer.type === "access_mcp_resource" && (
 									<McpResourceRow
 										item={{
@@ -1980,7 +1974,7 @@ export const ChatRowContent = ({
 								{useMcpServer.type === "use_mcp_tool" && (
 									<McpExecution
 										executionId={message.ts.toString()}
-										text={useMcpServer.arguments !== "{}" ? useMcpServer.arguments : undefined}
+										text={useMcpServer.arguments}
 										serverName={useMcpServer.serverName}
 										toolName={useMcpServer.toolName}
 										isArguments={true}

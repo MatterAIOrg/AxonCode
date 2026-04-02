@@ -19,6 +19,7 @@
 	"learnMoreEditingSettings": "Learn more about editing MCP settings files",
 	"tool": {
 		"alwaysAllow": "Always allow",
+		"allowlistTool": "Allowlist MCP Tool",
 		"parameters": "Parameters",
 		"noDescription": "No description",
 		"togglePromptInclusion": "Toggle inclusion in prompt"
