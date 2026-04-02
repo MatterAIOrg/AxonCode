@@ -12,8 +12,7 @@ import {
 	SetCachedStateField, // kilocode_change
 	SetExperimentEnabled,
 } from "./types"
-import { SectionHeader } from "./SectionHeader"
-import { Section } from "./Section"
+import { SettingsCard } from "./ui/SettingsCard"
 import { ExperimentalFeature } from "./ExperimentalFeature"
 import { FastApplySettings } from "./FastApplySettings" // kilocode_change: Use Fast Apply version
 import { ImageGenerationSettings } from "./ImageGenerationSettings"
@@ -61,14 +60,14 @@ export const ExperimentalSettings = ({
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)} {...props}>
-			<SectionHeader>
-				<div className="flex items-center gap-2">
+			<div className="ml-1 mt-2">
+				<h3 className="text-sm font-medium text-vscode-foreground flex items-center gap-2 m-0 px-1">
 					<FlaskConical className="w-4" />
-					<div>{t("settings:sections.experimental")}</div>
-				</div>
-			</SectionHeader>
+					<span>{t("settings:sections.experimental")}</span>
+				</h3>
+			</div>
 
-			<Section>
+			<SettingsCard>
 				{Object.entries(experimentConfigsMap)
 					.filter(([key]) => key in EXPERIMENT_IDS)
 					.filter((config) => config[0] !== "MARKETPLACE") // kilocode_change: we have our own market place, filter this out for now
@@ -150,7 +149,7 @@ export const ExperimentalSettings = ({
 							/>
 						)
 					})}
-			</Section>
+			</SettingsCard>
 		</div>
 	)
 }

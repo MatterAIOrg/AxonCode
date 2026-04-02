@@ -498,7 +498,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setSendingDisabled(isPartial)
 							setClineAsk("use_mcp_server")
 							setEnableButtons(!isPartial)
-							setPrimaryButtonText(t("chat:approve.title"))
+							setPrimaryButtonText(t("chat:runCommand.title"))
 							setSecondaryButtonText(t("chat:reject.title"))
 							break
 						case "completion_result":
@@ -1590,7 +1590,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// labeled as `user_feedback`.
 		if (lastMessage && messages.length > 1) {
 			if (
-				lastMessage.text && // has text
+				typeof lastMessage.text === "string" && // has text and is a string
 				(lastMessage.say === "text" || lastMessage.say === "completion_result") && // is a text message
 				!lastMessage.partial && // not a partial message
 				!lastMessage.text.startsWith("{") // not a json object
@@ -2615,7 +2615,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						{/* kilocode_change: Sticky user message - positioned outside Virtuoso for true sticky behavior */}
 						<div
 							ref={stickyHeaderRef}
-							className="absolute top-0 left-0 right-0 z-10 px-3 py-0.5 pointer-events-none">
+							className="absolute top-0 left-0 right-0 z-10 pl-3 pr-1 py-0.5 pointer-events-none">
 							<div className="pointer-events-auto">
 								<StickyUserMessage
 									task={task}

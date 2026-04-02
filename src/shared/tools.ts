@@ -59,6 +59,8 @@ export const toolParamNames = [
 	"replace",
 	"use_regex",
 	"ignore_case",
+	"operation",
+	"character",
 	// forked_change start
 	"title",
 	"description",
@@ -141,6 +143,11 @@ export interface ListCodeDefinitionNamesToolUse extends ToolUse {
 	params: Partial<Pick<Record<ToolParamName, string>, "path">>
 }
 
+export interface LspToolUse extends ToolUse {
+	name: "lsp"
+	params: Partial<Pick<Record<ToolParamName, string>, "operation" | "file_path" | "line" | "character">>
+}
+
 export interface BrowserActionToolUse extends ToolUse {
 	name: "browser_action"
 	params: Partial<Pick<Record<ToolParamName, string>, "action" | "url" | "coordinate" | "text" | "size">>
@@ -198,6 +205,11 @@ export interface FileEditToolUse extends ToolUse {
 		Partial<Pick<Record<ToolParamName, string>, "replace_all" | "target_file">>
 }
 
+export interface FileWriteToolUse extends ToolUse {
+	name: "file_write"
+	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "content" | "line_count">>
+}
+
 // forked_change start: Morph fast apply
 export interface EditFileToolUse extends ToolUse {
 	name: "edit_file"
@@ -235,13 +247,16 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	write_to_file: "write files",
 	apply_diff: "apply changes",
 	file_edit: "replace text in files",
+	file_write: "write new files",
 	edit_file: "edit file", // kilocode_change: Morph fast apply
 	search_files: "search files",
 	list_files: "list files",
 	list_code_definition_names: "list definitions",
+	lsp: "LSP code intelligence",
 	browser_action: "use a browser",
 	use_mcp_tool: "use mcp tools",
 	access_mcp_resource: "access mcp resources",
+	mcp_authenticate: "authenticate mcp servers",
 	ask_followup_question: "ask questions",
 	attempt_completion: "complete tasks",
 	switch_mode: "switch modes",
@@ -273,6 +288,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 			"search_files",
 			"list_files",
 			"list_code_definition_names",
+			"lsp",
 			"codebase_search",
 			"check_past_chat_memories",
 			"use_skill",
@@ -284,6 +300,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 		tools: [
 			"apply_diff",
 			"file_edit",
+			"file_write",
 			"edit_file", // kilocode_change: Morph fast apply
 			"write_to_file",
 			"insert_content",
@@ -306,7 +323,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 		tools: ["execute_command"],
 	},
 	mcp: {
-		tools: ["use_mcp_tool", "access_mcp_resource"],
+		tools: ["use_mcp_tool", "access_mcp_resource", "mcp_authenticate"],
 	},
 	modes: {
 		tools: ["switch_mode", "new_task"],

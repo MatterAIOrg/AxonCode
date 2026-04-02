@@ -82,6 +82,7 @@ import { getGitRepositoryInfo } from "../../utils/git"
 import { formatResponse } from "../prompts/responses"
 import { SYSTEM_PROMPT } from "../prompts/system"
 import { getAllowedJSONToolsForMode } from "../prompts/tools/native-tools/getAllowedJSONToolsForMode" // kilocode_change
+import type OpenAI from "openai" // forked_change: needed for MCP tool schema types
 
 // core modules
 import { ToolRepetitionDetector } from "../tools/ToolRepetitionDetector"
@@ -437,8 +438,24 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			TelemetryService.instance.captureTaskCreated(this.taskId)
 		}
 
-		// Initialize the assistant message parser.
-		this.assistantMessageParser = new AssistantMessageParser()
+		// Initialize the assistant message parser with MCP tool checker.
+		// forked_change: Pass MCP tool checker to handle native MCP tool calls
+		this.assistantMessageParser = new AssistantMessageParser((toolName: string) => {
+			const mcpHub = provider.getMcpHub()
+			if (!mcpHub) {
+				return undefined
+			}
+			const servers = mcpHub.getAllServers()
+			for (const server of servers) {
+				if (server.tools) {
+					const tool = server.tools.find((t) => t.name === toolName)
+					if (tool) {
+						return { isMcpTool: true, serverName: server.name }
+					}
+				}
+			}
+			return undefined
+		})
 
 		this.messageQueueService = new MessageQueueService()
 
@@ -3297,6 +3314,39 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					this.api?.getModel(),
 				)
 
+				// forked_change: Add MCP tools from connected servers as native tool schemas
+				// This ensures the LLM has proper parameter schemas for MCP tools,
+				// producing correct arguments instead of guessing from the system prompt.
+				try {
+					const mcpHub = provider?.getMcpHub()
+					if (mcpHub) {
+						const servers = mcpHub.getServers()
+						for (const server of servers) {
+							if (server.status === "connected" && server.tools) {
+								for (const tool of server.tools) {
+									if (tool.enabledForPrompt !== false) {
+										const mcpToolSchema: OpenAI.Chat.ChatCompletionTool = {
+											type: "function" as const,
+											function: {
+												name: tool.name,
+												description: tool.description || `MCP tool from ${server.name}`,
+												parameters: (tool.inputSchema as Record<string, unknown>) || {
+													type: "object",
+													properties: {},
+												},
+											},
+										}
+										allowedTools.push(mcpToolSchema)
+									}
+								}
+							}
+						}
+					}
+				} catch (mcpError) {
+					console.error("[Task] Error adding MCP tools to allowedTools:", mcpError)
+					// Continue without MCP tools - they can still be invoked via XML
+				}
+
 				metadata.allowedTools = allowedTools
 			} catch (error) {
 				console.error("[Task] Error getting allowed tools for mode:", error)
@@ -3648,8 +3698,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	 *
 	 * @param apiProvider - The API provider (e.g., "anthropic", "openrouter")
 	 * @param apiModelId - The model ID to use
+	 * @param thirdPartySelectedModel - Optional third-party model selection (e.g., "ollama:llama3.2:latest")
 	 */
-	public updateModel(apiProvider: string, apiModelId: string): void {
+	public updateModel(apiProvider: string, apiModelId: string, thirdPartySelectedModel?: string): void {
 		// Map provider to its model ID field
 		const modelFieldMap: Record<string, keyof ProviderSettings> = {
 			anthropic: "apiModelId",
@@ -3704,6 +3755,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			...this.apiConfiguration,
 			apiProvider,
 			[field]: apiModelId,
+			// Update or clear third-party model selection
+			thirdPartySelectedModel,
 		} as ProviderSettings
 
 		// Update the task's configuration (this is task-local, not global)

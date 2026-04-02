@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react"
-import { VSCodeCheckbox, VSCodeTextField, VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeTextField, VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { getAppUrl } from "@roo-code/types"
+import { SettingsRow, SettingsSwitch } from "./ui/SettingsCard"
 
 interface ImageGenerationSettingsProps {
 	enabled: boolean
@@ -89,141 +90,151 @@ export const ImageGenerationSettings = ({
 	}
 
 	return (
-		<div className="space-y-4">
-			<div>
-				<div className="flex items-center gap-2">
-					<VSCodeCheckbox checked={enabled} onChange={(e: any) => onChange(e.target.checked)}>
-						<span className="font-medium">{t("settings:experimental.IMAGE_GENERATION.name")}</span>
-					</VSCodeCheckbox>
+		<SettingsRow
+			title={t("settings:experimental.IMAGE_GENERATION.name")}
+			description={t("settings:experimental.IMAGE_GENERATION.description")}>
+			<div className="flex flex-col gap-4 w-full">
+				<div className="flex justify-end">
+					<SettingsSwitch checked={enabled} onChange={onChange} />
 				</div>
-				<p className="text-vscode-descriptionForeground text-sm mt-0">
-					{t("settings:experimental.IMAGE_GENERATION.description")}
-				</p>
-			</div>
 
-			{enabled && (
-				<div className="ml-2 space-y-3">
-					{/* API Key Configuration */}
+				{enabled && (
+					<div className="flex flex-col gap-4 mt-2 p-4 bg-vscode-settings-focusedRowBackground rounded-md">
+						{/* API Key Configuration */}
 
-					{
-						// forked_change start
-						<div>
-							<label className="block font-medium mb-1">
-								{t("settings:experimental.IMAGE_GENERATION.apiProvider")}
+						{
+							// forked_change start
+							<div className="flex items-center gap-2">
+								<label className="block font-medium w-1/3">
+									{t("settings:experimental.IMAGE_GENERATION.apiProvider")}
+								</label>
+								<VSCodeDropdown
+									value={isUsingOpenRouter ? "openrouter" : "kilocode"}
+									onChange={(e: any) => {
+										setIsUsingOpenRouter(e.target.value === "openrouter")
+									}}
+									className="flex-1">
+									<VSCodeOption className="py-2 px-3" value="kilocode">
+										Axon Code
+									</VSCodeOption>
+									<VSCodeOption className="py-2 px-3" value="openrouter">
+										OpenRouter
+									</VSCodeOption>
+								</VSCodeDropdown>
+							</div>
+							// forked_change end
+						}
+
+						{
+							// forked_change start
+							<div
+								style={{ display: isUsingOpenRouter ? "none" : undefined }}
+								className="flex items-center gap-2">
+								<label className="block font-medium w-1/3">
+									{t("settings:experimental.IMAGE_GENERATION.kiloCodeApiKeyLabel")}
+								</label>
+								<div className="flex-1 flex flex-col gap-1">
+									<VSCodeTextField
+										value={kiloCodeImageApiKey}
+										onInput={(e: any) => handleKiloApiKeyChange(e.target.value)}
+										placeholder={t(
+											"settings:experimental.IMAGE_GENERATION.kiloCodeApiKeyPlaceholder",
+										)}
+										className="w-full"
+										type="password"
+									/>
+									<div className="text-vscode-descriptionForeground text-xs">
+										{currentProfileKilocodeToken ? (
+											<a
+												href="#"
+												onClick={() => handleKiloApiKeyChange(currentProfileKilocodeToken)}
+												className="text-vscode-textLink-foreground hover:text-vscode-textLink-activeForeground">
+												{t("settings:experimental.IMAGE_GENERATION.kiloCodeApiKeyPaste")}
+											</a>
+										) : (
+											<>
+												{t("settings:experimental.IMAGE_GENERATION.getApiKeyText")}{" "}
+												<a
+													href={getAppUrl("/profile?personal=true")}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-vscode-textLink-foreground hover:text-vscode-textLink-activeForeground">
+													{getAppUrl("/profile")}
+												</a>
+											</>
+										)}
+									</div>
+								</div>
+							</div>
+							// forked_change end
+						}
+
+						<div
+							style={{ display: isUsingOpenRouter ? "flex" : "none" } /*kilocode_change*/}
+							className="items-center gap-2">
+							<label className="block font-medium w-1/3">
+								{t("settings:experimental.IMAGE_GENERATION.openRouterApiKeyLabel")}
 							</label>
-							<VSCodeDropdown
-								value={isUsingOpenRouter ? "openrouter" : "kilocode"}
-								onChange={(e: any) => {
-									console.log("onChange", Boolean(e.target.value))
-									setIsUsingOpenRouter(e.target.value === "openrouter")
-								}}
-								className="w-full">
-								<VSCodeOption className="py-2 px-3" value="kilocode">
-									Axon Code
-								</VSCodeOption>
-								<VSCodeOption className="py-2 px-3" value="openrouter">
-									OpenRouter
-								</VSCodeOption>
-							</VSCodeDropdown>
-						</div>
-						// forked_change end
-					}
-
-					{
-						// forked_change start
-						<div style={{ display: isUsingOpenRouter ? "none" : undefined }}>
-							<label className="block font-medium mb-1">
-								{t("settings:experimental.IMAGE_GENERATION.kiloCodeApiKeyLabel")}
-							</label>
-							<VSCodeTextField
-								value={kiloCodeImageApiKey}
-								onInput={(e: any) => handleKiloApiKeyChange(e.target.value)}
-								placeholder={t("settings:experimental.IMAGE_GENERATION.kiloCodeApiKeyPlaceholder")}
-								className="w-full"
-								type="password"
-							/>
-							<p className="text-vscode-descriptionForeground text-xs mt-1">
-								{currentProfileKilocodeToken ? (
+							<div className="flex-1 flex flex-col gap-1">
+								<VSCodeTextField
+									value={openRouterImageApiKey /*kilocode_change*/}
+									onInput={(e: any) => handleApiKeyChange(e.target.value)}
+									placeholder={t(
+										"settings:experimental.IMAGE_GENERATION.openRouterApiKeyPlaceholder",
+									)}
+									className="w-full"
+									type="password"
+								/>
+								<div className="text-vscode-descriptionForeground text-xs">
+									{t("settings:experimental.IMAGE_GENERATION.getApiKeyText")}{" "}
 									<a
-										href="#"
-										onClick={() => handleKiloApiKeyChange(currentProfileKilocodeToken)}
+										href="https://openrouter.ai/keys"
+										target="_blank"
+										rel="noopener noreferrer"
 										className="text-vscode-textLink-foreground hover:text-vscode-textLink-activeForeground">
-										{t("settings:experimental.IMAGE_GENERATION.kiloCodeApiKeyPaste")}
+										openrouter.ai/keys
 									</a>
-								) : (
-									<>
-										{t("settings:experimental.IMAGE_GENERATION.getApiKeyText")}{" "}
-										<a
-											href={getAppUrl("/profile?personal=true")}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-vscode-textLink-foreground hover:text-vscode-textLink-activeForeground">
-											{getAppUrl("/profile")}
-										</a>
-									</>
-								)}
-							</p>
+								</div>
+							</div>
 						</div>
-						// forked_change end
-					}
 
-					<div style={{ display: isUsingOpenRouter ? undefined : "none" } /*kilocode_change*/}>
-						<label className="block font-medium mb-1">
-							{t("settings:experimental.IMAGE_GENERATION.openRouterApiKeyLabel")}
-						</label>
-						<VSCodeTextField
-							value={openRouterImageApiKey /*kilocode_change*/}
-							onInput={(e: any) => handleApiKeyChange(e.target.value)}
-							placeholder={t("settings:experimental.IMAGE_GENERATION.openRouterApiKeyPlaceholder")}
-							className="w-full"
-							type="password"
-						/>
-						<p className="text-vscode-descriptionForeground text-xs mt-1">
-							{t("settings:experimental.IMAGE_GENERATION.getApiKeyText")}{" "}
-							<a
-								href="https://openrouter.ai/keys"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-vscode-textLink-foreground hover:text-vscode-textLink-activeForeground">
-								openrouter.ai/keys
-							</a>
-						</p>
+						{/* Model Selection */}
+						<div className="flex items-center gap-2">
+							<label className="block font-medium w-1/3">
+								{t("settings:experimental.IMAGE_GENERATION.modelSelectionLabel")}
+							</label>
+							<div className="flex-1 flex flex-col gap-1">
+								<VSCodeDropdown
+									value={openRouterImageGenerationSelectedModel /*kilocode_change*/}
+									onChange={(e: any) => handleModelChange(e.target.value)}
+									className="w-full">
+									{IMAGE_GENERATION_MODELS.map((model) => (
+										<VSCodeOption key={model.value} value={model.value} className="py-2 px-3">
+											{model.label}
+										</VSCodeOption>
+									))}
+								</VSCodeDropdown>
+								<div className="text-vscode-descriptionForeground text-xs">
+									{t("settings:experimental.IMAGE_GENERATION.modelSelectionDescription")}
+								</div>
+							</div>
+						</div>
+
+						{/* Status Message */}
+						{enabled && (isUsingOpenRouter ? !openRouterImageApiKey : !kiloCodeImageApiKey) && (
+							<div className="p-2 bg-vscode-editorWarning-background text-vscode-editorWarning-foreground rounded text-sm">
+								{t("settings:experimental.IMAGE_GENERATION.warningMissingKey")}
+							</div>
+						)}
+
+						{enabled && (isUsingOpenRouter ? openRouterImageApiKey : kiloCodeImageApiKey) && (
+							<div className="p-2 bg-vscode-editorInfo-background text-vscode-editorInfo-foreground rounded text-sm">
+								{t("settings:experimental.IMAGE_GENERATION.successConfigured")}
+							</div>
+						)}
 					</div>
-
-					{/* Model Selection */}
-					<div>
-						<label className="block font-medium mb-1">
-							{t("settings:experimental.IMAGE_GENERATION.modelSelectionLabel")}
-						</label>
-						<VSCodeDropdown
-							value={openRouterImageGenerationSelectedModel /*kilocode_change*/}
-							onChange={(e: any) => handleModelChange(e.target.value)}
-							className="w-full">
-							{IMAGE_GENERATION_MODELS.map((model) => (
-								<VSCodeOption key={model.value} value={model.value} className="py-2 px-3">
-									{model.label}
-								</VSCodeOption>
-							))}
-						</VSCodeDropdown>
-						<p className="text-vscode-descriptionForeground text-xs mt-1">
-							{t("settings:experimental.IMAGE_GENERATION.modelSelectionDescription")}
-						</p>
-					</div>
-
-					{/* Status Message */}
-					{enabled && (isUsingOpenRouter ? !openRouterImageApiKey : !kiloCodeImageApiKey) && (
-						<div className="p-2 bg-vscode-editorWarning-background text-vscode-editorWarning-foreground rounded text-sm">
-							{t("settings:experimental.IMAGE_GENERATION.warningMissingKey")}
-						</div>
-					)}
-
-					{enabled && (isUsingOpenRouter ? openRouterImageApiKey : kiloCodeImageApiKey) && (
-						<div className="p-2 bg-vscode-editorInfo-background text-vscode-editorInfo-foreground rounded text-sm">
-							{t("settings:experimental.IMAGE_GENERATION.successConfigured")}
-						</div>
-					)}
-				</div>
-			)}
-		</div>
+				)}
+			</div>
+		</SettingsRow>
 	)
 }

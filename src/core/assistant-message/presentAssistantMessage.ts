@@ -16,6 +16,7 @@ import { editFileTool } from "../tools/editFileTool" // kilocode_change: Morph f
 import { executeCommandTool } from "../tools/executeCommandTool"
 import { fetchInstructionsTool } from "../tools/fetchInstructionsTool"
 import { fileEditTool } from "../tools/fileEditTool"
+import { fileWriteTool } from "../tools/fileWriteTool"
 import { insertContentTool } from "../tools/insertContentTool"
 import { listCodeDefinitionNamesTool } from "../tools/listCodeDefinitionNamesTool"
 import { listFilesTool } from "../tools/listFilesTool"
@@ -27,9 +28,11 @@ import { searchFilesTool } from "../tools/searchFilesTool"
 import { getSimpleReadFileToolDescription, simpleReadFileTool } from "../tools/simpleReadFileTool"
 import { switchModeTool } from "../tools/switchModeTool"
 import { useMcpToolTool } from "../tools/useMcpToolTool"
+import { mcpAuthenticateTool } from "../tools/mcpAuthenticateTool"
 import { writeToFileTool } from "../tools/writeToFileTool"
 
 import { generateImageTool } from "../tools/generateImageTool"
+import { lspTool } from "../tools/lspTool"
 import { planFileEditTool } from "../tools/planFileEditTool"
 import { readPlanFileTool } from "../tools/readPlanFileTool"
 import { listPlanFilesTool } from "../tools/listPlanFilesTool"
@@ -210,6 +213,8 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.path}']`
 					case "file_edit":
 						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
+					case "file_write":
+						return `[${block.name} for '${(block.params as any).file_path}']`
 					case "search_and_replace":
 						return `[${block.name} for '${block.params.path}']`
 					// forked_change start: Morph fast apply
@@ -220,9 +225,13 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.path}']`
 					case "list_code_definition_names":
 						return `[${block.name} for '${block.params.path}']`
+					case "lsp":
+						return `[${block.name} ${block.params.operation} at '${block.params.file_path}:${block.params.line}:${block.params.character}']`
 					case "browser_action":
 						return `[${block.name} for '${block.params.action}']`
 					case "use_mcp_tool":
+						return `[${block.name} for '${block.params.server_name}']`
+					case "mcp_authenticate":
 						return `[${block.name} for '${block.params.server_name}']`
 					case "access_mcp_resource":
 						return `[${block.name} for '${block.params.server_name}']`
@@ -262,6 +271,8 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name}]`
 					case "check_past_chat_memories":
 						return `[${block.name} for '${block.params.regex}']`
+					case "use_skill":
+						return `[${block.name} for '${block.params.skill_name}']`
 					case "web_fetch":
 						return `[${block.name} for '${block.params.url}']`
 					case "web_search":
@@ -535,6 +546,9 @@ export async function presentAssistantMessage(cline: Task) {
 				case "file_edit":
 					await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
 					break
+				case "file_write":
+					await fileWriteTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+					break
 				// forked_change start: Morph fast apply
 				case "edit_file":
 					await editFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
@@ -575,6 +589,9 @@ export async function presentAssistantMessage(cline: Task) {
 						removeClosingTag,
 					)
 					break
+				case "lsp":
+					await lspTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+					break
 				case "search_files":
 					await searchFilesTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
@@ -586,6 +603,9 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				case "use_mcp_tool":
 					await useMcpToolTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+					break
+				case "mcp_authenticate":
+					await mcpAuthenticateTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
 				case "access_mcp_resource":
 					await accessMcpResourceTool(

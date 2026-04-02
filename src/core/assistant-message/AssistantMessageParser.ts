@@ -5,6 +5,12 @@ import { NativeToolCall, parseDoubleEncodedParams } from "./kilocode/native-tool
 import Anthropic from "@anthropic-ai/sdk" // kilocode_change
 
 /**
+ * Callback function type to check if a tool name is a valid MCP tool.
+ * Returns the server name if it's an MCP tool, or undefined if not.
+ */
+export type McpToolChecker = (toolName: string) => { isMcpTool: boolean; serverName?: string } | undefined
+
+/**
  * Parser for assistant messages. Maintains state between chunks
  * to avoid reprocessing the entire message on each update.
  */
@@ -25,6 +31,8 @@ export class AssistantMessageParser {
 	private processedNativeToolCallIds: Set<string> = new Set()
 	// Map index to id for tracking across streaming deltas
 	private nativeToolCallIndexToId: Map<number, string> = new Map()
+	// Callback to check if a tool name is an MCP tool
+	private mcpToolChecker: McpToolChecker | undefined
 	// forked_change end
 
 	private accumulator = ""
@@ -32,7 +40,8 @@ export class AssistantMessageParser {
 	/**
 	 * Initialize a new AssistantMessageParser instance.
 	 */
-	constructor() {
+	constructor(mcpToolChecker?: McpToolChecker) {
+		this.mcpToolChecker = mcpToolChecker
 		this.reset()
 	}
 
@@ -119,8 +128,12 @@ export class AssistantMessageParser {
 			if (toolCall.function?.name) {
 				const toolName = toolCall.function.name
 
-				// Validate that this is a recognized tool name
-				if (!toolNames.includes(toolName as ToolName)) {
+				// Validate that this is a recognized tool name (native or MCP)
+				const isNativeTool = toolNames.includes(toolName as ToolName)
+				const mcpCheck = this.mcpToolChecker?.(toolName)
+				const isMcpTool = mcpCheck?.isMcpTool ?? false
+
+				if (!isNativeTool && !isMcpTool) {
 					console.warn("[AssistantMessageParser] Unknown tool name in native call:", toolName)
 					continue
 				}
@@ -133,6 +146,9 @@ export class AssistantMessageParser {
 							name: toolCall.function.name,
 							arguments: toolCall.function.arguments || "",
 						},
+						// forked_change: Track if this is an MCP tool and which server
+						isMcpTool: isMcpTool,
+						mcpServerName: mcpCheck?.serverName,
 					}
 					this.nativeToolCallsAccumulator.set(toolCallId, accumulatedCall)
 				} else {
@@ -189,13 +205,32 @@ export class AssistantMessageParser {
 					this.currentTextContent = undefined
 				}
 
-				// Create a ToolUse block from the native tool call
-				const toolUse: ToolUse = {
-					type: "tool_use",
-					name: toolName as ToolName,
-					params: parsedArgs,
-					partial: false, // Now complete after accumulation
-					toolUseId: accumulatedCall.id,
+				// forked_change: Handle MCP tools by converting to use_mcp_tool
+				let toolUse: ToolUse
+				if (accumulatedCall.isMcpTool && accumulatedCall.mcpServerName) {
+					// Convert MCP tool call to use_mcp_tool format
+					console.log("[MCP Debug] Converting native MCP tool call:", toolName, "args:", parsedArgs)
+					toolUse = {
+						type: "tool_use",
+						name: "use_mcp_tool" as ToolName,
+						params: {
+							server_name: accumulatedCall.mcpServerName,
+							tool_name: toolName,
+							arguments: JSON.stringify(parsedArgs),
+						},
+						partial: false,
+						toolUseId: accumulatedCall.id,
+					}
+					console.log("[MCP Debug] Converted to use_mcp_tool:", toolUse.params)
+				} else {
+					// Create a ToolUse block from the native tool call
+					toolUse = {
+						type: "tool_use",
+						name: toolName as ToolName,
+						params: parsedArgs,
+						partial: false, // Now complete after accumulation
+						toolUseId: accumulatedCall.id,
+					}
 				}
 
 				// Add the tool use to content blocks
@@ -459,13 +494,30 @@ export class AssistantMessageParser {
 			}
 
 			const toolName = accumulatedCall.function!.name
-			// Create a ToolUse block from the native tool call
-			const toolUse: ToolUse = {
-				type: "tool_use",
-				name: toolName as ToolName,
-				params: parsedArgs,
-				partial: false,
-				toolUseId: accumulatedCall.id,
+			// forked_change: Handle MCP tools by converting to use_mcp_tool
+			let toolUse: ToolUse
+			if (accumulatedCall.isMcpTool && accumulatedCall.mcpServerName) {
+				// Convert MCP tool call to use_mcp_tool format
+				toolUse = {
+					type: "tool_use",
+					name: "use_mcp_tool" as ToolName,
+					params: {
+						server_name: accumulatedCall.mcpServerName,
+						tool_name: toolName,
+						arguments: JSON.stringify(parsedArgs),
+					},
+					partial: false,
+					toolUseId: accumulatedCall.id,
+				}
+			} else {
+				// Create a ToolUse block from the native tool call
+				toolUse = {
+					type: "tool_use",
+					name: toolName as ToolName,
+					params: parsedArgs,
+					partial: false,
+					toolUseId: accumulatedCall.id,
+				}
 			}
 
 			// Add the tool use to content blocks

@@ -52,7 +52,6 @@ import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
 
 import { Tab, TabContent, TabHeader, TabList, TabTrigger } from "../common/Tab"
-import { SectionHeader } from "./SectionHeader"
 import { SetCachedStateField } from "./types"
 // import ApiConfigManager from "./ApiConfigManager"
 import deepEqual from "fast-deep-equal" // kilocode_change
@@ -69,7 +68,6 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { About } from "./About"
 import { LanguageSettings } from "./LanguageSettings"
 import { NotificationSettings } from "./NotificationSettings"
-import { Section } from "./Section"
 import { SlashCommandsSettings } from "./SlashCommandsSettings"
 import { TerminalSettings } from "./TerminalSettings"
 import { UISettings } from "./UISettings"
@@ -79,9 +77,9 @@ export const settingsTabsContainer =
 	"flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden bg-vscode-editor-background"
 export const settingsTabList = "flex-shrink-0 flex flex-col overflow-y-auto overflow-x-hidden flex-1"
 export const settingsTabTrigger =
-	"whitespace-nowrap overflow-hidden min-w-0 h-9 px-3 mb-1 mx-2 box-border flex items-center border border-transparent rounded-md text-vscode-foreground opacity-70 hover:bg-vscode-list-hoverBackground data-[compact=true]:w-10 data-[compact=true]:px-0 data-[compact=true]:mx-auto data-[compact=true]:justify-center cursor-pointer" // kilocode_change add cursor-pointer
+	"whitespace-nowrap overflow-hidden min-w-0 h-8 px-3 mb-0.5 mx-2 box-border flex items-center border border-transparent rounded-md text-vscode-foreground opacity-80 hover:bg-vscode-list-hoverBackground hover:opacity-100 data-[compact=true]:w-8 data-[compact=true]:px-0 data-[compact=true]:mx-auto data-[compact=true]:justify-center cursor-pointer text-sm transition-colors"
 export const settingsTabTriggerActive =
-	"opacity-100 bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] hover:bg-[var(--vscode-button-background)] font-medium cursor-default" // kilocode_change add hover:bg-* and cursor-default
+	"opacity-100 bg-vscode-list-inactiveSelectionBackground text-vscode-list-inactiveSelectionForeground hover:bg-vscode-list-inactiveSelectionBackground font-medium cursor-default"
 
 export interface SettingsViewRef {
 	checkUnsaveChanges: (then: () => void) => void
@@ -701,14 +699,14 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					)}
 					data-compact={isCompactMode}>
 					{/* Profile Section */}
-					<div className="pt-6 pb-6 px-4 flex items-center justify-center gap-3">
-						<div className="w-10 h-10 rounded-full bg-vscode-editor-inactiveSelectionBackground text-vscode-foreground flex items-center justify-center font-medium shadow-sm border border-vscode-widget-border shrink-0">
+					<div className="pt-6 pb-3 px-4 flex items-center gap-3">
+						<div className="w-8 h-8 rounded-full bg-vscode-editor-inactiveSelectionBackground text-vscode-foreground flex items-center justify-center font-medium shadow-sm border border-vscode-widget-border shrink-0">
 							{profileEmail ? profileEmail.charAt(0).toUpperCase() : "S"}
 						</div>
 						{!isCompactMode && (
 							<div className="flex flex-col min-w-0 overflow-hidden flex-1">
 								<span className="text-vscode-foreground font-medium truncate text-sm">
-									{profileEmail}
+									{profileEmail !== "loading..." ? profileEmail : "support@matterai.so"}
 								</span>
 								<span className="text-vscode-descriptionForeground text-xs truncate">
 									{profilePlan}
@@ -716,6 +714,15 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							</div>
 						)}
 					</div>
+
+					{/* Search Bar */}
+					{!isCompactMode && (
+						<div className="px-3 pb-4">
+							<div className="flex items-center bg-vscode-input-background border border-vscode-input-border rounded w-full h-8 px-2.5 text-vscode-input-placeholderForeground opacity-60">
+								<span className="text-sm truncate">Search settings ⌘F</span>
+							</div>
+						</div>
+					)}
 
 					{/* Tab sidebar */}
 					<TabList
@@ -814,42 +821,15 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 						{/* Providers Section */}
 						{activeTab === "providers" && (
-							<div>
-								<SectionHeader>
-									<div className="flex items-center gap-2">
+							<div className="flex flex-col gap-2">
+								<div className="ml-1 mt-2">
+									<h3 className="text-sm font-medium text-vscode-foreground flex items-center gap-2 m-0 px-1">
 										<CircleUserRound className="w-4" />
-										<div>{t("settings:sections.providers")}</div>
-									</div>
-								</SectionHeader>
+										<span>{t("settings:sections.providers")}</span>
+									</h3>
+								</div>
 
-								<Section>
-									{/* <ApiConfigManager
-									currentApiConfigName={currentApiConfigName}
-									listApiConfigMeta={listApiConfigMeta}
-									onSelectConfig={(configName: string) =>
-										checkUnsaveChanges(() =>
-											vscode.postMessage({ type: "loadApiConfiguration", text: configName }),
-										)
-									}
-									onDeleteConfig={(configName: string) =>
-										vscode.postMessage({ type: "deleteApiConfiguration", text: configName })
-									}
-									onRenameConfig={(oldName: string, newName: string) => {
-										vscode.postMessage({
-											type: "renameApiConfiguration",
-											values: { oldName, newName },
-											apiConfiguration,
-										})
-										prevApiConfigName.current = newName
-									}}
-									onUpsertConfig={(configName: string) =>
-										vscode.postMessage({
-											type: "upsertApiConfiguration",
-											text: configName,
-											apiConfiguration,
-										})
-									}
-								/> */}
+								<div className="p-4 bg-vscode-settings-focusedRowBackground border border-vscode-settings-focusedRowBorder rounded-md">
 									<ApiOptions
 										uriScheme={uriScheme}
 										apiConfiguration={apiConfiguration}
@@ -858,26 +838,24 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 										setErrorMessage={setErrorMessage}
 										currentApiConfigName={currentApiConfigName}
 									/>
-								</Section>
+								</div>
 							</div>
 						)}
 
 						{/* Third Party Providers Section */}
 						{activeTab === "thirdPartyProviders" && (
-							<div>
-								<SectionHeader>
-									<div className="flex items-center gap-2">
+							<div className="flex flex-col gap-2">
+								<div className="ml-1 mt-2">
+									<h3 className="text-sm font-medium text-vscode-foreground flex items-center gap-2 m-0 px-1">
 										<Plug className="w-4" />
-										<div>{t("settings:sections.thirdPartyProviders")}</div>
-									</div>
-								</SectionHeader>
+										<span>{t("settings:sections.thirdPartyProviders")}</span>
+									</h3>
+								</div>
 
-								<Section>
-									<ThirdPartyProviders
-										apiConfiguration={apiConfiguration}
-										setApiConfigurationField={setApiConfigurationField}
-									/>
-								</Section>
+								<ThirdPartyProviders
+									apiConfiguration={apiConfiguration}
+									setApiConfigurationField={setApiConfigurationField}
+								/>
 							</div>
 						)}
 

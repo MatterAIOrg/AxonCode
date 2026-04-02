@@ -9,6 +9,9 @@ export interface NativeToolCall {
 		name: string
 		arguments: string // JSON string (may be partial during streaming)
 	}
+	// forked_change: Track if this is an MCP tool and which server
+	isMcpTool?: boolean
+	mcpServerName?: string
 }
 
 /**

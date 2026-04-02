@@ -196,7 +196,7 @@
 		"wantsToGenerateImageOutsideWorkspace": "generate image(outside workspace)",
 		"wantsToGenerateImageProtected": "generate image(protected location)",
 		"didGenerateImage": "generated image",
-		"wantsToCreate": "create new file",
+		"wantsToCreate": "Create File",
 		"wantsToSearchReplace": "search and replace",
 		"didSearchReplace": "performed search and replace on this file",
 		"wantsToInsert": "insert content into this file",
@@ -227,6 +227,10 @@
 		"didSearch_one": "Found 1 result",
 		"didSearch_other": "Found {{count}} results",
 		"resultTooltip": "Similarity score: {{score}} (click to open file)"
+	},
+	"lsp": {
+		"wantsToUse": "LSP <code>{{operation}}</code> on <code>{{path}}</code>",
+		"didUse": "LSP <code>{{operation}}</code> on <code>{{path}}</code>"
 	},
 	"commandOutput": "Command Output",
 	"commandExecution": {

@@ -15,59 +15,32 @@ import { Settings } from "lucide-react"
 
 /**
  * Sanitizes a model ID to create a user-friendly display name.
+ * Uses the centralized prettyModelName function for consistent formatting.
  * Examples:
- * - matterai3p:@cf/moonshotai/kimi-k2.5 → "Kimi K2.5 (Moonshotai)" (extracts vendor from path)
- * - ollama:llama3.2:latest → "Llama3.2 (Ollama)" (uses provider name)
- * - opencode:gpt-4-turbo → "Gpt-4-turbo (Opencode)" (uses provider name)
+ * - matterai3p:@cf/moonshotai/kimi-k2.5 → "Kimi K2.5 (Moonshotai)"
+ * - ollama:llama3.2:latest → "Llama3.2 (Latest)"
+ * - fireworks:accounts/fireworks/routers/kimi-k2p5-turbo → "Kimi K2.5 Turbo (Fireworks)"
  */
 const sanitizeModelLabel = (modelId: string, provider: string): string => {
-	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:", "fireworks:")
-	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode|fireworks):/, "")
+	// Use the centralized prettyModelName function for consistent formatting
+	const baseName = prettyModelName(modelId)
 
-	// For matterai3p, extract vendor from path (e.g., "@cf/moonshotai/kimi-k2.5" → "Kimi K2.5 (Moonshotai)")
-	if (provider === "matterai3p" && withoutProviderPrefix.includes("/")) {
-		const segments = withoutProviderPrefix.split("/").filter(Boolean)
-		if (segments.length >= 2) {
-			// Get the last segment as model name, second to last as vendor
-			const modelName = segments[segments.length - 1]
-			const vendor = segments[segments.length - 2]
-
-			// Format model name: replace hyphens/underscores with spaces, title case
-			const formattedModelName = modelName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-
-			// Format vendor: title case
-			const formattedVendor = vendor.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-
-			return `${formattedModelName} (${formattedVendor})`
-		}
-	}
-
-	// For Fireworks, extract the model name from the path
-	if (provider === "fireworks" && withoutProviderPrefix.includes("/")) {
-		const segments = withoutProviderPrefix.split("/").filter(Boolean)
-		const modelName = segments[segments.length - 1] // Get last segment
-		// Special case for kimi-k2p5-turbo -> "Kimi K2.5 Turbo"
-		if (modelName === "kimi-k2p5-turbo") {
+	// For Fireworks, add provider suffix if not already present
+	if (provider === "fireworks" && !baseName.includes("(Fireworks)")) {
+		// Check for special case model names
+		if (modelId.includes("kimi-k2p5-turbo")) {
 			return "Kimi K2.5 Turbo (Fireworks)"
 		}
-		const formattedModelName = modelName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-		return `${formattedModelName} (Fireworks)`
+		return `${baseName} (Fireworks)`
 	}
 
-	// For other providers (ollama, opencode), use provider name in brackets
-	// Handle IDs with ":" (like "llama3.2:latest"), take the first part
-	let cleanName = withoutProviderPrefix
-	if (withoutProviderPrefix.includes(":")) {
-		cleanName = withoutProviderPrefix.split(":")[0]
+	// For other third-party providers, add provider suffix if not already present
+	if (["ollama", "opencode"].includes(provider) && !baseName.includes("(")) {
+		const formattedProvider = provider.charAt(0).toUpperCase() + provider.slice(1)
+		return `${baseName} (${formattedProvider})`
 	}
 
-	// Format the name: title case
-	const formattedName = cleanName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-
-	// Capitalize provider name
-	const formattedProvider = provider.charAt(0).toUpperCase() + provider.slice(1)
-
-	return `${formattedName} (${formattedProvider})`
+	return baseName
 }
 
 interface ModelSelectorProps {
@@ -138,8 +111,10 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 		const models: { [key: string]: { label: string; provider: string } } = {}
 		if (matterai3pModels) {
 			for (const [modelId, _modelInfo] of Object.entries(matterai3pModels)) {
+				// Add matterai3p: prefix to the model ID for consistent identification
+				const fullModelId = modelId.startsWith("matterai3p:") ? modelId : `matterai3p:${modelId}`
 				// Always sanitize the label for consistent display
-				models[modelId] = {
+				models[fullModelId] = {
 					label: sanitizeModelLabel(modelId, "matterai3p"),
 					provider: "matterai3p",
 				}
@@ -155,8 +130,10 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 		// Add Ollama models
 		if (ollamaEnabled && ollamaModels) {
 			for (const [modelId, _modelInfo] of Object.entries(ollamaModels)) {
+				// Add ollama: prefix to the model ID for consistent identification
+				const fullModelId = modelId.startsWith("ollama:") ? modelId : `ollama:${modelId}`
 				// Always sanitize the label for consistent display
-				models[modelId] = {
+				models[fullModelId] = {
 					label: sanitizeModelLabel(modelId, "ollama"),
 					provider: "ollama",
 				}
@@ -166,8 +143,10 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 		// Add OpenCode models
 		if (opencodeEnabled && opencodeModels) {
 			for (const [modelId, _modelInfo] of Object.entries(opencodeModels)) {
+				// Add opencode: prefix to the model ID for consistent identification
+				const fullModelId = modelId.startsWith("opencode:") ? modelId : `opencode:${modelId}`
 				// Always sanitize the label for consistent display
-				models[modelId] = {
+				models[fullModelId] = {
 					label: sanitizeModelLabel(modelId, "opencode"),
 					provider: "opencode",
 				}
@@ -177,8 +156,10 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 		// Add Fireworks models
 		if (fireworksEnabled && fireworksModels) {
 			for (const [modelId, _modelInfo] of Object.entries(fireworksModels)) {
+				// Add fireworks: prefix to the model ID for consistent identification
+				const fullModelId = modelId.startsWith("fireworks:") ? modelId : `fireworks:${modelId}`
 				// Always sanitize the label for consistent display
-				models[modelId] = {
+				models[fullModelId] = {
 					label: sanitizeModelLabel(modelId, "fireworks"),
 					provider: "fireworks",
 				}
@@ -327,6 +308,8 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 				type: "updateTaskModel",
 				apiProvider: provider,
 				apiModelId: value,
+				// Clear third-party model selection when switching to Axon model
+				thirdPartySelectedModel: undefined,
 			})
 		} else if (currentApiConfigName) {
 			// No active task, update global configuration

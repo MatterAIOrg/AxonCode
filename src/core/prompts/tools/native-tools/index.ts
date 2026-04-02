@@ -6,6 +6,7 @@ import executeCommand from "./execute_command"
 // import fetchInstructions from "./fetch_instructions"
 import listCodeDefinitionNames from "./list_code_definition_names"
 import listFiles from "./list_files"
+import lsp from "./lsp"
 // import newTask from "./new_task"
 import { read_file_single } from "./read_file"
 // import runSlashCommand from "./run_slash_command"
@@ -13,6 +14,7 @@ import { read_file_single } from "./read_file"
 import searchFiles from "./search_files"
 // import switchMode from "./switch_mode"
 import fileEdit from "./file_edit"
+import fileWrite from "./file_write"
 import updateTodoList from "./update_todo_list"
 import codebaseSearch from "./codebase_search"
 import planFileEdit from "./plan_file_edit"
@@ -26,6 +28,7 @@ export const nativeTools = [
 	// apply_diff_single_file,
 	// apply_diff_multi_file,
 	fileEdit,
+	fileWrite,
 	askFollowupQuestion,
 	attemptCompletion,
 	checkPastChatMemories,
@@ -38,6 +41,7 @@ export const nativeTools = [
 	// insertContent,
 	listCodeDefinitionNames,
 	listFiles,
+	lsp,
 	// newTask,
 	planFileEdit,
 	readPlanFile,

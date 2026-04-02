@@ -20,12 +20,14 @@ import { getListFilesDescription } from "./list-files"
 import { getInsertContentDescription } from "./insert-content"
 import { getSearchAndReplaceDescription } from "./search-and-replace"
 import { getFileEditDescription } from "./file-edit"
+import { getFileWriteDescription } from "./file-write"
 import { getListCodeDefinitionNamesDescription } from "./list-code-definition-names"
 import { getBrowserActionDescription } from "./browser-action"
 import { getAskFollowupQuestionDescription } from "./ask-followup-question"
 import { getAttemptCompletionDescription } from "./attempt-completion"
 import { getUseMcpToolDescription } from "./use-mcp-tool"
 import { getAccessMcpResourceDescription } from "./access-mcp-resource"
+import { getMcpAuthenticateDescription } from "./mcp-authenticate"
 import { getSwitchModeDescription } from "./switch-mode"
 import { getNewTaskDescription } from "./new-task"
 import { getCodebaseSearchDescription } from "./codebase-search"
@@ -66,12 +68,14 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined 
 	attempt_completion: (args) => getAttemptCompletionDescription(args),
 	use_mcp_tool: (args) => getUseMcpToolDescription(args),
 	access_mcp_resource: (args) => getAccessMcpResourceDescription(args),
+	mcp_authenticate: (args) => getMcpAuthenticateDescription(args),
 	codebase_search: (args) => getCodebaseSearchDescription(args),
 	switch_mode: () => getSwitchModeDescription(),
 	new_task: (args) => getNewTaskDescription(args),
 	insert_content: (args) => getInsertContentDescription(args),
 	search_and_replace: (args) => getSearchAndReplaceDescription(args),
 	file_edit: () => getFileEditDescription(),
+	file_write: () => getFileWriteDescription(),
 	edit_file: () => getEditFileDescription(), // kilocode_change: Morph fast apply
 	apply_diff: (args) =>
 		args.diffStrategy ? args.diffStrategy.getToolDescription({ cwd: args.cwd, toolOptions: args.toolOptions }) : "",
@@ -157,6 +161,7 @@ export async function getToolDescriptionsForMode(
 		const traditionalEditingTools = [
 			"apply_diff",
 			"file_edit",
+			"file_write",
 			"write_to_file",
 			"insert_content",
 			"search_and_replace",
@@ -224,10 +229,12 @@ export {
 	getAttemptCompletionDescription,
 	getUseMcpToolDescription,
 	getAccessMcpResourceDescription,
+	getMcpAuthenticateDescription,
 	getSwitchModeDescription,
 	getInsertContentDescription,
 	getSearchAndReplaceDescription,
 	getFileEditDescription,
+	getFileWriteDescription,
 	getEditFileDescription, // kilocode_change: Morph fast apply
 	getCodebaseSearchDescription,
 	getRunSlashCommandDescription,

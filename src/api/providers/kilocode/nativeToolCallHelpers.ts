@@ -86,12 +86,12 @@ import type { ApiStreamNativeToolCallsChunk } from "../../transform/kilocode/api
 export function addNativeToolCallsToParams<T extends OpenAI.Chat.ChatCompletionCreateParams>(
 	params: T,
 	_options: ProviderSettings,
-	_metadata?: ApiHandlerCreateMessageMetadata,
+	metadata?: ApiHandlerCreateMessageMetadata,
 ): T {
-	// When toolStyle is "json", always add all native tools
-
-	// Use allowedTools if provided, otherwise use all native tools
-	const tools = nativeTools
+	// When toolStyle is "json", add tool definitions to the API request.
+	// Use allowedTools from metadata if provided (includes mode-filtered native tools + MCP tools),
+	// otherwise fall back to the default set of all native tools.
+	const tools = metadata?.allowedTools && metadata.allowedTools.length > 0 ? metadata.allowedTools : nativeTools
 	if (tools && tools.length > 0) {
 		params.tools = tools
 		//optimally we'd have tool_choice as 'required', but many providers, especially
@@ -120,6 +120,15 @@ export function* processNativeToolCallsFromDelta(
 		// Map to the ApiStreamNativeToolCallsChunk format
 		const validToolCalls = delta.tool_calls
 			.filter((tc) => tc.function) // Keep any delta with function data
+			.filter((tc) => {
+				// Skip tool calls with null/empty names when id is also null
+				// These are placeholder entries in the delta stream
+				const hasValidId = tc.id !== null && tc.id !== undefined
+				const hasValidName =
+					tc.function!.name !== null && tc.function!.name !== undefined && tc.function!.name !== ""
+				// Keep if we have a valid id OR a valid name (one will be present in valid calls)
+				return hasValidId || hasValidName
+			})
 			.map((tc) => ({
 				index: tc.index, // Use index to track across deltas
 				id: tc.id, // Only present in first delta

@@ -5,11 +5,8 @@ import React, { HTMLAttributes } from "react"
 
 import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Slider } from "@/components/ui"
 import { cn } from "@/lib/utils"
-
-import { DatabaseLightningIcon } from "@/utils/customIcons"
 import { vscode } from "@/utils/vscode"
-import { Section } from "./Section"
-import { SectionHeader } from "./SectionHeader"
+import { SettingsCard, SettingsRow, SettingsSwitch } from "./ui/SettingsCard"
 import { SetCachedStateField } from "./types"
 
 type ContextManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
@@ -98,18 +95,21 @@ export const ContextManagementSettings = ({
 		}
 	}
 	return (
-		<div className={cn("flex flex-col gap-2", className)} {...props}>
-			<SectionHeader description={t("settings:contextManagement.description")}>
-				<div className="flex items-center gap-2">
-					<DatabaseLightningIcon className="w-4" />
-					<div>{t("settings:sections.contextManagement")}</div>
+		<div className={cn("flex flex-col gap-4", className)} {...props}>
+			<div className="ml-1 mt-2">
+				<h3 className="text-sm font-medium text-vscode-foreground m-0 px-1">
+					{t("settings:sections.contextManagement")}
+				</h3>
+				<div className="text-vscode-descriptionForeground text-xs px-1 mt-1">
+					{t("settings:contextManagement.description")}
 				</div>
-			</SectionHeader>
+			</div>
 
-			<Section>
-				<div>
-					<span className="block font-medium mb-1">{t("settings:contextManagement.openTabs.label")}</span>
-					<div className="flex items-center gap-2">
+			<SettingsCard>
+				<SettingsRow
+					title={t("settings:contextManagement.openTabs.label")}
+					description={t("settings:contextManagement.openTabs.description")}>
+					<div className="flex items-center gap-2 w-[180px]">
 						<Slider
 							min={0}
 							max={500}
@@ -117,19 +117,16 @@ export const ContextManagementSettings = ({
 							value={[maxOpenTabsContext ?? 20]}
 							onValueChange={([value]) => setCachedStateField("maxOpenTabsContext", value)}
 							data-testid="open-tabs-limit-slider"
+							className="flex-1"
 						/>
-						<span className="w-10">{maxOpenTabsContext ?? 20}</span>
+						<span className="w-10 text-right text-xs">{maxOpenTabsContext ?? 20}</span>
 					</div>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
-						{t("settings:contextManagement.openTabs.description")}
-					</div>
-				</div>
+				</SettingsRow>
 
-				<div>
-					<span className="block font-medium mb-1">
-						{t("settings:contextManagement.workspaceFiles.label")}
-					</span>
-					<div className="flex items-center gap-2">
+				<SettingsRow
+					title={t("settings:contextManagement.workspaceFiles.label")}
+					description={t("settings:contextManagement.workspaceFiles.description")}>
+					<div className="flex items-center gap-2 w-[180px]">
 						<Slider
 							min={0}
 							max={500}
@@ -137,19 +134,16 @@ export const ContextManagementSettings = ({
 							value={[maxWorkspaceFiles ?? 200]}
 							onValueChange={([value]) => setCachedStateField("maxWorkspaceFiles", value)}
 							data-testid="workspace-files-limit-slider"
+							className="flex-1"
 						/>
-						<span className="w-10">{maxWorkspaceFiles ?? 200}</span>
+						<span className="w-10 text-right text-xs">{maxWorkspaceFiles ?? 200}</span>
 					</div>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
-						{t("settings:contextManagement.workspaceFiles.description")}
-					</div>
-				</div>
+				</SettingsRow>
 
-				<div>
-					<span className="block font-medium mb-1">
-						{t("settings:contextManagement.maxConcurrentFileReads.label")}
-					</span>
-					<div className="flex items-center gap-2">
+				<SettingsRow
+					title={t("settings:contextManagement.maxConcurrentFileReads.label")}
+					description={t("settings:contextManagement.maxConcurrentFileReads.description")}>
+					<div className="flex items-center gap-2 w-[180px]">
 						<Slider
 							min={1}
 							max={100}
@@ -157,36 +151,30 @@ export const ContextManagementSettings = ({
 							value={[Math.max(1, maxConcurrentFileReads ?? 5)]}
 							onValueChange={([value]) => setCachedStateField("maxConcurrentFileReads", value)}
 							data-testid="max-concurrent-file-reads-slider"
+							className="flex-1"
 						/>
-						<span className="w-10 text-sm">{Math.max(1, maxConcurrentFileReads ?? 5)}</span>
+						<span className="w-10 text-right text-xs">{Math.max(1, maxConcurrentFileReads ?? 5)}</span>
 					</div>
-					<div className="text-vscode-descriptionForeground text-sm mt-1 mb-3">
-						{t("settings:contextManagement.maxConcurrentFileReads.description")}
-					</div>
-				</div>
+				</SettingsRow>
 
-				<div>
-					<VSCodeCheckbox
-						checked={showRooIgnoredFiles}
-						onChange={(e: any) => setCachedStateField("showRooIgnoredFiles", e.target.checked)}
-						data-testid="show-rooignored-files-checkbox">
-						<label className="block font-medium mb-1">
-							{t("settings:contextManagement.rooignore.label")}
-						</label>
-					</VSCodeCheckbox>
-					<div className="text-vscode-descriptionForeground text-sm mt-1 mb-3">
-						{t("settings:contextManagement.rooignore.description")}
-					</div>
-				</div>
+				<SettingsRow
+					title={t("settings:contextManagement.rooignore.label")}
+					description={t("settings:contextManagement.rooignore.description")}>
+					<SettingsSwitch
+						checked={showRooIgnoredFiles ?? false}
+						onChange={(checked) => setCachedStateField("showRooIgnoredFiles", checked)}
+					/>
+				</SettingsRow>
 
-				<div>
-					<div className="flex flex-col gap-2">
-						<span className="font-medium">{t("settings:contextManagement.maxReadFile.label")}</span>
-						<div className="flex items-center gap-4">
+				<SettingsRow
+					title={t("settings:contextManagement.maxReadFile.label")}
+					description={t("settings:contextManagement.maxReadFile.description")}>
+					<div className="flex flex-col gap-2 items-end">
+						<div className="flex items-center gap-2">
 							<Input
 								type="number"
 								pattern="-?[0-9]*"
-								className="w-24 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-50"
+								className="w-20 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-50"
 								value={maxReadFileLine ?? -1}
 								min={-1}
 								onChange={(e) => {
@@ -199,111 +187,95 @@ export const ContextManagementSettings = ({
 								data-testid="max-read-file-line-input"
 								disabled={maxReadFileLine === -1}
 							/>
-							<span>{t("settings:contextManagement.maxReadFile.lines")}</span>
+							<span className="text-xs">{t("settings:contextManagement.maxReadFile.lines")}</span>
+						</div>
+						<div className="flex items-center gap-1">
 							<VSCodeCheckbox
 								checked={maxReadFileLine === -1}
 								onChange={(e: any) =>
 									setCachedStateField("maxReadFileLine", e.target.checked ? -1 : 500)
 								}
 								data-testid="max-read-file-always-full-checkbox">
-								{t("settings:contextManagement.maxReadFile.always_full_read")}
+								<span className="text-xs">
+									{t("settings:contextManagement.maxReadFile.always_full_read")}
+								</span>
 							</VSCodeCheckbox>
 						</div>
 					</div>
-					<div className="text-vscode-descriptionForeground text-sm mt-2">
-						{t("settings:contextManagement.maxReadFile.description")}
-					</div>
-				</div>
+				</SettingsRow>
+
 				{/*forked_change start*/}
-				<div>
-					<VSCodeCheckbox
-						checked={allowVeryLargeReads}
-						onChange={(e: any) => setCachedStateField("allowVeryLargeReads", e.target.checked)}>
-						<label className="block font-medium mb-1">
-							{t("kilocode:settings.contextManagement.allowVeryLargeReads.label")}
-						</label>
-					</VSCodeCheckbox>
-					<div className="text-vscode-descriptionForeground text-sm mt-1 mb-3">
-						{t("kilocode:settings.contextManagement.allowVeryLargeReads.description")}
-					</div>
-				</div>
+				<SettingsRow
+					title={t("kilocode:settings.contextManagement.allowVeryLargeReads.label")}
+					description={t("kilocode:settings.contextManagement.allowVeryLargeReads.description")}>
+					<SettingsSwitch
+						checked={allowVeryLargeReads ?? false}
+						onChange={(checked) => setCachedStateField("allowVeryLargeReads", checked)}
+					/>
+				</SettingsRow>
 				{/*forked_change end*/}
 
-				<div>
-					<div className="flex flex-col gap-2">
-						<span className="font-medium">{t("settings:contextManagement.maxImageFileSize.label")}</span>
-						<div className="flex items-center gap-4">
-							<Input
-								type="number"
-								pattern="[0-9]*"
-								className="w-24 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-								value={maxImageFileSize ?? 5}
-								min={1}
-								max={100}
-								onChange={(e) => {
-									const newValue = parseInt(e.target.value, 10)
-									if (!isNaN(newValue) && newValue >= 1 && newValue <= 100) {
-										setCachedStateField("maxImageFileSize", newValue)
-									}
-								}}
-								onClick={(e) => e.currentTarget.select()}
-								data-testid="max-image-file-size-input"
-							/>
-							<span>{t("settings:contextManagement.maxImageFileSize.mb")}</span>
-						</div>
-					</div>
-					<div className="text-vscode-descriptionForeground text-sm mt-2">
-						{t("settings:contextManagement.maxImageFileSize.description")}
-					</div>
-				</div>
-
-				<div>
-					<div className="flex flex-col gap-2">
-						<span className="font-medium">{t("settings:contextManagement.maxTotalImageSize.label")}</span>
-						<div className="flex items-center gap-4">
-							<Input
-								type="number"
-								pattern="[0-9]*"
-								className="w-24 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-								value={maxTotalImageSize ?? 20}
-								min={1}
-								max={500}
-								onChange={(e) => {
-									const newValue = parseInt(e.target.value, 10)
-									if (!isNaN(newValue) && newValue >= 1 && newValue <= 500) {
-										setCachedStateField("maxTotalImageSize", newValue)
-									}
-								}}
-								onClick={(e) => e.currentTarget.select()}
-								data-testid="max-total-image-size-input"
-							/>
-							<span>{t("settings:contextManagement.maxTotalImageSize.mb")}</span>
-						</div>
-					</div>
-					<div className="text-vscode-descriptionForeground text-sm mt-2">
-						{t("settings:contextManagement.maxTotalImageSize.description")}
-					</div>
-				</div>
-
-				<div>
-					<VSCodeCheckbox
-						checked={includeDiagnosticMessages}
-						onChange={(e: any) => setCachedStateField("includeDiagnosticMessages", e.target.checked)}
-						data-testid="include-diagnostic-messages-checkbox">
-						<label className="block font-medium mb-1">
-							{t("settings:contextManagement.diagnostics.includeMessages.label")}
-						</label>
-					</VSCodeCheckbox>
-					<div className="text-vscode-descriptionForeground text-sm mt-1 mb-3">
-						{t("settings:contextManagement.diagnostics.includeMessages.description")}
-					</div>
-				</div>
-
-				<div>
-					<span className="block font-medium mb-1">
-						{t("settings:contextManagement.diagnostics.maxMessages.label")}
-					</span>
+				<SettingsRow
+					title={t("settings:contextManagement.maxImageFileSize.label")}
+					description={t("settings:contextManagement.maxImageFileSize.description")}>
 					<div className="flex items-center gap-2">
+						<Input
+							type="number"
+							pattern="[0-9]*"
+							className="w-20 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+							value={maxImageFileSize ?? 5}
+							min={1}
+							max={100}
+							onChange={(e) => {
+								const newValue = parseInt(e.target.value, 10)
+								if (!isNaN(newValue) && newValue >= 1 && newValue <= 100) {
+									setCachedStateField("maxImageFileSize", newValue)
+								}
+							}}
+							onClick={(e) => e.currentTarget.select()}
+							data-testid="max-image-file-size-input"
+						/>
+						<span className="text-xs">{t("settings:contextManagement.maxImageFileSize.mb")}</span>
+					</div>
+				</SettingsRow>
+
+				<SettingsRow
+					title={t("settings:contextManagement.maxTotalImageSize.label")}
+					description={t("settings:contextManagement.maxTotalImageSize.description")}>
+					<div className="flex items-center gap-2">
+						<Input
+							type="number"
+							pattern="[0-9]*"
+							className="w-20 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+							value={maxTotalImageSize ?? 20}
+							min={1}
+							max={500}
+							onChange={(e) => {
+								const newValue = parseInt(e.target.value, 10)
+								if (!isNaN(newValue) && newValue >= 1 && newValue <= 500) {
+									setCachedStateField("maxTotalImageSize", newValue)
+								}
+							}}
+							onClick={(e) => e.currentTarget.select()}
+							data-testid="max-total-image-size-input"
+						/>
+						<span className="text-xs">{t("settings:contextManagement.maxTotalImageSize.mb")}</span>
+					</div>
+				</SettingsRow>
+
+				<SettingsRow
+					title={t("settings:contextManagement.diagnostics.includeMessages.label")}
+					description={t("settings:contextManagement.diagnostics.includeMessages.description")}>
+					<SettingsSwitch
+						checked={includeDiagnosticMessages ?? false}
+						onChange={(checked) => setCachedStateField("includeDiagnosticMessages", checked)}
+					/>
+				</SettingsRow>
+
+				<SettingsRow
+					title={t("settings:contextManagement.diagnostics.maxMessages.label")}
+					description={t("settings:contextManagement.diagnostics.maxMessages.description")}>
+					<div className="flex items-center gap-2 w-[180px]">
 						<Slider
 							min={1}
 							max={100}
@@ -314,26 +286,12 @@ export const ContextManagementSettings = ({
 									: (maxDiagnosticMessages ?? 50),
 							]}
 							onValueChange={([value]) => {
-								// When slider reaches 100, set to -1 (unlimited)
 								setCachedStateField("maxDiagnosticMessages", value === 100 ? -1 : value)
 							}}
 							data-testid="max-diagnostic-messages-slider"
-							aria-label={t("settings:contextManagement.diagnostics.maxMessages.label")}
-							aria-valuemin={1}
-							aria-valuemax={100}
-							aria-valuenow={
-								maxDiagnosticMessages !== undefined && maxDiagnosticMessages <= 0
-									? 100
-									: (maxDiagnosticMessages ?? 50)
-							}
-							aria-valuetext={
-								(maxDiagnosticMessages !== undefined && maxDiagnosticMessages <= 0) ||
-								maxDiagnosticMessages === 100
-									? t("settings:contextManagement.diagnostics.maxMessages.unlimitedLabel")
-									: `${maxDiagnosticMessages ?? 50} ${t("settings:contextManagement.diagnostics.maxMessages.label")}`
-							}
+							className="flex-1"
 						/>
-						<span className="w-20 text-sm font-medium">
+						<span className="w-16 text-right text-xs">
 							{(maxDiagnosticMessages !== undefined && maxDiagnosticMessages <= 0) ||
 							maxDiagnosticMessages === 100
 								? t("settings:contextManagement.diagnostics.maxMessages.unlimitedLabel")
@@ -344,21 +302,17 @@ export const ContextManagementSettings = ({
 							size="sm"
 							onClick={() => setCachedStateField("maxDiagnosticMessages", 50)}
 							title={t("settings:contextManagement.diagnostics.maxMessages.resetTooltip")}
-							className="p-1 h-6 w-6"
+							className="p-1 h-6 w-6 ml-1"
 							disabled={maxDiagnosticMessages === 50}>
 							<span className="codicon codicon-discard" />
 						</Button>
 					</div>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
-						{t("settings:contextManagement.diagnostics.maxMessages.description")}
-					</div>
-				</div>
+				</SettingsRow>
 
-				<div>
-					<span className="block font-medium mb-1">
-						{t("settings:contextManagement.diagnostics.delayAfterWrite.label")}
-					</span>
-					<div className="flex items-center gap-2">
+				<SettingsRow
+					title={t("settings:contextManagement.diagnostics.delayAfterWrite.label")}
+					description={t("settings:contextManagement.diagnostics.delayAfterWrite.description")}>
+					<div className="flex items-center gap-2 w-[180px]">
 						<Slider
 							min={0}
 							max={5000}
@@ -366,95 +320,99 @@ export const ContextManagementSettings = ({
 							value={[writeDelayMs]}
 							onValueChange={([value]) => setCachedStateField("writeDelayMs", value)}
 							data-testid="write-delay-slider"
+							className="flex-1"
 						/>
-						<span className="w-20">{writeDelayMs}ms</span>
+						<span className="w-10 text-right text-xs">{writeDelayMs}ms</span>
 					</div>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
-						{t("settings:contextManagement.diagnostics.delayAfterWrite.description")}
-					</div>
-				</div>
-			</Section>
-			<Section className="pt-2">
-				<VSCodeCheckbox
-					checked={autoCondenseContext}
-					onChange={(e: any) => setCachedStateField("autoCondenseContext", e.target.checked)}
-					data-testid="auto-condense-context-checkbox">
-					<span className="font-medium">{t("settings:contextManagement.autoCondenseContext.name")}</span>
-				</VSCodeCheckbox>
-				{autoCondenseContext && (
-					<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
-						<div className="flex items-center gap-4 font-bold">
-							<FoldVertical size={16} />
-							<div>{t("settings:contextManagement.condensingThreshold.label")}</div>
-						</div>
-						<div>
-							<Select
-								value={selectedThresholdProfile || "default"}
-								onValueChange={(value) => {
-									setSelectedThresholdProfile(value)
-								}}
-								data-testid="threshold-profile-select">
-								<SelectTrigger className="w-full">
-									<SelectValue
-										placeholder={
-											t("settings:contextManagement.condensingThreshold.selectProfile") ||
-											"Select profile for threshold"
-										}
-									/>
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="default">
-										{t("settings:contextManagement.condensingThreshold.defaultProfile") ||
-											"Default (applies to all unconfigured profiles)"}
-									</SelectItem>
-									{(listApiConfigMeta || []).map((config) => {
-										const profileThreshold = profileThresholds[config.id]
-										const thresholdDisplay =
-											profileThreshold !== undefined
-												? profileThreshold === -1
-													? ` ${t(
-															"settings:contextManagement.condensingThreshold.usesGlobal",
-															{
-																threshold: autoCondenseContextPercent,
-															},
-														)}`
-													: ` (${profileThreshold}%)`
-												: ""
-										return (
-											<SelectItem key={config.id} value={config.id}>
-												{config.name}
-												{thresholdDisplay}
-											</SelectItem>
-										)
-									})}
-								</SelectContent>
-							</Select>
-						</div>
+				</SettingsRow>
+			</SettingsCard>
+			<div className="mt-4 pb-2">
+				<SettingsCard>
+					<SettingsRow title={t("settings:contextManagement.autoCondenseContext.name")}>
+						<SettingsSwitch
+							checked={autoCondenseContext ?? false}
+							onChange={(checked) => setCachedStateField("autoCondenseContext", checked)}
+						/>
+					</SettingsRow>
 
-						{/* Threshold Slider */}
-						<div>
-							<div className="flex items-center gap-2">
-								<Slider
-									min={10}
-									max={100}
-									step={1}
-									value={[getCurrentThresholdValue()]}
-									onValueChange={([value]) => handleThresholdChange(value)}
-									data-testid="condense-threshold-slider"
-								/>
-								<span className="w-20">{getCurrentThresholdValue()}%</span>
-							</div>
-							<div className="text-vscode-descriptionForeground text-sm mt-1">
-								{selectedThresholdProfile === "default"
+					{autoCondenseContext && (
+						<SettingsRow
+							title={
+								<div className="flex items-center gap-2">
+									<FoldVertical size={16} />
+									{t("settings:contextManagement.condensingThreshold.label")}
+								</div>
+							}
+							description={
+								selectedThresholdProfile === "default"
 									? t("settings:contextManagement.condensingThreshold.defaultDescription", {
 											threshold: autoCondenseContextPercent,
 										})
-									: t("settings:contextManagement.condensingThreshold.profileDescription")}
+									: t("settings:contextManagement.condensingThreshold.profileDescription")
+							}>
+							<div className="flex flex-col gap-3">
+								<div className="w-[300px]">
+									<Select
+										value={selectedThresholdProfile || "default"}
+										onValueChange={(value) => {
+											setSelectedThresholdProfile(value)
+										}}
+										data-testid="threshold-profile-select">
+										<SelectTrigger className="w-full">
+											<SelectValue
+												placeholder={
+													t("settings:contextManagement.condensingThreshold.selectProfile") ||
+													"Select profile for threshold"
+												}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="default">
+												{t("settings:contextManagement.condensingThreshold.defaultProfile") ||
+													"Default (applies to all unconfigured profiles)"}
+											</SelectItem>
+											{(listApiConfigMeta || []).map((config) => {
+												const profileThreshold = profileThresholds[config.id]
+												const thresholdDisplay =
+													profileThreshold !== undefined
+														? profileThreshold === -1
+															? ` ${t(
+																	"settings:contextManagement.condensingThreshold.usesGlobal",
+																	{
+																		threshold: autoCondenseContextPercent,
+																	},
+																)}`
+															: ` (${profileThreshold}%)`
+														: ""
+												return (
+													<SelectItem key={config.id} value={config.id}>
+														{config.name}
+														{thresholdDisplay}
+													</SelectItem>
+												)
+											})}
+										</SelectContent>
+									</Select>
+								</div>
+
+								{/* Threshold Slider */}
+								<div className="flex items-center gap-2 w-[180px]">
+									<Slider
+										min={10}
+										max={100}
+										step={1}
+										value={[getCurrentThresholdValue()]}
+										onValueChange={([value]) => handleThresholdChange(value)}
+										data-testid="condense-threshold-slider"
+										className="flex-1"
+									/>
+									<span className="w-10 text-right text-xs">{getCurrentThresholdValue()}%</span>
+								</div>
 							</div>
-						</div>
-					</div>
-				)}
-			</Section>
+						</SettingsRow>
+					)}
+				</SettingsCard>
+			</div>
 		</div>
 	)
 }
