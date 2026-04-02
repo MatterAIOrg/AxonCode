@@ -24,6 +24,28 @@
 @plugin "tailwindcss-animate";
 
 @layer components {
+	/* VSCodeButton Global Overrides - Make all buttons 5% smaller */
+	vscode-button,
+	vscode-button[appearance="primary"],
+	vscode-button[appearance="secondary"],
+	vscode-button[appearance="icon"] {
+		--vscode-button-padding: 4px 9px !important;
+		padding: 0 !important;
+		font-size: calc(var(--vscode-font-size) * 0.95) !important;
+	}
+
+	vscode-button::part(control),
+	vscode-button[appearance="primary"]::part(control),
+	vscode-button[appearance="secondary"]::part(control),
+	vscode-button[appearance="icon"]::part(control) {
+		padding: 4px 9px !important;
+		min-height: 22px !important;
+		max-height: 28px !important;
+		height: auto !important;
+		font-size: calc(var(--vscode-font-size) * 0.95) !important;
+		line-height: 1.35 !important;
+	}
+
 	/* VSCodeButton Global Overrides */
 	vscode-button[appearance="primary"],
 	vscode-button[appearance="primary"]::part(control),
