@@ -3053,7 +3053,7 @@ ${comment.suggestion}
 				if (task) {
 					// Active task: only update task-local model, NOT global state
 					// This ensures model changes are isolated to this task
-					task.updateModel(message.apiProvider, message.apiModelId)
+					task.updateModel(message.apiProvider, message.apiModelId, message.thirdPartySelectedModel)
 					provider.log(
 						`[updateTaskModel] Updated task ${task.taskId} to use ${message.apiProvider}/${message.apiModelId}`,
 					)

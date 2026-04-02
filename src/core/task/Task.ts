@@ -3698,8 +3698,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	 *
 	 * @param apiProvider - The API provider (e.g., "anthropic", "openrouter")
 	 * @param apiModelId - The model ID to use
+	 * @param thirdPartySelectedModel - Optional third-party model selection (e.g., "ollama:llama3.2:latest")
 	 */
-	public updateModel(apiProvider: string, apiModelId: string): void {
+	public updateModel(apiProvider: string, apiModelId: string, thirdPartySelectedModel?: string): void {
 		// Map provider to its model ID field
 		const modelFieldMap: Record<string, keyof ProviderSettings> = {
 			anthropic: "apiModelId",
@@ -3754,6 +3755,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			...this.apiConfiguration,
 			apiProvider,
 			[field]: apiModelId,
+			// Update or clear third-party model selection
+			thirdPartySelectedModel,
 		} as ProviderSettings
 
 		// Update the task's configuration (this is task-local, not global)

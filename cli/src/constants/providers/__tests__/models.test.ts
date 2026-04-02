@@ -608,6 +608,32 @@ describe("Static Provider Models", () => {
 		it("should capitalize words", () => {
 			expect(prettyModelName("claude-sonnet")).toBe("Claude Sonnet")
 		})
+
+		it("should handle three-part paths with @cf prefix", () => {
+			// @cf/moonshotai/kimi-k2.5 -> Kimi K2.5 (Moonshotai)
+			expect(prettyModelName("@cf/moonshotai/kimi-k2.5")).toBe("Kimi K2.5 (Moonshotai)")
+			expect(prettyModelName("@cf/openai/gpt-4")).toBe("Gpt 4 (Openai)")
+		})
+
+		it("should handle three-part paths with provider prefix", () => {
+			// matterai3p:@cf/moonshotai/kimi-k2.5 -> Kimi K2.5 (Moonshotai)
+			expect(prettyModelName("matterai3p:@cf/moonshotai/kimi-k2.5")).toBe("Kimi K2.5 (Moonshotai)")
+			expect(prettyModelName("ollama:llama3.2:latest")).toBe("Llama3.2 (Latest)")
+		})
+
+		it("should handle two-part paths", () => {
+			expect(prettyModelName("openai/gpt-4")).toBe("Openai / Gpt 4")
+			expect(prettyModelName("deepseek-ai/DeepSeek-R1")).toBe("DeepSeek R1")
+		})
+
+		it("should handle model IDs with colons (tags)", () => {
+			expect(prettyModelName("llama3.2:latest")).toBe("Llama3.2 (Latest)")
+			expect(prettyModelName("ollama:llama3.2:latest")).toBe("Llama3.2 (Latest)")
+		})
+
+		it("should handle empty or null input", () => {
+			expect(prettyModelName("")).toBe("")
+		})
 	})
 
 	describe("Model Properties Validation", () => {

@@ -6,27 +6,73 @@ const AXON_MODEL_CREDITS: Record<string, string> = {
 	"axon-code-2-pro": "(1.5x)",
 }
 
+/**
+ * Formats a model ID into a human-readable display name.
+ * Handles various model ID formats:
+ * - Simple names: "gpt-4" -> "Gpt 4"
+ * - Two-part paths: "openai/gpt-4" -> "Openai / Gpt 4"
+ * - Three-part paths: "@cf/moonshotai/kimi-k2.5" -> "Kimi K2.5 (Moonshotai)"
+ * - With tags: "llama3.2:latest" -> "Llama3.2 (Latest)"
+ */
 export const prettyModelName = (modelId: string): string => {
 	if (!modelId) {
 		return ""
 	}
-	const [mainId, tag] = modelId.split(":")
 
-	const projectName = mainId.includes("/") ? mainId.split("/")[0] : ""
-	const modelName = mainId.includes("/") ? mainId.split("/")[1] : mainId
+	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:", "fireworks:")
+	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode|fireworks):/, "")
 
-	// Capitalize each word and join with spaces
-	const formattedProject = projectName ? projectName.charAt(0).toUpperCase() + projectName.slice(1) : ""
+	const [mainId, tag] = withoutProviderPrefix.split(":")
 
-	const formattedName = modelName
+	// Handle paths with "/" separator
+	if (mainId?.includes("/")) {
+		const segments = mainId.split("/").filter(Boolean)
+
+		// Handle three-part paths like "@cf/moonshotai/kimi-k2.5"
+		// Pattern: [prefix]/[vendor]/[model] or [vendor]/[model]
+		if (segments.length >= 3) {
+			// Take the last segment as model name
+			const modelName = segments[segments.length - 1]!
+			// Take the second-to-last as vendor (skip prefixes like "@cf")
+			const vendor = segments[segments.length - 2]!
+
+			// Format model name: replace hyphens/underscores with spaces, title case
+			// Preserve dots in version numbers (e.g., "kimi-k2.5" -> "Kimi K2.5")
+			const formattedModelName = modelName.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+
+			// Format vendor: title case
+			const formattedVendor = vendor.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+
+			const formattedTag = tag ? ` (${tag.charAt(0).toUpperCase() + tag.slice(1)})` : ""
+			return `${formattedModelName} (${formattedVendor})${formattedTag}`
+		}
+
+		// Handle two-part paths like "openai/gpt-4"
+		if (segments.length === 2) {
+			const projectName = segments[0]!
+			const modelName = segments[1]!
+
+			const formattedProject = projectName.charAt(0).toUpperCase() + projectName.slice(1)
+			const formattedName = modelName
+				.split("-")
+				.filter(Boolean)
+				.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+				.join(" ")
+
+			const formattedTag = tag ? ` (${tag.charAt(0).toUpperCase() + tag.slice(1)})` : ""
+			return `${formattedProject} / ${formattedName}${formattedTag}`
+		}
+	}
+
+	// Handle simple names without "/"
+	const formattedName = (mainId || "")
 		.split("-")
 		.filter(Boolean)
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(" ")
 
-	const formattedTag = tag ? `(${tag.charAt(0).toUpperCase() + tag.slice(1)})` : ""
-
-	return [[formattedProject, formattedName].filter(Boolean).join(" / "), formattedTag].join(" ")
+	const formattedTag = tag ? ` (${tag.charAt(0).toUpperCase() + tag.slice(1)})` : ""
+	return formattedName + formattedTag
 }
 
 // Function to get credits for Axon models
