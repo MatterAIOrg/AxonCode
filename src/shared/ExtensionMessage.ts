@@ -255,6 +255,9 @@ export interface ExtensionMessage {
 	tab?: string
 	targetSection?: string // kilocode_change: For settingsFocus action
 	provider?: string // kilocode_change: For thirdPartyModels
+	apiProvider?: string // kilocode_change: For showEditMessageDialog
+	apiModelId?: string // kilocode_change: For showEditMessageDialog
+	thirdPartySelectedModel?: string // kilocode_change: For showEditMessageDialog
 	// kilocode_change: Rules data
 	globalRules?: ClineRulesToggles
 	localRules?: ClineRulesToggles

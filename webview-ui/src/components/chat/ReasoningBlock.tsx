@@ -95,6 +95,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 
 	const timeLabel = formatTime(totalSeconds)
 	const label = partial ? t("chat:reasoning.thinking") : t("chat:reasoning.thought")
+	const briefLabel = partial ? t("chat:reasoning.thinkingBriefly") : t("chat:reasoning.thoughtBriefly")
 
 	const handleToggle = () => {
 		setIsCollapsed(!isCollapsed)
@@ -113,7 +114,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 								"text-vscode-foreground hover:text-[var(--vscode-button-background)]",
 								partial && "animate-shimmer",
 							)}>
-							{label} for {timeLabel}
+							{totalSeconds < 2 ? briefLabel : `${label} for ${timeLabel}`}
 						</span>
 					) : (
 						<span

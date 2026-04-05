@@ -54,6 +54,9 @@ interface EditMessageDialogState {
 	text: string
 	hasCheckpoint: boolean
 	images?: string[]
+	apiProvider?: string
+	apiModelId?: string
+	thirdPartySelectedModel?: string
 }
 
 // Memoize dialog components to prevent unnecessary re-renders
@@ -208,6 +211,9 @@ const App = () => {
 					text: message.text,
 					hasCheckpoint: message.hasCheckpoint || false,
 					images: message.images || [],
+					apiProvider: message.apiProvider,
+					apiModelId: message.apiModelId,
+					thirdPartySelectedModel: message.thirdPartySelectedModel,
 				})
 			}
 
@@ -410,6 +416,9 @@ const App = () => {
 							messageTs: editMessageDialogState.messageTs,
 							text: editMessageDialogState.text,
 							restoreCheckpoint,
+							apiProvider: editMessageDialogState.apiProvider,
+							apiModelId: editMessageDialogState.apiModelId,
+							thirdPartySelectedModel: editMessageDialogState.thirdPartySelectedModel,
 						})
 						setEditMessageDialogState((prev) => ({ ...prev, isOpen: false }))
 					}}
@@ -424,6 +433,9 @@ const App = () => {
 							messageTs: editMessageDialogState.messageTs,
 							text: editMessageDialogState.text,
 							images: editMessageDialogState.images,
+							apiProvider: editMessageDialogState.apiProvider,
+							apiModelId: editMessageDialogState.apiModelId,
+							thirdPartySelectedModel: editMessageDialogState.thirdPartySelectedModel,
 						})
 						setEditMessageDialogState((prev) => ({ ...prev, isOpen: false }))
 					}}

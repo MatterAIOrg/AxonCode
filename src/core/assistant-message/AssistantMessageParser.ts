@@ -29,10 +29,12 @@ export class AssistantMessageParser {
 	// State for accumulating native tool calls
 	private nativeToolCallsAccumulator: Map<string, NativeToolCall> = new Map()
 	private processedNativeToolCallIds: Set<string> = new Set()
-	// Map index to id for tracking across streaming deltas
+	// Map index to id for tracking across streaming delta
 	private nativeToolCallIndexToId: Map<number, string> = new Map()
 	// Callback to check if a tool name is an MCP tool
 	private mcpToolChecker: McpToolChecker | undefined
+	// Track partial native tool calls that have been emitted but not yet completed
+	private emittedPartialNativeToolCalls: Set<string> = new Set()
 	// forked_change end
 
 	private accumulator = ""
@@ -62,6 +64,7 @@ export class AssistantMessageParser {
 		this.nativeToolCallsAccumulator.clear()
 		this.processedNativeToolCallIds.clear()
 		this.nativeToolCallIndexToId.clear()
+		this.emittedPartialNativeToolCalls.clear()
 		// forked_change end
 	}
 
@@ -76,11 +79,50 @@ export class AssistantMessageParser {
 
 	// forked_change start
 	/**
+	 * Extract partial parameters from an incomplete JSON string.
+	 * This uses simple regex to extract key-value pairs that might be useful for UI display.
+	 */
+	private extractPartialParams(argsString: string): Record<string, string> {
+		const partialParams: Record<string, string> = {}
+		if (!argsString.trim()) return partialParams
+
+		// Match patterns like "key": "value" or "key": "partial value (without closing quote)
+		// Also match "key": unquoted_value for simple values
+		// Handle escaped quotes within values: \\"
+		const quotedValueRegex = /"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"/g
+		const unquotedValueRegex = /"((?:[^"\\]|\\.)*)"\s*:\s*([a-zA-Z0-9_.*\/\\-]+)/g
+
+		let match
+		// Extract quoted values
+		while ((match = quotedValueRegex.exec(argsString)) !== null) {
+			partialParams[match[1]] = match[2]
+		}
+		// Extract unquoted values (only if not already captured as quoted)
+		while ((match = unquotedValueRegex.exec(argsString)) !== null) {
+			if (!(match[1] in partialParams)) {
+				partialParams[match[1]] = match[2]
+			}
+		}
+
+		// Also try to extract partial quoted values (without closing quote)
+		// e.g., "file_path": "src/componen  -> extract "src/componen"
+		const partialQuotedRegex = /"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)$/g
+		while ((match = partialQuotedRegex.exec(argsString)) !== null) {
+			partialParams[match[1]] = match[2]
+		}
+
+		return partialParams
+	}
+
+	/**
 	 * Process native OpenAI-format tool calls and convert them to internal ToolUse format.
 	 * This handles tool calls that come from OpenAI-compatible APIs in their native format
 	 * rather than embedded as XML in text content.
 	 *
 	 * Native tool calls stream in as deltas, so this method accumulates them until complete.
+	 *
+	 * forked_change: Now yields partial tool calls immediately when tool name is known,
+	 * allowing the UI to show "Editing filename..." during streaming.
 	 *
 	 * @param toolCalls Array of native tool call objects (may be partial during streaming).  We
 	 * currently set parallel_tool_calls to false, so in theory there should only be 1 call.
@@ -115,7 +157,7 @@ export class AssistantMessageParser {
 				continue
 			}
 
-			// Check if we've already processed this tool call
+			// Check if we've already processed this tool call as COMPLETE
 			if (this.processedNativeToolCallIds.has(toolCallId)) {
 				console.log("[AssistantMessageParser] Tool call already processed:", toolCallId)
 				continue
@@ -140,7 +182,7 @@ export class AssistantMessageParser {
 
 				if (!accumulatedCall) {
 					accumulatedCall = {
-						id: toolCall.id,
+						id: toolCallId, // FIX: Use toolCallId instead of toolCall.id
 						type: toolCall.type,
 						function: {
 							name: toolCall.function.name,
@@ -151,8 +193,49 @@ export class AssistantMessageParser {
 						mcpServerName: mcpCheck?.serverName,
 					}
 					this.nativeToolCallsAccumulator.set(toolCallId, accumulatedCall)
+
+					// forked_change: Immediately emit a partial tool use block when we have the name
+					// This allows the UI to show "Editing filename..." during streaming
+					this.finalizeTextContentBeforeToolUse()
+
+					// Extract any partial params we can from the current arguments string
+					const partialParams = this.extractPartialParams(accumulatedCall.function!.arguments || "")
+
+					// Create partial ToolUse block
+					const partialToolUse: ToolUse =
+						accumulatedCall.isMcpTool && accumulatedCall.mcpServerName
+							? {
+									type: "tool_use" as const,
+									name: "use_mcp_tool" as ToolName,
+									params: {
+										server_name: accumulatedCall.mcpServerName,
+										tool_name: toolName,
+										arguments: accumulatedCall.function!.arguments || "",
+									},
+									partial: true,
+									toolUseId: accumulatedCall.id,
+								}
+							: {
+									type: "tool_use" as const,
+									name: toolName as ToolName,
+									params: partialParams,
+									partial: true,
+									toolUseId: accumulatedCall.id,
+								}
+
+					// Add to content blocks
+					this.contentBlocks.push(partialToolUse)
+					this.emittedPartialNativeToolCalls.add(toolCallId)
+
+					// Yield partial to the stream so UI can update
+					yield {
+						type: "tool_use" as const,
+						name: partialToolUse.name,
+						id: partialToolUse.toolUseId ?? "",
+						input: partialToolUse.params,
+					}
 				} else {
-					// Shouldn't happen, but append arguments if it does
+					// Already have this tool call, append arguments
 					accumulatedCall.function!.arguments += toolCall.function.arguments || ""
 				}
 			}
@@ -193,17 +276,32 @@ export class AssistantMessageParser {
 				}
 			} catch (error) {
 				// Arguments are not yet complete valid JSON, continue accumulating
+				// forked_change: Update the partial tool use block with new partial params
+				if (this.emittedPartialNativeToolCalls.has(toolCallId)) {
+					// Find the partial tool use in content blocks and update its params
+					const partialBlock = this.contentBlocks.find(
+						(block): block is ToolUse =>
+							block.type === "tool_use" && block.toolUseId === toolCallId && block.partial === true,
+					)
+					if (partialBlock) {
+						// Update partial params from accumulated arguments
+						const updatedPartialParams = this.extractPartialParams(accumulatedCall.function!.arguments)
+						partialBlock.params =
+							accumulatedCall.isMcpTool && accumulatedCall.mcpServerName
+								? {
+										server_name: accumulatedCall.mcpServerName,
+										tool_name: accumulatedCall.function!.name,
+										arguments: accumulatedCall.function!.arguments,
+									}
+								: updatedPartialParams
+					}
+				}
 				continue
 			}
 
 			// Tool call is complete - convert it to ToolUse format
 			if (isComplete) {
 				const toolName = accumulatedCall.function!.name
-				// Finalize any current text content before adding tool use
-				if (this.currentTextContent) {
-					this.currentTextContent.partial = false
-					this.currentTextContent = undefined
-				}
 
 				// forked_change: Handle MCP tools by converting to use_mcp_tool
 				let toolUse: ToolUse
@@ -233,8 +331,32 @@ export class AssistantMessageParser {
 					}
 				}
 
-				// Add the tool use to content blocks
-				this.contentBlocks.push(toolUse)
+				// forked_change: Update the partial block in place by mutating the existing object
+				// This ensures both contentBlocks and assistantMessageContent see the same updated object
+				if (this.emittedPartialNativeToolCalls.has(toolCallId)) {
+					const partialIndex = this.contentBlocks.findIndex(
+						(block) =>
+							block.type === "tool_use" &&
+							(block as ToolUse).toolUseId === toolCallId &&
+							(block as ToolUse).partial === true,
+					)
+					if (partialIndex !== -1) {
+						// Mutate the existing block object in place - this updates the reference
+						// that both contentBlocks and assistantMessageContent share
+						const existingBlock = this.contentBlocks[partialIndex] as ToolUse
+						existingBlock.name = toolUse.name
+						existingBlock.params = toolUse.params
+						existingBlock.partial = false
+						existingBlock.toolUseId = toolUse.toolUseId
+					} else {
+						// Partial block not found, add as new (shouldn't happen normally)
+						this.contentBlocks.push(toolUse)
+					}
+					this.emittedPartialNativeToolCalls.delete(toolCallId)
+				} else {
+					// No partial was emitted, add as new
+					this.contentBlocks.push(toolUse)
+				}
 
 				// Mark this tool call as processed
 				this.processedNativeToolCallIds.add(toolCallId)
@@ -247,6 +369,17 @@ export class AssistantMessageParser {
 					input: toolUse.params,
 				}
 			}
+		}
+	}
+
+	/**
+	 * Finalize text content before adding a tool use block.
+	 * This ensures text content is properly closed before tool use starts.
+	 */
+	private finalizeTextContentBeforeToolUse(): void {
+		if (this.currentTextContent) {
+			this.currentTextContent.partial = false
+			this.currentTextContent = undefined
 		}
 	}
 	// forked_change end
@@ -471,6 +604,25 @@ export class AssistantMessageParser {
 				continue
 			}
 
+			// Helper: Remove any previously emitted partial block for this tool call.
+			// This is critical because finalizeContentBlocks() will mark all remaining
+			// partial blocks as partial:false, which would cause the incomplete partial
+			// to be executed as if it were complete (with missing required params like file_path).
+			const removePartialBlock = () => {
+				if (this.emittedPartialNativeToolCalls.has(toolCallId)) {
+					const partialIndex = this.contentBlocks.findIndex(
+						(block) =>
+							block.type === "tool_use" &&
+							(block as ToolUse).toolUseId === toolCallId &&
+							(block as ToolUse).partial === true,
+					)
+					if (partialIndex !== -1) {
+						this.contentBlocks.splice(partialIndex, 1)
+					}
+					this.emittedPartialNativeToolCalls.delete(toolCallId)
+				}
+			}
+
 			// Try to parse the arguments one final time
 			let parsedArgs: Record<string, any> = {}
 			try {
@@ -479,11 +631,14 @@ export class AssistantMessageParser {
 					parsedArgs = parseDoubleEncodedParams(parsedArgs)
 				}
 			} catch (error) {
-				// Arguments are still not valid JSON, skip this tool call
+				// Arguments are still not valid JSON — remove the partial block so it
+				// doesn't get executed with incomplete params after finalizeContentBlocks
+				// marks it as partial:false
 				console.warn(
 					`[AssistantMessageParser] Failed to parse accumulated tool call at finalization: ${toolCallId}`,
 					error,
 				)
+				removePartialBlock()
 				continue
 			}
 
@@ -519,6 +674,9 @@ export class AssistantMessageParser {
 					toolUseId: accumulatedCall.id,
 				}
 			}
+
+			// Remove the old partial block before adding the complete one
+			removePartialBlock()
 
 			// Add the tool use to content blocks
 			this.contentBlocks.push(toolUse)

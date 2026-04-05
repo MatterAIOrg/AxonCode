@@ -314,6 +314,8 @@
 	"reasoning": {
 		"thinking": "التفكير",
 		"thought": "فكرة",
+		"thinkingBriefly": "يفكر باختصار",
+		"thoughtBriefly": "فكر باختصار",
 		"seconds": "{{count}}ث"
 	},
 	"followUpSuggest": {

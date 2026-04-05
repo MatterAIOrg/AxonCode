@@ -851,7 +851,14 @@ export const webviewMessageHandler = async (
 	/**
 	 * Handles message editing operations with user confirmation
 	 */
-	const handleEditOperation = async (messageTs: number, editedContent: string, images?: string[]): Promise<void> => {
+	const handleEditOperation = async (
+		messageTs: number,
+		editedContent: string,
+		images?: string[],
+		apiProvider?: string,
+		apiModelId?: string,
+		thirdPartySelectedModel?: string,
+	): Promise<void> => {
 		// Check if there's a checkpoint before this message
 		const currentCline = provider.getCurrentTask()
 		let hasCheckpoint = false
@@ -878,6 +885,9 @@ export const webviewMessageHandler = async (
 			text: editedContent,
 			hasCheckpoint,
 			images,
+			apiProvider,
+			apiModelId,
+			thirdPartySelectedModel,
 		})
 	}
 
@@ -889,11 +899,20 @@ export const webviewMessageHandler = async (
 		editedContent: string,
 		restoreCheckpoint?: boolean,
 		images?: string[],
+		apiProvider?: string,
+		apiModelId?: string,
+		thirdPartySelectedModel?: string,
 	): Promise<void> => {
 		const currentCline = provider.getCurrentTask()
 		if (!currentCline) {
 			console.error("[handleEditMessageConfirm] No current cline available")
 			return
+		}
+
+		// Apply model change if provided (model was changed during edit)
+		if (apiProvider && apiModelId) {
+			currentCline.updateModel(apiProvider, apiModelId, thirdPartySelectedModel)
+			provider.log(`[handleEditMessageConfirm] Applied model change: ${apiProvider}/${apiModelId}`)
 		}
 
 		// Use findMessageIndices to find messages based on timestamp
@@ -1028,11 +1047,21 @@ export const webviewMessageHandler = async (
 		operation: "delete" | "edit",
 		editedContent?: string,
 		images?: string[],
+		apiProvider?: string,
+		apiModelId?: string,
+		thirdPartySelectedModel?: string,
 	): Promise<void> => {
 		if (operation === "delete") {
 			await handleDeleteOperation(messageTs)
 		} else if (operation === "edit" && editedContent) {
-			await handleEditOperation(messageTs, editedContent, images)
+			await handleEditOperation(
+				messageTs,
+				editedContent,
+				images,
+				apiProvider,
+				apiModelId,
+				thirdPartySelectedModel,
+			)
 		}
 	}
 
@@ -2599,6 +2628,9 @@ ${comment.suggestion}
 					"edit",
 					message.editedMessageContent,
 					message.images,
+					message.apiProvider,
+					message.apiModelId,
+					message.thirdPartySelectedModel,
 				)
 			}
 			break
@@ -3229,6 +3261,9 @@ ${comment.suggestion}
 					message.text,
 					message.restoreCheckpoint,
 					message.images,
+					message.apiProvider,
+					message.apiModelId,
+					message.thirdPartySelectedModel,
 				)
 			}
 			break

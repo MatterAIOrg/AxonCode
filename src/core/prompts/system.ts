@@ -115,18 +115,14 @@ The \`read_file\` tool reads file contents with optional offset and limit. Use i
 
 - \`file_path\` (required): Absolute path to the file (e.g., /Users/username/project/src/file.ts)
 - \`offset\` (optional): Starting line number (1-indexed). Defaults to 1.
-- \`limit\` (optional): Maximum number of lines to read. If not specified, reads the complete file.
+- \`limit\` (optional): Maximum number of lines to read. If not specified, reads the complete file. Default and maximum limit is 1000 lines.
 
 ### Parameters Schema
 \`\`\`typescript
 {
-  files: [
-    {
-      file_path: string,    // Absolute path to file
-      offset?: number,      // Starting line (1-indexed), defaults to 1
-      limit?: number        // Max lines to read, omit to read entire file
-    }
-  ]
+  file_path: string,    // Absolute path to file (required)
+  offset?: number,      // Starting line (1-indexed), defaults to 1
+  limit?: number        // Max lines to read, omit to read entire file
 }
 \`\`\`
 
@@ -135,52 +131,38 @@ The \`read_file\` tool reads file contents with optional offset and limit. Use i
 **Read entire file:**
 \`\`\`json
 {
-  "files": [
-    {
-      "file_path": "/Users/username/project/src/App.tsx"
-    }
-  ]
+  "file_path": "/Users/username/project/src/App.tsx"
 }
 \`\`\`
 
 **Read first 50 lines:**
 \`\`\`json
 {
-  "files": [
-    {
-      "file_path": "/Users/username/project/src/App.tsx",
-      "limit": 50
-    }
-  ]
+  "file_path": "/Users/username/project/src/App.tsx",
+  "limit": 50
 }
 \`\`\`
 
 **Read lines 100-150 (50 lines starting at line 100):**
 \`\`\`json
 {
-  "files": [
-    {
-      "file_path": "/Users/username/project/src/App.tsx",
-      "offset": 100,
-      "limit": 50
-    }
-  ]
+  "file_path": "/Users/username/project/src/App.tsx",
+  "offset": 100,
+  "limit": 50
 }
 \`\`\`
 
-**Read multiple files:**
+**Read multiple files (call tool multiple times):**
 \`\`\`json
 {
-  "files": [
-    {
-      "file_path": "/Users/username/project/src/api.ts"
-    },
-    {
-      "file_path": "/Users/username/project/src/auth.ts",
-      "offset": 50,
-      "limit": 30
-    }
-  ]
+  "file_path": "/Users/username/project/src/api.ts"
+}
+\`\`\`
+\`\`\`json
+{
+  "file_path": "/Users/username/project/src/auth.ts",
+  "offset": 50,
+  "limit": 30
 }
 \`\`\`
 
@@ -200,13 +182,9 @@ The \`read_file\` tool reads file contents with optional offset and limit. Use i
 **Step 3:** Read that section with \`read_file\`:
 \`\`\`json
 {
-  "files": [
-    {
-      "file_path": "/Users/username/project/src/Form.tsx",
-      "offset": 40,
-      "limit": 50
-    }
-  ]
+  "file_path": "/Users/username/project/src/Form.tsx",
+  "offset": 40,
+  "limit": 50
 }
 \`\`\`
 

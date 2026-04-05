@@ -314,6 +314,8 @@
 	"reasoning": {
 		"thinking": "Raonament",
 		"thought": "Pensament",
+		"thinkingBriefly": "Raonant breument",
+		"thoughtBriefly": "Va raonar breument",
 		"seconds": "{{count}}s"
 	},
 	"followUpSuggest": {

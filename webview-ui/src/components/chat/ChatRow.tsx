@@ -47,6 +47,7 @@ import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // ki
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
 import { StandardTooltip } from "../ui" // kilocode_change
 import { useSelectedModel } from "../ui/hooks/useSelectedModel"
+import { getModelIdKey } from "../kilocode/hooks/useSelectedModel"
 import { AutoApprovedRequestLimitWarning } from "./AutoApprovedRequestLimitWarning"
 import { ChatTextArea } from "./ChatTextArea"
 import ChatTimestamps from "./ChatTimestamps" // kilocode_change
@@ -216,6 +217,10 @@ export const ChatRowContent = ({
 		showTimestamps,
 	} = useExtensionState()
 	const { info: model } = useSelectedModel(apiConfiguration)
+	// Get model ID key for the current provider (used when saving edits with model changes)
+	const modelIdKey = apiConfiguration?.apiProvider
+		? getModelIdKey({ provider: apiConfiguration.apiProvider })
+		: undefined
 	const [isEditing, setIsEditing] = useState(false)
 	const [editedContent, setEditedContent] = useState("")
 	const [editMode, setEditMode] = useState<Mode>(mode || "code")
@@ -335,14 +340,25 @@ export const ChatRowContent = ({
 	// Handle save edit
 	const handleSaveEdit = useCallback(() => {
 		setIsEditing(false)
-		// Send edited message to backend
+		// Send edited message to backend with current model configuration
+		// This ensures model changes during edit are preserved
+		// For vscode-lm provider, we need to construct the model ID from the selector
+		let apiModelId: string | undefined
+		if (apiConfiguration?.apiProvider === "vscode-lm" && apiConfiguration?.vsCodeLmModelSelector) {
+			apiModelId = `${apiConfiguration.vsCodeLmModelSelector.vendor}/${apiConfiguration.vsCodeLmModelSelector.family}`
+		} else if (modelIdKey) {
+			apiModelId = apiConfiguration?.[modelIdKey] as string | undefined
+		}
 		vscode.postMessage({
 			type: "submitEditedMessage",
 			value: message.ts,
 			editedMessageContent: editedContent,
 			images: editImages,
+			apiProvider: apiConfiguration?.apiProvider,
+			apiModelId,
+			thirdPartySelectedModel: apiConfiguration?.thirdPartySelectedModel,
 		})
-	}, [message.ts, editedContent, editImages])
+	}, [message.ts, editedContent, editImages, apiConfiguration, modelIdKey])
 
 	// Handle image selection for editing
 	const handleSelectImages = useCallback(() => {

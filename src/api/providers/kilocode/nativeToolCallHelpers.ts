@@ -121,13 +121,17 @@ export function* processNativeToolCallsFromDelta(
 		const validToolCalls = delta.tool_calls
 			.filter((tc) => tc.function) // Keep any delta with function data
 			.filter((tc) => {
-				// Skip tool calls with null/empty names when id is also null
-				// These are placeholder entries in the delta stream
+				// Skip tool calls with null/empty names when id is also null AND no arguments
+				// These are placeholder entries in the delta stream.
+				// In OpenAI streaming, the first delta has id + name, and subsequent
+				// deltas only have index + function.arguments (no id, no name).
+				// We must allow argument-carrying deltas through for accumulation.
 				const hasValidId = tc.id !== null && tc.id !== undefined
 				const hasValidName =
 					tc.function!.name !== null && tc.function!.name !== undefined && tc.function!.name !== ""
-				// Keep if we have a valid id OR a valid name (one will be present in valid calls)
-				return hasValidId || hasValidName
+				const hasArguments = typeof tc.function!.arguments === "string" && tc.function!.arguments.length > 0
+				// Keep if we have a valid id OR a valid name (first delta) OR arguments data (subsequent deltas)
+				return hasValidId || hasValidName || hasArguments
 			})
 			.map((tc) => ({
 				index: tc.index, // Use index to track across deltas

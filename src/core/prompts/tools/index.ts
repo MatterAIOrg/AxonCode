@@ -11,9 +11,7 @@ import { Mode, getModeConfig, isToolAllowedForMode, getGroupName } from "../../.
 import { ToolArgs } from "./types"
 import { getExecuteCommandDescription } from "./execute-command"
 import { getReadFileDescription } from "./read-file"
-import { getSimpleReadFileDescription } from "./simple-read-file"
 import { getFetchInstructionsDescription } from "./fetch-instructions"
-import { shouldUseSingleFileRead } from "@roo-code/types"
 import { getWriteToFileDescription } from "./write-to-file"
 import { getSearchFilesDescription } from "./search-files"
 import { getListFilesDescription } from "./list-files"
@@ -50,14 +48,7 @@ import { type ClineProviderState } from "../../webview/ClineProvider"
 // Map of tool names to their description functions
 const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined | Promise<string>> = {
 	execute_command: (args) => getExecuteCommandDescription(args),
-	read_file: (args) => {
-		// Check if the current model should use the simplified read_file tool
-		const modelId = args.settings?.modelId
-		if (modelId && shouldUseSingleFileRead(modelId)) {
-			return getSimpleReadFileDescription(args)
-		}
-		return getReadFileDescription(args)
-	},
+	read_file: (args) => getReadFileDescription(args),
 	fetch_instructions: (args) => getFetchInstructionsDescription(args.settings?.enableMcpServerCreation),
 	write_to_file: (args) => getWriteToFileDescription(args),
 	search_files: (args) => getSearchFilesDescription(args),
@@ -218,7 +209,6 @@ export async function getToolDescriptionsForMode(
 export {
 	getExecuteCommandDescription,
 	getReadFileDescription,
-	getSimpleReadFileDescription,
 	getFetchInstructionsDescription,
 	getWriteToFileDescription,
 	getSearchFilesDescription,

@@ -1,4 +1,4 @@
-import { ModelInfo, shouldUseSingleFileRead, ToolName } from "@roo-code/types"
+import { ModelInfo, ToolName } from "@roo-code/types"
 import { CodeIndexManager } from "../../../../services/code-index/manager"
 import { Mode, getModeConfig, isToolAllowedForMode, getGroupName } from "../../../../shared/modes"
 import { ClineProviderState } from "../../../webview/ClineProvider"
@@ -7,7 +7,7 @@ import { ALWAYS_AVAILABLE_TOOLS, TOOL_GROUPS } from "../../../../shared/tools"
 import { isFastApplyAvailable } from "../../../tools/editFileTool"
 import { nativeTools } from "."
 import { apply_diff_multi_file, apply_diff_single_file } from "./apply_diff"
-import { read_file_multi, read_file_single } from "./read_file"
+import { read_file_single } from "./read_file"
 
 export function getAllowedJSONToolsForMode(
 	mode: Mode,
@@ -103,11 +103,8 @@ export function getAllowedJSONToolsForMode(
 	}
 
 	if (isReadFileToolAllowedForMode) {
-		if (model?.id && shouldUseSingleFileRead(model?.id)) {
-			allowedTools.push(read_file_single)
-		} else {
-			allowedTools.push(read_file_multi)
-		}
+		// Always use read_file_single for all models
+		allowedTools.push(read_file_single)
 	}
 
 	// Handle the "apply_diff" logic separately because the same tool has different

@@ -94,13 +94,8 @@ export abstract class ShadowCheckpointService extends EventEmitter {
 		const nestedGitPath = await this.getNestedGitRepository()
 
 		if (nestedGitPath) {
-			// Show persistent error message with the offending path
-			const relativePath = path.relative(this.workspaceDir, nestedGitPath)
-
-			showWarning(t("kilocode:checkpoints.nestedGitRepos", { path: relativePath })) // kilocode_change
-
 			throw new Error(
-				`Checkpoints are disabled because a nested git repository was detected at: ${relativePath}. ` +
+				`Checkpoints are disabled because a nested git repository was detected at: ${nestedGitPath}. ` +
 					"Please remove or relocate nested git repositories to use the checkpoints feature.",
 			)
 		}

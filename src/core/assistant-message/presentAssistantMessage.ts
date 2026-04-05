@@ -7,9 +7,7 @@ import type { ClineAsk, ToolName, ToolProgressStatus } from "@roo-code/types"
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import type { ToolParamName, ToolResponse } from "../../shared/tools"
 
-import { shouldUseSingleFileRead } from "@roo-code/types"
 import { accessMcpResourceTool } from "../tools/accessMcpResourceTool"
-import { askFollowupQuestionTool } from "../tools/askFollowupQuestionTool"
 import { attemptCompletionTool } from "../tools/attemptCompletionTool"
 import { browserActionTool } from "../tools/browserActionTool"
 import { editFileTool } from "../tools/editFileTool" // kilocode_change: Morph fast apply
@@ -25,7 +23,6 @@ import { newTaskTool } from "../tools/newTaskTool"
 import { getReadFileToolDescription, readFileTool } from "../tools/readFileTool"
 import { searchAndReplaceTool } from "../tools/searchAndReplaceTool"
 import { searchFilesTool } from "../tools/searchFilesTool"
-import { getSimpleReadFileToolDescription, simpleReadFileTool } from "../tools/simpleReadFileTool"
 import { switchModeTool } from "../tools/switchModeTool"
 import { useMcpToolTool } from "../tools/useMcpToolTool"
 import { mcpAuthenticateTool } from "../tools/mcpAuthenticateTool"
@@ -53,6 +50,7 @@ import { reportBugTool } from "../tools/reportBugTool" // kilocode_change
 import { validateToolUse } from "../tools/validateToolUse"
 import { webFetchTool } from "../tools/webFetchTool"
 import { webSearchTool } from "../tools/webSearchTool"
+import { askFollowupQuestionTool } from "../tools/askFollowupQuestionTool"
 
 /**
  * Processes and presents assistant message content to the user interface.
@@ -175,13 +173,7 @@ export async function presentAssistantMessage(cline: Task) {
 					case "execute_command":
 						return `[${block.name} for '${block.params.command}']`
 					case "read_file":
-						// Check if this model should use the simplified description
-						const modelId = cline.api.getModel().id
-						if (shouldUseSingleFileRead(modelId)) {
-							return getSimpleReadFileToolDescription(block.name, block.params)
-						} else {
-							return getReadFileToolDescription(block.name, block.params)
-						}
+						return getReadFileToolDescription(block.name, block.params)
 					case "fetch_instructions":
 						return `[${block.name} for '${block.params.task}']`
 					case "write_to_file":
@@ -498,6 +490,19 @@ export async function presentAssistantMessage(cline: Task) {
 			}
 
 			await checkpointSaveAndMark(cline) // kilocode_change: moved out of switch
+
+			// forked_change start: Clean up stale partial tool ask message from
+			// native tool call streaming before the complete tool handler runs.
+			// During streaming, a partial ask("tool", ..., true) is created to
+			// show a spinner. Some tool handlers (e.g., file_edit) use
+			// say("tool", ...) for the complete version, which doesn't update
+			// the partial ask — causing duplicate messages. This removes the
+			// stale partial so only the complete message is shown.
+			if (!block.partial && block.toolUseId) {
+				await cline.removeStalePartialToolAskMessage()
+			}
+			// forked_change end
+
 			switch (block.name) {
 				case "write_to_file":
 					// await checkpointSaveAndMark(cline) // kilocode_change
@@ -555,20 +560,7 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				// forked_change end
 				case "read_file":
-					// Check if this model should use the simplified single-file read tool
-					const modelId = cline.api.getModel().id
-					if (shouldUseSingleFileRead(modelId)) {
-						await simpleReadFileTool(
-							cline,
-							block,
-							askApproval,
-							handleError,
-							pushToolResult,
-							removeClosingTag,
-						)
-					} else {
-						await readFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					}
+					await readFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
 				case "fetch_instructions":
 					await fetchInstructionsTool(cline, block, askApproval, handleError, pushToolResult)

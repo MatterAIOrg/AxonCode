@@ -1,5 +1,30 @@
 # Changelog
 
+## [v5.7.6] - 2026-04-05
+
+### Added
+
+- Native tool call helpers for kilocode provider
+- Enhanced assistant message parsing with improved tool handling
+- LSP tool integration for better code navigation
+- File write tool with improved content handling
+
+### Changed
+
+- Refactored system prompts for better tool organization
+- Consolidated read file tools (removed simple-read-file)
+- Updated task handling with improved checkpoint service
+- Enhanced webview message handler for better task coordination
+- Improved ChatRow and ReasoningBlock UI components
+- Updated i18n translations for ar, ca, en, es, pt-BR locales
+
+### Fixed
+
+- Shadow checkpoint service stability improvements
+- Assistant message presentation edge cases
+
+---
+
 ## [v5.7.3] - 2026-04-02
 
 ### Added
