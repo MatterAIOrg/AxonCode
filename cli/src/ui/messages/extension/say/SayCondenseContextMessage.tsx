@@ -23,7 +23,7 @@ export const SayCondenseContextMessage: React.FC<MessageComponentProps> = ({ mes
 		<Box flexDirection="column" marginY={1}>
 			<Box>
 				<Text color={theme.semantic.success} bold>
-					✓ Context Condensed
+					Context Condensed
 				</Text>
 			</Box>
 

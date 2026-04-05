@@ -1,27 +1,26 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { VSCodeBadge } from "@vscode/webview-ui-toolkit/react"
 
 import type { ContextCondense } from "@roo-code/types"
 
 import { Markdown } from "./Markdown"
 import { ProgressIndicator } from "./ProgressIndicator"
 
-export const ContextCondenseRow = ({ cost, prevContextTokens, newContextTokens, summary }: ContextCondense) => {
+export const ContextCondenseRow = ({ prevContextTokens, newContextTokens, summary }: ContextCondense) => {
 	const { t } = useTranslation()
 	const [isExpanded, setIsExpanded] = useState(false)
 
 	// Handle null/undefined token values to prevent crashes
 	const prevTokens = prevContextTokens ?? 0
 	const newTokens = newContextTokens ?? 0
-	const displayCost = cost ?? 0
+	// const displayCost = cost ?? 0
 
 	return (
-		<div className="mb-2">
+		<div className="mb-0 mt-1">
 			<div
 				className="flex items-center justify-between cursor-pointer select-none"
 				onClick={() => setIsExpanded(!isExpanded)}>
-				<div
+				{/* <div
 					style={{
 						width: 16,
 						height: 16,
@@ -33,22 +32,24 @@ export const ContextCondenseRow = ({ cost, prevContextTokens, newContextTokens, 
 						className={`codicon codicon-check`}
 						style={{ color: "var(--vscode-charts-green)", fontSize: 16, marginBottom: "-1.5px" }}
 					/>
-				</div>
+				</div> */}
 				<div className="flex items-center gap-2 flex-grow">
-					<span className="codicon codicon-compress text-blue-400" />
-					<span className="font-bold text-vscode-foreground">{t("chat:contextCondense.title")}</span>
+					{/* <span className="codicon codicon-compress text-blue-400" /> */}
+					<span className="font-bold text-vscode-foreground opacity-75 text-sm">
+						{t("chat:contextCondense.title")}
+					</span>
 					<span className="text-vscode-descriptionForeground text-sm">
 						{prevTokens.toLocaleString()} → {newTokens.toLocaleString()} {t("tokens")}
 					</span>
-					<VSCodeBadge className={displayCost > 0 ? "opacity-100" : "opacity-0"}>
+					{/* <VSCodeBadge className={displayCost > 0 ? "opacity-100" : "opacity-0"}>
 						${displayCost.toFixed(2)}
-					</VSCodeBadge>
+					</VSCodeBadge> */}
 				</div>
 				<span className={`codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
 			</div>
 
 			{isExpanded && (
-				<div className="mt-2 ml-0 p-4 bg-vscode-editor-background rounded text-vscode-foreground text-sm">
+				<div className="my-1 px-2 bg-vscode-editor-background rounded-md text-vscode-foreground text-sm border border-[var(--vscode-activityBar-border)]">
 					<Markdown markdown={summary} />
 				</div>
 			)}
