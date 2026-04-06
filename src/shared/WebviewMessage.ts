@@ -227,6 +227,7 @@ export interface WebviewMessage {
 		| "showSystemNotification" // kilocode_change
 		| "showAutoApproveMenu" // kilocode_change
 		| "reportBug" // kilocode_change
+		| "autoApproveAllCommands" // kilocode_change: auto-approve all commands for current task
 		| "profileButtonClicked" // kilocode_change
 		| "fetchProfileDataRequest" // kilocode_change
 		| "profileDataResponse" // kilocode_change

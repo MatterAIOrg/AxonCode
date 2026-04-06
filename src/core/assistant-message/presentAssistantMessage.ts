@@ -10,39 +10,29 @@ import type { ToolParamName, ToolResponse } from "../../shared/tools"
 import { accessMcpResourceTool } from "../tools/accessMcpResourceTool"
 import { attemptCompletionTool } from "../tools/attemptCompletionTool"
 import { browserActionTool } from "../tools/browserActionTool"
-import { editFileTool } from "../tools/editFileTool" // kilocode_change: Morph fast apply
 import { executeCommandTool } from "../tools/executeCommandTool"
 import { fetchInstructionsTool } from "../tools/fetchInstructionsTool"
 import { fileEditTool } from "../tools/fileEditTool"
 import { fileWriteTool } from "../tools/fileWriteTool"
-import { insertContentTool } from "../tools/insertContentTool"
 import { listCodeDefinitionNamesTool } from "../tools/listCodeDefinitionNamesTool"
 import { listFilesTool } from "../tools/listFilesTool"
-import { applyDiffTool } from "../tools/multiApplyDiffTool"
 import { newTaskTool } from "../tools/newTaskTool"
 import { getReadFileToolDescription, readFileTool } from "../tools/readFileTool"
-import { searchAndReplaceTool } from "../tools/searchAndReplaceTool"
 import { searchFilesTool } from "../tools/searchFilesTool"
 import { switchModeTool } from "../tools/switchModeTool"
 import { useMcpToolTool } from "../tools/useMcpToolTool"
 import { mcpAuthenticateTool } from "../tools/mcpAuthenticateTool"
-import { writeToFileTool } from "../tools/writeToFileTool"
 
 import { generateImageTool } from "../tools/generateImageTool"
 import { lspTool } from "../tools/lspTool"
-import { planFileEditTool } from "../tools/planFileEditTool"
-import { readPlanFileTool } from "../tools/readPlanFileTool"
-import { listPlanFilesTool } from "../tools/listPlanFilesTool"
 import { runSlashCommandTool } from "../tools/runSlashCommandTool"
 import { updateTodoListTool } from "../tools/updateTodoListTool"
 import { useSkillTool } from "../tools/useSkillTool"
 
 import Anthropic from "@anthropic-ai/sdk" // kilocode_change
-import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
-import { yieldPromise } from "../kilocode"
 import { formatResponse } from "../prompts/responses"
 import { Task } from "../task/Task"
-import { applyDiffToolLegacy } from "../tools/applyDiffTool"
+import { yieldPromise } from "../kilocode" // kilocode_change
 import { codebaseSearchTool } from "../tools/codebaseSearchTool"
 import { condenseTool } from "../tools/condenseTool" // kilocode_change
 import { newRuleTool } from "../tools/newRuleTool" // kilocode_change
@@ -176,49 +166,20 @@ export async function presentAssistantMessage(cline: Task) {
 						return getReadFileToolDescription(block.name, block.params)
 					case "fetch_instructions":
 						return `[${block.name} for '${block.params.task}']`
-					case "write_to_file":
-						return `[${block.name} for '${block.params.path}']`
-					case "apply_diff":
-						// Handle both legacy format and new multi-file format
-						if (block.params.path) {
-							return `[${block.name} for '${block.params.path}']`
-						} else if (block.params.args) {
-							// Try to extract first file path from args for display
-							const match = block.params.args.match(/<file>.*?<path>([^<]+)<\/path>/s)
-							if (match) {
-								const firstPath = match[1]
-								// Check if there are multiple files
-								const fileCount = (block.params.args.match(/<file>/g) || []).length
-								if (fileCount > 1) {
-									return `[${block.name} for '${firstPath}' and ${fileCount - 1} more file${fileCount > 2 ? "s" : ""}]`
-								} else {
-									return `[${block.name} for '${firstPath}']`
-								}
-							}
-						}
-						return `[${block.name}]`
-					case "search_files":
-						return `[${block.name} for '${block.params.regex}'${
-							block.params.file_pattern ? ` in '${block.params.file_pattern}'` : ""
-						}]`
-					case "insert_content":
-						return `[${block.name} for '${block.params.path}']`
 					case "file_edit":
 						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
 					case "file_write":
 						return `[${block.name} for '${(block.params as any).file_path}']`
-					case "search_and_replace":
-						return `[${block.name} for '${block.params.path}']`
-					// forked_change start: Morph fast apply
-					case "edit_file":
-						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
-					// forked_change end
 					case "list_files":
 						return `[${block.name} for '${block.params.path}']`
 					case "list_code_definition_names":
 						return `[${block.name} for '${block.params.path}']`
 					case "lsp":
 						return `[${block.name} ${block.params.operation} at '${block.params.file_path}:${block.params.line}:${block.params.character}']`
+					case "search_files":
+						return `[${block.name} for '${block.params.regex}'${
+							block.params.file_pattern ? ` in '${block.params.file_pattern}'` : ""
+						}]`
 					case "browser_action":
 						return `[${block.name} for '${block.params.action}']`
 					case "use_mcp_tool":
@@ -255,12 +216,6 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.command}'${block.params.args ? ` with args: ${block.params.args}` : ""}]`
 					case "generate_image":
 						return `[${block.name} for '${block.params.path}']`
-					case "plan_file_edit":
-						return `[${block.name} for '${block.params.filename}']`
-					case "read_plan_file":
-						return `[${block.name} for '${block.params.filename}']`
-					case "list_plan_files":
-						return `[${block.name}]`
 					case "check_past_chat_memories":
 						return `[${block.name} for '${block.params.regex}']`
 					case "use_skill":
@@ -345,6 +300,11 @@ export async function presentAssistantMessage(cline: Task) {
 				if (state?.yoloMode) {
 					return true
 				}
+				// kilocode_change start: auto-approve all commands for current task
+				if (type === "command" && cline.autoApproveAllCommands) {
+					return true
+				}
+				// kilocode_change end
 				// forked_change end
 
 				const { response, text, images } = await cline.ask(
@@ -439,7 +399,7 @@ export async function presentAssistantMessage(cline: Task) {
 					block.name as ToolName,
 					mode ?? defaultModeSlug,
 					customModes ?? [],
-					{ apply_diff: cline.diffEnabled },
+					{ file_edit: cline.diffEnabled },
 					block.params,
 				)
 			} catch (error) {
@@ -504,49 +464,8 @@ export async function presentAssistantMessage(cline: Task) {
 			// forked_change end
 
 			switch (block.name) {
-				case "write_to_file":
-					// await checkpointSaveAndMark(cline) // kilocode_change
-					await writeToFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
 				case "update_todo_list":
 					await updateTodoListTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "apply_diff": {
-					// Get the provider and state to check experiment settings
-					const provider = cline.providerRef.deref()
-					let isMultiFileApplyDiffEnabled = false
-
-					if (provider) {
-						const state = await provider.getState()
-						isMultiFileApplyDiffEnabled = experiments.isEnabled(
-							state.experiments ?? {},
-							EXPERIMENT_IDS.MULTI_FILE_APPLY_DIFF,
-						)
-					}
-
-					if (isMultiFileApplyDiffEnabled) {
-						// await checkpointSaveAndMark(cline) // kilocode_change
-						await applyDiffTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					} else {
-						// await checkpointSaveAndMark(cline) // kilocode_change
-						await applyDiffToolLegacy(
-							cline,
-							block,
-							askApproval,
-							handleError,
-							pushToolResult,
-							removeClosingTag,
-						)
-					}
-					break
-				}
-				case "insert_content":
-					// await checkpointSaveAndMark(cline) // kilocode_change
-					await insertContentTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "search_and_replace":
-					// await checkpointSaveAndMark(cline) // kilocode_change
-					await searchAndReplaceTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
 				case "file_edit":
 					await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
@@ -554,11 +473,6 @@ export async function presentAssistantMessage(cline: Task) {
 				case "file_write":
 					await fileWriteTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
-				// forked_change start: Morph fast apply
-				case "edit_file":
-					await editFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				// forked_change end
 				case "read_file":
 					await readFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
@@ -654,15 +568,6 @@ export async function presentAssistantMessage(cline: Task) {
 				case "generate_image":
 					await generateImageTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break
-				case "plan_file_edit":
-					await planFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
-					break
-				case "read_plan_file":
-					await readPlanFileTool(cline, block, handleError, pushToolResult, removeClosingTag)
-					break
-				case "list_plan_files":
-					await listPlanFilesTool(cline, block, handleError, pushToolResult)
-					break
 				case "use_skill":
 					await useSkillTool(cline, block, handleError, pushToolResult)
 					break
@@ -682,7 +587,7 @@ export async function presentAssistantMessage(cline: Task) {
 	// Seeing out of bounds is fine, it means that the next too call is being
 	// built up and ready to add to assistantMessageContent to present.
 	// When you see the UI inactive during this, it means that a tool is
-	// breaking without presenting any UI. For example the write_to_file tool
+	// breaking without presenting any UI. For example the file_write tool
 	// was breaking when relpath was undefined, and for invalid relpath it never
 	// presented UI.
 	// This needs to be placed here, if not then calling

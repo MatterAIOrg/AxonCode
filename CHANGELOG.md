@@ -8,20 +8,39 @@
 - Enhanced assistant message parsing with improved tool handling
 - LSP tool integration for better code navigation
 - File write tool with improved content handling
+- Multi-file search replace strategy for complex edit operations
+- New tool type definitions in packages/types
 
 ### Changed
 
-- Refactored system prompts for better tool organization
-- Consolidated read file tools (removed simple-read-file)
-- Updated task handling with improved checkpoint service
+- **Major Tool Architecture Refactoring**: Consolidated multiple file editing tools into a unified, simplified tool system
+    - Merged `edit_file`, `insert_content`, `search_and_replace`, `write_to_file`, `apply_diff` tools into streamlined `file_write` tool
+    - Consolidated plan file tools (`list_plan_files`, `read_plan_file`, `plan_file_edit`) into core task management
+    - Removed redundant native tool prompt definitions
+    - Simplified `getAllowedJSONToolsForMode` with cleaner tool selection logic
+- Refactored system prompts for better tool organization and maintainability
+- Updated assistant message parsing with new `parseAssistantMessageV2` implementation
+- Enhanced diff strategies with improved multi-search-replace functionality
+- Updated task handling with improved checkpoint service integration
 - Enhanced webview message handler for better task coordination
-- Improved ChatRow and ReasoningBlock UI components
-- Updated i18n translations for ar, ca, en, es, pt-BR locales
+- Improved ChatRow, ChatView, and CommandExecution UI components
+- Updated i18n translations for en locale
 
 ### Fixed
 
 - Shadow checkpoint service stability improvements
 - Assistant message presentation edge cases
+- Browser action tool compatibility
+- Webview message type definitions
+
+### Removed
+
+- Deprecated individual file editing tools (editFileTool, insertContentTool, searchAndReplaceTool, writeToFileTool, applyDiffTool, multiApplyDiffTool)
+- Deprecated plan file tools (listPlanFilesTool, readPlanFileTool, planFileEditTool)
+- Redundant tool prompt files (edit-file.ts, insert-content.ts, search-and-replace.ts, write-to-file.ts)
+- Native tool prompt definitions (apply_diff.ts, edit_file.ts, insert_content.ts, list_plan_files.ts, plan_file_edit.ts, read_plan_file.ts, search_and_replace.ts, write_to_file.ts)
+- Associated test files for removed tools
+- FastApplyChatDisplay component (functionality consolidated)
 
 ---
 

@@ -3,56 +3,34 @@ import askFollowupQuestion from "./ask_followup_question"
 import attemptCompletion from "./attempt_completion"
 import checkPastChatMemories from "./check_past_chat_memories"
 import executeCommand from "./execute_command"
-// import fetchInstructions from "./fetch_instructions"
 import listCodeDefinitionNames from "./list_code_definition_names"
 import listFiles from "./list_files"
 import lsp from "./lsp"
-// import newTask from "./new_task"
 import { read_file_single } from "./read_file"
-// import runSlashCommand from "./run_slash_command"
-// import searchAndReplace from "./search_and_replace"
 import searchFiles from "./search_files"
-// import switchMode from "./switch_mode"
 import fileEdit from "./file_edit"
 import fileWrite from "./file_write"
 import updateTodoList from "./update_todo_list"
 import codebaseSearch from "./codebase_search"
-import planFileEdit from "./plan_file_edit"
-import readPlanFile from "./read_plan_file"
-import listPlanFiles from "./list_plan_files"
 import useSkill from "./use_skill"
 import webFetch from "./web_fetch"
 import webSearch from "./web_search"
 
 export const nativeTools = [
-	// apply_diff_single_file,
-	// apply_diff_multi_file,
 	fileEdit,
 	fileWrite,
 	askFollowupQuestion,
 	attemptCompletion,
 	checkPastChatMemories,
-	// browserAction,
 	codebaseSearch,
-	// editFile,
 	executeCommand,
-	// fetchInstructions,
-	// generateImage,
-	// insertContent,
 	listCodeDefinitionNames,
 	listFiles,
 	lsp,
-	// newTask,
-	planFileEdit,
-	readPlanFile,
-	listPlanFiles,
 	read_file_single,
-	// runSlashCommand,
-	// searchAndReplace,
 	searchFiles,
 	updateTodoList,
 	useSkill,
 	webFetch,
 	webSearch,
-	// writeToFile,
 ] satisfies OpenAI.Chat.ChatCompletionTool[]

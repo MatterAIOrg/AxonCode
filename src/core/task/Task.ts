@@ -224,6 +224,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	providerRef: WeakRef<ClineProvider>
 	private readonly globalStoragePath: string
 	abort: boolean = false
+	autoApproveAllCommands: boolean = false // kilocode_change: auto-approve all commands for current task
 
 	// TaskStatus
 	idleAsk?: ClineMessage
@@ -1519,21 +1520,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	}
 
 	async sayAndCreateMissingParamError(toolName: ToolName, paramName: string, relPath?: string) {
-		const kilocodeExtraText = (() => {
-			switch (toolName) {
-				case "apply_diff":
-					return t("kilocode:task.disableApplyDiff") + " "
-				case "edit_file":
-					return t("kilocode:task.disableEditFile") + " "
-				default:
-					return ""
-			}
-		})()
 		await this.say(
 			"error",
 			`Axon Code tried to use ${toolName}${
 				relPath ? ` for '${relPath.toPosix()}'` : ""
-			} without value for required parameter '${paramName}'. ${kilocodeExtraText}Retrying...`,
+			} without value for required parameter '${paramName}'. Retrying...`,
 		)
 		return formatResponse.toolError(
 			formatResponse.missingToolParameterError(

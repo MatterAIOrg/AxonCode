@@ -85,6 +85,49 @@ export async function fileWriteTool(
 		return
 	}
 
+	// For partial blocks, only update the UI message - don't open diff view or access file system
+	// as the file_path may be truncated during streaming
+	if (block.partial) {
+		// Check if preventFocusDisruption experiment is enabled
+		const provider = cline.providerRef.deref()
+		const state = await provider?.getState()
+		const isPreventFocusDisruptionEnabled = experiments.isEnabled(
+			state?.experiments ?? {},
+			EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION,
+		)
+
+		if (!isPreventFocusDisruptionEnabled) {
+			// Pre-processing content for display
+			let displayContent = content
+			if (displayContent.startsWith("```")) {
+				displayContent = displayContent.split("\n").slice(1).join("\n")
+			}
+			if (displayContent.endsWith("```")) {
+				displayContent = displayContent.split("\n").slice(0, -1).join("\n")
+			}
+
+			// For partial display, use the filePath as-is (may be incomplete)
+			// Don't resolve or validate paths during streaming
+			const displayPath = filePath || "..."
+
+			const sharedMessageProps: ClineSayTool = {
+				tool: "newFileCreated", // Default for partial display
+				path: displayPath,
+				content: displayContent,
+				isOutsideWorkspace: false,
+				isProtected: false,
+			}
+
+			// Update GUI message only - don't open diff view during partial streaming
+			const partialMessage = JSON.stringify(sharedMessageProps)
+			await cline.ask("tool", partialMessage, block.partial).catch(() => {})
+		}
+
+		return
+	}
+
+	// --- Complete block handling below ---
+
 	const accessAllowed = cline.rooIgnoreController?.validateAccess(filePath)
 
 	if (!accessAllowed) {
@@ -133,162 +176,88 @@ export async function fileWriteTool(
 	}
 
 	try {
-		if (block.partial) {
-			// Check if preventFocusDisruption experiment is enabled
-			const provider = cline.providerRef.deref()
-			const state = await provider?.getState()
-			const isPreventFocusDisruptionEnabled = experiments.isEnabled(
-				state?.experiments ?? {},
-				EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION,
+		if (predictedLineCount === undefined) {
+			cline.consecutiveMistakeCount++
+			cline.recordToolError("file_write")
+
+			const actualLineCount = content.split("\n").length
+			const isNewFile = !fileExists
+			const diffStrategyEnabled = !!cline.diffStrategy
+
+			await cline.say(
+				"error",
+				`Axon Code tried to use file_write${
+					filePath ? ` for '${filePath}'` : ""
+				} but the required parameter 'line_count' was missing or truncated after ${actualLineCount} lines of content were written. Retrying...`,
 			)
 
-			if (!isPreventFocusDisruptionEnabled) {
-				// Update GUI message
-				const partialMessage = JSON.stringify(sharedMessageProps)
-				await cline.ask("tool", partialMessage, block.partial).catch(() => {})
-
-				// Update editor
-				if (!cline.diffViewProvider.isEditing) {
-					await cline.diffViewProvider.open(filePath)
-				}
-
-				// Stream content in
-				await cline.diffViewProvider.update(
-					everyLineHasLineNumbers(content) ? stripLineNumbers(content) : content,
-					false,
-				)
-			}
-
+			pushToolResult(
+				formatResponse.toolError(
+					formatResponse.lineCountTruncationError(
+						actualLineCount,
+						isNewFile,
+						diffStrategyEnabled,
+						getActiveToolUseStyle(cline.apiConfiguration),
+					),
+				),
+			)
+			await cline.diffViewProvider.revertChanges()
 			return
-		} else {
-			if (predictedLineCount === undefined) {
-				cline.consecutiveMistakeCount++
-				cline.recordToolError("file_write")
+		}
 
-				const actualLineCount = content.split("\n").length
-				const isNewFile = !fileExists
-				const diffStrategyEnabled = !!cline.diffStrategy
+		cline.consecutiveMistakeCount = 0
 
-				await cline.say(
-					"error",
-					`Axon Code tried to use file_write${
-						filePath ? ` for '${filePath}'` : ""
-					} but the required parameter 'line_count' was missing or truncated after ${actualLineCount} lines of content were written. Retrying...`,
-				)
+		// Get settings
+		const provider = cline.providerRef.deref()
+		const state = await provider?.getState()
+		const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
+		const writeDelayMs = state?.writeDelayMs ?? DEFAULT_WRITE_DELAY_MS
+		const isPreventFocusDisruptionEnabled = experiments.isEnabled(
+			state?.experiments ?? {},
+			EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION,
+		)
 
+		// Check for code omissions
+		const originalContent = fileExists ? await fs.readFile(absolutePath, "utf-8") : ""
+		if (detectCodeOmission(originalContent, content, predictedLineCount)) {
+			if (cline.diffStrategy) {
 				pushToolResult(
 					formatResponse.toolError(
-						formatResponse.lineCountTruncationError(
-							actualLineCount,
-							isNewFile,
-							diffStrategyEnabled,
-							getActiveToolUseStyle(cline.apiConfiguration),
-						),
+						`Content appears to be truncated (file has ${
+							content.split("\n").length
+						} lines but was predicted to have ${predictedLineCount} lines), and found comments indicating omitted code. Please provide the complete file content without any omissions, or use the 'file_edit' tool for partial edits.`,
 					),
 				)
-				await cline.diffViewProvider.revertChanges()
 				return
-			}
-
-			cline.consecutiveMistakeCount = 0
-
-			// Get settings
-			const provider = cline.providerRef.deref()
-			const state = await provider?.getState()
-			const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
-			const writeDelayMs = state?.writeDelayMs ?? DEFAULT_WRITE_DELAY_MS
-			const isPreventFocusDisruptionEnabled = experiments.isEnabled(
-				state?.experiments ?? {},
-				EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION,
-			)
-
-			// Check for code omissions
-			const originalContent = fileExists ? await fs.readFile(absolutePath, "utf-8") : ""
-			if (detectCodeOmission(originalContent, content, predictedLineCount)) {
-				if (cline.diffStrategy) {
-					pushToolResult(
-						formatResponse.toolError(
-							`Content appears to be truncated (file has ${
-								content.split("\n").length
-							} lines but was predicted to have ${predictedLineCount} lines), and found comments indicating omitted code. Please provide the complete file content without any omissions, or use the 'file_edit' tool for partial edits.`,
-						),
-					)
-					return
-				} else {
-					vscode.window
-						.showWarningMessage(
-							"Potential code truncation detected. This happens when the AI reaches its max output limit.",
-							"Follow guide to fix the issue",
-						)
-						.then((selection) => {
-							if (selection === "Follow guide to fix the issue") {
-								vscode.env.openExternal(
-									vscode.Uri.parse(
-										"https://github.com/cline/cline/wiki/Troubleshooting-%E2%80%90-Cline-Deleting-Code-with-%22Rest-of-Code-Here%22-Comments",
-									),
-								)
-							}
-						})
-				}
-			}
-
-			// Prepare complete message for approval
-			const completeMessage = JSON.stringify({
-				...sharedMessageProps,
-				content,
-			} satisfies ClineSayTool)
-
-			// Ask for approval (accept/reject flow)
-			const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
-
-			if (!didApprove) {
-				// User rejected the operation
-				logFileWriteAnalytics(cline, {
-					toolName: "file_write",
-					operation: fileExists ? "update" : "create",
-					filePath: filePath,
-					lineCount: content.split("\n").length,
-					contentLength: content.length,
-					userModified: false,
-					error: "user_rejected",
-				})
-				return
-			}
-
-			// Set up diffViewProvider properties
-			cline.diffViewProvider.editType = fileExists ? "modify" : "create"
-			cline.diffViewProvider.originalContent = originalContent
-
-			if (isPreventFocusDisruptionEnabled) {
-				// Save directly without showing diff view
-				await cline.diffViewProvider.saveDirectly(filePath, content, false, diagnosticsEnabled, writeDelayMs)
 			} else {
-				// Original behavior with diff view
-				if (!cline.diffViewProvider.isEditing) {
-					const partialMessage = JSON.stringify(sharedMessageProps)
-					await cline.ask("tool", partialMessage, true).catch(() => {})
-					await cline.diffViewProvider.open(filePath)
-				}
-
-				await cline.diffViewProvider.update(
-					everyLineHasLineNumbers(content) ? stripLineNumbers(content) : content,
-					true,
-				)
-
-				await delay(300)
-				cline.diffViewProvider.scrollToFirstDiff()
-
-				await cline.diffViewProvider.saveChanges(diagnosticsEnabled, writeDelayMs)
+				vscode.window
+					.showWarningMessage(
+						"Potential code truncation detected. This happens when the AI reaches its max output limit.",
+						"Follow guide to fix the issue",
+					)
+					.then((selection) => {
+						if (selection === "Follow guide to fix the issue") {
+							vscode.env.openExternal(
+								vscode.Uri.parse(
+									"https://github.com/cline/cline/wiki/Troubleshooting-%E2%80%90-Cline-Deleting-Code-with-%22Rest-of-Code-Here%22-Comments",
+								),
+							)
+						}
+					})
 			}
+		}
 
-			// Track file operation
-			if (filePath) {
-				await cline.fileContextTracker.trackFileContext(filePath, "roo_edited" as RecordSource)
-			}
+		// Prepare complete message for approval
+		const completeMessage = JSON.stringify({
+			...sharedMessageProps,
+			content,
+		} satisfies ClineSayTool)
 
-			cline.didEditFile = true
+		// Ask for approval (accept/reject flow)
+		const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
 
-			// Log successful analytics
+		if (!didApprove) {
+			// User rejected the operation
 			logFileWriteAnalytics(cline, {
 				toolName: "file_write",
 				operation: fileExists ? "update" : "create",
@@ -296,20 +265,65 @@ export async function fileWriteTool(
 				lineCount: content.split("\n").length,
 				contentLength: content.length,
 				userModified: false,
+				error: "user_rejected",
 			})
-
-			// Get the formatted response message
-			const message = await cline.diffViewProvider.pushToolWriteResult(cline, cline.cwd, !fileExists)
-
-			pushToolResult(message)
-
-			await cline.diffViewProvider.reset()
-
-			// Process any queued messages after file write completes
-			cline.processQueuedMessages()
-
 			return
 		}
+
+		// Set up diffViewProvider properties
+		cline.diffViewProvider.editType = fileExists ? "modify" : "create"
+		cline.diffViewProvider.originalContent = originalContent
+
+		if (isPreventFocusDisruptionEnabled) {
+			// Save directly without showing diff view
+			await cline.diffViewProvider.saveDirectly(filePath, content, false, diagnosticsEnabled, writeDelayMs)
+		} else {
+			// Original behavior with diff view
+			if (!cline.diffViewProvider.isEditing) {
+				const partialMessage = JSON.stringify(sharedMessageProps)
+				await cline.ask("tool", partialMessage, true).catch(() => {})
+				await cline.diffViewProvider.open(filePath)
+			}
+
+			await cline.diffViewProvider.update(
+				everyLineHasLineNumbers(content) ? stripLineNumbers(content) : content,
+				true,
+			)
+
+			await delay(300)
+			cline.diffViewProvider.scrollToFirstDiff()
+
+			await cline.diffViewProvider.saveChanges(diagnosticsEnabled, writeDelayMs)
+		}
+
+		// Track file operation
+		if (filePath) {
+			await cline.fileContextTracker.trackFileContext(filePath, "roo_edited" as RecordSource)
+		}
+
+		cline.didEditFile = true
+
+		// Log successful analytics
+		logFileWriteAnalytics(cline, {
+			toolName: "file_write",
+			operation: fileExists ? "update" : "create",
+			filePath: filePath,
+			lineCount: content.split("\n").length,
+			contentLength: content.length,
+			userModified: false,
+		})
+
+		// Get the formatted response message
+		const message = await cline.diffViewProvider.pushToolWriteResult(cline, cline.cwd, !fileExists)
+
+		pushToolResult(message)
+
+		await cline.diffViewProvider.reset()
+
+		// Process any queued messages after file write completes
+		cline.processQueuedMessages()
+
+		return
 	} catch (error) {
 		// Log error analytics
 		logFileWriteAnalytics(cline, {

@@ -173,20 +173,20 @@ describe("AssistantMessageParser (streaming)", () => {
 	})
 
 	describe("special and edge cases", () => {
-		it("should handle the write_to_file tool with content that contains closing tags", () => {
-			const message = `<write_to_file><path>src/file.ts</path><content>
+		it("should handle the file_write tool with content that contains closing tags", () => {
+			const message = `<file_write><path>src/file.ts</path><content>
 	function example() {
 	// This has XML-like content: </content>
 	return true;
 	}
-	</content><line_count>5</line_count></write_to_file>`
+	</content><line_count>5</line_count></file_write>`
 
 			const result = streamChunks(parser, message).filter((block) => !isEmptyTextContent(block))
 
 			expect(result).toHaveLength(1)
 			const toolUse = result[0] as ToolUse
 			expect(toolUse.type).toBe("tool_use")
-			expect(toolUse.name).toBe("write_to_file")
+			expect(toolUse.name).toBe("file_write")
 			expect(toolUse.params.path).toBe("src/file.ts")
 			expect(toolUse.params.line_count).toBe("5")
 			expect(toolUse.params.content).toContain("function example()")
@@ -259,17 +259,17 @@ describe("AssistantMessageParser (streaming)", () => {
 		})
 
 		it("should handle multi-line parameters", () => {
-			const message = `<write_to_file><path>file.ts</path><content>
+			const message = `<file_write><path>file.ts</path><content>
 	line 1
 	line 2
 	line 3
-	</content><line_count>3</line_count></write_to_file>`
+	</content><line_count>3</line_count></file_write>`
 			const result = streamChunks(parser, message).filter((block) => !isEmptyTextContent(block))
 
 			expect(result).toHaveLength(1)
 			const toolUse = result[0] as ToolUse
 			expect(toolUse.type).toBe("tool_use")
-			expect(toolUse.name).toBe("write_to_file")
+			expect(toolUse.name).toBe("file_write")
 			expect(toolUse.params.path).toBe("file.ts")
 			expect(toolUse.params.content).toContain("line 1")
 			expect(toolUse.params.content).toContain("line 2")
@@ -284,10 +284,10 @@ describe("AssistantMessageParser (streaming)", () => {
 
 	Now let's modify the file:
 
-	<write_to_file><path>src/index.ts</path><content>
+	<file_write><path>src/index.ts</path><content>
 	// Updated content
 	console.log("Hello world");
-	</content><line_count>2</line_count></write_to_file>
+	</content><line_count>2</line_count></file_write>
 
 	Let's run the code:
 
@@ -309,9 +309,9 @@ describe("AssistantMessageParser (streaming)", () => {
 			expect(result[2].type).toBe("text")
 			expect((result[2] as TextContent).content).toContain("Now let's modify the file:")
 
-			// Second tool use (write_to_file)
+			// Second tool use (file_write)
 			expect(result[3].type).toBe("tool_use")
-			expect((result[3] as ToolUse).name).toBe("write_to_file")
+			expect((result[3] as ToolUse).name).toBe("file_write")
 
 			// Third text block
 			expect(result[4].type).toBe("text")
@@ -336,7 +336,7 @@ describe("AssistantMessageParser (streaming)", () => {
 		it("should gracefully handle a parameter that exceeds MAX_PARAM_LENGTH", () => {
 			// Create a parameter value that exceeds 100KB (MAX_PARAM_LENGTH)
 			const largeParamValue = "x".repeat(1024 * 100 + 1) // 100KB + 1 byte
-			const message = `<write_to_file><path>test.txt</path><content>${largeParamValue}</content></write_to_file>After tool`
+			const message = `<file_write><path>test.txt</path><content>${largeParamValue}</content></file_write>After tool`
 
 			// Process the message in chunks to simulate streaming
 			let result: AssistantMessageContent[] = []
@@ -344,7 +344,7 @@ describe("AssistantMessageParser (streaming)", () => {
 
 			try {
 				// Process the opening tags
-				result = parser.processChunk("<write_to_file><path>test.txt</path><content>")
+				result = parser.processChunk("<file_write><path>test.txt</path><content>")
 
 				// Process the large parameter value in chunks
 				const chunkSize = 1000
@@ -354,7 +354,7 @@ describe("AssistantMessageParser (streaming)", () => {
 				}
 
 				// Process the closing tags and text after
-				result = parser.processChunk("</content></write_to_file>After tool")
+				result = parser.processChunk("</content></file_write>After tool")
 			} catch (e) {
 				error = e as Error
 			}
@@ -368,7 +368,7 @@ describe("AssistantMessageParser (streaming)", () => {
 			// The tool use should exist but the content parameter should be reset/empty
 			const toolUse = result.find((block) => block.type === "tool_use") as ToolUse
 			expect(toolUse).toBeDefined()
-			expect(toolUse.name).toBe("write_to_file")
+			expect(toolUse.name).toBe("file_write")
 			expect(toolUse.params.path).toBe("test.txt")
 
 			// The text after the tool should still be parsed

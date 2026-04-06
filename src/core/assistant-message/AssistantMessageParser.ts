@@ -458,7 +458,7 @@ export class AssistantMessageParser {
 
 					// There's no current param, and not starting a new param.
 
-					// Special case for write_to_file where file contents could
+					// Special case for file_write where file contents could
 					// contain the closing tag, in which case the param would have
 					// closed and we end up with the rest of the file contents here.
 					// To work around this, get the string between the starting
@@ -466,7 +466,7 @@ export class AssistantMessageParser {
 					const contentParamName: ToolParamName = "content"
 
 					if (
-						this.currentToolUse.name === "write_to_file" &&
+						this.currentToolUse.name === "file_write" &&
 						this.accumulator.endsWith(`</${contentParamName}>`)
 					) {
 						const toolContent = this.accumulator.slice(this.currentToolUseStartIndex)

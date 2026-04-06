@@ -1,4 +1,4 @@
-import { VSCodeBadge, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeBadge } from "@vscode/webview-ui-toolkit/react"
 import { OctagonAlert, Undo2 } from "lucide-react"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
@@ -29,19 +29,17 @@ import UpdateTodoListToolBlock from "./UpdateTodoListToolBlock"
 import McpResourceRow from "../mcp/McpResourceRow"
 
 import { LowCreditWarning } from "../kilocode/chat/LowCreditWarning" // kilocode_change
-import { BatchDiffApproval } from "./BatchDiffApproval"
 import { BatchFilePermission } from "./BatchFilePermission"
 import { CommandExecution } from "./CommandExecution"
 import { CommandExecutionError } from "./CommandExecutionError"
 import { FollowUpSuggest } from "./FollowUpSuggest"
 import { Markdown } from "./Markdown"
-import { PlanFileIndicator } from "./PlanFileIndicator"
 import { MatterProgressIndicator, ProgressIndicator } from "./ProgressIndicator"
 import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
-import { Globe02Icon, PlayIcon } from "@/utils/customIcons"
+import { Globe02Icon } from "@/utils/customIcons"
 import { appendImages } from "@src/utils/imageUtils"
 import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // kilocode_change
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
@@ -55,7 +53,6 @@ import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } from "./ContextCondenseRow"
 import { McpExecution } from "./McpExecution"
-import { FastApplyChatDisplay } from "./kilocode/FastApplyChatDisplay" // kilocode_change
 
 interface ChatRowProps {
 	message: ClineMessage
@@ -76,6 +73,7 @@ interface ChatRowProps {
 	// Button handlers for command execution
 	onPrimaryButtonClick?: (text?: string, images?: string[]) => void
 	onSecondaryButtonClick?: (text?: string, images?: string[]) => void
+	onRunEverythingClick?: () => void
 	enableButtons?: boolean
 	primaryButtonText?: string
 	secondaryButtonText?: string
@@ -201,6 +199,7 @@ export const ChatRowContent = ({
 	editable,
 	onPrimaryButtonClick,
 	onSecondaryButtonClick,
+	onRunEverythingClick,
 	enableButtons,
 	primaryButtonText,
 	secondaryButtonText,
@@ -540,67 +539,6 @@ export const ChatRowContent = ({
 		)
 
 		switch (tool.tool) {
-			case "editedExistingFile":
-			case "appliedDiff":
-				// Check if this is a batch diff request
-				if (message.type === "ask" && tool.batchDiffs && Array.isArray(tool.batchDiffs)) {
-					return (
-						<div className="animate-fade-up">
-							<div style={headerStyle}>
-								{/* <FileDiff className="w-4 shrink-0" aria-label="Batch diff icon" /> */}
-								<span style={{}}>{t("chat:fileOperations.wantsToApplyBatchChanges")}</span>
-							</div>
-							<BatchDiffApproval files={tool.batchDiffs} ts={message.ts} />
-						</div>
-					)
-				}
-
-				// Regular single file diff
-				const diffCode = tool.content ?? tool.diff
-				return (
-					<div className="animate-fade-up">
-						<div style={headerStyle}>
-							{tool.isProtected ? (
-								<span
-									className="codicon codicon-lock"
-									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
-								/>
-							) : (
-								toolIcon(tool.tool === "appliedDiff" ? "diff" : "edit")
-							)}
-							<span style={{}}>
-								{tool.isProtected
-									? t("chat:fileOperations.wantsToEditProtected")
-									: tool.isOutsideWorkspace
-										? t("chat:fileOperations.wantsToEditOutsideWorkspace")
-										: t("chat:fileOperations.wantsToEdit")}
-							</span>
-						</div>
-						<div className="">
-							<CodeAccordian
-								path={tool.path}
-								code={diffCode}
-								language="diff"
-								progressStatus={message.progressStatus}
-								isLoading={message.partial}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggleExpand}
-								onJumpToFile={(line) =>
-									vscode.postMessage({
-										type: "openFile",
-										text: "./" + tool.path,
-										values: line ? { line } : undefined,
-									})
-								}
-							/>
-							{
-								// forked_change start
-								tool.fastApplyResult && <FastApplyChatDisplay fastApplyResult={tool.fastApplyResult} />
-								// forked_change end
-							}
-						</div>
-					</div>
-				)
 			case "fileEdit": {
 				const fallbackFileEditDiff = buildFileEditDiff(tool)
 				const fileEditDiff =
@@ -624,8 +562,7 @@ export const ChatRowContent = ({
 									className="codicon codicon-lock"
 									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
 								/>
-							) : // toolIcon("edit")
-							null}
+							) : null}
 							<span style={{}}>
 								{tool.isProtected
 									? t("chat:fileOperations.wantsToEditProtected")
@@ -645,112 +582,6 @@ export const ChatRowContent = ({
 								isExpanded={isExpanded}
 								onToggleExpand={handleToggleExpand}
 								onOpenFile={openFileWithLine}
-							/>
-							{
-								// forked_change start
-								tool.fastApplyResult && <FastApplyChatDisplay fastApplyResult={tool.fastApplyResult} />
-								// forked_change end
-							}
-						</div>
-					</div>
-				)
-			}
-			case "planFileEdit":
-				return (
-					<div
-						className={`animate-fade-up flex ${isExpanded ? "flex-col" : "flex-col"} gap-1 items-start pb-2`}>
-						<div style={headerStyle} className="">
-							<span style={{}}>Plan file edited</span>
-						</div>
-						<div className="">
-							<PlanFileIndicator filename={tool.filename || "plan.md"} isActive={true} />
-							{isExpanded ? (
-								<MarkdownBlock markdown={tool.content ?? ""} />
-							) : (
-								<CodeAccordian
-									path={undefined}
-									code={tool.content ?? ""}
-									language="markdown"
-									isLoading={message.partial}
-									isExpanded={isExpanded}
-									onToggleExpand={handleToggleExpand}
-								/>
-							)}
-							{!message.partial && (
-								<div className="flex gap-2 mt-2">
-									<VSCodeButton
-										onClick={() => {
-											vscode.postMessage({
-												type: "implementPlan",
-												payload: {
-													planFile: tool.filename || "plan.md",
-													planContent: tool.content || "",
-												},
-											})
-										}}>
-										<PlayIcon className="w-4 h-4 mr-1 rtl:-scale-x-100" />
-										Implement
-									</VSCodeButton>
-									<VSCodeButton
-										onClick={() => {
-											vscode.postMessage({
-												type: "openPlanFile",
-												payload: {
-													planFile: tool.filename || "plan.md",
-												},
-											})
-										}}>
-										<span className="codicon codicon-open-preview mr-1" />
-										Open in Editor
-									</VSCodeButton>
-								</div>
-							)}
-						</div>
-					</div>
-				)
-			case "insertContent": {
-				// Use the explicit lineNumber from the tool, or extract from diff
-				const insertLineNumber = tool.lineNumber && tool.lineNumber > 0 ? tool.lineNumber : undefined
-				return (
-					<div className="animate-fade-up">
-						<div style={headerStyle}>
-							{tool.isProtected ? (
-								<span
-									className="codicon codicon-lock"
-									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
-								/>
-							) : (
-								toolIcon("insert")
-							)}
-							<span style={{}}>
-								{tool.isProtected
-									? t("chat:fileOperations.wantsToEditProtected")
-									: tool.isOutsideWorkspace
-										? t("chat:fileOperations.wantsToEditOutsideWorkspace")
-										: tool.lineNumber === 0
-											? t("chat:fileOperations.wantsToInsertAtEnd")
-											: t("chat:fileOperations.wantsToInsertWithLineNumber", {
-													lineNumber: tool.lineNumber,
-												})}
-							</span>
-						</div>
-						<div className="">
-							<CodeAccordian
-								path={tool.path}
-								code={tool.diff}
-								language="diff"
-								progressStatus={message.progressStatus}
-								isLoading={message.partial}
-								isExpanded={isExpanded}
-								onToggleExpand={handleToggleExpand}
-								onJumpToFile={(line) =>
-									vscode.postMessage({
-										type: "openFile",
-										text: "./" + tool.path,
-										values:
-											(line ?? insertLineNumber) ? { line: line ?? insertLineNumber } : undefined,
-									})
-								}
 							/>
 						</div>
 					</div>
@@ -844,11 +675,6 @@ export const ChatRowContent = ({
 								onToggleExpand={handleToggleExpand}
 								onOpenFile={openNewFileWithLine}
 							/>
-							{
-								// forked_change start
-								tool.fastApplyResult && <FastApplyChatDisplay fastApplyResult={tool.fastApplyResult} />
-								// forked_change end
-							}
 						</div>
 					</div>
 				)
@@ -1924,6 +1750,7 @@ export const ChatRowContent = ({
 							title={title}
 							onPrimaryButtonClick={onPrimaryButtonClick}
 							onSecondaryButtonClick={onSecondaryButtonClick}
+							onRunEverythingClick={onRunEverythingClick}
 							enableButtons={enableButtons}
 							primaryButtonText={primaryButtonText}
 							secondaryButtonText={secondaryButtonText}
@@ -1938,6 +1765,7 @@ export const ChatRowContent = ({
 							title={title}
 							onPrimaryButtonClick={onPrimaryButtonClick}
 							onSecondaryButtonClick={onSecondaryButtonClick}
+							onRunEverythingClick={onRunEverythingClick}
 							enableButtons={enableButtons}
 							primaryButtonText={primaryButtonText}
 							secondaryButtonText={secondaryButtonText}

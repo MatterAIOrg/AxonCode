@@ -436,9 +436,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							const tool = JSON.parse(lastMessage.text || "{}") as ClineSayTool
 							switch (tool.tool) {
 								case "editedExistingFile":
-								case "appliedDiff":
 								case "newFileCreated":
-								case "insertContent":
 								case "generateImage":
 									setPrimaryButtonText(t("chat:save.title"))
 									setSecondaryButtonText(t("chat:reject.title"))
@@ -957,6 +955,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		[clineAsk, startNewTask, isStreaming],
 	)
 
+	// kilocode_change: handle "Run Everything" click - auto-approve all commands for current task
+	const handleRunEverythingClick = useCallback(() => {
+		// Send message to backend to set autoApproveAllCommands flag
+		vscode.postMessage({ type: "autoApproveAllCommands" })
+		// Then approve the current command
+		handlePrimaryButtonClick()
+	}, [handlePrimaryButtonClick])
+
 	const handleTaskCloseButtonClick = useCallback(() => startNewTask(), [startNewTask]) // kilocode_change
 
 	const { info: model } = useSelectedModel(apiConfiguration)
@@ -1369,14 +1375,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			const tool = JSON.parse(message.text)
 
-			return [
-				"editedExistingFile",
-				"appliedDiff",
-				"newFileCreated",
-				"searchAndReplace",
-				"insertContent",
-				"generateImage",
-			].includes(tool.tool)
+			return ["editedExistingFile", "newFileCreated", "generateImage"].includes(tool.tool)
 		}
 
 		return false
@@ -2066,7 +2065,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					} catch (_e) {
 						tool = {}
 					}
-					return tool.name === "str_replace_editor" || tool.name === "insert_content"
+					return tool.name === "str_replace_editor" || tool.name === "file_edit"
 				})()
 
 			return (
@@ -2088,6 +2087,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					editable={isEditable}
 					onPrimaryButtonClick={handlePrimaryButtonClick}
 					onSecondaryButtonClick={handleSecondaryButtonClick}
+					onRunEverythingClick={handleRunEverythingClick}
 					enableButtons={enableButtons && index === groupedMessages.length - 1}
 					primaryButtonText={primaryButtonText}
 					secondaryButtonText={secondaryButtonText}
@@ -2112,6 +2112,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
 			secondaryButtonText,
+			handleRunEverythingClick,
 		],
 	)
 

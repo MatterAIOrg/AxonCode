@@ -73,14 +73,14 @@ export function parseAssistantMessage(assistantMessage: string): AssistantMessag
 
 				// There's no current param, and not starting a new param.
 
-				// Special case for write_to_file where file contents could
+				// Special case for file_write where file contents could
 				// contain the closing tag, in which case the param would have
 				// closed and we end up with the rest of the file contents here.
 				// To work around this, we get the string between the starting
 				// content tag and the LAST content tag.
 				const contentParamName: ToolParamName = "content"
 				if (
-					(currentToolUse.name === "write_to_file" || currentToolUse.name === "new_rule") && // kilocode_change
+					(currentToolUse.name === "file_write" || currentToolUse.name === "new_rule") && // kilocode_change
 					accumulator.endsWith(`</${contentParamName}>`)
 				) {
 					const toolContent = accumulator.slice(currentToolUseStartIndex)

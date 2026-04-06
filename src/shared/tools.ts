@@ -113,16 +113,6 @@ export interface FetchInstructionsToolUse extends ToolUse {
 	params: Partial<Pick<Record<ToolParamName, string>, "task">>
 }
 
-export interface WriteToFileToolUse extends ToolUse {
-	name: "write_to_file"
-	params: Partial<Pick<Record<ToolParamName, string>, "path" | "content" | "line_count">>
-}
-
-export interface InsertCodeBlockToolUse extends ToolUse {
-	name: "insert_content"
-	params: Partial<Pick<Record<ToolParamName, string>, "path" | "line" | "content">>
-}
-
 export interface CodebaseSearchToolUse extends ToolUse {
 	name: "codebase_search"
 	params: Partial<Pick<Record<ToolParamName, string>, "query" | "path">>
@@ -193,12 +183,6 @@ export interface RunSlashCommandToolUse extends ToolUse {
 	params: Partial<Pick<Record<ToolParamName, string>, "command" | "args">>
 }
 
-export interface SearchAndReplaceToolUse extends ToolUse {
-	name: "search_and_replace"
-	params: Required<Pick<Record<ToolParamName, string>, "path" | "search" | "replace">> &
-		Partial<Pick<Record<ToolParamName, string>, "use_regex" | "ignore_case" | "start_line" | "end_line">>
-}
-
 export interface FileEditToolUse extends ToolUse {
 	name: "file_edit"
 	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "old_string" | "new_string">> &
@@ -209,14 +193,6 @@ export interface FileWriteToolUse extends ToolUse {
 	name: "file_write"
 	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "content" | "line_count">>
 }
-
-// forked_change start: Morph fast apply
-export interface EditFileToolUse extends ToolUse {
-	name: "edit_file"
-	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "instructions" | "code_edit">> &
-		Partial<Pick<Record<ToolParamName, string>, "target_file">>
-}
-// forked_change end
 
 export interface CheckPastChatMemoriesToolUse extends ToolUse {
 	name: "check_past_chat_memories"
@@ -244,11 +220,8 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	execute_command: "run commands",
 	read_file: "read files",
 	fetch_instructions: "fetch instructions",
-	write_to_file: "write files",
-	apply_diff: "apply changes",
 	file_edit: "replace text in files",
 	file_write: "write new files",
-	edit_file: "edit file", // kilocode_change: Morph fast apply
 	search_files: "search files",
 	list_files: "list files",
 	list_code_definition_names: "list definitions",
@@ -261,8 +234,6 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	attempt_completion: "complete tasks",
 	switch_mode: "switch modes",
 	new_task: "create new task",
-	insert_content: "insert content",
-	search_and_replace: "search and replace",
 	new_rule: "create new rule",
 	report_bug: "report bug", // kilocode_change
 	condense: "condense the current context window", // kilocode_change
@@ -270,9 +241,6 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	update_todo_list: "update todo list",
 	run_slash_command: "run slash command",
 	generate_image: "generate images",
-	plan_file_edit: "edit plan files", // kilocode_change: Plan mode file editing
-	read_plan_file: "read plan files", // kilocode_change: Plan mode file reading
-	list_plan_files: "list plan files", // kilocode_change: Plan mode file listing
 	check_past_chat_memories: "check past chat memories",
 	use_skill: "use skill",
 	web_fetch: "fetch web content",
@@ -298,22 +266,10 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 	},
 	edit: {
 		tools: [
-			"apply_diff",
 			"file_edit",
 			"file_write",
-			"edit_file", // kilocode_change: Morph fast apply
-			"write_to_file",
-			"insert_content",
-			"search_and_replace",
 			"new_rule", // kilocode_change
 			"generate_image",
-		],
-	},
-	plan: {
-		tools: [
-			"plan_file_edit", // kilocode_change: Plan mode file editing
-			"read_plan_file", // kilocode_change: Plan mode file reading
-			"list_plan_files", // kilocode_change: Plan mode file listing
 		],
 	},
 	browser: {

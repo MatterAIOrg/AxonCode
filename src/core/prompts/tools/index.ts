@@ -12,11 +12,8 @@ import { ToolArgs } from "./types"
 import { getExecuteCommandDescription } from "./execute-command"
 import { getReadFileDescription } from "./read-file"
 import { getFetchInstructionsDescription } from "./fetch-instructions"
-import { getWriteToFileDescription } from "./write-to-file"
 import { getSearchFilesDescription } from "./search-files"
 import { getListFilesDescription } from "./list-files"
-import { getInsertContentDescription } from "./insert-content"
-import { getSearchAndReplaceDescription } from "./search-and-replace"
 import { getFileEditDescription } from "./file-edit"
 import { getFileWriteDescription } from "./file-write"
 import { getListCodeDefinitionNamesDescription } from "./list-code-definition-names"
@@ -38,19 +35,13 @@ import { getWebFetchDescription } from "./web-fetch"
 import { getWebSearchDescription } from "./web-search"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 import { discoverSkills } from "../../tools/skills"
-
-// forked_change start: Morph fast apply
-import { isFastApplyAvailable } from "../../tools/editFileTool"
-import { getEditFileDescription } from "./edit-file"
 import { type ClineProviderState } from "../../webview/ClineProvider"
-// forked_change end
 
 // Map of tool names to their description functions
 const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined | Promise<string>> = {
 	execute_command: (args) => getExecuteCommandDescription(args),
 	read_file: (args) => getReadFileDescription(args),
 	fetch_instructions: (args) => getFetchInstructionsDescription(args.settings?.enableMcpServerCreation),
-	write_to_file: (args) => getWriteToFileDescription(args),
 	search_files: (args) => getSearchFilesDescription(args),
 	list_files: (args) => getListFilesDescription(args),
 	list_code_definition_names: (args) => getListCodeDefinitionNamesDescription(args),
@@ -63,13 +54,8 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined 
 	codebase_search: (args) => getCodebaseSearchDescription(args),
 	switch_mode: () => getSwitchModeDescription(),
 	new_task: (args) => getNewTaskDescription(args),
-	insert_content: (args) => getInsertContentDescription(args),
-	search_and_replace: (args) => getSearchAndReplaceDescription(args),
 	file_edit: () => getFileEditDescription(),
 	file_write: () => getFileWriteDescription(),
-	edit_file: () => getEditFileDescription(), // kilocode_change: Morph fast apply
-	apply_diff: (args) =>
-		args.diffStrategy ? args.diffStrategy.getToolDescription({ cwd: args.cwd, toolOptions: args.toolOptions }) : "",
 	update_todo_list: (args) => getUpdateTodoListDescription(args),
 	run_slash_command: () => getRunSlashCommandDescription(),
 	generate_image: (args) => getGenerateImageDescription(args),
@@ -146,23 +132,6 @@ export async function getToolDescriptionsForMode(
 		tools.delete("codebase_search")
 	}
 
-	// forked_change start: Morph fast apply
-	if (isFastApplyAvailable(clineProviderState)) {
-		// When Morph is enabled, disable traditional editing tools
-		const traditionalEditingTools = [
-			"apply_diff",
-			"file_edit",
-			"file_write",
-			"write_to_file",
-			"insert_content",
-			"search_and_replace",
-		]
-		traditionalEditingTools.forEach((tool) => tools.delete(tool))
-	} else {
-		tools.delete("edit_file")
-	}
-	// forked_change end
-
 	// Conditionally exclude update_todo_list if disabled in settings
 	if (settings?.todoListEnabled === false) {
 		tools.delete("update_todo_list")
@@ -210,7 +179,6 @@ export {
 	getExecuteCommandDescription,
 	getReadFileDescription,
 	getFetchInstructionsDescription,
-	getWriteToFileDescription,
 	getSearchFilesDescription,
 	getListFilesDescription,
 	getListCodeDefinitionNamesDescription,
@@ -221,11 +189,8 @@ export {
 	getAccessMcpResourceDescription,
 	getMcpAuthenticateDescription,
 	getSwitchModeDescription,
-	getInsertContentDescription,
-	getSearchAndReplaceDescription,
 	getFileEditDescription,
 	getFileWriteDescription,
-	getEditFileDescription, // kilocode_change: Morph fast apply
 	getCodebaseSearchDescription,
 	getRunSlashCommandDescription,
 	getGenerateImageDescription,

@@ -2849,6 +2849,17 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			break
 		// forked_change end
+		// forked_change start: auto-approve all commands for current task
+		case "autoApproveAllCommands": {
+			const currentTask = provider.getCurrentTask()
+			if (currentTask) {
+				currentTask.autoApproveAllCommands = true
+			}
+			// Also approve the current command if we're in a command ask
+			// This is handled by the frontend sending the approval
+			break
+		}
+		// forked_change end
 		case "enhancePrompt":
 			if (message.text) {
 				try {

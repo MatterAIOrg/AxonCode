@@ -78,6 +78,10 @@
 		"title": "Run",
 		"tooltip": "Execute this command"
 	},
+	"runEverything": {
+		"title": "Run Everything",
+		"tooltip": "Auto-approve all commands for this task"
+	},
 	"proceedWhileRunning": {
 		"title": "Proceed While Running",
 		"tooltip": "Continue despite warnings"
