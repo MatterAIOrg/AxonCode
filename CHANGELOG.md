@@ -42,6 +42,10 @@
 - File write tool: ensure tool result is always pushed on user rejection
 - GitHubDiffView: dynamic margin calculation for proper diff alignment
 - ToolUseBlock: improved component structure and styling
+- Git utilities: properly distinguish between current branch and default branch
+    - Added `currentBranch` field to `GitRepositoryInfo` interface
+    - Fixed webviewMessageHandler to use `currentBranch` instead of `defaultBranch`
+    - Updated tests to reflect the correct field name
 
 ### Removed
 

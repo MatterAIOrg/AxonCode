@@ -3741,7 +3741,7 @@ ${comment.suggestion}
 					const gitInfo = await getGitRepositoryInfo(workspaceRoot)
 					provider.postMessageToWebview({
 						type: "gitBranchResponse",
-						payload: { success: true, branch: gitInfo.defaultBranch || null },
+						payload: { success: true, branch: gitInfo.currentBranch || null },
 					})
 				} else {
 					provider.postMessageToWebview({
