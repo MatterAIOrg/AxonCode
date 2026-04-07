@@ -17,15 +17,13 @@ export const ProgressIndicator = () => (
 
 export const MatterProgressIndicator = () => {
 	return (
-		<div
-			style={{
-				display: "flex",
-				alignItems: "center",
-				gap: "3px",
-			}}>
-			{[0, 1, 2].map((index) => (
-				<div key={index} className="matter-progress-dot" style={{ animationDelay: `${index * 100}ms` }} />
-			))}
+		<div className="matter-progress-terminal">
+			<span className="terminal-prompt">{">"}</span>
+			<div className="terminal-content">
+				{[0, 1, 2].map((index) => (
+					<div key={index} className="matter-progress-dot" style={{ animationDelay: `${index * 80}ms` }} />
+				))}
+			</div>
 		</div>
 	)
 }

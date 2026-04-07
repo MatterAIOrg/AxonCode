@@ -3732,6 +3732,32 @@ ${comment.suggestion}
 				})
 			}
 			break
+		case "fetchGitBranchRequest": // kilocode_change
+			try {
+				const { getGitRepositoryInfo } = await import("../../utils/git")
+				const workspaceFolders = vscode.workspace.workspaceFolders
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspaceRoot = workspaceFolders[0].uri.fsPath
+					const gitInfo = await getGitRepositoryInfo(workspaceRoot)
+					provider.postMessageToWebview({
+						type: "gitBranchResponse",
+						payload: { success: true, branch: gitInfo.defaultBranch || null },
+					})
+				} else {
+					provider.postMessageToWebview({
+						type: "gitBranchResponse",
+						payload: { success: false, error: "No workspace folder found" },
+					})
+				}
+			} catch (error: any) {
+				const errorMessage = error.message || "Failed to fetch git branch"
+				provider.log(`Error fetching git branch: ${errorMessage}`)
+				provider.postMessageToWebview({
+					type: "gitBranchResponse",
+					payload: { success: false, error: errorMessage },
+				})
+			}
+			break
 		case "fetchBalanceDataRequest": // New handler
 			try {
 				const { apiConfiguration } = await provider.getState()

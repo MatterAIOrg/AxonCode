@@ -26,6 +26,7 @@ import { Mode } from "./modes"
 import {
 	BalanceDataResponsePayload,
 	BetaModelsResponsePayload,
+	GitBranchResponsePayload,
 	ProfileDataResponsePayload,
 	TaskHistoryResponsePayload,
 	TasksByIdResponsePayload,
@@ -130,6 +131,7 @@ export interface ExtensionMessage {
 		| "mcpExecutionStatus"
 		| "vsCodeSetting"
 		| "profileDataResponse" // kilocode_change
+		| "gitBranchResponse" // kilocode_change
 		| "balanceDataResponse" // kilocode_change
 		| "updateProfileData" // kilocode_change
 		| "betaModelsResponse" // kilocode_change
@@ -167,6 +169,7 @@ export interface ExtensionMessage {
 	// forked_change start
 	payload?:
 		| ProfileDataResponsePayload
+		| GitBranchResponsePayload
 		| BalanceDataResponsePayload
 		| BetaModelsResponsePayload
 		| TasksByIdResponsePayload

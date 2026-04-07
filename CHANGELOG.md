@@ -10,6 +10,9 @@
 - File write tool with improved content handling
 - Multi-file search replace strategy for complex edit operations
 - New tool type definitions in packages/types
+- Git branch display in bottom API config showing current repository branch
+- GitBranchIcon custom SVG icon for branch visualization
+- New message types for git branch request/response (fetchGitBranchRequest, gitBranchResponse)
 
 ### Changed
 
@@ -25,6 +28,9 @@
 - Enhanced webview message handler for better task coordination
 - Improved ChatRow, ChatView, and CommandExecution UI components
 - Updated i18n translations for en locale
+- Refactored BottomApiConfig component with improved layout and branch display
+- Enhanced ProgressIndicator component styling
+- Updated index.css with improved styling utilities
 
 ### Fixed
 
