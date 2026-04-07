@@ -18,7 +18,6 @@ export const ProgressIndicator = () => (
 export const MatterProgressIndicator = () => {
 	return (
 		<div className="matter-progress-terminal">
-			<span className="terminal-prompt">{">"}</span>
 			<div className="terminal-content">
 				{[0, 1, 2].map((index) => (
 					<div key={index} className="matter-progress-dot" style={{ animationDelay: `${index * 80}ms` }} />
