@@ -32,6 +32,10 @@
 - Assistant message presentation edge cases
 - Browser action tool compatibility
 - Webview message type definitions
+- File write tool: proper workspace path detection for partial display during streaming
+- File write tool: ensure tool result is always pushed on user rejection
+- GitHubDiffView: dynamic margin calculation for proper diff alignment
+- ToolUseBlock: improved component structure and styling
 
 ### Removed
 

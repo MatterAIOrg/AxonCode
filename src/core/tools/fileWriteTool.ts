@@ -110,11 +110,16 @@ export async function fileWriteTool(
 			// Don't resolve or validate paths during streaming
 			const displayPath = filePath || "..."
 
+			// Determine if the path is outside the workspace for partial display
+			// Use the same logic as complete blocks for consistency
+			const partialFullPath = filePath ? path.resolve(cline.cwd, filePath) : ""
+			const isOutsideWorkspace = isPathOutsideWorkspace(partialFullPath)
+
 			const sharedMessageProps: ClineSayTool = {
 				tool: "newFileCreated", // Default for partial display
 				path: displayPath,
 				content: displayContent,
-				isOutsideWorkspace: false,
+				isOutsideWorkspace,
 				isProtected: false,
 			}
 
@@ -267,6 +272,9 @@ export async function fileWriteTool(
 				userModified: false,
 				error: "user_rejected",
 			})
+			// Always push a result so the LLM receives a response
+			pushToolResult(formatResponse.toolError("User rejected the file write operation."))
+			await cline.diffViewProvider.reset()
 			return
 		}
 

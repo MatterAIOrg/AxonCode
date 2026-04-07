@@ -227,58 +227,76 @@ export const ChatRowContent = ({
 
 	const streamingWords = useMemo(
 		() => [
-			"Synapsing",
-			"Materializing",
-			"Architecting",
-			"Crystallizing",
-			"Orchestrating",
-			"Synthesizing",
-			"Constructing",
-			"Pulsing",
-			"Solidifying",
-			"Evolving",
-			"Synapsing",
-			"Materializing",
-			"Architecting",
-			"Crystallizing",
-			"Orchestrating",
-			"Synthesizing",
-			"Constructing",
-			"Pulsing",
-			"Solidifying",
-			"Evolving",
-			"Manifesting",
-			"Firing",
-			"Assembling",
-			"Transmitting",
-			"Formulating",
-			"Integrating",
-			"Calibrating",
-			"Connecting",
-			"Executing",
-			"Resonating",
+			"Compiling",
+			"Debugging",
+			"Refactoring",
+			"Parsing",
+			"Tokenizing",
+			"Linting",
+			"Building",
+			"Linking",
+			"Optimizing",
+			"Minifying",
+			"Bundling",
+			"Transpiling",
+			"Type-checking",
+			"Analyzing",
+			"Inferencing",
+			"Embedding",
+			"Vectorizing",
+			"Indexing",
+			"Caching",
+			"Serializing",
+			"Deserializing",
+			"Instantiating",
+			"Initializing",
+			"Allocating",
+			"Deallocating",
+			"Garbage-collecting",
+			"Threading",
+			"Parallelizing",
+			"Synchronizing",
+			"Asyncing",
+			"Awaiting",
+			"Resolving",
+			"Binding",
+			"Injecting",
+			"Decorating",
+			"Memoizing",
+			"Currying",
+			"Hydrating",
+			"Rendering",
+			"Diffing",
+			"Reconciling",
+			"Committing",
+			"Branching",
+			"Merging",
+			"Rebasing",
+			"Cherry-picking",
+			"Bisecting",
+			"Blaming",
+			"Stashing",
 		],
 		[],
 	)
 	const [currentWordIndex, setCurrentWordIndex] = useState(() => Math.floor(Math.random() * streamingWords.length))
 
 	const isStreamingWords = useMemo(() => {
+		// Animation should only be active for the last message - if this is not the last message, never animate
+		if (!isLast) return false
 		const type = message.type === "ask" ? message.ask : message.say
 		if (type !== "api_req_started") return false
 		if (!message.text) return false
 		const info = safeJsonParse<ClineApiReqInfo>(message.text)
 		if (!info) return false
 		// Streaming words should only animate while the request is still in progress
-		// (no cost yet, no cancel reason, no failed msg)
-		const cost = info.cost
+		// (no cancel reason, no failed msg)
 		const apiReqCancelReason = info.cancelReason
 		const apiRequestFailedMessage =
 			isLast && lastModifiedMessage?.ask === "api_req_failed" ? lastModifiedMessage?.text : undefined
 		const apiReqStreamingFailedMessage = info.streamingFailedMessage
 
 		return (
-			cost === undefined &&
-			cost === null &&
 			apiReqCancelReason === undefined &&
 			apiRequestFailedMessage === undefined &&
 			apiReqStreamingFailedMessage === undefined
@@ -296,7 +314,7 @@ export const ChatRowContent = ({
 				} while (newIndex === prev && streamingWords.length > 1)
 				return newIndex
 			})
-		}, 3000)
+		}, 1000)
 		return () => clearInterval(interval)
 	}, [streamingWords.length, isStreamingWords])
 
@@ -546,32 +564,78 @@ export const ChatRowContent = ({
 				const diffStats = computeDiffStats(fileEditDiff)
 				// Use startLine from tool if available, otherwise extract from diff
 				const editLineNumber = tool.startLine ?? extractFirstLineNumberFromDiff(fileEditDiff)
+				const fileName = tool.path?.split("/").pop() || tool.path || "file"
 				const openFileWithLine = () => {
+					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
+					const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
 					vscode.postMessage({
 						type: "openFile",
-						text: "./" + tool.path,
+						text: filePath,
 						values: editLineNumber ? { line: editLineNumber } : undefined,
 					})
 				}
 				return (
-					<div
-						className={`animate-fade-up flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start w-full`}>
-						<div style={headerStyle} className="">
-							{tool.isProtected ? (
+					<>
+						<div
+							className={`animate-fade-up flex flex-row gap-1 items-start w-full cursor-pointer`}
+							onClick={handleToggleExpand}>
+							<div style={headerStyle} className="">
+								{tool.isProtected ? (
+									<span
+										className="codicon codicon-lock"
+										style={{
+											color: "var(--vscode-editorWarning-foreground)",
+											marginBottom: "-1.5px",
+										}}
+									/>
+								) : null}
+								<span style={{}}>
+									{tool.isProtected
+										? t("chat:fileOperations.wantsToEditProtected")
+										: tool.isOutsideWorkspace
+											? t("chat:fileOperations.wantsToEditOutsideWorkspace")
+											: t("chat:fileOperations.wantsToEdit")}
+								</span>
+							</div>
+							<div className="flex items-center gap-2 w-fit">
+								{tool.path ? (
+									<span
+										className="cursor-pointer hover:underline text-vscode-descriptionForeground"
+										role="button"
+										tabIndex={0}
+										title={tool.path + (editLineNumber ? `:${editLineNumber}` : "")}
+										aria-label={tool.path}
+										onClick={(e) => {
+											e.stopPropagation()
+											openFileWithLine()
+										}}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ") {
+												e.preventDefault()
+												e.stopPropagation()
+												openFileWithLine()
+											}
+										}}>
+										{fileName}
+									</span>
+								) : null}
+								{diffStats ? (
+									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0">
+										<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
+											+{diffStats.added}
+										</span>
+										<span
+											style={{ color: "var(--vscode-gitDecoration-deletedResourceForeground)" }}>
+											-{diffStats.removed}
+										</span>
+									</span>
+								) : null}
 								<span
-									className="codicon codicon-lock"
-									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
+									className={`ml-1 opacity-50 group-hover:opacity-100 codicon codicon-chevron-${isExpanded ? "up" : "down"}`}
 								/>
-							) : null}
-							<span style={{}}>
-								{tool.isProtected
-									? t("chat:fileOperations.wantsToEditProtected")
-									: tool.isOutsideWorkspace
-										? t("chat:fileOperations.wantsToEditOutsideWorkspace")
-										: t("chat:fileOperations.wantsToEdit")}
-							</span>
+							</div>
 						</div>
-						<div className="w-full">
+						{isExpanded && (
 							<GitHubDiffView
 								diff={fileEditDiff ?? tool.content ?? tool.replace ?? ""}
 								filePath={tool.path}
@@ -583,8 +647,8 @@ export const ChatRowContent = ({
 								onToggleExpand={handleToggleExpand}
 								onOpenFile={openFileWithLine}
 							/>
-						</div>
-					</div>
+						)}
+					</>
 				)
 			}
 			case "codebaseSearch": {
@@ -639,31 +703,78 @@ export const ChatRowContent = ({
 							].join("\n")
 						: ""
 				const newFileDiffStats = computeDiffStats(newFileDiff)
+				const newFileName = tool.path?.split("/").pop() || tool.path || "file"
 				const openNewFileWithLine = () => {
+					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
+					const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
 					vscode.postMessage({
 						type: "openFile",
-						text: "./" + tool.path,
+						text: filePath,
 						values: undefined,
 					})
 				}
 				return (
-					<div
-						className={`animate-fade-up flex ${isExpanded ? "flex-row" : "flex-row"} gap-1 items-start w-full`}>
-						<div style={headerStyle} className="">
-							{tool.isProtected ? (
+					<>
+						<div
+							className={`animate-fade-up flex flex-row gap-1 items-start w-full cursor-pointer`}
+							onClick={handleToggleExpand}>
+							<div style={headerStyle} className="">
+								{tool.isProtected ? (
+									<span
+										className="codicon codicon-lock"
+										style={{
+											color: "var(--vscode-editorWarning-foreground)",
+											marginBottom: "-1.5px",
+										}}
+									/>
+								) : null}
+								<span style={{}}>
+									{tool.isProtected
+										? t("chat:fileOperations.wantsToEditProtected")
+										: tool.isOutsideWorkspace
+											? t("chat:fileOperations.wantsToCreateOutsideWorkspace")
+											: t("chat:fileOperations.wantsToCreate")}
+								</span>
+							</div>
+							<div className="flex items-center gap-2 w-fit">
+								{tool.path ? (
+									<span
+										className="cursor-pointer hover:underline text-vscode-descriptionForeground"
+										role="button"
+										tabIndex={0}
+										title={tool.path}
+										aria-label={tool.path}
+										onClick={(e) => {
+											e.stopPropagation()
+											openNewFileWithLine()
+										}}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ") {
+												e.preventDefault()
+												e.stopPropagation()
+												openNewFileWithLine()
+											}
+										}}>
+										{newFileName}
+									</span>
+								) : null}
+								{newFileDiffStats ? (
+									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0">
+										<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
+											+{newFileDiffStats.added}
+										</span>
+										<span
+											style={{ color: "var(--vscode-gitDecoration-deletedResourceForeground)" }}>
+											-{newFileDiffStats.removed}
+										</span>
+									</span>
+								) : null}
 								<span
-									className="codicon codicon-lock"
-									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
+									className={`ml-1 opacity-50 group-hover:opacity-100 codicon codicon-chevron-${isExpanded ? "up" : "down"}`}
 								/>
-							) : // toolIcon("new-file")
-							null}
-							<span style={{}}>
-								{tool.isProtected
-									? t("chat:fileOperations.wantsToEditProtected")
-									: t("chat:fileOperations.wantsToCreate")}
-							</span>
+							</div>
 						</div>
-						<div className="w-full">
+						{isExpanded && (
 							<GitHubDiffView
 								diff={newFileDiff}
 								filePath={tool.path}
@@ -675,8 +786,8 @@ export const ChatRowContent = ({
 								onToggleExpand={handleToggleExpand}
 								onOpenFile={openNewFileWithLine}
 							/>
-						</div>
-					</div>
+						)}
+					</>
 				)
 			}
 			case "readFile":
@@ -726,13 +837,15 @@ export const ChatRowContent = ({
 							<ToolUseBlock>
 								<ToolUseBlockHeader
 									className="group"
-									onClick={() =>
+									onClick={() => {
+										// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
+										const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
 										vscode.postMessage({
 											type: "openFile",
-											text: "./" + tool.path,
+											text: filePath,
 											values: tool.offset ? { line: tool.offset } : undefined,
 										})
-									}>
+									}}>
 									{tool.path?.startsWith(".") && <span>.</span>}
 									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
 										{fileName}
@@ -759,7 +872,17 @@ export const ChatRowContent = ({
 						<div className="">
 							<ToolUseBlock>
 								<ToolUseBlockHeader>
-									<span style={{ fontWeight: "500" }}>{tool.content}</span>
+									<span
+										style={{
+											fontWeight: "500",
+											whiteSpace: "nowrap",
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+											maxWidth: "100%",
+											display: "block",
+										}}>
+										{tool.content}
+									</span>
 								</ToolUseBlockHeader>
 							</ToolUseBlock>
 						</div>

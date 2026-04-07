@@ -124,7 +124,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		alwaysAllowReadOnlyOutsideWorkspace,
 		alwaysAllowWrite,
 		alwaysAllowWriteOutsideWorkspace,
-		alwaysAllowWriteProtected,
 		alwaysAllowExecute,
 		alwaysAllowMcp,
 		allowedCommands,
@@ -1545,18 +1544,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}
 
 				const isOutsideWorkspace = !!tool.isOutsideWorkspace
-				const isProtected = message.isProtected
 
 				if (isReadOnlyToolAction(message)) {
 					return alwaysAllowReadOnly && (!isOutsideWorkspace || alwaysAllowReadOnlyOutsideWorkspace)
 				}
 
 				if (isWriteToolAction(message)) {
-					return (
-						alwaysAllowWrite &&
-						(!isOutsideWorkspace || alwaysAllowWriteOutsideWorkspace) &&
-						(!isProtected || alwaysAllowWriteProtected)
-					)
+					// forked_change: file_write tool is always auto-approved
+					return true
 				}
 			}
 
@@ -1569,9 +1564,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			alwaysAllowReadOnly,
 			alwaysAllowReadOnlyOutsideWorkspace,
 			isReadOnlyToolAction,
-			alwaysAllowWrite,
-			alwaysAllowWriteOutsideWorkspace,
-			alwaysAllowWriteProtected,
 			isWriteToolAction,
 			alwaysAllowExecute,
 			isAllowedCommand,

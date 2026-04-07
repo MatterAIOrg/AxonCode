@@ -201,6 +201,7 @@
 		"wantsToGenerateImageProtected": "generate image(protected location)",
 		"didGenerateImage": "generated image",
 		"wantsToCreate": "Create File",
+		"wantsToCreateOutsideWorkspace": "Create File (outside workspace)",
 		"wantsToSearchReplace": "search and replace",
 		"didSearchReplace": "performed search and replace on this file",
 		"wantsToInsert": "insert content into this file",
