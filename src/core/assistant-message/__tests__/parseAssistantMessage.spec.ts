@@ -162,20 +162,20 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 		})
 
 		describe("special cases", () => {
-			it("should handle the write_to_file tool with content that contains closing tags", () => {
-				const message = `<write_to_file><path>src/file.ts</path><content>
+			it("should handle the file_write tool with content that contains closing tags", () => {
+				const message = `<file_write><path>src/file.ts</path><content>
 	function example() {
 	// This has XML-like content: </content>
 	return true;
 	}
-	</content><line_count>5</line_count></write_to_file>`
+	</content><line_count>5</line_count></file_write>`
 
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
 				const toolUse = result[0] as ToolUse
 				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("write_to_file")
+				expect(toolUse.name).toBe("file_write")
 				expect(toolUse.params.path).toBe("src/file.ts")
 				expect(toolUse.params.line_count).toBe("5")
 				expect(toolUse.params.content).toContain("function example()")
@@ -272,17 +272,17 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 			})
 
 			it("should handle multi-line parameters", () => {
-				const message = `<write_to_file><path>file.ts</path><content>
+				const message = `<file_write><path>file.ts</path><content>
 	line 1
 	line 2
 	line 3
-	</content><line_count>3</line_count></write_to_file>`
+	</content><line_count>3</line_count></file_write>`
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
 				const toolUse = result[0] as ToolUse
 				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("write_to_file")
+				expect(toolUse.name).toBe("file_write")
 				expect(toolUse.params.path).toBe("file.ts")
 				expect(toolUse.params.content).toContain("line 1")
 				expect(toolUse.params.content).toContain("line 2")
@@ -298,10 +298,10 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 	Now let's modify the file:
 
-	<write_to_file><path>src/index.ts</path><content>
+	<file_write><path>src/index.ts</path><content>
 	// Updated content
 	console.log("Hello world");
-	</content><line_count>2</line_count></write_to_file>
+	</content><line_count>2</line_count></file_write>
 
 	Let's run the code:
 
@@ -323,9 +323,9 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				expect(result[2].type).toBe("text")
 				expect((result[2] as TextContent).content).toContain("Now let's modify the file:")
 
-				// Second tool use (write_to_file)
+				// Second tool use (file_write)
 				expect(result[3].type).toBe("tool_use")
-				expect((result[3] as ToolUse).name).toBe("write_to_file")
+				expect((result[3] as ToolUse).name).toBe("file_write")
 
 				// Third text block
 				expect(result[4].type).toBe("text")

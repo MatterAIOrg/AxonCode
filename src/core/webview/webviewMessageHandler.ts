@@ -851,7 +851,14 @@ export const webviewMessageHandler = async (
 	/**
 	 * Handles message editing operations with user confirmation
 	 */
-	const handleEditOperation = async (messageTs: number, editedContent: string, images?: string[]): Promise<void> => {
+	const handleEditOperation = async (
+		messageTs: number,
+		editedContent: string,
+		images?: string[],
+		apiProvider?: string,
+		apiModelId?: string,
+		thirdPartySelectedModel?: string,
+	): Promise<void> => {
 		// Check if there's a checkpoint before this message
 		const currentCline = provider.getCurrentTask()
 		let hasCheckpoint = false
@@ -878,6 +885,9 @@ export const webviewMessageHandler = async (
 			text: editedContent,
 			hasCheckpoint,
 			images,
+			apiProvider,
+			apiModelId,
+			thirdPartySelectedModel,
 		})
 	}
 
@@ -889,11 +899,20 @@ export const webviewMessageHandler = async (
 		editedContent: string,
 		restoreCheckpoint?: boolean,
 		images?: string[],
+		apiProvider?: string,
+		apiModelId?: string,
+		thirdPartySelectedModel?: string,
 	): Promise<void> => {
 		const currentCline = provider.getCurrentTask()
 		if (!currentCline) {
 			console.error("[handleEditMessageConfirm] No current cline available")
 			return
+		}
+
+		// Apply model change if provided (model was changed during edit)
+		if (apiProvider && apiModelId) {
+			currentCline.updateModel(apiProvider, apiModelId, thirdPartySelectedModel)
+			provider.log(`[handleEditMessageConfirm] Applied model change: ${apiProvider}/${apiModelId}`)
 		}
 
 		// Use findMessageIndices to find messages based on timestamp
@@ -1028,11 +1047,21 @@ export const webviewMessageHandler = async (
 		operation: "delete" | "edit",
 		editedContent?: string,
 		images?: string[],
+		apiProvider?: string,
+		apiModelId?: string,
+		thirdPartySelectedModel?: string,
 	): Promise<void> => {
 		if (operation === "delete") {
 			await handleDeleteOperation(messageTs)
 		} else if (operation === "edit" && editedContent) {
-			await handleEditOperation(messageTs, editedContent, images)
+			await handleEditOperation(
+				messageTs,
+				editedContent,
+				images,
+				apiProvider,
+				apiModelId,
+				thirdPartySelectedModel,
+			)
 		}
 	}
 
@@ -2599,6 +2628,9 @@ ${comment.suggestion}
 					"edit",
 					message.editedMessageContent,
 					message.images,
+					message.apiProvider,
+					message.apiModelId,
+					message.thirdPartySelectedModel,
 				)
 			}
 			break
@@ -2816,6 +2848,17 @@ ${comment.suggestion}
 			await updateGlobalState("yoloMode", message.bool ?? false)
 			await provider.postStateToWebview()
 			break
+		// forked_change end
+		// forked_change start: auto-approve all commands for current task
+		case "autoApproveAllCommands": {
+			const currentTask = provider.getCurrentTask()
+			if (currentTask) {
+				currentTask.autoApproveAllCommands = true
+			}
+			// Also approve the current command if we're in a command ask
+			// This is handled by the frontend sending the approval
+			break
+		}
 		// forked_change end
 		case "enhancePrompt":
 			if (message.text) {
@@ -3229,6 +3272,9 @@ ${comment.suggestion}
 					message.text,
 					message.restoreCheckpoint,
 					message.images,
+					message.apiProvider,
+					message.apiModelId,
+					message.thirdPartySelectedModel,
 				)
 			}
 			break
@@ -3682,6 +3728,32 @@ ${comment.suggestion}
 				provider.log(`Error fetching general profile data: ${errorMessage}`)
 				provider.postMessageToWebview({
 					type: "profileDataResponse",
+					payload: { success: false, error: errorMessage },
+				})
+			}
+			break
+		case "fetchGitBranchRequest": // kilocode_change
+			try {
+				const { getGitRepositoryInfo } = await import("../../utils/git")
+				const workspaceFolders = vscode.workspace.workspaceFolders
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspaceRoot = workspaceFolders[0].uri.fsPath
+					const gitInfo = await getGitRepositoryInfo(workspaceRoot)
+					provider.postMessageToWebview({
+						type: "gitBranchResponse",
+						payload: { success: true, branch: gitInfo.currentBranch || null },
+					})
+				} else {
+					provider.postMessageToWebview({
+						type: "gitBranchResponse",
+						payload: { success: false, error: "No workspace folder found" },
+					})
+				}
+			} catch (error: any) {
+				const errorMessage = error.message || "Failed to fetch git branch"
+				provider.log(`Error fetching git branch: ${errorMessage}`)
+				provider.postMessageToWebview({
+					type: "gitBranchResponse",
 					payload: { success: false, error: errorMessage },
 				})
 			}

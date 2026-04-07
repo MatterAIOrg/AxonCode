@@ -1,5 +1,63 @@
 # Changelog
 
+## [v5.7.6] - 2026-04-05
+
+### Added
+
+- Native tool call helpers for kilocode provider
+- Enhanced assistant message parsing with improved tool handling
+- LSP tool integration for better code navigation
+- File write tool with improved content handling
+- Multi-file search replace strategy for complex edit operations
+- New tool type definitions in packages/types
+- Git branch display in bottom API config showing current repository branch
+- GitBranchIcon custom SVG icon for branch visualization
+- New message types for git branch request/response (fetchGitBranchRequest, gitBranchResponse)
+
+### Changed
+
+- **Major Tool Architecture Refactoring**: Consolidated multiple file editing tools into a unified, simplified tool system
+    - Merged `edit_file`, `insert_content`, `search_and_replace`, `write_to_file`, `apply_diff` tools into streamlined `file_write` tool
+    - Consolidated plan file tools (`list_plan_files`, `read_plan_file`, `plan_file_edit`) into core task management
+    - Removed redundant native tool prompt definitions
+    - Simplified `getAllowedJSONToolsForMode` with cleaner tool selection logic
+- Refactored system prompts for better tool organization and maintainability
+- Updated assistant message parsing with new `parseAssistantMessageV2` implementation
+- Enhanced diff strategies with improved multi-search-replace functionality
+- Updated task handling with improved checkpoint service integration
+- Enhanced webview message handler for better task coordination
+- Improved ChatRow, ChatView, and CommandExecution UI components
+- Updated i18n translations for en locale
+- Refactored BottomApiConfig component with improved layout and branch display
+- Enhanced ProgressIndicator component styling
+- Updated index.css with improved styling utilities
+
+### Fixed
+
+- Shadow checkpoint service stability improvements
+- Assistant message presentation edge cases
+- Browser action tool compatibility
+- Webview message type definitions
+- File write tool: proper workspace path detection for partial display during streaming
+- File write tool: ensure tool result is always pushed on user rejection
+- GitHubDiffView: dynamic margin calculation for proper diff alignment
+- ToolUseBlock: improved component structure and styling
+- Git utilities: properly distinguish between current branch and default branch
+    - Added `currentBranch` field to `GitRepositoryInfo` interface
+    - Fixed webviewMessageHandler to use `currentBranch` instead of `defaultBranch`
+    - Updated tests to reflect the correct field name
+
+### Removed
+
+- Deprecated individual file editing tools (editFileTool, insertContentTool, searchAndReplaceTool, writeToFileTool, applyDiffTool, multiApplyDiffTool)
+- Deprecated plan file tools (listPlanFilesTool, readPlanFileTool, planFileEditTool)
+- Redundant tool prompt files (edit-file.ts, insert-content.ts, search-and-replace.ts, write-to-file.ts)
+- Native tool prompt definitions (apply_diff.ts, edit_file.ts, insert_content.ts, list_plan_files.ts, plan_file_edit.ts, read_plan_file.ts, search_and_replace.ts, write_to_file.ts)
+- Associated test files for removed tools
+- FastApplyChatDisplay component (functionality consolidated)
+
+---
+
 ## [v5.7.3] - 2026-04-02
 
 ### Added

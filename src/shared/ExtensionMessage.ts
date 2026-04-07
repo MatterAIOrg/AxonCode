@@ -26,6 +26,7 @@ import { Mode } from "./modes"
 import {
 	BalanceDataResponsePayload,
 	BetaModelsResponsePayload,
+	GitBranchResponsePayload,
 	ProfileDataResponsePayload,
 	TaskHistoryResponsePayload,
 	TasksByIdResponsePayload,
@@ -130,6 +131,7 @@ export interface ExtensionMessage {
 		| "mcpExecutionStatus"
 		| "vsCodeSetting"
 		| "profileDataResponse" // kilocode_change
+		| "gitBranchResponse" // kilocode_change
 		| "balanceDataResponse" // kilocode_change
 		| "updateProfileData" // kilocode_change
 		| "betaModelsResponse" // kilocode_change
@@ -167,6 +169,7 @@ export interface ExtensionMessage {
 	// forked_change start
 	payload?:
 		| ProfileDataResponsePayload
+		| GitBranchResponsePayload
 		| BalanceDataResponsePayload
 		| BetaModelsResponsePayload
 		| TasksByIdResponsePayload
@@ -255,6 +258,9 @@ export interface ExtensionMessage {
 	tab?: string
 	targetSection?: string // kilocode_change: For settingsFocus action
 	provider?: string // kilocode_change: For thirdPartyModels
+	apiProvider?: string // kilocode_change: For showEditMessageDialog
+	apiModelId?: string // kilocode_change: For showEditMessageDialog
+	thirdPartySelectedModel?: string // kilocode_change: For showEditMessageDialog
 	// kilocode_change: Rules data
 	globalRules?: ClineRulesToggles
 	localRules?: ClineRulesToggles
@@ -427,7 +433,7 @@ export type ExtensionState = Pick<
 
 	mode: Mode
 	customModes: ModeConfig[]
-	toolRequirements?: Record<string, boolean> // Map of tool names to their requirements (e.g. {"apply_diff": true} if diffEnabled)
+	toolRequirements?: Record<string, boolean> // Map of tool names to their requirements (e.g. {"file_edit": true} if diffEnabled)
 
 	cwd?: string // Current working directory
 	telemetrySetting: TelemetrySetting
@@ -490,7 +496,6 @@ export interface OpenPlanFilePayload {
 export interface ClineSayTool {
 	tool:
 		| "editedExistingFile"
-		| "appliedDiff"
 		| "newFileCreated"
 		| "codebaseSearch"
 		| "readFile"
@@ -503,13 +508,10 @@ export interface ClineSayTool {
 		| "switchMode"
 		| "newTask"
 		| "finishTask"
-		| "searchAndReplace"
-		| "insertContent"
 		| "fileEdit"
 		| "generateImage"
 		| "imageGenerated"
 		| "runSlashCommand"
-		| "planFileEdit" // kilocode_change: Plan mode file editing
 		| "codeReview" // kilocode_change: AI Code Review
 		| "checkPastChatMemories" // Chat memories feature
 		| "useSkill"
@@ -561,22 +563,12 @@ export interface ClineSayTool {
 		}>
 	}>
 	question?: string
-	// forked_change start
-	fastApplyResult?: {
-		description?: string
-		tokensIn?: number
-		tokensOut?: number
-		cost?: number
-	}
-	// forked_change end
 	imageData?: string // Base64 encoded image data for generated images
 	// Properties for runSlashCommand tool
 	command?: string
 	args?: string
 	source?: string
 	description?: string
-	// kilocode_change: Properties for planFileEdit tool
-	filename?: string
 	// Properties for web search tool
 	results?: Array<{
 		url: string

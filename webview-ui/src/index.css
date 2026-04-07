@@ -760,23 +760,67 @@ input[cmdk-input]:focus {
 	pointer-events: none;
 }
 
-@keyframes matter-progress-pulse {
-	0%,
-	100% {
-		background-color: rgba(196, 253, 255, 0.5);
+@keyframes terminal-dot-pulse {
+	from {
+		opacity: 0.3;
+		transform: scale(0.8);
 	}
 
-	50% {
-		background-color: #c4fdff;
+	to {
+		opacity: 1;
+		transform: scale(1.1);
+		background-color: var(--color-matterai-accent);
+		box-shadow: 0 0 8px var(--color-matterai-accent);
 	}
 }
 
+@keyframes terminal-cursor-blink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 0;
+	}
+}
+
+.matter-progress-terminal {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-family: var(--vscode-editor-font-family, monospace);
+	color: var(--color-matterai-accent);
+	font-weight: 600;
+	height: 20px;
+	padding: 0 2px;
+}
+
+.terminal-prompt {
+	font-size: 13px;
+	opacity: 0.7;
+	user-select: none;
+}
+
+.terminal-content {
+	display: flex;
+	gap: 3px;
+	align-items: center;
+}
+
 .matter-progress-dot {
-	width: 6px;
-	height: 6px;
+	width: 4px;
+	height: 4px;
+	background-color: var(--color-matterai-accent);
 	border-radius: 1px;
-	background-color: rgba(196, 253, 255, 0.5);
-	animation: matter-progress-pulse 0.3s steps(1) infinite;
+	animation: terminal-dot-pulse 0.8s infinite alternate ease-in-out;
+}
+
+.terminal-cursor {
+	font-size: 13px;
+	margin-left: -1px;
+	animation: terminal-cursor-blink 0.8s step-end infinite;
+	user-select: none;
 }
 
 /* Transition utilities */

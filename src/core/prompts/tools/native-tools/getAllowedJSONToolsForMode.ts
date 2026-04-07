@@ -1,13 +1,11 @@
-import { ModelInfo, shouldUseSingleFileRead, ToolName } from "@roo-code/types"
+import { ModelInfo, ToolName } from "@roo-code/types"
 import { CodeIndexManager } from "../../../../services/code-index/manager"
 import { Mode, getModeConfig, isToolAllowedForMode, getGroupName } from "../../../../shared/modes"
 import { ClineProviderState } from "../../../webview/ClineProvider"
 import OpenAI from "openai"
 import { ALWAYS_AVAILABLE_TOOLS, TOOL_GROUPS } from "../../../../shared/tools"
-import { isFastApplyAvailable } from "../../../tools/editFileTool"
 import { nativeTools } from "."
-import { apply_diff_multi_file, apply_diff_single_file } from "./apply_diff"
-import { read_file_multi, read_file_single } from "./read_file"
+import { read_file_single } from "./read_file"
 
 export function getAllowedJSONToolsForMode(
 	mode: Mode,
@@ -53,20 +51,6 @@ export function getAllowedJSONToolsForMode(
 		tools.delete("codebase_search")
 	}
 
-	if (isFastApplyAvailable(clineProviderState)) {
-		// When Morph is enabled, disable traditional editing tools
-		const traditionalEditingTools = [
-			"apply_diff",
-			"file_edit",
-			"write_to_file",
-			"insert_content",
-			"search_and_replace",
-		]
-		traditionalEditingTools.forEach((tool) => tools.delete(tool))
-	} else {
-		tools.delete("edit_file")
-	}
-
 	// Conditionally exclude update_todo_list if disabled in settings
 	if (clineProviderState?.apiConfiguration?.todoListEnabled === false) {
 		tools.delete("update_todo_list")
@@ -87,11 +71,9 @@ export function getAllowedJSONToolsForMode(
 	}
 
 	// Create a map of tool names to native tool definitions for quick lookup
-	// Exclude apply_diff tools as they are handled specially below
 	const allowedTools: OpenAI.Chat.ChatCompletionTool[] = []
 
 	let isReadFileToolAllowedForMode = false
-	let isApplyDiffToolAllowedForMode = false
 	for (const nativeTool of nativeTools) {
 		const toolName = nativeTool.function.name
 
@@ -99,8 +81,6 @@ export function getAllowedJSONToolsForMode(
 		if (tools.has(toolName)) {
 			if (toolName === "read_file") {
 				isReadFileToolAllowedForMode = true
-			} else if (toolName === "apply_diff") {
-				isApplyDiffToolAllowedForMode = true
 			} else {
 				allowedTools.push(nativeTool)
 			}
@@ -108,21 +88,8 @@ export function getAllowedJSONToolsForMode(
 	}
 
 	if (isReadFileToolAllowedForMode) {
-		if (model?.id && shouldUseSingleFileRead(model?.id)) {
-			allowedTools.push(read_file_single)
-		} else {
-			allowedTools.push(read_file_multi)
-		}
-	}
-
-	// Handle the "apply_diff" logic separately because the same tool has different
-	// implementations depending on whether multi-file diffs are enabled, but the same name is used.
-	if (isApplyDiffToolAllowedForMode && diffEnabled) {
-		if (clineProviderState?.experiments.multiFileApplyDiff) {
-			allowedTools.push(apply_diff_multi_file)
-		} else {
-			allowedTools.push(apply_diff_single_file)
-		}
+		// Always use read_file_single for all models
+		allowedTools.push(read_file_single)
 	}
 
 	return allowedTools

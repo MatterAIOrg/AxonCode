@@ -78,6 +78,10 @@
 		"title": "Run",
 		"tooltip": "Execute this command"
 	},
+	"runEverything": {
+		"title": "Run Everything",
+		"tooltip": "Auto-approve all commands for this task"
+	},
 	"proceedWhileRunning": {
 		"title": "Proceed While Running",
 		"tooltip": "Continue despite warnings"
@@ -197,6 +201,7 @@
 		"wantsToGenerateImageProtected": "generate image(protected location)",
 		"didGenerateImage": "generated image",
 		"wantsToCreate": "Create File",
+		"wantsToCreateOutsideWorkspace": "Create File (outside workspace)",
 		"wantsToSearchReplace": "search and replace",
 		"didSearchReplace": "performed search and replace on this file",
 		"wantsToInsert": "insert content into this file",
@@ -318,6 +323,8 @@
 	"reasoning": {
 		"thinking": "Thinking",
 		"thought": "Thought",
+		"thinkingBriefly": "Thinking briefly",
+		"thoughtBriefly": "Thought briefly",
 		"seconds": "{{count}}s"
 	},
 	"followUpSuggest": {

@@ -33,6 +33,7 @@ interface CommandExecutionProps {
 	// Button props for command ask
 	onPrimaryButtonClick?: (text?: string, images?: string[]) => void
 	onSecondaryButtonClick?: (text?: string, images?: string[]) => void
+	onRunEverythingClick?: () => void
 	enableButtons?: boolean
 	primaryButtonText?: string
 	secondaryButtonText?: string
@@ -46,6 +47,7 @@ export const CommandExecution = memo(
 		title,
 		onPrimaryButtonClick,
 		onSecondaryButtonClick,
+		onRunEverythingClick,
 		enableButtons,
 		primaryButtonText,
 		secondaryButtonText,
@@ -273,23 +275,35 @@ export const CommandExecution = memo(
 					)}
 				</div>
 				{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && (
-					<div className="flex flex-row items-center justify-end gap-2 mt-2">
-						<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
-							<VSCodeButton
-								appearance="primary"
-								disabled={!enableButtons}
-								onClick={() => onPrimaryButtonClick && onPrimaryButtonClick()}>
-								{primaryButtonText || t("chat:runCommand.title")}
-							</VSCodeButton>
-						</StandardTooltip>
-						<StandardTooltip content={secondaryButtonText || t("chat:reject.tooltip")}>
-							<VSCodeButton
-								appearance="secondary"
-								disabled={!enableButtons}
-								onClick={() => onSecondaryButtonClick && onSecondaryButtonClick()}>
-								{secondaryButtonText || t("chat:reject.title")}
-							</VSCodeButton>
-						</StandardTooltip>
+					<div className="flex flex-row items-center justify-between gap-2 mt-2">
+						{onRunEverythingClick && (
+							<StandardTooltip content={t("chat:runEverything.tooltip")}>
+								<VSCodeButton
+									appearance="secondary"
+									disabled={!enableButtons}
+									onClick={() => onRunEverythingClick()}>
+									{t("chat:runEverything.title")}
+								</VSCodeButton>
+							</StandardTooltip>
+						)}
+						<div className="flex flex-row items-center gap-2 ml-auto">
+							<StandardTooltip content={primaryButtonText || t("chat:runCommand.tooltip")}>
+								<VSCodeButton
+									appearance="primary"
+									disabled={!enableButtons}
+									onClick={() => onPrimaryButtonClick && onPrimaryButtonClick()}>
+									{primaryButtonText || t("chat:runCommand.title")}
+								</VSCodeButton>
+							</StandardTooltip>
+							<StandardTooltip content={secondaryButtonText || t("chat:reject.tooltip")}>
+								<VSCodeButton
+									appearance="secondary"
+									disabled={!enableButtons}
+									onClick={() => onSecondaryButtonClick && onSecondaryButtonClick()}>
+									{secondaryButtonText || t("chat:reject.title")}
+								</VSCodeButton>
+							</StandardTooltip>
+						</div>
 					</div>
 				)}
 			</>

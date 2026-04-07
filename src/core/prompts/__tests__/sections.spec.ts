@@ -34,23 +34,23 @@ describe("getCapabilitiesSection", () => {
 	const mcpHub = undefined
 	const mockDiffStrategy: DiffStrategy = {
 		getName: () => "MockStrategy",
-		getToolDescription: () => "apply_diff tool description",
+		getToolDescription: () => "file_edit tool description",
 		async applyDiff(_originalContent: string, _diffContents: string | DiffItem[]): Promise<DiffResult> {
 			return { success: true, content: "mock result" }
 		},
 	}
 
-	it("includes apply_diff in capabilities when diffStrategy is provided", () => {
+	it("includes file_edit and file_write in capabilities", () => {
 		const result = getCapabilitiesSection(cwd, false, mcpHub, mockDiffStrategy)
 
-		expect(result).toContain("apply_diff, file_edit, or write_to_file")
-		expect(result).toContain("then use the apply_diff, file_edit, or write_to_file tool")
+		expect(result).toContain("file_edit or file_write")
+		expect(result).toContain("then use the file_edit or file_write tool")
 	})
 
-	it("excludes apply_diff from capabilities when diffStrategy is undefined", () => {
+	it("includes file_edit and file_write even when diffStrategy is undefined", () => {
 		const result = getCapabilitiesSection(cwd, false, mcpHub, undefined)
 
-		expect(result).not.toContain("apply_diff, file_edit, or write_to_file")
-		expect(result).toContain("then use the write_to_file tool")
+		expect(result).toContain("file_edit or file_write")
+		expect(result).toContain("then use the file_edit or file_write tool")
 	})
 })

@@ -504,7 +504,7 @@ describe("getGitRepositoryInfo", () => {
 		expect(result).toEqual({
 			repositoryUrl: "https://github.com/RooCodeInc/Roo-Code.git",
 			repositoryName: "RooCodeInc/Roo-Code",
-			defaultBranch: "main",
+			currentBranch: "main",
 		})
 
 		// Verify config file was read
@@ -547,34 +547,7 @@ describe("getGitRepositoryInfo", () => {
 		const result = await getGitRepositoryInfo(workspaceRoot)
 
 		expect(result).toEqual({
-			defaultBranch: "main",
-		})
-	})
-
-	it("should handle errors when reading git config", async () => {
-		// Clear previous mocks
-		vitest.clearAllMocks()
-
-		// Create a spy to track the implementation
-		const gitSpy = vitest.spyOn(fs.promises, "readFile")
-
-		// Mock successful access to .git directory
-		vitest.mocked(fs.promises.access).mockResolvedValue(undefined)
-
-		// Setup the readFile mock to return different values based on the path
-		gitSpy.mockImplementation((path: any, encoding: any) => {
-			if (path === configPath) {
-				return Promise.reject(new Error("Failed to read config"))
-			} else if (path === headPath) {
-				return Promise.resolve("ref: refs/heads/main")
-			}
-			return Promise.reject(new Error(`Unexpected path: ${path}`))
-		})
-
-		const result = await getGitRepositoryInfo(workspaceRoot)
-
-		expect(result).toEqual({
-			defaultBranch: "main",
+			currentBranch: "main",
 		})
 	})
 

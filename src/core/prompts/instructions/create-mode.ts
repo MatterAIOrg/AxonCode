@@ -49,7 +49,7 @@ customModes:
       HTML, and modern frontend frameworks.  # Optional but recommended
     groups:  # Required: array of tool groups (can be empty)
       - read     # Read files group (read_file, fetch_instructions, search_files, list_files, list_code_definition_names)
-      - edit     # Edit files group (apply_diff, write_to_file) - allows editing any file
+      - edit     # Edit files group (file_edit, file_write) - allows editing any file
       # Or with file restrictions:
       # - - edit
       #   - fileRegex: \\.md$

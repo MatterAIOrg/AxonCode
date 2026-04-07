@@ -64,7 +64,7 @@ describe("mode-validator", () => {
 				]
 				// Should allow tools from read and edit groups
 				expect(isToolAllowedForMode("read_file", "custom-mode", customModes)).toBe(true)
-				expect(isToolAllowedForMode("write_to_file", "custom-mode", customModes)).toBe(true)
+				expect(isToolAllowedForMode("file_write", "custom-mode", customModes)).toBe(true)
 				// Should not allow tools from other groups
 				expect(isToolAllowedForMode("execute_command", "custom-mode", customModes)).toBe(false)
 			})
@@ -81,7 +81,7 @@ describe("mode-validator", () => {
 				// Should allow tools from read group
 				expect(isToolAllowedForMode("read_file", codeMode, customModes)).toBe(true)
 				// Should not allow tools from other groups
-				expect(isToolAllowedForMode("write_to_file", codeMode, customModes)).toBe(false)
+				expect(isToolAllowedForMode("file_write", codeMode, customModes)).toBe(false)
 			})
 
 			it("respects tool requirements in custom modes", () => {
@@ -93,39 +93,39 @@ describe("mode-validator", () => {
 						groups: ["edit"] as const,
 					},
 				]
-				const requirements = { apply_diff: false }
+				const requirements = { file_edit: false }
 
 				// Should respect disabled requirement even if tool group is allowed
-				expect(isToolAllowedForMode("apply_diff", "custom-mode", customModes, requirements)).toBe(false)
+				expect(isToolAllowedForMode("file_edit", "custom-mode", customModes, requirements)).toBe(false)
 
 				// Should allow other edit tools
-				expect(isToolAllowedForMode("write_to_file", "custom-mode", customModes, requirements)).toBe(true)
+				expect(isToolAllowedForMode("file_write", "custom-mode", customModes, requirements)).toBe(true)
 			})
 		})
 
 		describe("tool requirements", () => {
 			it("respects tool requirements when provided", () => {
-				const requirements = { apply_diff: false }
-				expect(isToolAllowedForMode("apply_diff", codeMode, [], requirements)).toBe(false)
+				const requirements = { file_edit: false }
+				expect(isToolAllowedForMode("file_edit", codeMode, [], requirements)).toBe(false)
 
-				const enabledRequirements = { apply_diff: true }
-				expect(isToolAllowedForMode("apply_diff", codeMode, [], enabledRequirements)).toBe(true)
+				const enabledRequirements = { file_edit: true }
+				expect(isToolAllowedForMode("file_edit", codeMode, [], enabledRequirements)).toBe(true)
 			})
 
 			it("allows tools when their requirements are not specified", () => {
 				const requirements = { some_other_tool: true }
-				expect(isToolAllowedForMode("apply_diff", codeMode, [], requirements)).toBe(true)
+				expect(isToolAllowedForMode("file_edit", codeMode, [], requirements)).toBe(true)
 			})
 
 			it("handles undefined and empty requirements", () => {
-				expect(isToolAllowedForMode("apply_diff", codeMode, [], undefined)).toBe(true)
-				expect(isToolAllowedForMode("apply_diff", codeMode, [], {})).toBe(true)
+				expect(isToolAllowedForMode("file_edit", codeMode, [], undefined)).toBe(true)
+				expect(isToolAllowedForMode("file_edit", codeMode, [], {})).toBe(true)
 			})
 
 			it("prioritizes requirements over mode configuration", () => {
-				const requirements = { apply_diff: false }
+				const requirements = { file_edit: false }
 				// Even in code mode which allows all tools, disabled requirement should take precedence
-				expect(isToolAllowedForMode("apply_diff", codeMode, [], requirements)).toBe(false)
+				expect(isToolAllowedForMode("file_edit", codeMode, [], requirements)).toBe(false)
 			})
 		})
 	})
@@ -142,19 +142,19 @@ describe("mode-validator", () => {
 		})
 
 		it("throws error when tool requirement is not met", () => {
-			const requirements = { apply_diff: false }
-			expect(() => validateToolUse("apply_diff", codeMode, [], requirements)).toThrow(
-				'Tool "apply_diff" is not allowed in code mode.',
+			const requirements = { file_edit: false }
+			expect(() => validateToolUse("file_edit", codeMode, [], requirements)).toThrow(
+				'Tool "file_edit" is not allowed in code mode.',
 			)
 		})
 
 		it("does not throw when tool requirement is met", () => {
-			const requirements = { apply_diff: true }
-			expect(() => validateToolUse("apply_diff", codeMode, [], requirements)).not.toThrow()
+			const requirements = { file_edit: true }
+			expect(() => validateToolUse("file_edit", codeMode, [], requirements)).not.toThrow()
 		})
 
 		it("handles undefined requirements gracefully", () => {
-			expect(() => validateToolUse("apply_diff", codeMode, [], undefined)).not.toThrow()
+			expect(() => validateToolUse("file_edit", codeMode, [], undefined)).not.toThrow()
 		})
 	})
 })

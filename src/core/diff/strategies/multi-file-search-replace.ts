@@ -91,18 +91,18 @@ export class MultiFileSearchReplaceDiffStrategy implements DiffStrategy {
 	}
 
 	getToolDescription(args: { cwd: string; toolOptions?: { [key: string]: string } }): string {
-		return `## apply_diff
+		return `## file_edit
 
 Description: Request to apply PRECISE, TARGETED modifications to one or more files by searching for specific sections of content and replacing them. This tool is for SURGICAL EDITS ONLY - specific changes to existing code. This tool supports both single-file and multi-file operations, allowing you to make changes across multiple files in a single request.
 
 **IMPORTANT: You MUST use multiple files in a single operation whenever possible to maximize efficiency and minimize back-and-forth.**
 
-You can perform multiple distinct search and replace operations within a single \`apply_diff\` call by providing multiple SEARCH/REPLACE blocks in the \`diff\` parameter. This is the preferred way to make several targeted changes efficiently.
+You can perform multiple distinct search and replace operations within a single \`file_edit\` call by providing multiple SEARCH/REPLACE blocks in the \`diff\` parameter. This is the preferred way to make several targeted changes efficiently.
 
 The SEARCH section must exactly match existing content including whitespace and indentation.
 If you're not confident in the exact content to search for, use the read_file tool first to get the exact content.
 When applying the diffs, be extra careful to remember to change any closing brackets or other syntax that may be affected by the diff farther down in the file.
-ALWAYS make as many changes in a single 'apply_diff' request as possible using multiple SEARCH/REPLACE blocks
+ALWAYS make as many changes in a single 'file_edit' request as possible using multiple SEARCH/REPLACE blocks
 
 Parameters:
 - args: Contains one or more file elements, where each file contains:
@@ -134,7 +134,7 @@ Original file:
 \`\`\`
 
 Search/Replace content:
-<apply_diff>
+<file_edit>
 <args>
 <file>
   <path>eg.file.py</path>
@@ -155,10 +155,10 @@ def calculate_total(items):
   </diff>
 </file>
 </args>
-</apply_diff>
+</file_edit>
 
 Search/Replace content with multi edits across multiple files:
-<apply_diff>
+<file_edit>
 <args>
 <file>
   <path>eg.file.py</path>
@@ -200,11 +200,11 @@ def greet(name):
   </diff>
 </file>
 </args>
-</apply_diff>
+</file_edit>
 
 
 Usage:
-<apply_diff>
+<file_edit>
 <args>
 <file>
   <path>File path here</path>
@@ -229,7 +229,7 @@ Each file requires its own path, start_line, and diff elements.
   </diff>
 </file>
 </args>
-</apply_diff>`
+</file_edit>`
 	}
 
 	private unescapeMarkers(content: string): string {
@@ -639,7 +639,7 @@ Each file requires its own path, start_line, and diff elements.
 							bestMatchScore * 100,
 						)}%\n- Required Threshold: ${Math.floor(this.fuzzyThreshold * 100)}%\n- Search Range: ${
 							startLine ? `starting at line ${startLine}` : "start to end"
-						}\n- Tried both standard and aggressive line number stripping\n- Tip: Use the read_file tool to get the latest content of the file before attempting to use the apply_diff tool again, as the file content may have changed\n\nSearch Content:\n${searchChunk}${bestMatchSection}${originalContentSection}`,
+						}\n- Tried both standard and aggressive line number stripping\n- Tip: Use the read_file tool to get the latest content of the file before attempting to use the file_edit tool again, as the file content may have changed\n\nSearch Content:\n${searchChunk}${bestMatchSection}${originalContentSection}`,
 					})
 					continue
 				}

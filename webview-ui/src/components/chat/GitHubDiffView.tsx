@@ -1,9 +1,6 @@
-import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
 import { getLanguageFromPath } from "@src/utils/getLanguageFromPath"
 import { getHighlighter, isLanguageLoaded, normalizeLanguage } from "@src/utils/highlighter"
-import { memo, type CSSProperties, useEffect, useMemo, useState } from "react"
-import { extractFirstLineNumberFromDiff } from "../common/CodeAccordian"
-import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
+import { memo, type CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 
 interface DiffStats {
 	added: number
@@ -18,7 +15,7 @@ interface GitHubDiffViewProps {
 	diffStats?: DiffStats | null
 	isLoading?: boolean
 	isExpanded: boolean
-	onToggleExpand: () => void
+	onToggleExpand?: () => void
 	onOpenFile?: () => void
 }
 
@@ -116,99 +113,51 @@ const parseUnifiedDiff = (diff: string): ParsedDiffRow[] => {
 	return rows
 }
 
-const GitHubDiffView = memo(
-	({
-		diff,
-		filePath,
-		isProtected,
-		diffStats,
-		isLoading,
-		isExpanded,
-		onToggleExpand,
-		onOpenFile,
-	}: GitHubDiffViewProps) => {
-		const firstLineNumber = extractFirstLineNumberFromDiff(diff)
-		const language = useMemo(() => getLanguageFromPath(filePath || "") || "text", [filePath])
-		const fileName = filePath?.split("/").pop() || filePath || "file"
+const GitHubDiffView = memo(({ diff, filePath, isExpanded }: GitHubDiffViewProps) => {
+	const language = useMemo(() => getLanguageFromPath(filePath || "") || "text", [filePath])
+	const headerRef = useRef<HTMLDivElement>(null)
+	const containerRef = useRef<HTMLDivElement>(null)
+	const [diffMarginLeft, setDiffMarginLeft] = useState(0)
 
-		return (
-			<ToolUseBlock className="w-full">
-				<ToolUseBlockHeader onClick={onToggleExpand} className="group">
-					{isLoading && <VSCodeProgressRing className="size-3 mr-2" />}
-					<div className="flex items-center gap-2 w-fit">
-						{isProtected ? (
-							<span
-								className="codicon codicon-lock"
-								style={{
-									color: "var(--vscode-editorWarning-foreground)",
-									marginBottom: "-1.5px",
-								}}
-							/>
-						) : null}
-						{filePath ? (
-							<span
-								className="cursor-pointer hover:underline"
-								role="button"
-								tabIndex={0}
-								title={filePath + (firstLineNumber ? `:${firstLineNumber}` : "")}
-								aria-label={filePath}
-								onClick={(e) => {
-									e.stopPropagation()
-									onOpenFile?.()
-								}}
-								onKeyDown={(e) => {
-									if (e.key === "Enter" || e.key === " ") {
-										e.preventDefault()
-										e.stopPropagation()
-										onOpenFile?.()
-									}
-								}}>
-								{fileName}
-							</span>
-						) : null}
-						{diffStats ? (
-							<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0">
-								<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
-									+{diffStats.added}
-								</span>
-								<span style={{ color: "var(--vscode-gitDecoration-deletedResourceForeground)" }}>
-									-{diffStats.removed}
-								</span>
-							</span>
-						) : null}
-					</div>
-					<div className="flex-grow-1" />
-					<span
-						className={`ml-1 opacity-50 group-hover:opacity-100 codicon codicon-chevron-${isExpanded ? "up" : "down"}`}
-					/>
-				</ToolUseBlockHeader>
+	// Calculate the negative margin needed to align diff content with the left edge
+	useEffect(() => {
+		if (isExpanded && headerRef.current && containerRef.current) {
+			const headerRect = headerRef.current.getBoundingClientRect()
+			const containerRect = containerRef.current.getBoundingClientRect()
+			// Calculate how much the header is offset from the container's left edge
+			const offset = headerRect.left - containerRect.left
+			// Use negative margin to pull the diff content back to the left edge, minus 4px for spacing
+			setDiffMarginLeft(-(offset - 4))
+		}
+	}, [isExpanded])
 
-				{isExpanded && (
-					<div className="w-full mt-1 -ml-7">
+	return (
+		<div>
+			{isExpanded && (
+				<div className="w-full mt-2" style={{ marginLeft: `${diffMarginLeft}px` }}>
+					<div
+						className="rounded-xl overflow-auto scrollbar-hide min-w-0"
+						style={{
+							maxHeight: "20rem",
+							border: "1px solid var(--vscode-editorWidget-border)",
+							background: "var(--vscode-editorWidget-background)",
+							boxShadow:
+								"inset 0 1px 0 color-mix(in srgb, var(--vscode-editorWidget-border) 20%, transparent)",
+						}}>
+						{/* Diff content */}
 						<div
-							className="rounded-xl overflow-auto scrollbar-hide min-w-0"
 							style={{
-								maxHeight: "20rem",
-								border: "1px solid var(--vscode-editorWidget-border)",
-								background: "var(--vscode-editorWidget-background)",
-								boxShadow:
-									"inset 0 1px 0 color-mix(in srgb, var(--vscode-editorWidget-border) 20%, transparent)",
+								background:
+									"linear-gradient(180deg, color-mix(in srgb, var(--vscode-sideBar-background) 58%, var(--vscode-editor-background)) 0%, var(--vscode-editorWidget-background) 100%)",
 							}}>
-							{/* Diff content */}
-							<div
-								style={{
-									background:
-										"linear-gradient(180deg, color-mix(in srgb, var(--vscode-sideBar-background) 58%, var(--vscode-editor-background)) 0%, var(--vscode-editorWidget-background) 100%)",
-								}}>
-								<UnifiedDiffView diff={diff} language={language} />
-							</div>
+							<UnifiedDiffView diff={diff} language={language} />
 						</div>
 					</div>
-				)}
-			</ToolUseBlock>
-		)
-	},
-)
+				</div>
+			)}
+		</div>
+	)
+})
 
 GitHubDiffView.displayName = "GitHubDiffView"
 

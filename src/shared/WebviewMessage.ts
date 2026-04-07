@@ -227,9 +227,12 @@ export interface WebviewMessage {
 		| "showSystemNotification" // kilocode_change
 		| "showAutoApproveMenu" // kilocode_change
 		| "reportBug" // kilocode_change
+		| "autoApproveAllCommands" // kilocode_change: auto-approve all commands for current task
 		| "profileButtonClicked" // kilocode_change
 		| "fetchProfileDataRequest" // kilocode_change
 		| "profileDataResponse" // kilocode_change
+		| "fetchGitBranchRequest" // kilocode_change
+		| "gitBranchResponse" // kilocode_change
 		| "fetchBalanceDataRequest" // kilocode_change
 		| "shopBuyCredits" // kilocode_change
 		| "balanceDataResponse" // kilocode_change
@@ -493,6 +496,13 @@ export interface BetaModelsResponsePayload {
 	// Payload for beta models availability
 	success: boolean
 	enabled?: boolean
+	error?: string
+}
+
+export interface GitBranchResponsePayload {
+	// Payload for git branch response
+	success: boolean
+	branch?: string | null
 	error?: string
 }
 

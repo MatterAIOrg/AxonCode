@@ -91,13 +91,13 @@ export class MultiSearchReplaceDiffStrategy implements DiffStrategy {
 	}
 
 	getToolDescription(args: { cwd: string; toolOptions?: { [key: string]: string } }): string {
-		return `## apply_diff
+		return `## file_edit
 Description: Request to apply PRECISE, TARGETED modifications to an existing file by searching for specific sections of content and replacing them. This tool is for SURGICAL EDITS ONLY - specific changes to existing code.
-You can perform multiple distinct search and replace operations within a single \`apply_diff\` call by providing multiple SEARCH/REPLACE blocks in the \`diff\` parameter. This is the preferred way to make several targeted changes efficiently.
+You can perform multiple distinct search and replace operations within a single \`file_edit\` call by providing multiple SEARCH/REPLACE blocks in the \`diff\` parameter. This is the preferred way to make several targeted changes efficiently.
 The SEARCH section must exactly match existing content including whitespace and indentation.
 If you're not confident in the exact content to search for, use the read_file tool first to get the exact content.
 When applying the diffs, be extra careful to remember to change any closing brackets or other syntax that may be affected by the diff farther down in the file.
-ALWAYS make as many changes in a single 'apply_diff' request as possible using multiple SEARCH/REPLACE blocks
+ALWAYS make as many changes in a single 'file_edit' request as possible using multiple SEARCH/REPLACE blocks
 
 Parameters:
 - path: (required) The path of the file to modify (relative to the current workspace directory ${args.cwd})
@@ -170,14 +170,14 @@ def calculate_sum(items):
 
 
 Usage:
-<apply_diff>
+<file_edit>
 <path>File path here</path>
 <diff>
 Your search/replace content here
 You can use multi search/replace block in one diff block, but make sure to include the line numbers for each block.
 Only use a single line of '=======' between search and replacement content, because multiple '=======' will corrupt the file.
 </diff>
-</apply_diff>`
+</file_edit>`
 	}
 
 	private unescapeMarkers(content: string): string {
@@ -545,7 +545,7 @@ Only use a single line of '=======' between search and replacement content, beca
 
 					diffResults.push({
 						success: false,
-						error: `No sufficiently similar match found${lineRange} (${Math.floor(bestMatchScore * 100)}% similar, needs ${Math.floor(this.fuzzyThreshold * 100)}%)\n\nDebug Info:\n- Similarity Score: ${Math.floor(bestMatchScore * 100)}%\n- Required Threshold: ${Math.floor(this.fuzzyThreshold * 100)}%\n- Search Range: ${startLine ? `starting at line ${startLine}` : "start to end"}\n- Tried both standard and aggressive line number stripping\n- Tip: Use the read_file tool to get the latest content of the file before attempting to use the apply_diff tool again, as the file content may have changed\n\nSearch Content:\n${searchChunk}${bestMatchSection}${originalContentSection}`,
+						error: `No sufficiently similar match found${lineRange} (${Math.floor(bestMatchScore * 100)}% similar, needs ${Math.floor(this.fuzzyThreshold * 100)}%)\n\nDebug Info:\n- Similarity Score: ${Math.floor(bestMatchScore * 100)}%\n- Required Threshold: ${Math.floor(this.fuzzyThreshold * 100)}%\n- Search Range: ${startLine ? `starting at line ${startLine}` : "start to end"}\n- Tried both standard and aggressive line number stripping\n- Tip: Use the read_file tool to get the latest content of the file before attempting to use the file_edit tool again, as the file content may have changed\n\nSearch Content:\n${searchChunk}${bestMatchSection}${originalContentSection}`,
 					})
 					continue
 				}

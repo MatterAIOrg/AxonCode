@@ -95,6 +95,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 
 	const timeLabel = formatTime(totalSeconds)
 	const label = partial ? t("chat:reasoning.thinking") : t("chat:reasoning.thought")
+	const briefLabel = partial ? t("chat:reasoning.thinkingBriefly") : t("chat:reasoning.thoughtBriefly")
 
 	const handleToggle = () => {
 		setIsCollapsed(!isCollapsed)
@@ -103,7 +104,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 	return (
 		<div className="group">
 			<div
-				className="flex items-center justify-start gap-1 pr-2 mt-1 cursor-pointer select-none opacity-40 hover:opacity-100"
+				className="flex items-center justify-start gap-1 pr-2 mt-0 cursor-pointer select-none opacity-40 hover:opacity-100"
 				onClick={handleToggle}>
 				<div className="flex items-center gap-1">
 					{/* <Lightbulb className="w-3" /> */}
@@ -113,7 +114,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 								"text-vscode-foreground hover:text-[var(--vscode-button-background)]",
 								partial && "animate-shimmer",
 							)}>
-							{label} for {timeLabel}
+							{totalSeconds < 2 ? briefLabel : `${label} for ${timeLabel}`}
 						</span>
 					) : (
 						<span

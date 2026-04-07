@@ -224,6 +224,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	providerRef: WeakRef<ClineProvider>
 	private readonly globalStoragePath: string
 	abort: boolean = false
+	autoApproveAllCommands: boolean = false // kilocode_change: auto-approve all commands for current task
 
 	// TaskStatus
 	idleAsk?: ClineMessage
@@ -845,6 +846,32 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 		return ts
 	}
+
+	// forked_change start
+	/**
+	 * Remove a stale partial "tool" ask message from clineMessages.
+	 * During native tool call streaming, a partial ask("tool", ..., true)
+	 * message is created to show a spinner. When the complete block arrives,
+	 * tool handlers like file_edit use say("tool", ...) which doesn't check
+	 * for partial ask messages, causing the spinner to persist alongside the
+	 * complete message. This method removes the stale partial before the
+	 * complete handler runs.
+	 */
+	async removeStalePartialToolAskMessage(): Promise<void> {
+		let removed = false
+		for (let i = this.clineMessages.length - 1; i >= 0; i--) {
+			const msg = this.clineMessages[i]
+			if (msg.partial && msg.type === "ask" && msg.ask === "tool") {
+				this.clineMessages.splice(i, 1)
+				removed = true
+			}
+		}
+		if (removed) {
+			await this.saveClineMessages()
+			await this.providerRef.deref()?.postStateToWebview()
+		}
+	}
+	// forked_change end
 
 	// Note that `partial` has three valid states true (partial message),
 	// false (completion of partial message), undefined (individual complete
@@ -1493,21 +1520,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	}
 
 	async sayAndCreateMissingParamError(toolName: ToolName, paramName: string, relPath?: string) {
-		const kilocodeExtraText = (() => {
-			switch (toolName) {
-				case "apply_diff":
-					return t("kilocode:task.disableApplyDiff") + " "
-				case "edit_file":
-					return t("kilocode:task.disableEditFile") + " "
-				default:
-					return ""
-			}
-		})()
 		await this.say(
 			"error",
 			`Axon Code tried to use ${toolName}${
 				relPath ? ` for '${relPath.toPosix()}'` : ""
-			} without value for required parameter '${paramName}'. ${kilocodeExtraText}Retrying...`,
+			} without value for required parameter '${paramName}'. Retrying...`,
 		)
 		return formatResponse.toolError(
 			formatResponse.missingToolParameterError(
@@ -2335,7 +2352,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								for (const toolUse of this.assistantMessageParser.processNativeToolCalls(
 									chunk.toolCalls,
 								)) {
-									assistantToolUses.push(toolUse)
+									// Deduplicate by ID - if same ID exists, replace it (keeps last/complete version)
+									const existingIndex = assistantToolUses.findIndex((tu) => tu.id === toolUse.id)
+									if (existingIndex !== -1) {
+										assistantToolUses[existingIndex] = toolUse
+									} else {
+										assistantToolUses.push(toolUse)
+									}
 									yieldedCount++
 								}
 								// Update content blocks after processing native tool calls

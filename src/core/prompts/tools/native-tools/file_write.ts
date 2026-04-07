@@ -5,7 +5,7 @@ export default {
 	function: {
 		name: "file_write",
 		description:
-			"Create or overwrite a file with new content. Use this tool to write new files or completely rewrite existing files. The tool will create missing directories automatically. For partial edits to existing files, prefer using file_edit instead.",
+			"Create a new file that does not exists yet or overwrite a file with all the new content. Use this tool to write new files or completely rewrite existing files. The tool will create missing directories automatically. For partial edits to existing files, you will only use file_edit tool instead.",
 		strict: true,
 		parameters: {
 			type: "object",

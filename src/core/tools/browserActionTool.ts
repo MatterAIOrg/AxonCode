@@ -188,7 +188,7 @@ export async function browserActionTool(
 						formatResponse.toolResult(
 							`The browser action has been executed. The console logs and screenshot have been captured for your analysis.\n\nConsole logs:\n${
 								browserActionResult?.logs || "(No new logs)"
-							}\n\n(REMEMBER: if you need to proceed to using non-\`browser_action\` tools or launch a new browser, you MUST first close cline browser. For example, if after analyzing the logs and screenshot you need to edit a file, you must first close the browser before you can use the write_to_file tool.)`,
+							}\n\n(REMEMBER: if you need to proceed to using non-\`browser_action\` tools or launch a new browser, you MUST first close cline browser. For example, if after analyzing the logs and screenshot you need to edit a file, you must first close the browser before you can use the file_write tool.)`,
 							browserActionResult?.screenshot ? [browserActionResult.screenshot] : [],
 						),
 					)

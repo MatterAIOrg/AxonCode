@@ -545,7 +545,7 @@ describe("ChatView - Auto Approval Tests", () => {
 					},
 					{
 						type: "ask",
-						ask: "write_to_file",
+						ask: "file_write",
 						ts: Date.now(),
 						text: "Writing to test.txt",
 					},

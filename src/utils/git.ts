@@ -12,6 +12,7 @@ export interface GitRepositoryInfo {
 	repositoryUrl?: string
 	repositoryName?: string
 	defaultBranch?: string
+	currentBranch?: string
 }
 
 export interface GitCommit {
@@ -69,17 +70,15 @@ export async function getGitRepositoryInfo(workspaceRoot: string): Promise<GitRe
 		}
 
 		// Try to read HEAD file to get current branch
-		if (!gitInfo.defaultBranch) {
-			try {
-				const headPath = path.join(gitDir, "HEAD")
-				const headContent = await fs.readFile(headPath, "utf8")
-				const branchMatch = headContent.match(/ref: refs\/heads\/(.+)/)
-				if (branchMatch && branchMatch[1]) {
-					gitInfo.defaultBranch = branchMatch[1].trim()
-				}
-			} catch (error) {
-				// Ignore HEAD reading errors
+		try {
+			const headPath = path.join(gitDir, "HEAD")
+			const headContent = await fs.readFile(headPath, "utf8")
+			const branchMatch = headContent.match(/ref: refs\/heads\/(.+)/)
+			if (branchMatch && branchMatch[1]) {
+				gitInfo.currentBranch = branchMatch[1].trim()
 			}
+		} catch (error) {
+			// Ignore HEAD reading errors
 		}
 
 		return gitInfo

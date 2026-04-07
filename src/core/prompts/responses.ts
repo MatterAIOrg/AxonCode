@@ -59,21 +59,13 @@ Otherwise, if you have not completed the task and do not need additional informa
 			`${truncationMessage}\n\n` +
 			`RECOMMENDED APPROACH:\n` +
 			`1. Try again with the line_count parameter in your response if you forgot to include it\n` +
-			`2. Or break your content into smaller chunks - first use write_to_file with the initial chunk\n` +
-			`3. Then use insert_content to append additional chunks\n`
+			`2. Or break your content into smaller chunks - first use file_write with the initial chunk\n` +
+			`3. Then use file_edit to append additional chunks\n`
 
-		let existingFileApproaches = [
+		const existingFileApproaches = [
 			`1. Try again with the line_count parameter in your response if you forgot to include it`,
+			`2. Or try using file_edit for targeted changes`,
 		]
-
-		if (diffStrategyEnabled) {
-			existingFileApproaches.push(`2. Or try using apply_diff instead of write_to_file for targeted changes`)
-		}
-
-		existingFileApproaches.push(
-			`${diffStrategyEnabled ? "3" : "2"}. Or use search_and_replace for specific text replacements`,
-			`${diffStrategyEnabled ? "4" : "3"}. Or use insert_content to add specific content at particular lines`,
-		)
 
 		const existingFileGuidance =
 			`This appears to be content for an existing file.\n` +

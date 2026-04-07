@@ -4,7 +4,7 @@ import { z } from "zod"
  * ToolGroup
  */
 
-export const toolGroups = ["read", "edit", "browser", "command", "mcp", "modes", "plan"] as const
+export const toolGroups = ["read", "edit", "browser", "command", "mcp", "modes"] as const
 
 export const toolGroupsSchema = z.enum(toolGroups)
 
@@ -17,12 +17,8 @@ export type ToolGroup = z.infer<typeof toolGroupsSchema>
 export const toolNames = [
 	"execute_command",
 	"read_file",
-	"write_to_file",
-	"apply_diff",
 	"file_edit",
 	"file_write",
-	"insert_content",
-	"search_and_replace",
 	"search_files",
 	"list_files",
 	"list_code_definition_names",
@@ -38,13 +34,9 @@ export const toolNames = [
 	"fetch_instructions",
 	"codebase_search",
 	// forked_change start
-	"edit_file",
 	"new_rule",
 	"report_bug",
 	"condense",
-	"plan_file_edit",
-	"read_plan_file",
-	"list_plan_files",
 	// forked_change end
 	"update_todo_list",
 	"run_slash_command",

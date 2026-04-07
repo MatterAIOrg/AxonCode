@@ -340,7 +340,7 @@ describe("SYSTEM_PROMPT", () => {
 			undefined, // partialReadsEnabled
 		)
 
-		expect(prompt).toContain("apply_diff")
+		expect(prompt).toContain("file_edit")
 		expect(prompt).toMatchFileSnapshot("./__snapshots__/system-prompt/with-diff-enabled-true.snap")
 	})
 
@@ -364,7 +364,7 @@ describe("SYSTEM_PROMPT", () => {
 			undefined, // partialReadsEnabled
 		)
 
-		expect(prompt).not.toContain("apply_diff")
+		expect(prompt).not.toContain("file_edit")
 		expect(prompt).toMatchFileSnapshot("./__snapshots__/system-prompt/with-diff-enabled-false.snap")
 	})
 
@@ -388,7 +388,7 @@ describe("SYSTEM_PROMPT", () => {
 			undefined, // partialReadsEnabled
 		)
 
-		expect(prompt).not.toContain("apply_diff")
+		expect(prompt).not.toContain("file_edit")
 		expect(prompt).toMatchFileSnapshot("./__snapshots__/system-prompt/with-diff-enabled-undefined.snap")
 	})
 

@@ -1059,8 +1059,8 @@ function sum(a, b) {
 			expect(description).toContain("<<<<<<< SEARCH")
 			expect(description).toContain("=======")
 			expect(description).toContain(">>>>>>> REPLACE")
-			expect(description).toContain("<apply_diff>")
-			expect(description).toContain("</apply_diff>")
+			expect(description).toContain("<file_edit>")
+			expect(description).toContain("</file_edit>")
 		})
 	})
 
