@@ -39,7 +39,7 @@ import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
-import { Globe02Icon } from "@/utils/customIcons"
+import { ArrowDown01Icon, Globe02Icon } from "@/utils/customIcons"
 import { appendImages } from "@src/utils/imageUtils"
 import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // kilocode_change
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
@@ -597,7 +597,7 @@ export const ChatRowContent = ({
 											: t("chat:fileOperations.wantsToEdit")}
 								</span>
 							</div>
-							<div className="flex items-center gap-2 w-fit">
+							<div className="flex items-center gap-2 w-fit -mt-[1px]">
 								{tool.path ? (
 									<span
 										className="cursor-pointer hover:underline text-vscode-descriptionForeground"
@@ -620,7 +620,7 @@ export const ChatRowContent = ({
 									</span>
 								) : null}
 								{diffStats ? (
-									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0">
+									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0 mt-[1px]">
 										<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
 											+{diffStats.added}
 										</span>
@@ -630,8 +630,8 @@ export const ChatRowContent = ({
 										</span>
 									</span>
 								) : null}
-								<span
-									className={`ml-1 opacity-50 group-hover:opacity-100 codicon codicon-chevron-${isExpanded ? "up" : "down"}`}
+								<ArrowDown01Icon
+									className={`opacity-50 group-hover:opacity-100 size-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
 								/>
 							</div>
 						</div>
@@ -736,7 +736,7 @@ export const ChatRowContent = ({
 											: t("chat:fileOperations.wantsToCreate")}
 								</span>
 							</div>
-							<div className="flex items-center gap-2 w-fit">
+							<div className="flex items-center gap-2 w-fit -mt-[1px]">
 								{tool.path ? (
 									<span
 										className="cursor-pointer hover:underline text-vscode-descriptionForeground"
@@ -759,7 +759,7 @@ export const ChatRowContent = ({
 									</span>
 								) : null}
 								{newFileDiffStats ? (
-									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0">
+									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0 mt-[1px]">
 										<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
 											+{newFileDiffStats.added}
 										</span>
@@ -769,8 +769,8 @@ export const ChatRowContent = ({
 										</span>
 									</span>
 								) : null}
-								<span
-									className={`ml-1 opacity-50 group-hover:opacity-100 codicon codicon-chevron-${isExpanded ? "up" : "down"}`}
+								<ArrowDown01Icon
+									className={`opacity-50 group-hover:opacity-100 size-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
 								/>
 							</div>
 						</div>
@@ -1273,8 +1273,9 @@ export const ChatRowContent = ({
 										</VSCodeBadge>
 									)}
 								</div>
-								<span
-									className={`codicon codicon-chevron-${isExpanded ? "up" : "down"} opacity-0 group-hover:opacity-100 transition-opacity duration-200`}></span>
+								<ArrowDown01Icon
+									className={`size-4 opacity-0 group-hover:opacity-100 transition-all duration-200 ${isExpanded ? "rotate-180" : ""}`}
+								/>
 							</ToolUseBlockHeader>
 							{isExpanded && (slashCommandInfo.args || slashCommandInfo.description) && (
 								<div

@@ -1,7 +1,7 @@
 import type { ModelInfo } from "../model.js"
 
 // https://openrouter.ai/models?order=newest&supported_parameters=tools
-export const openRouterDefaultModelId = "axon-code-2"
+export const openRouterDefaultModelId = "axon-code-2-5-pro"
 
 export const openRouterDefaultModelInfo: ModelInfo = {
 	maxTokens: 32000,
