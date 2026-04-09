@@ -22,7 +22,7 @@ describe("finishRun", () => {
 							attempts: 3,
 							failures: 0,
 						},
-						apply_diff: {
+						file_edit: {
 							attempts: 3,
 							failures: 1,
 						},
@@ -52,7 +52,7 @@ describe("finishRun", () => {
 							attempts: 3,
 							failures: 0,
 						},
-						apply_diff: {
+						file_edit: {
 							attempts: 2,
 							failures: 0,
 						},
@@ -79,7 +79,7 @@ describe("finishRun", () => {
 			duration: 75000,
 			toolUsage: {
 				read_file: { attempts: 6, failures: 0 },
-				apply_diff: { attempts: 5, failures: 1 },
+				file_edit: { attempts: 5, failures: 1 },
 			},
 			createdAt: expect.any(Date),
 		})

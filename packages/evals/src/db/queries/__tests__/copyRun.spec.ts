@@ -38,7 +38,7 @@ describe("copyRun", () => {
 			cost: 0.15,
 			toolUsage: {
 				read_file: { attempts: 10, failures: 1 },
-				apply_diff: { attempts: 8, failures: 2 },
+				file_edit: { attempts: 8, failures: 2 },
 			},
 		})
 
@@ -59,7 +59,7 @@ describe("copyRun", () => {
 			cost: 0.05,
 			toolUsage: {
 				read_file: { attempts: 3, failures: 0 },
-				apply_diff: { attempts: 3, failures: 1 },
+				file_edit: { attempts: 3, failures: 1 },
 			},
 		})
 
@@ -87,7 +87,7 @@ describe("copyRun", () => {
 			cost: 0.04,
 			toolUsage: {
 				read_file: { attempts: 3, failures: 0 },
-				apply_diff: { attempts: 2, failures: 0 },
+				file_edit: { attempts: 2, failures: 0 },
 			},
 		})
 
@@ -120,7 +120,7 @@ describe("copyRun", () => {
 		const toolError1 = await createToolError({
 			runId: sourceRunId,
 			taskId: task1.id,
-			toolName: "apply_diff",
+			toolName: "file_edit",
 			error: "Syntax error in diff",
 		})
 
@@ -190,7 +190,7 @@ describe("copyRun", () => {
 		expect(copiedRun!.taskMetrics!.tokensIn).toBe(200_000)
 		expect(copiedRun!.taskMetrics!.toolUsage).toEqual({
 			read_file: { attempts: 10, failures: 1 },
-			apply_diff: { attempts: 8, failures: 2 },
+			file_edit: { attempts: 8, failures: 2 },
 		})
 
 		const copiedTasks = await db.query.tasks.findMany({
@@ -208,7 +208,7 @@ describe("copyRun", () => {
 		expect(goTask.taskMetrics!.duration).toBe(45_000)
 		expect(goTask.taskMetrics!.toolUsage).toEqual({
 			read_file: { attempts: 3, failures: 0 },
-			apply_diff: { attempts: 3, failures: 1 },
+			file_edit: { attempts: 3, failures: 1 },
 		})
 
 		const pythonTask = copiedTasks.find((t) => t.language === "python")!
