@@ -68,11 +68,11 @@ export function Run({ run, taskMetrics }: RunProps) {
 					)}
 				</TableCell>
 				<TableCell>
-					{taskMetrics?.toolUsage?.apply_diff && (
+					{taskMetrics?.toolUsage?.file_edit && (
 						<div className="flex flex-row items-center gap-1.5">
-							<div>{taskMetrics.toolUsage.apply_diff.attempts}</div>
+							<div>{taskMetrics.toolUsage.file_edit.attempts}</div>
 							<div>/</div>
-							<div>{formatToolUsageSuccessRate(taskMetrics.toolUsage.apply_diff)}</div>
+							<div>{formatToolUsageSuccessRate(taskMetrics.toolUsage.file_edit)}</div>
 						</div>
 					)}
 				</TableCell>

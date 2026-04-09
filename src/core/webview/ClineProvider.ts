@@ -154,6 +154,7 @@ export class ClineProvider
 	private taskCreationCallback: (task: Task) => void
 	private taskEventListeners: WeakMap<Task, Array<() => void>> = new WeakMap()
 	private currentWorkspacePath: string | undefined
+	private gitHeadWatcher?: vscode.FileSystemWatcher // kilocode_change: watch for git branch changes
 
 	private recentTasksCache?: string[]
 	private pendingOperations: Map<string, PendingEditOperation> = new Map()
@@ -312,6 +313,9 @@ export class ClineProvider
 		})
 		this.disposables.push(windowStateDisposable)
 
+		// kilocode_change: Setup git HEAD watcher for real-time branch updates
+		this.setupGitHeadWatcher()
+
 		// Listen for secret changes from other windows
 		this.contextProxy.setOnSecretsChanged(async () => {
 			await this.postStateToWebview()
@@ -366,6 +370,43 @@ export class ClineProvider
 		} catch (error) {
 			this.log(`Error handling cloud settings update: ${error}`)
 		}
+	}
+
+	// kilocode_change: Setup watcher for .git/HEAD to detect branch changes
+	private setupGitHeadWatcher() {
+		const workspaceFolders = vscode.workspace.workspaceFolders
+		if (!workspaceFolders || workspaceFolders.length === 0) {
+			return
+		}
+
+		const workspaceRoot = workspaceFolders[0].uri.fsPath
+		const gitHeadPath = new vscode.RelativePattern(workspaceRoot, ".git/HEAD")
+
+		this.gitHeadWatcher = vscode.workspace.createFileSystemWatcher(gitHeadPath)
+
+		const handleHeadChange = async () => {
+			try {
+				const { getGitRepositoryInfo } = await import("../../utils/git")
+				const gitInfo = await getGitRepositoryInfo(workspaceRoot)
+				this.postMessageToWebview({
+					type: "gitBranchResponse",
+					payload: { success: true, branch: gitInfo.currentBranch || null },
+				})
+			} catch (error: any) {
+				this.log(`Error handling git HEAD change: ${error.message}`)
+			}
+		}
+
+		this.gitHeadWatcher.onDidChange(handleHeadChange)
+		this.gitHeadWatcher.onDidCreate(handleHeadChange)
+		this.gitHeadWatcher.onDidDelete(() => {
+			this.postMessageToWebview({
+				type: "gitBranchResponse",
+				payload: { success: true, branch: null },
+			})
+		})
+
+		this.disposables.push(this.gitHeadWatcher)
 	}
 
 	/**
@@ -742,6 +783,9 @@ export class ClineProvider
 
 		this._workspaceTracker?.dispose()
 		this._workspaceTracker = undefined
+		// kilocode_change: dispose git HEAD watcher
+		this.gitHeadWatcher?.dispose()
+		this.gitHeadWatcher = undefined
 		await this.mcpHub?.unregisterClient()
 		this.mcpHub = undefined
 		this.marketplaceManager?.cleanup()

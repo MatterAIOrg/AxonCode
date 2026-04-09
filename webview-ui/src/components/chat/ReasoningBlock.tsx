@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
-import { ChevronUp } from "lucide-react"
+import { ArrowDown01Icon } from "@/utils/customIcons"
 import MarkdownBlock from "../common/MarkdownBlock"
 
 interface ReasoningBlockProps {
@@ -104,7 +104,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 	return (
 		<div className="group">
 			<div
-				className="flex items-center justify-start gap-1 pr-2 mt-0 cursor-pointer select-none opacity-40 hover:opacity-100"
+				className="flex items-center justify-start gap-1 pr-2 mt-0.5 cursor-pointer select-none opacity-40 hover:opacity-100"
 				onClick={handleToggle}>
 				<div className="flex items-center gap-1">
 					{/* <Lightbulb className="w-3" /> */}
@@ -127,8 +127,8 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 					)}
 				</div>
 				<div className="flex items-center gap-1">
-					<ChevronUp
-						className={cn("w-4 transition-all group-hover:opacity-100", isCollapsed && "-rotate-180")}
+					<ArrowDown01Icon
+						className={cn("size-4 transition-all group-hover:opacity-100", !isCollapsed && "rotate-180")}
 					/>
 				</div>
 			</div>
