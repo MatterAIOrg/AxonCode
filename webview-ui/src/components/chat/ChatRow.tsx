@@ -205,7 +205,7 @@ export const ChatRowContent = ({
 	enableButtons,
 	primaryButtonText,
 	secondaryButtonText,
-	isAgentManagerMode: _isAgentManagerMode, // kilocode_change: for opening files in agent manager right panel (unused but kept for API compatibility)
+	isAgentManagerMode: _isAgentManagerMode,
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
 

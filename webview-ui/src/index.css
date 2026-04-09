@@ -78,6 +78,7 @@
 	vscode-button.code-review-btn,
 	vscode-button.code-review-btn::part(control) {
 		border: 0.5px solid var(--vscode-panel-border) !important;
+		border-radius: 25px !important;
 	}
 
 	/* DangerButton Custom Style */

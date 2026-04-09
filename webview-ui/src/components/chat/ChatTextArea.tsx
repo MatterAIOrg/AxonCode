@@ -1479,7 +1479,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					"flex-col",
 					"min-h-0",
 					"overflow-hidden",
-					"rounded-xl",
+					"rounded-2xl",
 					isFocused
 						? "border border-[var(--vscode-activityBar-border)]"
 						: isDraggingOver

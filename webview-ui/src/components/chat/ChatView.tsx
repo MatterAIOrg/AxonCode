@@ -2426,7 +2426,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</div>
 								<div className="flex flex-grow flex-col justify-start gap-4">
 									{!isReviewOnlyMode && (
-										<div className="w-full min-w-0 mt-8 mb-1 p-3 border border-[var(--color-matterai-border)] rounded-xl bg-vscode-editor-background/50">
+										<div className="w-full min-w-0 mt-8 mb-1 p-3 border border-[var(--color-matterai-border)] rounded-2xl bg-vscode-editor-background/50">
 											<div className="flex flex-col gap-2">
 												{/* Top section: Title/Subtitle left, Icons right */}
 												<div className="flex justify-between gap-4 items-center min-w-0">
@@ -2696,6 +2696,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							<VSCodeButton
 								appearance="secondary"
 								className="flex w-full min-w-full code-review-btn"
+								style={{
+									borderRadius: "25px !important",
+								}}
 								onClick={() => {
 									setShowSourceControl(true)
 									// If there's an error, automatically retry when opening
