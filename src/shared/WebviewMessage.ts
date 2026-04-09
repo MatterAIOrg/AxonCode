@@ -340,6 +340,7 @@ export interface WebviewMessage {
 		| "memories_response" // kilocode_change: Chat memories response
 		| "delete_memory" // kilocode_change: Delete memory
 		| "memory_deleted" // kilocode_change: Memory deleted response
+		| "maximizeSideBar" // kilocode_change: Maximize the sidebar panel
 	// forked_change end
 	text?: string
 	editedMessageContent?: string

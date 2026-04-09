@@ -53,6 +53,7 @@ import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } from "./ContextCondenseRow"
 import { McpExecution } from "./McpExecution"
+import { useAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
 
 interface ChatRowProps {
 	message: ClineMessage
@@ -77,6 +78,7 @@ interface ChatRowProps {
 	enableButtons?: boolean
 	primaryButtonText?: string
 	secondaryButtonText?: string
+	isAgentManagerMode?: boolean
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -203,8 +205,12 @@ export const ChatRowContent = ({
 	enableButtons,
 	primaryButtonText,
 	secondaryButtonText,
+	isAgentManagerMode: _isAgentManagerMode, // kilocode_change: for opening files in agent manager right panel (unused but kept for API compatibility)
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
+
+	// kilocode_change: hook for agent manager file viewer - always call hook at top level
+	const agentFileViewer = useAgentFileViewer()
 
 	// kilocode_change: add showTimestamps
 	const {
@@ -566,6 +572,17 @@ export const ChatRowContent = ({
 				const editLineNumber = tool.startLine ?? extractFirstLineNumberFromDiff(fileEditDiff)
 				const fileName = tool.path?.split("/").pop() || tool.path || "file"
 				const openFileWithLine = () => {
+					// kilocode_change: in agent manager mode, open file in right panel instead of editor
+					if (agentFileViewer && fileEditDiff) {
+						agentFileViewer.openFileInViewer({
+							filePath: tool.path || "file",
+							diff: fileEditDiff,
+							line: editLineNumber,
+							isOutsideWorkspace: tool.isOutsideWorkspace,
+							isProtected: tool.isProtected,
+						})
+						return
+					}
 					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
 					const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
 					vscode.postMessage({
@@ -705,6 +722,16 @@ export const ChatRowContent = ({
 				const newFileDiffStats = computeDiffStats(newFileDiff)
 				const newFileName = tool.path?.split("/").pop() || tool.path || "file"
 				const openNewFileWithLine = () => {
+					// kilocode_change: in agent manager mode, open file in right panel instead of editor
+					if (agentFileViewer && newFileDiff) {
+						agentFileViewer.openFileInViewer({
+							filePath: tool.path || "file",
+							diff: newFileDiff,
+							isOutsideWorkspace: tool.isOutsideWorkspace,
+							isProtected: tool.isProtected,
+						})
+						return
+					}
 					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
 					const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
 					vscode.postMessage({
@@ -816,6 +843,27 @@ export const ChatRowContent = ({
 				let fileName = splitPaths?.[splitPaths.length - 1]
 				fileName = removeLeadingNonAlphanumeric(fileName ?? "") + "\u200E"
 
+				// Helper to open file - in agent manager mode, use right panel; otherwise use editor
+				const openReadFile = () => {
+					// kilocode_change: in agent manager mode, open file in right panel if content available
+					if (agentFileViewer && tool.content) {
+						agentFileViewer.openFileInViewer({
+							filePath: tool.path || "file",
+							content: tool.content,
+							line: tool.offset,
+							isOutsideWorkspace: tool.isOutsideWorkspace,
+						})
+						return
+					}
+					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
+					const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
+					vscode.postMessage({
+						type: "openFile",
+						text: filePath,
+						values: tool.offset ? { line: tool.offset } : undefined,
+					})
+				}
+
 				// Regular single file read request
 				return (
 					<div className="flex gap-1">
@@ -835,17 +883,7 @@ export const ChatRowContent = ({
 						</div>
 						<div className="">
 							<ToolUseBlock>
-								<ToolUseBlockHeader
-									className="group"
-									onClick={() => {
-										// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
-										const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
-										vscode.postMessage({
-											type: "openFile",
-											text: filePath,
-											values: tool.offset ? { line: tool.offset } : undefined,
-										})
-									}}>
+								<ToolUseBlockHeader className="group" onClick={openReadFile}>
 									{tool.path?.startsWith(".") && <span>.</span>}
 									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
 										{fileName}

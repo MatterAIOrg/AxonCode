@@ -24,6 +24,7 @@ import ErrorBoundary from "./components/ErrorBoundary"
 import { HumanRelayDialog } from "./components/human-relay/HumanRelayDialog"
 import BottomControls from "./components/kilocode/BottomControls" // kilocode_change
 import ModesView from "./components/modes/ModesView"
+import { AgentManagerView } from "./components/agent/AgentManagerView"
 import { MemoryService } from "./services/MemoryService" // kilocode_change
 // import { AccountView } from "./components/account/AccountView" // kilocode_change: we have our own profile view
 // import { CloudView } from "./components/cloud/CloudView" // kilocode_change: not rendering this
@@ -96,6 +97,7 @@ const App = () => {
 		mdmCompliant,
 		apiConfiguration, // kilocode_change
 		codeReviewSettings, // kilocode_change
+		isOrbital, // kilocode_change: Orbital IDE detection for Agent Manager
 	} = useExtensionState()
 	const { showToast } = useToast()
 
@@ -104,6 +106,7 @@ const App = () => {
 
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 	const [tab, setTab] = useState<Tab>("chat")
+	const [isAgentManagerOpen, setIsAgentManagerOpen] = useState(false)
 
 	const [humanRelayDialogState, setHumanRelayDialogState] = useState<HumanRelayDialogState>({
 		isOpen: false,
@@ -256,6 +259,13 @@ const App = () => {
 	}, [telemetrySetting, telemetryKey, telemetryDistinctId, didHydrateState])
 	// forked_change end
 
+	// Auto retrieve the new tab mode if Agent Manager is toggled on
+	useEffect(() => {
+		if (isAgentManagerOpen && isOrbital) {
+			vscode.postMessage({ type: "maximizeSideBar" })
+		}
+	}, [isAgentManagerOpen, isOrbital])
+
 	// Tell the extension that we are ready to receive messages.
 	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
 
@@ -362,12 +372,34 @@ const App = () => {
 			{/* {tab === "account" && (
 				<AccountView userInfo={cloudUserInfo} isAuthenticated={false} onDone={() => switchTab("chat")} />
 			)} */}
-			<ChatView
-				ref={chatViewRef}
-				isHidden={tab !== "chat"}
-				showAnnouncement={showAnnouncement}
-				hideAnnouncement={() => setShowAnnouncement(false)}
-			/>
+			<AgentManagerView isOpen={isOrbital ? isAgentManagerOpen : false}>
+				<ChatView
+					ref={chatViewRef}
+					isHidden={tab !== "chat"}
+					showAnnouncement={showAnnouncement}
+					hideAnnouncement={() => setShowAnnouncement(false)}
+					isAgentManagerMode={isOrbital ? isAgentManagerOpen : false}
+				/>
+			</AgentManagerView>
+
+			{/* Floating Toggle at the top center - Only show in Orbital IDE */}
+			{tab === "chat" && isOrbital && (
+				<div className="absolute top-1 right-3.5 z-50 pointer-events-none flex justify-center">
+					<div className="pointer-events-auto bg-[var(--vscode-sideBar-background)] border border-[var(--vscode-panel-border)] p-1 rounded-lg flex items-center shadow-lg">
+						<button
+							onClick={() => setIsAgentManagerOpen(false)}
+							className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center ${!isAgentManagerOpen ? "bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)]"}`}>
+							Agent
+						</button>
+						<button
+							onClick={() => setIsAgentManagerOpen(true)}
+							className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center ${isAgentManagerOpen ? "bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)]"}`}>
+							Agent Manager
+						</button>
+					</div>
+				</div>
+			)}
+
 			<MemoizedHumanRelayDialog
 				isOpen={humanRelayDialogState.isOpen}
 				requestId={humanRelayDialogState.requestId}

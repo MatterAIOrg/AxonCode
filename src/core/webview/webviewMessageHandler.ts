@@ -5,6 +5,7 @@ import * as fs from "fs/promises"
 import pWaitFor from "p-wait-for"
 import delay from "delay"
 import * as vscode from "vscode"
+import { createPatch } from "diff"
 // forked_change start
 import axios from "axios"
 import { codeReviewSettingsSchema, CodeReviewSettings, getKiloUrlFromToken, isGlobalStateKey } from "@roo-code/types"
@@ -1299,26 +1300,34 @@ export const webviewMessageHandler = async (
 			const pendingEdits = currentTask.fileEditReviewController.getPendingEdits()
 
 			const files = Array.from(pendingEdits.values()).map((edit) => {
-				// Calculate additions and deletions from all accumulated edits
+				const lastEdit = edit.edits[edit.edits.length - 1]
+				const beforeContent = edit.originalContent || lastEdit?.originalContent || ""
+				const afterContent = lastEdit?.newContent || ""
+				const diffLines = myersDiff(beforeContent, afterContent)
 				let totalAdditions = 0
 				let totalDeletions = 0
 
-				// Process each edit to accumulate diff stats
-				for (const editEntry of edit.edits) {
-					const beforeContent = editEntry.originalContent || ""
-					const afterContent = editEntry.newContent || ""
-
-					// Use proper diff algorithm to calculate changes
-					const diffLines = myersDiff(beforeContent, afterContent)
-
-					for (const diffLine of diffLines) {
-						if (diffLine.type === "new") {
-							totalAdditions++
-						} else if (diffLine.type === "old") {
-							totalDeletions++
-						}
+				for (const diffLine of diffLines) {
+					if (diffLine.type === "new") {
+						totalAdditions++
+					} else if (diffLine.type === "old") {
+						totalDeletions++
 					}
 				}
+
+				const normalizedBefore = beforeContent.endsWith("\n") ? beforeContent : `${beforeContent}\n`
+				const normalizedAfter = afterContent.endsWith("\n") ? afterContent : `${afterContent}\n`
+				const diff = createPatch(edit.relPath, normalizedBefore, normalizedAfter, undefined, undefined, {
+					context: 3,
+				})
+					.split("\n")
+					.filter((line) => !line.startsWith("Index: ") && !/^=+$/.test(line))
+					.map((line) => {
+						if (line.startsWith("--- ")) return `--- a/${edit.relPath}`
+						if (line.startsWith("+++ ")) return `+++ b/${edit.relPath}`
+						return line
+					})
+					.join("\n")
 
 				// Get the first changed line number from the diff anchor (1-indexed for VS Code)
 				const firstLineNumber = edit.diffAnchor ? edit.diffAnchor.start.line + 1 : undefined
@@ -1331,6 +1340,13 @@ export const webviewMessageHandler = async (
 						deletions: totalDeletions,
 					},
 					firstLineNumber,
+					status:
+						beforeContent.length === 0 && afterContent.length > 0
+							? "A"
+							: afterContent.length === 0
+								? "D"
+								: "M",
+					diff,
 				}
 			})
 
@@ -4484,6 +4500,11 @@ ${comment.suggestion}
 		case "focusPanelRequest": {
 			// Execute the focusPanel command to focus the WebView
 			await vscode.commands.executeCommand(getCommand("focusPanel"))
+			break
+		}
+		case "maximizeSideBar": {
+			// Maximize the sidebar panel width
+			await vscode.commands.executeCommand("workbench.action.maximizeAuxiliaryBar")
 			break
 		}
 		case "filterMarketplaceItems": {

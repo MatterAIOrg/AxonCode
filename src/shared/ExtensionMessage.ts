@@ -474,6 +474,7 @@ export type ExtensionState = Pick<
 	taskSyncEnabled: boolean
 	featureRoomoteControlEnabled: boolean
 	showTimestamps?: boolean
+	isOrbital?: boolean // kilocode_change: Orbital IDE detection for Agent Manager
 	backgroundRunningTasks?: Array<{
 		taskId: string
 		taskLabel: string

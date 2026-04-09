@@ -17,10 +17,11 @@ interface GitHubDiffViewProps {
 	isExpanded: boolean
 	onToggleExpand?: () => void
 	onOpenFile?: () => void
+	maxHeight?: string
 }
 
 type ParsedDiffRow =
-	| { kind: "spacer"; key: string }
+	| { kind: "spacer"; key: string; hiddenLineCount: number }
 	| { kind: "hunk"; key: string; oldStart: number; newStart: number }
 	| {
 			kind: "line"
@@ -44,7 +45,13 @@ const parseUnifiedDiff = (diff: string): ParsedDiffRow[] => {
 	let hunkIndex = 0
 
 	for (const rawLine of lines) {
-		if (rawLine.startsWith("diff --git") || rawLine.startsWith("--- ") || rawLine.startsWith("+++ ")) {
+		if (
+			rawLine.startsWith("diff --git") ||
+			rawLine.startsWith("--- ") ||
+			rawLine.startsWith("+++ ") ||
+			rawLine.startsWith("Index: ") ||
+			/^=+$/.test(rawLine)
+		) {
 			continue
 		}
 
@@ -58,7 +65,11 @@ const parseUnifiedDiff = (diff: string): ParsedDiffRow[] => {
 				nextNewLine > previousVisibleNewLine + 1 &&
 				rows[rows.length - 1]?.kind !== "spacer"
 			) {
-				rows.push({ kind: "spacer", key: `spacer-${hunkIndex}` })
+				rows.push({
+					kind: "spacer",
+					key: `spacer-${hunkIndex}`,
+					hiddenLineCount: nextNewLine - previousVisibleNewLine - 1,
+				})
 			}
 
 			oldLine = nextOldLine
@@ -113,7 +124,7 @@ const parseUnifiedDiff = (diff: string): ParsedDiffRow[] => {
 	return rows
 }
 
-const GitHubDiffView = memo(({ diff, filePath, isExpanded }: GitHubDiffViewProps) => {
+const GitHubDiffView = memo(({ diff, filePath, isExpanded, maxHeight = "20rem" }: GitHubDiffViewProps) => {
 	const language = useMemo(() => getLanguageFromPath(filePath || "") || "text", [filePath])
 	const headerRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -138,7 +149,7 @@ const GitHubDiffView = memo(({ diff, filePath, isExpanded }: GitHubDiffViewProps
 					<div
 						className="rounded-xl overflow-auto scrollbar-hide min-w-0"
 						style={{
-							maxHeight: "20rem",
+							maxHeight,
 							border: "1px solid var(--vscode-editorWidget-border)",
 							background: "var(--vscode-editorWidget-background)",
 							boxShadow:
@@ -262,12 +273,11 @@ const UnifiedDiffView = memo(({ diff, language }: { diff: string; language: stri
 							}}>
 							<span style={lineNumberStyle} />
 							<span
-								className="pl-2"
+								className="pl-2 text-xs"
 								style={{
-									letterSpacing: "0.08em",
-									opacity: 0.7,
+									opacity: 0.76,
 								}}>
-								...
+								{row.hiddenLineCount} unmodified {row.hiddenLineCount === 1 ? "line" : "lines"}
 							</span>
 						</div>
 					)
