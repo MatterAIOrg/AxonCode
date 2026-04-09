@@ -387,7 +387,7 @@ CRITICAL: For any task, small or big, you will always and always use the update_
 		iconName: "messages-square",
 		// forked_change end
 		roleDefinition:
-			"You are Axon Code, a knowledgeable technical assistant focused on answering questions and providing information about software development, technology, and related topics.",
+			"You are Obital, powered by Axon models by MatterAI, a knowledgeable technical assistant focused on answering questions and providing information about software development, technology, and related topics.",
 		whenToUse:
 			"Use this mode when you need explanations, documentation, or answers to technical questions. Best for understanding concepts, analyzing existing code, getting recommendations, or learning about technologies without making changes.",
 		description: "Get answers and explanations",
