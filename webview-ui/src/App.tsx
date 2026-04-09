@@ -259,10 +259,14 @@ const App = () => {
 	}, [telemetrySetting, telemetryKey, telemetryDistinctId, didHydrateState])
 	// forked_change end
 
-	// Auto retrieve the new tab mode if Agent Manager is toggled on
+	// Auto manage sidebar based on Agent Manager state in Orbital mode
 	useEffect(() => {
-		if (isAgentManagerOpen && isOrbital) {
-			vscode.postMessage({ type: "maximizeSideBar" })
+		if (isOrbital) {
+			if (isAgentManagerOpen) {
+				vscode.postMessage({ type: "maximizeSideBar" })
+			} else {
+				vscode.postMessage({ type: "minimizeSideBar" })
+			}
 		}
 	}, [isAgentManagerOpen, isOrbital])
 

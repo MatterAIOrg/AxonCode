@@ -4507,6 +4507,11 @@ ${comment.suggestion}
 			await vscode.commands.executeCommand("workbench.action.maximizeAuxiliaryBar")
 			break
 		}
+		case "minimizeSideBar": {
+			// Minimize the sidebar panel width
+			await vscode.commands.executeCommand("workbench.action.toggleMaximizedAuxiliaryBar")
+			break
+		}
 		case "filterMarketplaceItems": {
 			if (marketplaceManager && message.filters) {
 				try {

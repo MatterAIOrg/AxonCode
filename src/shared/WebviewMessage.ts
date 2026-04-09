@@ -334,13 +334,14 @@ export interface WebviewMessage {
 		| "applyAllCodeReviewFixes"
 		| "getGitChangesForReview"
 		| "gitChangesForReview"
-		| "codeReviewSettings" // kilocode_change
-		| "showToast" // kilocode_change
-		| "get_memories" // kilocode_change: Chat memories
-		| "memories_response" // kilocode_change: Chat memories response
-		| "delete_memory" // kilocode_change: Delete memory
-		| "memory_deleted" // kilocode_change: Memory deleted response
-		| "maximizeSideBar" // kilocode_change: Maximize the sidebar panel
+		| "codeReviewSettings"
+		| "showToast"
+		| "get_memories"
+		| "memories_response"
+		| "delete_memory"
+		| "memory_deleted"
+		| "maximizeSideBar"
+		| "minimizeSideBar"
 	// forked_change end
 	text?: string
 	editedMessageContent?: string
