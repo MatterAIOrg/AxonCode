@@ -1,5 +1,67 @@
 # Changelog
 
+## [v6.0.0] - 2026-04-10
+
+### Highlights
+
+This major release introduces the **Agent Manager**, a powerful new feature for managing multiple AI agents across workspaces with a dedicated sidebar and file viewer panel.
+
+### Added
+
+#### Agent Manager
+
+- **Agent Manager Sidebar**: New collapsible sidebar for managing multiple agent tasks across workspaces
+    - Workspace-based task organization with expandable folders
+    - Quick access to recent tasks with compact timestamps
+    - "New Agent" button for starting fresh conversations
+- **Agent File Viewer**: Resizable file viewer panel for reviewing diffs and file changes
+    - Drag-to-resize functionality with min/max width constraints
+    - Automatic viewport-aware sizing
+    - Pull request-style diff view integration
+- **Agent Toggle**: Toggle button to show/hide the agent manager sidebar with smooth animations
+
+#### Exploration Groups
+
+- **Elapsed Time Display**: Exploration groups now show elapsed time during and after exploration
+    - Live timer updates during active exploration (e.g., "Exploring for 1m30s")
+    - Summary with total time on completion (e.g., "Explored 5 files, 2 searches for 45s")
+    - Auto-collapse when exploration completes
+
+#### Model Selection
+
+- **Axon Model Tooltips**: Hover tooltips in ModelSelector showing details for Axon models
+- **Enhanced Model Provider Hook**: New `useOpenRouterModelProviders` hook for better model management
+
+#### Image Handling
+
+- **ImageAttachment Interface**: Refactored image handling to use a unified `ImageAttachment` interface
+- **Improved Thumbnails**: Enhanced thumbnail component with better image preview support
+
+#### UI Components
+
+- **Custom Icons Utility**: New custom SVG icons including `Folder01Icon`, `Folder02Icon`, `ArrowDown01Icon`, `AddCircleHalfDotIcon`
+- **Copy Button Update**: Updated copy icon styling
+
+### Changed
+
+- **Streamlined Chat UI**: Cleaner, more focused chat interface with improved visual hierarchy
+- **Better Diff View**: Enhanced diff view for the edit tool with improved readability
+- **Maximize States**: Fixed maximize state handling for better window management
+- **ChatRow Component**: Enhanced with agent manager mode support and improved rendering
+- **ChatTextArea**: Refined for better user interaction
+- **ReasoningBlock**: Minor styling improvements
+
+### Fixed
+
+- Maximize state persistence issues
+- Various UI inconsistencies across components
+
+### Breaking Changes
+
+- Minimum VS Code version requirement updated
+
+---
+
 ## [v5.7.6] - 2026-04-05
 
 ### Added
