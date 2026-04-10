@@ -399,26 +399,26 @@ const App = () => {
 
 			{/* Floating Toggle at the top center - Only show in Orbital IDE */}
 			{tab === "chat" && isOrbital && (
-				<div className="absolute top-1 right-3.5 z-50 pointer-events-none flex justify-center">
-					<div className="pointer-events-auto bg-[var(--vscode-sideBar-background)] border border-[var(--vscode-panel-border)] p-1 rounded-2xl flex items-center shadow-lg relative">
+				<div className="absolute top-0 right-3.5 z-50 pointer-events-none flex justify-center">
+					<div className="pointer-events-auto bg-[var(--vscode-sideBar-background)] border border-[var(--vscode-panel-border)] p-0.5 rounded-lg flex items-center shadow-lg relative">
 						<div
-							className="absolute top-1 bottom-1 rounded-xl bg-[var(--vscode-button-background)] transition-transform duration-200 ease-in-out"
+							className="absolute top-1 bottom-1 rounded-md bg-[var(--vscode-button-background)] transition-transform duration-200 ease-in-out"
 							style={{
 								left: "4px",
-								width: isAgentManagerOpen ? "calc(100% - 60px)" : "calc(100% - 160px)",
+								width: isAgentManagerOpen ? "calc(100% - 65px)" : "calc(100% - 155px)",
 								transform: isAgentManagerOpen ? "translateX(56px)" : "translateX(0)",
 							}}
 						/>
 						<button
 							onClick={closeAgentManager}
-							className={`relative z-10 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors cursor-pointer flex items-center ${!isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
+							className={`relative z-10 px-3 py-0.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center ${!isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
 							Agent
 						</button>
 						<button
 							onClick={openAgentManager}
-							className={`relative z-10 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors cursor-pointer flex items-center ${isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
+							className={`relative z-10 px-3 py-0.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center ${isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
 							Agent Manager
-							<span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)]">
+							<span className="ml-1.5 text-[8px] px-1.5 py-0 rounded bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)]">
 								BETA
 							</span>
 						</button>

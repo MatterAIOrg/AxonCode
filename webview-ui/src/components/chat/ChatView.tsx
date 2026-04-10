@@ -2558,9 +2558,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
 									<KilocodeNotifications />
 								</div>
-								<div className="flex flex-grow flex-col justify-start gap-4">
+								<div className="flex flex-grow flex-col justify-start gap-2">
 									{!isReviewOnlyMode && (
-										<div className="w-full min-w-0 mt-8 mb-1 p-3 border border-[var(--color-matterai-border)] rounded-2xl bg-vscode-editor-background/50">
+										<div className="w-full min-w-0 mt-4 mb-1 p-3 border border-[var(--vscode-activityBar-border)] rounded-2xl bg-vscode-editor-background/50">
 											<div className="flex flex-col gap-2">
 												{/* Top section: Title/Subtitle left, Icons right */}
 												<div className="flex justify-between gap-4 items-center min-w-0">
@@ -2618,16 +2618,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									{!isReviewOnlyMode &&
 										backgroundRunningTasks &&
 										backgroundRunningTasks.length > 0 && (
-											<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)] max-h-[50%] flex flex-col overflow-hidden">
-												<div className="flex flex-row items-center gap-1 mb-1 shrink-0">
+											<div className="w-full min-w-0 mb-0 p-2 rounded-2xl bg-vscode-editor-background/50 border border-[var(--vscode-activityBar-border)] max-h-[50%] flex flex-col overflow-hidden">
+												<div className="flex flex-row items-center gap-1 mb-1 ml-1 shrink-0 opacity-70">
 													<ListVideoIcon className="w-3 h-3 rtl:-scale-x-100" />
-													<span className="text-sm font-semibold text-vscode-foreground">
+													<span className="text-sm text-vscode-foreground">
 														Background Agents
 													</span>
-													{/* <span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
-											{backgroundRunningTasks.filter((t) => t.status === "running").length}{" "}
-											running
-										</span> */}
 												</div>
 												<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
 													{backgroundRunningTasks.map((bt) => {
@@ -2642,7 +2638,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 														return (
 															<div
 																key={bt.taskId}
-																className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
+																className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-xl border border-[var(--vscode-activityBar-border)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
 																onClick={() => {
 																	vscode.postMessage({
 																		type: "switchToBackgroundTask",
