@@ -213,10 +213,47 @@ function getToolCounts(messages: ClineMessage[]): { files: number; searches: num
 	return { files, searches, other }
 }
 
-// Generate summary text
+// Format duration in Xs/Ym format (e.g., "5s", "1m30s", "2m")
+function formatDuration(seconds: number): string {
+	if (seconds < 60) {
+		return `${Math.floor(seconds)}s`
+	}
+	const mins = Math.floor(seconds / 60)
+	const secs = Math.floor(seconds % 60)
+	if (secs === 0) {
+		return `${mins}m`
+	}
+	return `${mins}m${secs}s`
+}
+
+// Get exploration start time from the first message timestamp
+function getExplorationStartTime(messages: ClineMessage[]): number | null {
+	if (messages.length === 0) return null
+	// Use the timestamp of the first message in the group
+	return messages[0].ts
+}
+
+// Get exploration end time from the last message timestamp (for completed exploration)
+function getExplorationEndTime(messages: ClineMessage[]): number | null {
+	if (messages.length === 0) return null
+	// Use the timestamp of the last message in the group
+	return messages[messages.length - 1].ts
+}
+
+// Calculate elapsed time in seconds
+// When exploring: use current time for live updates
+// When completed: use the last message timestamp as end time
+function getElapsedTime(startTime: number | null, endTime: number | null, isExploring: boolean): number {
+	if (!startTime) return 0
+	const end = isExploring ? Date.now() : endTime || Date.now()
+	return Math.floor((end - startTime) / 1000)
+}
+
+// Generate summary text with time
 function getGroupSummary(
 	messages: ClineMessage[],
 	t: (key: string, options?: Record<string, unknown>) => string,
+	elapsedSeconds: number,
 ): string {
 	const counts = getToolCounts(messages)
 	const parts: string[] = []
@@ -231,11 +268,41 @@ function getGroupSummary(
 		parts.push(t("chat:exploration.othersCount", { count: counts.other }))
 	}
 
+	const timeStr = formatDuration(elapsedSeconds)
+
 	if (parts.length === 0) {
-		return t("chat:exploration.explored")
+		return `${t("chat:exploration.explored")} for ${timeStr}`
 	}
 
-	return t("chat:exploration.explored") + " " + parts.join(", ")
+	return `${t("chat:exploration.explored")} ${parts.join(", ")} for ${timeStr}`
+}
+
+// Generate exploring progress text with counts and time
+function getExploringProgress(
+	messages: ClineMessage[],
+	t: (key: string, options?: Record<string, unknown>) => string,
+	elapsedSeconds: number,
+): string {
+	const counts = getToolCounts(messages)
+	const parts: string[] = []
+
+	if (counts.files > 0) {
+		parts.push(t("chat:exploration.filesCount", { count: counts.files }))
+	}
+	if (counts.searches > 0) {
+		parts.push(t("chat:exploration.searchesCount", { count: counts.searches }))
+	}
+	if (counts.other > 0) {
+		parts.push(t("chat:exploration.othersCount", { count: counts.other }))
+	}
+
+	const timeStr = formatDuration(elapsedSeconds)
+
+	if (parts.length === 0) {
+		return `${t("chat:exploration.exploring")} for ${timeStr}`
+	}
+
+	return `${t("chat:exploration.exploring")} ${parts.join(", ")} for ${timeStr}`
 }
 
 interface ExplorationGroupRowProps {
@@ -290,6 +357,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 
 	const { t } = useTranslation()
 	const [localExpanded, setLocalExpanded] = useState(true)
+	const [elapsedTime, setElapsedTime] = useState(0)
 
 	// Determine if this group is currently being explored (last message is partial or streaming)
 	const isExploring = useMemo(() => {
@@ -297,6 +365,31 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 		const lastMsg = messages[messages.length - 1]
 		return lastMsg?.partial === true || isStreaming
 	}, [isLast, messages, isStreaming])
+
+	// Get start and end times for this exploration group
+	const startTime = useMemo(() => getExplorationStartTime(messages), [messages])
+	const endTime = useMemo(() => getExplorationEndTime(messages), [messages])
+
+	// Timer effect for live elapsed time updates during exploration
+	useEffect(() => {
+		if (!isExploring) {
+			// When exploration ends, calculate final elapsed time using last message timestamp
+			if (startTime) {
+				setElapsedTime(getElapsedTime(startTime, endTime, false))
+			}
+			return
+		}
+
+		// Update elapsed time immediately (using current time for live updates)
+		setElapsedTime(getElapsedTime(startTime, endTime, true))
+
+		// Set up interval to update elapsed time every second while exploring
+		const intervalId = setInterval(() => {
+			setElapsedTime(getElapsedTime(startTime, endTime, true))
+		}, 1000)
+
+		return () => clearInterval(intervalId)
+	}, [isExploring, startTime, endTime])
 
 	const wasExploringRef = useRef(isExploring)
 
@@ -323,7 +416,11 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 		}
 	}, [isExploring, onToggleExpand, messages])
 
-	const summary = useMemo(() => getGroupSummary(messages, t), [messages, t])
+	// Generate summary text with elapsed time
+	const summary = useMemo(() => getGroupSummary(messages, t, elapsedTime), [messages, t, elapsedTime])
+
+	// Generate exploring progress text with live elapsed time
+	const exploringText = useMemo(() => getExploringProgress(messages, t, elapsedTime), [messages, t, elapsedTime])
 
 	return (
 		<div className="group">
@@ -337,7 +434,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 							"text-vscode-foreground hover:text-[var(--vscode-button-background)]",
 							isExploring && "animate-shimmer",
 						)}>
-						{isExploring ? t("chat:exploration.exploring") : summary}
+						{isExploring ? exploringText : summary}
 					</span>
 				</div>
 				<div className="flex items-center gap-1">
