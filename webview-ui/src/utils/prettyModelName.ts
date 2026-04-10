@@ -6,6 +6,15 @@ const AXON_MODEL_CREDITS: Record<string, string> = {
 	"axon-code-2-pro": "(1.5x)",
 }
 
+export const AXON_MODEL_TOOLTIPS: Record<string, [string, string]> = {
+	"axon-auto": ["Free model for very lightweight task,", "low intelligence"],
+	"axon-code-2": ["Low-cost model for small tasks,", "medium intelligence"],
+	"axon-code-2-pro": ["Medium cost frontier model for", "small to medium tasks, medium intelligence"],
+	"axon-code-2-pro-high": ["Medium cost frontier model for", "small to medium tasks, extended intelligence"],
+	"axon-code-2-5-pro": ["High intelligence frontier model", "for complex task, medium intelligence"],
+	"axon-code-2-5-pro-high": ["High intelligence frontier model", "for complex task, extended intelligence"],
+}
+
 /**
  * Formats a model ID into a human-readable display name.
  * Handles various model ID formats:

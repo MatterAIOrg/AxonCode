@@ -7,7 +7,7 @@ import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
 import { useMemo, useCallback } from "react"
-import { prettyModelName } from "../../../utils/prettyModelName"
+import { prettyModelName, AXON_MODEL_TOOLTIPS } from "../../../utils/prettyModelName"
 import { useProviderModels } from "../hooks/useProviderModels"
 import { getModelIdKey, getSelectedModelId } from "../hooks/useSelectedModel"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -348,8 +348,9 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			option.value.startsWith("opencode:") ||
 			option.value.startsWith("matterai3p:") ||
 			option.value.startsWith("fireworks:")
+		const axonTooltip = AXON_MODEL_TOOLTIPS[option.value]
 
-		return (
+		const itemContent = (
 			<div className="flex items-center justify-start gap-1 flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
 				<div className="">
 					<div>{option.label}</div>
@@ -388,6 +389,25 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 				)}
 			</div>
 		)
+
+		// Wrap with tooltip for Axon models
+		if (axonTooltip && !isConfigureOption && !isThirdPartyModel) {
+			return (
+				<StandardTooltip
+					content={
+						<div className="flex flex-col">
+							<span>{axonTooltip[0]}</span>
+							<span>{axonTooltip[1]}</span>
+						</div>
+					}
+					side="right"
+					sideOffset={8}>
+					{itemContent}
+				</StandardTooltip>
+			)
+		}
+
+		return itemContent
 	}
 
 	if (isLoading) {
@@ -405,7 +425,7 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			title={t("chat:selectApiConfig")}
 			options={options}
 			onChange={onChange}
-			contentClassName="max-h-[300px] overflow-y-auto"
+			contentClassName="max-h-[300px] overflow-y-auto scrollbar-hide"
 			triggerClassName={cn(
 				"w-full text-ellipsis overflow-hidden p-0",
 				"bg-transparent border-transparent hover:bg-transparent hover:border-transparent",
