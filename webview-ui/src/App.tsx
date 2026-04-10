@@ -4,6 +4,7 @@ import { useEvent } from "react-use"
 
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 import TranslationProvider from "./i18n/TranslationContext"
+import { ImageAttachment, normalizeImages } from "./components/common/Thumbnails"
 
 import { TelemetryEventName } from "@roo-code/types"
 import ChatView, { ChatViewRef } from "./components/chat/ChatView"
@@ -54,7 +55,7 @@ interface EditMessageDialogState {
 	messageTs: number
 	text: string
 	hasCheckpoint: boolean
-	images?: string[]
+	images?: ImageAttachment[]
 	apiProvider?: string
 	apiModelId?: string
 	thirdPartySelectedModel?: string
@@ -108,6 +109,10 @@ const App = () => {
 	const [tab, setTab] = useState<Tab>("chat")
 	const [isAgentManagerOpen, setIsAgentManagerOpen] = useState(false)
 
+	// Lifted state for ChatTextArea to persist across Agent/Agent Manager mode switches
+	const [chatInputValue, setChatInputValue] = useState("")
+	const [chatSelectedImages, setChatSelectedImages] = useState<ImageAttachment[]>([])
+
 	const [humanRelayDialogState, setHumanRelayDialogState] = useState<HumanRelayDialogState>({
 		isOpen: false,
 		requestId: "",
@@ -126,6 +131,9 @@ const App = () => {
 		text: "",
 		hasCheckpoint: false,
 		images: [],
+		apiProvider: undefined,
+		apiModelId: undefined,
+		thirdPartySelectedModel: undefined,
 	})
 
 	const settingsRef = useRef<SettingsViewRef>(null)
@@ -213,7 +221,7 @@ const App = () => {
 					messageTs: message.messageTs,
 					text: message.text,
 					hasCheckpoint: message.hasCheckpoint || false,
-					images: message.images || [],
+					images: normalizeImages(message.images),
 					apiProvider: message.apiProvider,
 					apiModelId: message.apiModelId,
 					thirdPartySelectedModel: message.thirdPartySelectedModel,
@@ -394,6 +402,10 @@ const App = () => {
 					showAnnouncement={showAnnouncement}
 					hideAnnouncement={() => setShowAnnouncement(false)}
 					isAgentManagerMode={isOrbital ? isAgentManagerOpen : false}
+					inputValue={chatInputValue}
+					setInputValue={setChatInputValue}
+					selectedImages={chatSelectedImages}
+					setSelectedImages={setChatSelectedImages}
 				/>
 			</AgentManagerView>
 
@@ -490,7 +502,7 @@ const App = () => {
 							type: "editMessageConfirm",
 							messageTs: editMessageDialogState.messageTs,
 							text: editMessageDialogState.text,
-							images: editMessageDialogState.images,
+							images: editMessageDialogState.images?.map((img) => img.dataUrl),
 							apiProvider: editMessageDialogState.apiProvider,
 							apiModelId: editMessageDialogState.apiModelId,
 							thirdPartySelectedModel: editMessageDialogState.thirdPartySelectedModel,

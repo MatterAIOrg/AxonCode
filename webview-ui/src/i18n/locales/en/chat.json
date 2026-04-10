@@ -38,8 +38,8 @@
 		"tooltip": "Try the operation again"
 	},
 	"startNewTask": {
-		"title": "Start New Task",
-		"tooltip": "Begin a new task"
+		"title": "Start New Agent",
+		"tooltip": "Begin a new agent"
 	},
 	"reportBug": {
 		"title": "Report Bug"

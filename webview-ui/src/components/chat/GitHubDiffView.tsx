@@ -145,7 +145,7 @@ const GitHubDiffView = memo(({ diff, filePath, isExpanded, maxHeight = "20rem" }
 	return (
 		<div>
 			{isExpanded && (
-				<div className="w-full mt-2" style={{ marginLeft: `${diffMarginLeft}px` }}>
+				<div className="w-full mt-1" style={{ marginLeft: `${diffMarginLeft}px` }}>
 					<div
 						className="rounded-md overflow-auto scrollbar-hide min-w-0"
 						style={{
@@ -328,7 +328,7 @@ const UnifiedDiffView = memo(({ diff, language }: { diff: string; language: stri
 							}}>
 							{displayLineNumber ?? ""}
 						</span>
-						<span className="flex-grow pl-0 pt-1.5 pr-4 whitespace-pre">
+						<span className="flex-grow pl-0.5 pt-1.5 pr-4 whitespace-pre">
 							<DiffSyntaxLine content={row.content || " "} language={language} />
 						</span>
 					</div>

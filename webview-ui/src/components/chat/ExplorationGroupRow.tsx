@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useMemo } from "react"
+import React, { memo, useState, useCallback, useMemo, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import type { ClineMessage, SuggestionItem } from "@roo-code/types"
 import { safeJsonParse } from "@roo/safeJsonParse"
@@ -289,7 +289,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 	} = props
 
 	const { t } = useTranslation()
-	const [localExpanded, setLocalExpanded] = useState(false)
+	const [localExpanded, setLocalExpanded] = useState(true)
 
 	// Determine if this group is currently being explored (last message is partial or streaming)
 	const isExploring = useMemo(() => {
@@ -297,6 +297,17 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 		const lastMsg = messages[messages.length - 1]
 		return lastMsg?.partial === true || isStreaming
 	}, [isLast, messages, isStreaming])
+
+	const wasExploringRef = useRef(isExploring)
+
+	// Auto-collapse when exploration completes (isExploring changes from true to false)
+	// Only collapse when transitioning FROM exploring TO not exploring, not on initial mount
+	useEffect(() => {
+		if (wasExploringRef.current && !isExploring) {
+			setLocalExpanded(false)
+		}
+		wasExploringRef.current = isExploring
+	}, [isExploring])
 
 	// Use local expanded state while exploring, controlled state otherwise
 	const expanded = isExploring ? localExpanded : isExpanded
@@ -318,7 +329,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 		<div className="group">
 			{/* Header - matches ReasoningBlock style */}
 			<div
-				className="flex items-center justify-start ml-4 gap-1 pr-2 mb-1 cursor-pointer select-none opacity-40 hover:opacity-100"
+				className="flex items-center justify-start ml-4 gap-1 mt-0.5 pr-2 mb-1 cursor-pointer select-none opacity-40 hover:opacity-100"
 				onClick={handleToggle}>
 				<div className="flex items-center gap-1">
 					<span

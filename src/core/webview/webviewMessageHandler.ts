@@ -53,6 +53,7 @@ import {
 	checkoutRestorePayloadSchema,
 } from "../../shared/WebviewMessage"
 import type { WebviewMessage as WebviewMessageType } from "../../shared/WebviewMessage"
+import { extractDataUrls, stringsToImageAttachments } from "../../shared/ExtensionMessage"
 import { checkExistKey } from "../../shared/checkExistApiConfig"
 import { experimentDefault } from "../../shared/experiments"
 import { Terminal } from "../../integrations/terminal/Terminal"
@@ -885,7 +886,7 @@ export const webviewMessageHandler = async (
 			messageTs,
 			text: editedContent,
 			hasCheckpoint,
-			images,
+			images: stringsToImageAttachments(images),
 			apiProvider,
 			apiModelId,
 			thirdPartySelectedModel,
@@ -1167,7 +1168,7 @@ export const webviewMessageHandler = async (
 			// agentically running promises in old instance don't affect our new
 			// task. This essentially creates a fresh slate for the new task.
 			try {
-				await provider.createTask(message.text, message.images)
+				await provider.createTask(message.text, extractDataUrls(message.images))
 				// Task created successfully - notify the UI to reset
 				await provider.postMessageToWebview({
 					type: "invoke",
@@ -1562,7 +1563,9 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			break
 		case "askResponse":
-			provider.getCurrentTask()?.handleWebviewAskResponse(message.askResponse!, message.text, message.images)
+			provider
+				.getCurrentTask()
+				?.handleWebviewAskResponse(message.askResponse!, message.text, extractDataUrls(message.images))
 			break
 		case "autoCondenseContext":
 			await updateGlobalState("autoCondenseContext", message.bool)
@@ -2643,7 +2646,7 @@ ${comment.suggestion}
 					message.value,
 					"edit",
 					message.editedMessageContent,
-					message.images,
+					extractDataUrls(message.images),
 					message.apiProvider,
 					message.apiModelId,
 					message.thirdPartySelectedModel,
@@ -3287,7 +3290,7 @@ ${comment.suggestion}
 					message.messageTs,
 					message.text,
 					message.restoreCheckpoint,
-					message.images,
+					extractDataUrls(message.images),
 					message.apiProvider,
 					message.apiModelId,
 					message.thirdPartySelectedModel,
@@ -4008,6 +4011,14 @@ ${comment.suggestion}
 		case "cloudButtonClicked": {
 			// Navigate to the cloud tab.
 			provider.postMessageToWebview({ type: "action", action: "cloudButtonClicked" })
+			break
+		}
+		case "plusButtonClicked": {
+			// kilocode_change: Move agent to background
+			await provider.moveCurrentTaskToBackground()
+			await provider.refreshWorkspace()
+			provider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
+			provider.postMessageToWebview({ type: "action", action: "focusInput" })
 			break
 		}
 		case "rooCloudSignIn": {
@@ -4981,7 +4992,9 @@ ${comment.suggestion}
 		 */
 
 		case "queueMessage": {
-			provider.getCurrentTask()?.messageQueueService.addMessage(message.text ?? "", message.images)
+			provider
+				.getCurrentTask()
+				?.messageQueueService.addMessage(message.text ?? "", extractDataUrls(message.images))
 			break
 		}
 		case "removeQueuedMessage": {

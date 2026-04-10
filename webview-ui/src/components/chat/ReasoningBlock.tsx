@@ -111,7 +111,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 					{displayElapsed > 0 ? (
 						<span
 							className={cn(
-								"text-vscode-foreground hover:text-[var(--vscode-button-background)]",
+								"text-sm text-vscode-foreground hover:text-[var(--vscode-button-background)]",
 								partial && "animate-shimmer",
 							)}>
 							{totalSeconds < 2 ? briefLabel : `${label} for ${timeLabel}`}
@@ -119,7 +119,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 					) : (
 						<span
 							className={cn(
-								"text-vscode-foreground hover:text-[var(--vscode-button-background)]",
+								"text-sm text-vscode-foreground hover:text-[var(--vscode-button-background)]",
 								partial && "animate-shimmer",
 							)}>
 							{label}

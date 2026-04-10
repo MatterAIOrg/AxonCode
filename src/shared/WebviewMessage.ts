@@ -19,6 +19,8 @@ import {
 import { Mode } from "./modes"
 import { ImplementPlanPayload, OpenPlanFilePayload } from "./ExtensionMessage"
 
+import { ImageAttachment } from "./ExtensionMessage"
+
 export type ClineAskResponse =
 	| "yesButtonClicked"
 	| "noButtonClicked"
@@ -343,6 +345,7 @@ export interface WebviewMessage {
 		| "maximizeSideBar"
 		| "minimizeSideBar"
 		| "openSideBar"
+		| "plusButtonClicked" // kilocode_change: Move agent to background
 	// forked_change end
 	text?: string
 	editedMessageContent?: string

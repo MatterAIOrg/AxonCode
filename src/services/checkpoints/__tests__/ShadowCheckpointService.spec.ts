@@ -819,7 +819,7 @@ describe.each([[RepoPerTaskCheckpointService, "RepoPerTaskCheckpointService"]])(
 				expect(initialState).toBeUndefined() // No changes, so no commit
 
 				// Force a checkpoint for new task (this is the new functionality)
-				const newTaskCheckpoint = await service.saveCheckpoint("New task checkpoint", { allowEmpty: true })
+				const newTaskCheckpoint = await service.saveCheckpoint("New agent checkpoint", { allowEmpty: true })
 				expect(newTaskCheckpoint?.commit).toBeTruthy()
 
 				// Verify the checkpoint was created and can be restored

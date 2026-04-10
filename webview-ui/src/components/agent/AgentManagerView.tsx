@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useEffect, useState } from "react"
 import { useTaskSearch } from "../history/useTaskSearch"
 import { vscode } from "../../utils/vscode"
-import { Folder01Icon, Folder02Icon, ArrowDown01Icon } from "@/utils/customIcons"
+import { Folder01Icon, Folder02Icon, ArrowDown01Icon, AddCircleHalfDotIcon } from "@/utils/customIcons"
 import { AgentFileViewerProvider, useAgentFileViewer } from "./AgentFileViewerContext"
 import AgentFileViewer from "./AgentFileViewer"
 
@@ -85,7 +85,7 @@ export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ children, is
 						<div
 							className="flex items-center cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] transition-colors rounded-md p-2"
 							onClick={() => vscode.postMessage({ type: "clearTask" })}>
-							<span className="codicon codicon-plus mr-2 text-sm" />
+							<AddCircleHalfDotIcon className="w-4 h-4 shrink-0 mr-2" />
 							<span className="text-left">New Agent</span>
 						</div>
 					</div>
@@ -97,7 +97,7 @@ export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ children, is
 								return (
 									<div key={ws} className="mb-4">
 										<div
-											className="flex items-center gap-2 mb-2 font-medium text-sm text-[var(--vscode-foreground)] cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] transition-colors rounded-md p-1"
+											className="flex items-center gap-2 mb-1 opacity-70 font-medium text-sm text-[var(--vscode-foreground)] cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] transition-colors rounded-md p-1"
 											onClick={() => toggleWorkspace(ws)}>
 											{isExpanded ? (
 												<Folder02Icon className="w-4 h-4 shrink-0" />

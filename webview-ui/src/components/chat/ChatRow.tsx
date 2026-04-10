@@ -19,7 +19,7 @@ import { vscode } from "@src/utils/vscode"
 import CodeAccordian, { extractFirstLineNumberFromDiff } from "../common/CodeAccordian"
 import ImageBlock from "../common/ImageBlock"
 import MarkdownBlock from "../common/MarkdownBlock"
-import Thumbnails from "../common/Thumbnails"
+import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
 import ErrorRow from "./ErrorRow"
 import GitHubDiffView from "./GitHubDiffView"
@@ -40,7 +40,7 @@ import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
 import { ArrowDown01Icon, Globe02Icon, PlayIcon } from "@/utils/customIcons"
-import { appendImages } from "@src/utils/imageUtils"
+import { appendImages, normalizeImages } from "@src/utils/imageUtils"
 import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // kilocode_change
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
 import { StandardTooltip } from "../ui" // kilocode_change
@@ -73,8 +73,8 @@ interface ChatRowProps {
 	isFollowUpAnswered?: boolean
 	editable?: boolean
 	// Button handlers for command execution
-	onPrimaryButtonClick?: (text?: string, images?: string[]) => void
-	onSecondaryButtonClick?: (text?: string, images?: string[]) => void
+	onPrimaryButtonClick?: (text?: string, images?: ImageAttachment[]) => void
+	onSecondaryButtonClick?: (text?: string, images?: ImageAttachment[]) => void
 	onRunEverythingClick?: () => void
 	enableButtons?: boolean
 	primaryButtonText?: string
@@ -231,7 +231,7 @@ export const ChatRowContent = ({
 	const [isEditing, setIsEditing] = useState(false)
 	const [editedContent, setEditedContent] = useState("")
 	const [editMode, setEditMode] = useState<Mode>(mode || "code")
-	const [editImages, setEditImages] = useState<string[]>([])
+	const [editImages, setEditImages] = useState<ImageAttachment[]>([])
 
 	const streamingWords = useMemo(
 		() => [
@@ -331,7 +331,9 @@ export const ChatRowContent = ({
 		const handleMessage = (event: MessageEvent) => {
 			const msg = event.data
 			if (msg.type === "selectedImages" && msg.context === "edit" && msg.messageTs === message.ts && isEditing) {
-				setEditImages((prevImages) => appendImages(prevImages, msg.images, MAX_IMAGES_PER_MESSAGE))
+				setEditImages((prevImages) =>
+					appendImages(prevImages, normalizeImages(msg.images), MAX_IMAGES_PER_MESSAGE),
+				)
 			}
 		}
 
@@ -348,7 +350,7 @@ export const ChatRowContent = ({
 	const handleEditClick = useCallback(() => {
 		setIsEditing(true)
 		setEditedContent(message.text || "")
-		setEditImages(message.images || [])
+		setEditImages(normalizeImages(message.images))
 		setEditMode(mode || "code")
 		// Edit mode is now handled entirely in the frontend
 		// No need to notify the backend
@@ -358,7 +360,7 @@ export const ChatRowContent = ({
 	const handleCancelEdit = useCallback(() => {
 		setIsEditing(false)
 		setEditedContent(message.text || "")
-		setEditImages(message.images || [])
+		setEditImages(normalizeImages(message.images))
 		setEditMode(mode || "code")
 	}, [message.text, message.images, mode])
 
@@ -374,11 +376,13 @@ export const ChatRowContent = ({
 		} else if (modelIdKey) {
 			apiModelId = apiConfiguration?.[modelIdKey] as string | undefined
 		}
+		// Convert ImageAttachment[] back to string[] for backend compatibility
+		const imageDataUrls = editImages.map((img) => img.dataUrl)
 		vscode.postMessage({
 			type: "submitEditedMessage",
 			value: message.ts,
 			editedMessageContent: editedContent,
-			images: editImages,
+			images: imageDataUrls,
 			apiProvider: apiConfiguration?.apiProvider,
 			apiModelId,
 			thirdPartySelectedModel: apiConfiguration?.thirdPartySelectedModel,
@@ -1634,7 +1638,7 @@ export const ChatRowContent = ({
 							</div> */}
 							<div
 								className={cn(
-									"rounded-lg whitespace-pre-wrap",
+									"rounded-lg whitespace-pre-wrap mb-1",
 									"border border-[var(--vscode-activityBar-border)]",
 									"bg-[var(--vscode-editor-background)]",
 									isEditing ? "overflow-visible" : "overflow-hidden", // kilocode_change

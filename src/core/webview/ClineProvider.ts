@@ -2309,8 +2309,8 @@ ${prompt}
 					(uiMessages.length > 0
 						? uiMessages[0].text
 							? uiMessages[0].text.substring(0, 50) + "..."
-							: "Image Task"
-						: "New Task")
+							: "Image Agent"
+						: "New Agent")
 
 				const status = this.getBackgroundTaskStatus(rootTask)
 

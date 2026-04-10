@@ -50,7 +50,7 @@ import { findLastIndex } from "../../shared/array"
 import { combineApiRequests } from "../../shared/combineApiRequests"
 import { combineCommandSequences } from "../../shared/combineCommandSequences"
 import { t } from "../../i18n"
-import { ClineApiReqCancelReason, ClineApiReqInfo } from "../../shared/ExtensionMessage"
+import { ClineApiReqCancelReason, ClineApiReqInfo, stringsToImageAttachments } from "../../shared/ExtensionMessage"
 import { getApiMetrics, hasTokenUsageChanged } from "../../shared/getApiMetrics"
 import { ClineAskResponse } from "../../shared/WebviewMessage"
 import { defaultModeSlug } from "../../shared/modes"
@@ -1307,7 +1307,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 				this.emit(RooCodeEventName.TaskUserMessage, this.taskId)
 
-				provider.postMessageToWebview({ type: "invoke", invoke: "sendMessage", text, images })
+				provider.postMessageToWebview({
+					type: "invoke",
+					invoke: "sendMessage",
+					text,
+					images: stringsToImageAttachments(images),
+				})
 			} else {
 				console.error("[Task#submitUserMessage] Provider reference lost")
 			}

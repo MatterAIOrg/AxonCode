@@ -149,8 +149,8 @@
 				"description": "Help generate terminal commands based on description."
 			},
 			"NEW_TASK": {
-				"label": "Start New Task",
-				"description": "Start a new task with user input. Available in the Command Palette."
+				"label": "Start New Agent",
+				"description": "Start a new agent with user input. Available in the Command Palette."
 			},
 			"COMMIT_MESSAGE": {
 				"label": "Commit Message Generation",

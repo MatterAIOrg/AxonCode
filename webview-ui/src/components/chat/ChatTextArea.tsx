@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils"
 import { renderMentionChip } from "@/utils/chat-render"
 import { FilePlus2, MessageSquareX, VolumeX } from "lucide-react"
-import Thumbnails from "../common/Thumbnails"
+import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import KiloModeSelector from "../kilocode/KiloModeSelector"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
 import { useSelectedModel } from "../ui/hooks/useSelectedModel"
@@ -52,8 +52,8 @@ interface ChatTextAreaProps {
 	setInputValue: (value: string) => void
 	sendingDisabled: boolean
 	selectApiConfigDisabled: boolean
-	selectedImages: string[]
-	setSelectedImages: React.Dispatch<React.SetStateAction<string[]>>
+	selectedImages: ImageAttachment[]
+	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 	onSend: () => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
@@ -618,7 +618,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					// forked_change end: Image validation with warning messages
 
 					const imagePromises = imageItems.map((item) => {
-						return new Promise<string | null>((resolve) => {
+						return new Promise<ImageAttachment | null>((resolve) => {
 							const blob = item.getAsFile()
 
 							if (!blob) {
@@ -626,6 +626,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								return
 							}
 
+							const fileName = blob.name || `image_${Date.now()}.png`
 							const reader = new FileReader()
 
 							reader.onloadend = () => {
@@ -634,7 +635,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									resolve(null)
 								} else {
 									const result = reader.result
-									resolve(typeof result === "string" ? result : null)
+									if (typeof result === "string") {
+										resolve({ dataUrl: result, name: fileName })
+									} else {
+										resolve(null)
+									}
 								}
 							}
 
@@ -643,10 +648,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					})
 
 					const imageDataArray = await Promise.all(imagePromises)
-					const dataUrls = imageDataArray.filter((dataUrl): dataUrl is string => dataUrl !== null)
+					const validImages = imageDataArray.filter((img): img is ImageAttachment => img !== null)
 
-					if (dataUrls.length > 0) {
-						setSelectedImages((prevImages) => [...prevImages, ...dataUrls].slice(0, MAX_IMAGES_PER_MESSAGE))
+					if (validImages.length > 0) {
+						setSelectedImages((prevImages) =>
+							[...prevImages, ...validImages].slice(0, MAX_IMAGES_PER_MESSAGE),
+						)
 					} else {
 						console.warn(t("chat:noValidImages"))
 					}
@@ -1278,7 +1285,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						// forked_change end: Image validation with warning messages for drag and drop
 
 						const imagePromises = imageFiles.map((file) => {
-							return new Promise<string | null>((resolve) => {
+							return new Promise<ImageAttachment | null>((resolve) => {
 								const reader = new FileReader()
 
 								reader.onloadend = () => {
@@ -1287,7 +1294,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 										resolve(null)
 									} else {
 										const result = reader.result
-										resolve(typeof result === "string" ? result : null)
+										if (typeof result === "string") {
+											resolve({ dataUrl: result, name: file.name || `image_${Date.now()}.png` })
+										} else {
+											resolve(null)
+										}
 									}
 								}
 
@@ -1296,15 +1307,16 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						})
 
 						const imageDataArray = await Promise.all(imagePromises)
-						const dataUrls = imageDataArray.filter((dataUrl): dataUrl is string => dataUrl !== null)
+						const validImages = imageDataArray.filter((img): img is ImageAttachment => img !== null)
 
-						if (dataUrls.length > 0) {
+						if (validImages.length > 0) {
+							const imageUrls = validImages.map((img) => img.dataUrl)
 							setSelectedImages((prevImages) =>
-								[...prevImages, ...dataUrls].slice(0, MAX_IMAGES_PER_MESSAGE),
+								[...prevImages, ...validImages].slice(0, MAX_IMAGES_PER_MESSAGE),
 							)
 
 							if (typeof vscode !== "undefined") {
-								vscode.postMessage({ type: "draggedImages", dataUrls: dataUrls })
+								vscode.postMessage({ type: "draggedImages", dataUrls: imageUrls })
 							}
 						} else {
 							console.warn(t("chat:noValidImages"))
@@ -1611,17 +1623,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									if (showContextMenu || !textAreaRef.current) return
 
 									textAreaRef.current.focus()
-									const { value: currentValue, cursor: currentCursorPosition } =
-										getCurrentInputSnapshot()
-									const nextValue =
-										currentValue.slice(0, currentCursorPosition) +
-										" @" +
-										currentValue.slice(currentCursorPosition)
-									const nextCursorPosition = currentCursorPosition + 2
+									const { cursor: currentCursorPosition } = getCurrentInputSnapshot()
 
-									setInputValue(nextValue)
-									setCursorPosition(nextCursorPosition)
-									intendedCursorPositionRef.current = nextCursorPosition
+									// Store cursor position for later use when selecting
+									setCursorPosition(currentCursorPosition)
+									intendedCursorPositionRef.current = currentCursorPosition
 									setShowContextMenu(true)
 									setSearchQuery("")
 									setSelectedMenuIndex(4)
