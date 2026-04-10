@@ -5,6 +5,7 @@ import { useCopyToClipboard } from "@src/utils/clipboard"
 import { StandardTooltip } from "@src/components/ui"
 
 import MarkdownBlock from "../common/MarkdownBlock"
+import { Copy01Icon } from "@/utils/customIcons"
 
 export const Markdown = memo(({ markdown, partial }: { markdown?: string; partial?: boolean }) => {
 	const [isHovering, setIsHovering] = useState(false)
@@ -57,7 +58,7 @@ export const Markdown = memo(({ markdown, partial }: { markdown?: string; partia
 									}
 								}
 							}}>
-							<span className="codicon codicon-copy" />
+							<Copy01Icon className="size-4" />
 						</VSCodeButton>
 					</StandardTooltip>
 				</div>

@@ -3,7 +3,7 @@ import { useCallback } from "react"
 import { useClipboard } from "@/components/ui/hooks"
 import { Button, StandardTooltip } from "@/components/ui"
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { cn } from "@/lib/utils"
+import { Copy01Icon, Tick02Icon } from "@/utils/customIcons"
 
 type CopyButtonProps = {
 	itemTask: string
@@ -32,7 +32,7 @@ export const CopyButton = ({ itemTask }: CopyButtonProps) => {
 				onClick={onCopy}
 				className="group-hover:opacity-100 opacity-50 transition-opacity"
 				data-testid="copy-prompt-button">
-				<span className={cn("codicon scale-80", { "codicon-check": isCopied, "codicon-copy": !isCopied })} />
+				{isCopied ? <Tick02Icon className="size-2" /> : <Copy01Icon className="size-2" />}
 			</Button>
 		</StandardTooltip>
 	)
