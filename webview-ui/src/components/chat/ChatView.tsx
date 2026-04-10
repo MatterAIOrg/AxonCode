@@ -60,6 +60,11 @@ import Announcement from "./Announcement"
 import BrowserSessionRow from "./BrowserSessionRow"
 import ChatRow from "./ChatRow"
 import { ChatTextArea } from "./ChatTextArea"
+import ExplorationGroupRow, {
+	ExplorationGroup,
+	isExplorationRelatedMessage,
+	isExplorationToolResult,
+} from "./ExplorationGroupRow"
 // import TaskHeader from "./TaskHeader"// kilocode_change
 import { showSystemNotification } from "@/kilocode/helpers" // kilocode_change
 import BottomControls from "../kilocode/BottomControls" // kilocode_change
@@ -71,6 +76,7 @@ import SystemPromptWarning from "./SystemPromptWarning"
 import { ListVideoIcon } from "@/utils/customIcons"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { X } from "lucide-react"
+import { useOptionalAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
@@ -276,6 +282,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	// kilocode_change: Profile data state for usage tracking
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
+
+	// kilocode_change: Agent file viewer state for conditional margin
+	const optionalAgentFileViewer = useOptionalAgentFileViewer()
+	const isAgentFileViewerOpen =
+		isAgentManagerMode &&
+		optionalAgentFileViewer &&
+		(Boolean(optionalAgentFileViewer.fileViewerState) || optionalAgentFileViewer.pendingDiffFiles.length > 0)
 
 	// Fetch profile data for usage tracking
 	useEffect(() => {
@@ -1709,9 +1722,76 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			result.push([...currentGroup])
 		}
 
+		// Second pass: Group consecutive exploration-related messages
+		// Each tool invocation produces: ask:tool → api_req_started → say:tool
+		// We group all these related messages together, then only create
+		// an ExplorationGroup if there are 2+ exploration tool RESULTS (say:tool)
+		const explorationGroupedResult: (ClineMessage | ClineMessage[] | ExplorationGroup)[] = []
+		let currentExplorationGroup: ClineMessage[] = []
+
+		const endExplorationGroup = () => {
+			if (currentExplorationGroup.length > 0) {
+				// Count how many exploration tool RESULTS (say:tool) are in the group
+				const resultCount = currentExplorationGroup.filter((m) => isExplorationToolResult(m)).length
+
+				// Only create a group if there are 2+ tool results
+				if (resultCount >= 2) {
+					const lastMsg = currentExplorationGroup[currentExplorationGroup.length - 1]
+					explorationGroupedResult.push({
+						_type: "explorationGroup",
+						messages: [...currentExplorationGroup],
+						isStreaming: lastMsg?.partial === true,
+					})
+				} else {
+					// Not enough tools to group - emit as individual messages
+					currentExplorationGroup.forEach((m) => explorationGroupedResult.push(m))
+				}
+				currentExplorationGroup = []
+			}
+		}
+
+		result.forEach((item) => {
+			// Browser session groups are already arrays - pass them through unchanged
+			if (Array.isArray(item)) {
+				// End any ongoing exploration group before a browser session
+				endExplorationGroup()
+				explorationGroupedResult.push(item)
+				return
+			}
+
+			// Single message
+			const message = item as ClineMessage
+
+			// Check if this message is related to an exploration tool
+			// (ask:tool, say:tool, or api_req_started between them)
+			if (isExplorationRelatedMessage(message)) {
+				currentExplorationGroup.push(message)
+			} else {
+				// End exploration group before non-exploration message
+				endExplorationGroup()
+				explorationGroupedResult.push(message)
+			}
+		})
+
+		// Handle case where exploration group is last
+		if (currentExplorationGroup.length > 0) {
+			const resultCount = currentExplorationGroup.filter((m) => isExplorationToolResult(m)).length
+
+			if (resultCount >= 2) {
+				const lastMsg = currentExplorationGroup[currentExplorationGroup.length - 1]
+				explorationGroupedResult.push({
+					_type: "explorationGroup",
+					messages: [...currentExplorationGroup],
+					isStreaming: lastMsg?.partial === true,
+				})
+			} else {
+				currentExplorationGroup.forEach((m) => explorationGroupedResult.push(m))
+			}
+		}
+
 		if (isCondensing) {
 			// Show indicator after clicking condense button
-			result.push({
+			explorationGroupedResult.push({
 				type: "say",
 				say: "condense_context",
 				ts: Date.now(),
@@ -1719,8 +1799,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			})
 		}
 
-		return result
+		return explorationGroupedResult
 	}, [isCondensing, visibleMessages])
+
+	// Filtered groupedMessages for components that don't support ExplorationGroup
+	const groupedMessagesWithoutExploration = useMemo(() => {
+		return groupedMessages.filter((item) => !("_type" in item && item._type === "explorationGroup")) as (
+			| ClineMessage
+			| ClineMessage[]
+		)[]
+	}, [groupedMessages])
 
 	// scrolling
 
@@ -1837,7 +1925,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const userFeedbackIndices = useMemo(() => {
 		const indices: number[] = []
 		groupedMessages.forEach((msg, i) => {
-			if (!Array.isArray(msg) && msg.type === "say" && msg.say === "user_feedback") {
+			// Skip exploration groups and arrays (browser sessions)
+			if (Array.isArray(msg)) return
+			if ("_type" in msg && msg._type === "explorationGroup") return
+			// Now TypeScript knows msg is ClineMessage
+			const message = msg as ClineMessage
+			if (message.type === "say" && message.say === "user_feedback") {
 				indices.push(i)
 			}
 		})
@@ -2027,7 +2120,47 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [])
 
 	const itemContent = useCallback(
-		(index: number, messageOrGroup: ClineMessage | ClineMessage[]) => {
+		(index: number, messageOrGroup: ClineMessage | ClineMessage[] | ExplorationGroup) => {
+			// exploration group - check by _type property
+			if (
+				messageOrGroup &&
+				typeof messageOrGroup === "object" &&
+				"_type" in messageOrGroup &&
+				messageOrGroup._type === "explorationGroup"
+			) {
+				const explorationGroup = messageOrGroup as ExplorationGroup
+				return (
+					<ExplorationGroupRow
+						messages={explorationGroup.messages}
+						isLast={index === groupedMessages.length - 1}
+						lastModifiedMessage={lastModifiedMessage}
+						onHeightChange={handleRowHeightChange}
+						isStreaming={isStreaming}
+						isExpanded={expandedRows[explorationGroup.messages[0]?.ts] ?? false}
+						onToggleExpand={(messageTs: number) => {
+							setExpandedRows((prev: Record<number, boolean>) => ({
+								...prev,
+								[messageTs]: !prev[messageTs],
+							}))
+						}}
+						expandedRows={expandedRows}
+						toggleRowExpansion={toggleRowExpansion}
+						handleSuggestionClickInRow={handleSuggestionClickInRow}
+						handleBatchFileResponse={handleBatchFileResponse}
+						highlightedMessageIndex={highlightedMessageIndex}
+						enableCheckpoints={enableCheckpoints}
+						handleFollowUpUnmount={handleFollowUpUnmount}
+						currentFollowUpTs={currentFollowUpTs}
+						enableButtons={enableButtons}
+						primaryButtonText={primaryButtonText}
+						secondaryButtonText={secondaryButtonText}
+						handlePrimaryButtonClick={handlePrimaryButtonClick}
+						handleSecondaryButtonClick={handleSecondaryButtonClick}
+						isAgentManagerMode={isAgentManagerMode}
+					/>
+				)
+			}
+
 			// browser session group
 			if (Array.isArray(messageOrGroup)) {
 				return (
@@ -2048,14 +2181,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				)
 			}
 
-			// regular message
+			// regular message - at this point messageOrGroup is ClineMessage
+			const message = messageOrGroup as ClineMessage
 			const isEditable =
-				messageOrGroup.type === "ask" &&
-				messageOrGroup.ask === "tool" &&
+				message.type === "ask" &&
+				message.ask === "tool" &&
 				(() => {
 					let tool: any = {}
 					try {
-						tool = JSON.parse(messageOrGroup.text || "{}")
+						tool = JSON.parse(message.text || "{}")
 					} catch (_e) {
 						tool = {}
 					}
@@ -2064,9 +2198,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			return (
 				<ChatRow
-					key={messageOrGroup.ts}
-					message={messageOrGroup}
-					isExpanded={expandedRows[messageOrGroup.ts] || false}
+					key={message.ts}
+					message={message}
+					isExpanded={expandedRows[message.ts] || false}
 					onToggleExpand={toggleRowExpansion} // This was already stabilized
 					lastModifiedMessage={lastModifiedMessage} // Memoized reference
 					isLast={index === groupedMessages.length - 1} // Array length is stable enough vs inline computation
@@ -2077,7 +2211,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					highlighted={highlightedMessageIndex === index} // kilocode_change: add highlight prop
 					enableCheckpoints={enableCheckpoints} // kilocode_change
 					onFollowUpUnmount={handleFollowUpUnmount}
-					isFollowUpAnswered={messageOrGroup.isAnswered === true || messageOrGroup.ts === currentFollowUpTs}
+					isFollowUpAnswered={message.isAnswered === true || message.ts === currentFollowUpTs}
 					editable={isEditable}
 					onPrimaryButtonClick={handlePrimaryButtonClick}
 					onSecondaryButtonClick={handleSecondaryButtonClick}
@@ -2387,7 +2521,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			) : (
 				<>
 					{task ? (
-						<div>
+						<div className={`${isAgentManagerMode ? "ml-12 mr-64" : "mx-0"}`}>
 							<KiloTaskHeader
 								task={task}
 								tokensIn={apiMetrics.totalTokensIn}
@@ -2398,7 +2532,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								contextTokens={apiMetrics.contextTokens}
 								handleCondenseContext={handleCondenseContext}
 								onClose={handleTaskCloseButtonClick}
-								groupedMessages={groupedMessages}
+								groupedMessages={groupedMessagesWithoutExploration}
 								onMessageClick={handleMessageClick}
 								isTaskActive={sendingDisabled}
 								todos={latestTodos}
@@ -2577,16 +2711,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					{task && (
 						<>
 							<div
-								className={`grow flex flex-col relative ${isAgentManagerMode ? "mx-12" : "mx-0"}`}
+								className={`grow flex flex-col relative ${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}
 								ref={scrollContainerRef}>
 								{/* kilocode_change: Sticky user message - positioned outside Virtuoso for true sticky behavior */}
 								<div
 									ref={stickyHeaderRef}
-									className="absolute top-0 left-0 right-0 z-10 pl-3 pr-1 py-0.5 pointer-events-none">
+									className="absolute -top-1 left-0 right-0 z-10 pl-3 pr-1 py-0.5 pointer-events-none">
 									<div className="pointer-events-auto">
 										<StickyUserMessage
 											task={task}
-											messages={groupedMessages}
+											messages={groupedMessagesWithoutExploration}
 											stickyIndex={stickyMessageIndex}
 										/>
 									</div>
@@ -2626,31 +2760,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						</>
 					)}
 
-					<QueuedMessages
-						queue={messageQueue}
-						onRemove={(index) => {
-							if (messageQueue[index]) {
-								vscode.postMessage({ type: "removeQueuedMessage", text: messageQueue[index].id })
-							}
-						}}
-						onUpdate={(index, newText) => {
-							if (messageQueue[index]) {
-								vscode.postMessage({
-									type: "editQueuedMessage",
-									payload: {
-										id: messageQueue[index].id,
-										text: newText,
-										images: messageQueue[index].images,
-									},
-								})
-							}
-						}}
-						onForceSend={(index) => {
-							if (messageQueue[index]) {
-								vscode.postMessage({ type: "forceSendQueuedMessage", text: messageQueue[index].id })
-							}
-						}}
-					/>
+					<div
+						className={`${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}>
+						<QueuedMessages
+							queue={messageQueue}
+							onRemove={(index) => {
+								if (messageQueue[index]) {
+									vscode.postMessage({ type: "removeQueuedMessage", text: messageQueue[index].id })
+								}
+							}}
+							onUpdate={(index, newText) => {
+								if (messageQueue[index]) {
+									vscode.postMessage({
+										type: "editQueuedMessage",
+										payload: {
+											id: messageQueue[index].id,
+											text: newText,
+											images: messageQueue[index].images,
+										},
+									})
+								}
+							}}
+							onForceSend={(index) => {
+								if (messageQueue[index]) {
+									vscode.postMessage({ type: "forceSendQueuedMessage", text: messageQueue[index].id })
+								}
+							}}
+						/>
+					</div>
 					{!task && showSourceControl && (
 						<div className="z-[1000] w-full min-w-0 px-4 mb-1">
 							<SourceControlPanel
@@ -2724,7 +2861,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					)}
 					{/* Chat input area - Hidden in review only mode */}
 					{!isReviewOnlyMode && (
-						<div className={`${isAgentManagerMode ? "mx-12" : "mx-0"}`}>
+						<div
+							className={`${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}>
 							<ChatTextArea
 								ref={textAreaRef}
 								inputValue={inputValue}
@@ -2752,7 +2890,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					)}
 					{/* kilocode_change: added settings toggle the profile and model selection */}
 					{!isReviewOnlyMode && (
-						<div className={`${isAgentManagerMode ? "mx-12" : "mx-0"}`}>
+						<div
+							className={`${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}>
 							<BottomControls showApiConfig />
 						</div>
 					)}

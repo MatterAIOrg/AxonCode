@@ -426,5 +426,15 @@
 		"problems": "Problems",
 		"terminal": "Terminal",
 		"url": "Paste URL to fetch contents"
+	},
+	"exploration": {
+		"exploring": "Exploring...",
+		"explored": "Explored",
+		"filesCount": "{{count}} file",
+		"filesCount_other": "{{count}} files",
+		"searchesCount": "{{count}} search",
+		"searchesCount_other": "{{count}} searches",
+		"othersCount": "{{count}} other",
+		"othersCount_other": "{{count}} others"
 	}
 }

@@ -104,7 +104,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 				</div>
 			</div>
 			{isExpanded && stickyMessage.images && stickyMessage.images.length > 0 && (
-				<div className="mt-1">
+				<div className="mt-0">
 					{stickyMessage.images.slice(0, 4).map((img, i) => (
 						<img
 							key={i}

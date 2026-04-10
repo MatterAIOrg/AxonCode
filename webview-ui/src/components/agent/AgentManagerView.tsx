@@ -1,13 +1,24 @@
-import React, { useMemo, useEffect, useState } from "react"
+import React, { useCallback, useMemo, useEffect, useState } from "react"
 import { useTaskSearch } from "../history/useTaskSearch"
 import { vscode } from "../../utils/vscode"
 import { Folder01Icon, Folder02Icon, ArrowDown01Icon } from "@/utils/customIcons"
-import { AgentFileViewerProvider } from "./AgentFileViewerContext"
+import { AgentFileViewerProvider, useAgentFileViewer } from "./AgentFileViewerContext"
 import AgentFileViewer from "./AgentFileViewer"
 
 interface AgentManagerViewProps {
 	children: React.ReactNode
 	isOpen: boolean
+}
+
+const AGENT_SIDEBAR_WIDTH = 260
+const FILE_VIEWER_DEFAULT_WIDTH = 420
+const FILE_VIEWER_MIN_WIDTH = 320
+const FILE_VIEWER_MAX_WIDTH = 760
+const CHAT_MIN_WIDTH = 360
+
+const clampFileViewerWidth = (width: number) => {
+	const viewportMax = Math.max(FILE_VIEWER_MIN_WIDTH, window.innerWidth - AGENT_SIDEBAR_WIDTH - CHAT_MIN_WIDTH)
+	return Math.min(Math.max(width, FILE_VIEWER_MIN_WIDTH), Math.min(FILE_VIEWER_MAX_WIDTH, viewportMax))
 }
 
 export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ children, isOpen }) => {
@@ -74,7 +85,7 @@ export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ children, is
 						<div
 							className="flex items-center cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] transition-colors rounded-md p-2"
 							onClick={() => vscode.postMessage({ type: "clearTask" })}>
-							<span className="codicon codicon-plus mr-2" />
+							<span className="codicon codicon-plus mr-2 text-sm" />
 							<span className="text-left">New Agent</span>
 						</div>
 					</div>
@@ -134,13 +145,72 @@ export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ children, is
 				</div>
 
 				{/* Center: Chat View Container */}
-				<div className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0">{children}</div>
-
-				{/* Right Side: File Viewer Panel */}
-				<div className="w-[540px] h-full border-l border-[var(--vscode-panel-border)] flex flex-col shrink-0 overflow-hidden">
-					<AgentFileViewer />
+				<div className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0 bg-[var(--vscode-sideBar-background)]">
+					{children}
 				</div>
+
+				<ResizableAgentFileViewer />
 			</div>
 		</AgentFileViewerProvider>
+	)
+}
+
+const ResizableAgentFileViewer: React.FC = () => {
+	const { fileViewerState, pendingDiffFiles } = useAgentFileViewer()
+	const [fileViewerWidth, setFileViewerWidth] = useState(FILE_VIEWER_DEFAULT_WIDTH)
+	const shouldShowFileViewer = Boolean(fileViewerState) || pendingDiffFiles.length > 0
+
+	useEffect(() => {
+		const handleResize = () => {
+			setFileViewerWidth((currentWidth) => clampFileViewerWidth(currentWidth))
+		}
+
+		window.addEventListener("resize", handleResize)
+		return () => window.removeEventListener("resize", handleResize)
+	}, [])
+
+	const handleFileViewerResizeStart = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+		event.preventDefault()
+
+		const previousCursor = document.body.style.cursor
+		const previousUserSelect = document.body.style.userSelect
+		document.body.style.cursor = "col-resize"
+		document.body.style.userSelect = "none"
+
+		const handlePointerMove = (moveEvent: PointerEvent) => {
+			setFileViewerWidth(clampFileViewerWidth(window.innerWidth - moveEvent.clientX))
+		}
+
+		const handlePointerUp = () => {
+			document.body.style.cursor = previousCursor
+			document.body.style.userSelect = previousUserSelect
+			window.removeEventListener("pointermove", handlePointerMove)
+			window.removeEventListener("pointerup", handlePointerUp)
+		}
+
+		window.addEventListener("pointermove", handlePointerMove)
+		window.addEventListener("pointerup", handlePointerUp)
+	}, [])
+
+	if (!shouldShowFileViewer) {
+		return null
+	}
+
+	return (
+		<>
+			<div
+				role="separator"
+				aria-orientation="vertical"
+				aria-label="Resize file viewer"
+				className="group relative h-full w-1 shrink-0 cursor-col-resize bg-transparent"
+				onPointerDown={handleFileViewerResizeStart}
+				onDoubleClick={() => setFileViewerWidth(FILE_VIEWER_DEFAULT_WIDTH)}>
+				<div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-[var(--vscode-panel-border)] group-hover:bg-[var(--vscode-focusBorder)]" />
+			</div>
+
+			<div className="h-full flex flex-col shrink-0 overflow-hidden" style={{ width: `${fileViewerWidth}px` }}>
+				<AgentFileViewer />
+			</div>
+		</>
 	)
 }

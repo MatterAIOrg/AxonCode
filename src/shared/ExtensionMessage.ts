@@ -518,6 +518,8 @@ export interface ClineSayTool {
 		| "useSkill"
 		| "webFetch"
 		| "webSearch"
+		| "executeCommand"
+		| "planFileEdit"
 	path?: string
 	diff?: string
 	content?: string
@@ -575,6 +577,8 @@ export interface ClineSayTool {
 		url: string
 		title: string
 	}>
+	// Properties for planFileEdit tool
+	filename?: string
 }
 
 // Must keep in sync with system prompt.

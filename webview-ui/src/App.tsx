@@ -394,8 +394,8 @@ const App = () => {
 							className="absolute top-1 bottom-1 rounded-xl bg-[var(--vscode-button-background)] transition-transform duration-200 ease-in-out"
 							style={{
 								left: "4px",
-								width: isAgentManagerOpen ? "calc(100% - 55px)" : "calc(100% - 113px)",
-								transform: isAgentManagerOpen ? "translateX(51px)" : "translateX(0)",
+								width: isAgentManagerOpen ? "calc(100% - 60px)" : "calc(100% - 160px)",
+								transform: isAgentManagerOpen ? "translateX(56px)" : "translateX(0)",
 							}}
 						/>
 						<button
@@ -407,6 +407,9 @@ const App = () => {
 							onClick={() => setIsAgentManagerOpen(true)}
 							className={`relative z-10 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors cursor-pointer flex items-center ${isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
 							Agent Manager
+							<span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)]">
+								BETA
+							</span>
 						</button>
 					</div>
 				</div>

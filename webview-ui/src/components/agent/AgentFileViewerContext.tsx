@@ -38,6 +38,7 @@ interface AgentFileViewerContextValue {
 	pendingDiffFiles: PendingDiffFile[]
 	openFileInViewer: (state: FileViewerState) => void
 	closeFileViewer: () => void
+	openDiffReview: () => void
 	refreshPendingDiffFiles: () => void
 }
 
@@ -63,7 +64,11 @@ export const AgentFileViewerProvider: React.FC<AgentFileViewerProviderProps> = (
 			if (message?.type !== "pendingFileEdits") return
 
 			const files = Array.isArray(message?.payload?.files) ? message.payload.files : []
-			setPendingDiffFiles(files.filter(isPendingDiffFile))
+			const pendingFiles = files.filter(isPendingDiffFile)
+			setPendingDiffFiles(pendingFiles)
+			if (pendingFiles.length > 0) {
+				setFileViewerState((previousState) => (previousState?.diff ? null : previousState))
+			}
 		}
 
 		window.addEventListener("message", handleMessage)
@@ -87,6 +92,13 @@ export const AgentFileViewerProvider: React.FC<AgentFileViewerProviderProps> = (
 		setFileViewerState(null)
 	}, [])
 
+	const openDiffReview = useCallback(() => {
+		setFileViewerState(null)
+		refreshPendingDiffFiles()
+		window.setTimeout(refreshPendingDiffFiles, 250)
+		window.setTimeout(refreshPendingDiffFiles, 1000)
+	}, [refreshPendingDiffFiles])
+
 	return (
 		<AgentFileViewerContext.Provider
 			value={{
@@ -94,6 +106,7 @@ export const AgentFileViewerProvider: React.FC<AgentFileViewerProviderProps> = (
 				pendingDiffFiles,
 				openFileInViewer,
 				closeFileViewer,
+				openDiffReview,
 				refreshPendingDiffFiles,
 			}}>
 			{children}
@@ -107,4 +120,8 @@ export const useAgentFileViewer = (): AgentFileViewerContextValue => {
 		throw new Error("useAgentFileViewer must be used within an AgentFileViewerProvider")
 	}
 	return context
+}
+
+export const useOptionalAgentFileViewer = (): AgentFileViewerContextValue | null => {
+	return useContext(AgentFileViewerContext) ?? null
 }

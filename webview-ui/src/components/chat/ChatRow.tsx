@@ -1,4 +1,4 @@
-import { VSCodeBadge } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeBadge, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { OctagonAlert, Undo2 } from "lucide-react"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
@@ -39,7 +39,7 @@ import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
-import { ArrowDown01Icon, Globe02Icon } from "@/utils/customIcons"
+import { ArrowDown01Icon, Globe02Icon, PlayIcon } from "@/utils/customIcons"
 import { appendImages } from "@src/utils/imageUtils"
 import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // kilocode_change
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
@@ -53,7 +53,8 @@ import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } from "./ContextCondenseRow"
 import { McpExecution } from "./McpExecution"
-import { useAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
+import { useOptionalAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
+import { PlanFileIndicator } from "./PlanFileIndicator"
 
 interface ChatRowProps {
 	message: ClineMessage
@@ -209,8 +210,9 @@ export const ChatRowContent = ({
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
 
-	// kilocode_change: hook for agent manager file viewer - always call hook at top level
-	const agentFileViewer = useAgentFileViewer()
+	// kilocode_change: read this optionally so switching out of Agent Manager dismisses the panel instead of throwing
+	const optionalAgentFileViewer = useOptionalAgentFileViewer()
+	const agentFileViewer = _isAgentManagerMode ? optionalAgentFileViewer : null
 
 	// kilocode_change: add showTimestamps
 	const {
@@ -555,6 +557,13 @@ export const ChatRowContent = ({
 		return null
 	}, [message.type, message.ask, message.partial, message.text])
 
+	useEffect(() => {
+		if (!agentFileViewer || message.partial) return
+		if (tool?.tool !== "fileEdit" && tool?.tool !== "newFileCreated") return
+
+		agentFileViewer.openDiffReview()
+	}, [agentFileViewer, message.partial, message.ts, tool?.tool])
+
 	if (tool) {
 		const toolIcon = (name: string) => (
 			<span
@@ -572,15 +581,9 @@ export const ChatRowContent = ({
 				const editLineNumber = tool.startLine ?? extractFirstLineNumberFromDiff(fileEditDiff)
 				const fileName = tool.path?.split("/").pop() || tool.path || "file"
 				const openFileWithLine = () => {
-					// kilocode_change: in agent manager mode, open file in right panel instead of editor
-					if (agentFileViewer && fileEditDiff) {
-						agentFileViewer.openFileInViewer({
-							filePath: tool.path || "file",
-							diff: fileEditDiff,
-							line: editLineNumber,
-							isOutsideWorkspace: tool.isOutsideWorkspace,
-							isProtected: tool.isProtected,
-						})
+					// kilocode_change: in agent manager mode, keep the right panel on the aggregate pending diff review
+					if (agentFileViewer) {
+						agentFileViewer.openDiffReview()
 						return
 					}
 					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
@@ -668,6 +671,59 @@ export const ChatRowContent = ({
 					</>
 				)
 			}
+			case "planFileEdit":
+				return (
+					<div
+						className={`animate-fade-up flex ${isExpanded ? "flex-col" : "flex-col"} gap-1 items-start pb-2`}>
+						<div style={headerStyle} className="">
+							<span style={{}}>Plan file edited</span>
+						</div>
+						<div className="">
+							<PlanFileIndicator filename={tool.filename || "plan.md"} isActive={true} />
+							{isExpanded ? (
+								<MarkdownBlock markdown={tool.content ?? ""} />
+							) : (
+								<CodeAccordian
+									path={undefined}
+									code={tool.content ?? ""}
+									language="markdown"
+									isLoading={message.partial}
+									isExpanded={isExpanded}
+									onToggleExpand={handleToggleExpand}
+								/>
+							)}
+							{!message.partial && (
+								<div className="flex gap-2 mt-2">
+									<VSCodeButton
+										onClick={() => {
+											vscode.postMessage({
+												type: "implementPlan",
+												payload: {
+													planFile: tool.filename || "plan.md",
+													planContent: tool.content || "",
+												},
+											})
+										}}>
+										<PlayIcon className="w-4 h-4 mr-1 rtl:-scale-x-100" />
+										Implement
+									</VSCodeButton>
+									<VSCodeButton
+										onClick={() => {
+											vscode.postMessage({
+												type: "openPlanFile",
+												payload: {
+													planFile: tool.filename || "plan.md",
+												},
+											})
+										}}>
+										<span className="codicon codicon-open-preview mr-1" />
+										Open in Editor
+									</VSCodeButton>
+								</div>
+							)}
+						</div>
+					</div>
+				)
 			case "codebaseSearch": {
 				return (
 					<div className="animate-fade-up" style={headerStyle}>
@@ -722,14 +778,9 @@ export const ChatRowContent = ({
 				const newFileDiffStats = computeDiffStats(newFileDiff)
 				const newFileName = tool.path?.split("/").pop() || tool.path || "file"
 				const openNewFileWithLine = () => {
-					// kilocode_change: in agent manager mode, open file in right panel instead of editor
-					if (agentFileViewer && newFileDiff) {
-						agentFileViewer.openFileInViewer({
-							filePath: tool.path || "file",
-							diff: newFileDiff,
-							isOutsideWorkspace: tool.isOutsideWorkspace,
-							isProtected: tool.isProtected,
-						})
+					// kilocode_change: in agent manager mode, keep the right panel on the aggregate pending diff review
+					if (agentFileViewer) {
+						agentFileViewer.openDiffReview()
 						return
 					}
 					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
@@ -1859,6 +1910,57 @@ export const ChatRowContent = ({
 														</VSCodeBadge>
 													</div>
 												)}
+											</ToolUseBlockHeader>
+										</ToolUseBlock>
+									</div>
+								</>
+							)
+						}
+						case "executeCommand": {
+							// Handle executeCommand tool - render command execution UI
+							return (
+								<>
+									<div style={headerStyle}>
+										<span
+											className="codicon codicon-terminal"
+											style={{
+												color: "var(--vscode-foreground)",
+												marginBottom: "-1.5px",
+											}}></span>
+										<span style={{}}>{t("chat:commandExecution.running")}</span>
+									</div>
+									<div className="">
+										<ToolUseBlock>
+											<ToolUseBlockHeader className="group">
+												<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left font-mono text-xs">
+													{sayTool.command || "command"}
+												</span>
+											</ToolUseBlockHeader>
+										</ToolUseBlock>
+									</div>
+								</>
+							)
+						}
+						case "planFileEdit": {
+							// Handle planFileEdit tool - render plan file edit UI
+							const planFileName = sayTool.path?.split("/").pop() || sayTool.path || "plan file"
+							return (
+								<>
+									<div style={headerStyle}>
+										<span
+											className="codicon codicon-edit"
+											style={{
+												color: "var(--vscode-foreground)",
+												marginBottom: "-1.5px",
+											}}></span>
+										<span style={{}}>Edited plan file</span>
+									</div>
+									<div className="">
+										<ToolUseBlock>
+											<ToolUseBlockHeader className="group">
+												<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left">
+													{planFileName}
+												</span>
 											</ToolUseBlockHeader>
 										</ToolUseBlock>
 									</div>

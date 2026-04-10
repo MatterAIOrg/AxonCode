@@ -41,9 +41,9 @@ const KiloTaskHeader = ({
 					zIndex: 1,
 				}}>
 				{/* Title with close button */}
-				<div className="flex justify-between items-center gap-2">
-					<div className="px-2 py-1 flex items-center gap-2 min-w-0 bg-[var(--vscode-editor-background)] rounded-md border border-[var(--vscode-activityBar-border)] outline-none">
-						<span className="font-bold text-sm truncate">{title || "New task"}</span>
+				<div className="flex items-center gap-0">
+					<div className="px-1 py-1 flex items-center gap-2 min-w-0 outline-none">
+						<span className="text-sm truncate opacity-70">{title?.trim() || "New task"}</span>
 					</div>
 					<button
 						onClick={onClose}
