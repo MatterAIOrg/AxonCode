@@ -150,13 +150,9 @@ const AgentFileViewer: React.FC = () => {
 										background:
 											"color-mix(in srgb, var(--vscode-sideBar-background) 58%, var(--vscode-editor-background))",
 									}}>
-									<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
-										+{diffStats.added}
-									</span>
+									<span style={{ color: "#3fa266" }}>+{diffStats.added}</span>
 									<span className="mx-1 opacity-30">/</span>
-									<span style={{ color: "var(--vscode-gitDecoration-deletedResourceForeground)" }}>
-										-{diffStats.removed}
-									</span>
+									<span style={{ color: "#fc6b83" }}>-{diffStats.removed}</span>
 								</span>
 							)}
 							{isProtected && (

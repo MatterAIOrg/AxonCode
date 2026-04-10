@@ -70,12 +70,8 @@ const AgentPullRequestDiffView: React.FC<AgentPullRequestDiffViewProps> = ({ fil
 					<span className="codicon codicon-source-control text-sm opacity-80" />
 					<span>{files.length} Uncommitted Changes</span>
 					<div className="ml-auto flex items-center gap-2 text-xs font-semibold">
-						<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
-							+{totals.additions}
-						</span>
-						<span style={{ color: "var(--vscode-gitDecoration-deletedResourceForeground)" }}>
-							-{totals.deletions}
-						</span>
+						<span style={{ color: "#3fa266" }}>+{totals.additions}</span>
+						<span style={{ color: "#fc6b83" }}>-{totals.deletions}</span>
 					</div>
 				</div>
 			</div>
@@ -138,7 +134,7 @@ const AgentPullRequestDiffView: React.FC<AgentPullRequestDiffViewProps> = ({ fil
 												<span
 													className="rounded-md px-1.5 py-0.5 text-[11px] font-medium"
 													style={{
-														color: "var(--vscode-gitDecoration-addedResourceForeground)",
+														color: "#3fa266",
 														background:
 															"color-mix(in srgb, var(--vscode-diffEditor-insertedLineBackground) 38%, transparent)",
 													}}>
@@ -152,13 +148,13 @@ const AgentPullRequestDiffView: React.FC<AgentPullRequestDiffViewProps> = ({ fil
 										<div className="flex items-center gap-1 text-xs font-semibold">
 											<span
 												style={{
-													color: "var(--vscode-gitDecoration-addedResourceForeground)",
+													color: "#3fa266",
 												}}>
 												+{file.stat.additions}
 											</span>
 											<span
 												style={{
-													color: "var(--vscode-gitDecoration-deletedResourceForeground)",
+													color: "#fc6b83",
 												}}>
 												-{file.stat.deletions}
 											</span>

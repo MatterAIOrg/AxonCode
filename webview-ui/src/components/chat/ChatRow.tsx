@@ -641,13 +641,8 @@ export const ChatRowContent = ({
 								) : null}
 								{diffStats ? (
 									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0 mt-[1px]">
-										<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
-											+{diffStats.added}
-										</span>
-										<span
-											style={{ color: "var(--vscode-gitDecoration-deletedResourceForeground)" }}>
-											-{diffStats.removed}
-										</span>
+										<span style={{ color: "#3fa266" }}>+{diffStats.added}</span>
+										<span style={{ color: "#fc6b83" }}>-{diffStats.removed}</span>
 									</span>
 								) : null}
 								<ArrowDown01Icon
@@ -838,13 +833,8 @@ export const ChatRowContent = ({
 								) : null}
 								{newFileDiffStats ? (
 									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0 mt-[1px]">
-										<span style={{ color: "var(--vscode-gitDecoration-addedResourceForeground)" }}>
-											+{newFileDiffStats.added}
-										</span>
-										<span
-											style={{ color: "var(--vscode-gitDecoration-deletedResourceForeground)" }}>
-											-{newFileDiffStats.removed}
-										</span>
+										<span style={{ color: "#3fa266" }}>+{newFileDiffStats.added}</span>
+										<span style={{ color: "#fc6b83" }}>-{newFileDiffStats.removed}</span>
 									</span>
 								) : null}
 								<ArrowDown01Icon

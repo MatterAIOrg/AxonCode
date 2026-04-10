@@ -1318,7 +1318,7 @@ export const webviewMessageHandler = async (
 				const normalizedBefore = beforeContent.endsWith("\n") ? beforeContent : `${beforeContent}\n`
 				const normalizedAfter = afterContent.endsWith("\n") ? afterContent : `${afterContent}\n`
 				const diff = createPatch(edit.relPath, normalizedBefore, normalizedAfter, undefined, undefined, {
-					context: 3,
+					context: 4,
 				})
 					.split("\n")
 					.filter((line) => !line.startsWith("Index: ") && !/^=+$/.test(line))

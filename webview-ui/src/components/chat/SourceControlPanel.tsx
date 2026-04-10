@@ -470,12 +470,12 @@ ${comment.suggestion}
 												className="text-xs p-2 rounded-r border-l-2"
 												style={{
 													backgroundColor: "var(--vscode-diffEditor-insertedTextBackground)",
-													borderColor: "var(--vscode-gitDecoration-addedResourceForeground)",
+													borderColor: "#3fa266",
 												}}>
 												<div
 													className="flex items-center gap-1 font-medium mb-1"
 													style={{
-														color: "var(--vscode-gitDecoration-addedResourceForeground)",
+														color: "#3fa266",
 													}}>
 													<span className="codicon codicon-lightbulb" />
 													Suggestion
