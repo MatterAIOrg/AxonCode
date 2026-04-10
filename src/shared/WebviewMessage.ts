@@ -342,6 +342,7 @@ export interface WebviewMessage {
 		| "memory_deleted"
 		| "maximizeSideBar"
 		| "minimizeSideBar"
+		| "openSideBar"
 	// forked_change end
 	text?: string
 	editedMessageContent?: string

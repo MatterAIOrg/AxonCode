@@ -259,16 +259,27 @@ const App = () => {
 	}, [telemetrySetting, telemetryKey, telemetryDistinctId, didHydrateState])
 	// forked_change end
 
-	// Auto manage sidebar based on Agent Manager state in Orbital mode
-	useEffect(() => {
+	// Toggle Agent Manager sidebar - only triggered by user clicks, never automatic
+	const openAgentManager = useCallback(() => {
+		setIsAgentManagerOpen(true)
 		if (isOrbital) {
-			if (isAgentManagerOpen) {
-				vscode.postMessage({ type: "maximizeSideBar" })
-			} else {
-				vscode.postMessage({ type: "minimizeSideBar" })
-			}
+			vscode.postMessage({ type: "maximizeSideBar" })
 		}
-	}, [isAgentManagerOpen, isOrbital])
+	}, [isOrbital])
+
+	const closeAgentManager = useCallback(() => {
+		setIsAgentManagerOpen(false)
+		if (isOrbital) {
+			vscode.postMessage({ type: "minimizeSideBar" })
+		}
+	}, [isOrbital])
+
+	// Open sidebar on mount in Orbital mode (without maximizing)
+	useEffect(() => {
+		if (isOrbital && didHydrateState) {
+			vscode.postMessage({ type: "openSideBar" })
+		}
+	}, [isOrbital, didHydrateState])
 
 	// Tell the extension that we are ready to receive messages.
 	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
@@ -399,12 +410,12 @@ const App = () => {
 							}}
 						/>
 						<button
-							onClick={() => setIsAgentManagerOpen(false)}
+							onClick={closeAgentManager}
 							className={`relative z-10 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors cursor-pointer flex items-center ${!isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
 							Agent
 						</button>
 						<button
-							onClick={() => setIsAgentManagerOpen(true)}
+							onClick={openAgentManager}
 							className={`relative z-10 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors cursor-pointer flex items-center ${isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
 							Agent Manager
 							<span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)]">

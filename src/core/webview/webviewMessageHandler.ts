@@ -4512,6 +4512,11 @@ ${comment.suggestion}
 			await vscode.commands.executeCommand("workbench.action.toggleMaximizedAuxiliaryBar")
 			break
 		}
+		case "openSideBar": {
+			// Open the sidebar panel without maximizing
+			await vscode.commands.executeCommand("workbench.action.openAuxiliaryBar")
+			break
+		}
 		case "filterMarketplaceItems": {
 			if (marketplaceManager && message.filters) {
 				try {
