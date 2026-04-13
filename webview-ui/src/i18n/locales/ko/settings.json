@@ -33,6 +33,7 @@
 		"ui": "UI",
 		"experimental": "실험적",
 		"language": "언어",
+		"codeIndex": "코드 인덱싱",
 		"developerTools": "개발자 도구",
 		"display": "디스플레이",
 		"codeReview": "AI 코드 리뷰"

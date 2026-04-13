@@ -7,6 +7,7 @@ import { useDeepCompareEffect, useEvent, useMount } from "react-use"
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import removeMd from "remove-markdown"
 import useSound from "use-sound"
+import { ImageAttachment, normalizeImages } from "../common/Thumbnails"
 
 import { appendImages } from "@src/utils/imageUtils"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
@@ -60,6 +61,11 @@ import Announcement from "./Announcement"
 import BrowserSessionRow from "./BrowserSessionRow"
 import ChatRow from "./ChatRow"
 import { ChatTextArea } from "./ChatTextArea"
+import ExplorationGroupRow, {
+	ExplorationGroup,
+	isExplorationRelatedMessage,
+	isExplorationToolResult,
+} from "./ExplorationGroupRow"
 // import TaskHeader from "./TaskHeader"// kilocode_change
 import { showSystemNotification } from "@/kilocode/helpers" // kilocode_change
 import BottomControls from "../kilocode/BottomControls" // kilocode_change
@@ -71,6 +77,7 @@ import SystemPromptWarning from "./SystemPromptWarning"
 import { ListVideoIcon } from "@/utils/customIcons"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { X } from "lucide-react"
+import { useOptionalAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
@@ -83,6 +90,12 @@ export interface ChatViewProps {
 	isHidden: boolean
 	showAnnouncement: boolean
 	hideAnnouncement: () => void
+	isAgentManagerMode?: boolean
+	// Lifted state for persistence across mode switches
+	inputValue: string
+	setInputValue: React.Dispatch<React.SetStateAction<string>>
+	selectedImages: ImageAttachment[]
+	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 }
 
 export interface ChatViewRef {
@@ -95,7 +108,16 @@ export const MAX_IMAGES_PER_MESSAGE = 20 // This is the Anthropic limit.
 const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0
 
 const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewProps> = (
-	{ isHidden, showAnnouncement, hideAnnouncement },
+	{
+		isHidden,
+		showAnnouncement,
+		hideAnnouncement,
+		isAgentManagerMode,
+		inputValue,
+		setInputValue,
+		selectedImages,
+		setSelectedImages,
+	},
 	ref,
 ) => {
 	const isMountedRef = useRef(true)
@@ -149,6 +171,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		messageQueue = [],
 		sendMessageOnEnter, // kilocode_change
 		backgroundRunningTasks, // kilocode_change: multi-chat support
+		cwd,
 	} = useExtensionState()
 
 	const isReviewOnlyMode = useMemo(() => {
@@ -211,11 +234,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// Has to be after api_req_finished are all reduced into api_req_started messages.
 	const apiMetrics = useMemo(() => getApiMetrics(modifiedMessages), [modifiedMessages])
 
-	const [inputValue, setInputValue] = useState("")
 	const inputValueRef = useRef(inputValue)
 	const textAreaRef = useRef<HTMLDivElement>(null)
 	const [sendingDisabled, setSendingDisabled] = useState(false)
-	const [selectedImages, setSelectedImages] = useState<string[]>([])
 
 	// we need to hold on to the ask because useEffect > lastMessage will always let us know when an ask comes in and handle it, but by the time handleMessage is called, the last message might not be the ask anymore (it could be a say that followed)
 	const [clineAsk, setClineAsk] = useState<ClineAsk | undefined>(undefined)
@@ -274,6 +295,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	// kilocode_change: Profile data state for usage tracking
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
+
+	// kilocode_change: Agent file viewer state for conditional margin
+	const optionalAgentFileViewer = useOptionalAgentFileViewer()
+	const isAgentFileViewerOpen =
+		isAgentManagerMode &&
+		optionalAgentFileViewer &&
+		(Boolean(optionalAgentFileViewer.fileViewerState) || optionalAgentFileViewer.pendingDiffFiles.length > 0)
 
 	// Fetch profile data for usage tracking
 	useEffect(() => {
@@ -733,7 +761,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// setPrimaryButtonText(undefined)
 		// setSecondaryButtonText(undefined)
 		disableAutoScrollRef.current = false
-	}, [])
+	}, [setInputValue, setSelectedImages])
 
 	/**
 	 * Handles sending messages to the extension
@@ -741,12 +769,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	 * @param images - Array of image data URLs to send with the message
 	 */
 	const handleSendMessage = useCallback(
-		(text: string, images: string[]) => {
+		(text: string, images: ImageAttachment[]) => {
 			text = text.trim()
-			if (text || images.length > 0) {
+			// Extract dataUrls for backend compatibility
+			const imageDataUrls = images.map((img) => img.dataUrl)
+			if (text || imageDataUrls.length > 0) {
 				if (sendingDisabled || isStreaming) {
 					try {
-						vscode.postMessage({ type: "queueMessage", text, images })
+						vscode.postMessage({ type: "queueMessage", text, images: imageDataUrls })
 						setInputValue("")
 						setSelectedImages([])
 					} catch (error) {
@@ -762,7 +792,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				userRespondedRef.current = true
 
 				if (messagesRef.current.length === 0) {
-					vscode.postMessage({ type: "newTask", text, images })
+					vscode.postMessage({ type: "newTask", text, images: imageDataUrls })
 				} else if (clineAskRef.current) {
 					if (clineAskRef.current === "followup") {
 						markFollowUpAsAnswered()
@@ -782,7 +812,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								type: "askResponse",
 								askResponse: "messageResponse",
 								text,
-								images,
+								images: imageDataUrls,
 							})
 							break
 						case "tool":
@@ -793,24 +823,29 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								type: "askResponse",
 								askResponse: "noButtonClicked",
 								text,
-								images,
+								images: imageDataUrls,
 							})
 							break
 						// There is no other case that a textfield should be enabled.
 					}
 				} else {
 					// This is a new message in an ongoing task.
-					vscode.postMessage({ type: "askResponse", askResponse: "messageResponse", text, images })
+					vscode.postMessage({
+						type: "askResponse",
+						askResponse: "messageResponse",
+						text,
+						images: imageDataUrls,
+					})
 				}
 
 				handleChatReset()
 			}
 		},
-		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming], // messagesRef and clineAskRef are stable
+		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming, setInputValue, setSelectedImages], // messagesRef and clineAskRef are stable
 	)
 
 	const handleSetChatBoxMessage = useCallback(
-		(text: string, images: string[]) => {
+		(text: string, images: ImageAttachment[]) => {
 			// Avoid nested template literals by breaking down the logic
 			let newValue = text
 
@@ -826,7 +861,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setInputValue(newValue)
 			setSelectedImages([...selectedImages, ...images])
 		},
-		[inputValue, selectedImages],
+		[inputValue, selectedImages, setInputValue, setSelectedImages],
 	)
 
 	const startNewTask = useCallback(() => vscode.postMessage({ type: "clearTask" }), [])
@@ -835,11 +870,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// after which buttons are shown and we then send an askResponse to the
 	// extension.
 	const handlePrimaryButtonClick = useCallback(
-		(text?: string, images?: string[]) => {
+		(text?: string, images?: ImageAttachment[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
 			const trimmedInput = text?.trim()
+			const imageDataUrls = images?.map((img) => img.dataUrl)
 
 			switch (clineAsk) {
 				case "api_req_failed":
@@ -851,12 +887,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "mistake_limit_reached":
 				case "report_bug":
 					// Only send text/images if they exist
-					if (trimmedInput || (images && images.length > 0)) {
+					if (trimmedInput || (imageDataUrls && imageDataUrls.length > 0)) {
 						vscode.postMessage({
 							type: "askResponse",
 							askResponse: "yesButtonClicked",
 							text: trimmedInput,
-							images: images,
+							images: imageDataUrls,
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -887,15 +923,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, lastMessage?.text], // kilocode_change: add lastMessage?.text
+		[clineAsk, startNewTask, lastMessage?.text, setInputValue, setSelectedImages], // kilocode_change: add lastMessage?.text
 	)
 
 	const handleSecondaryButtonClick = useCallback(
-		(text?: string, images?: string[]) => {
+		(text?: string, images?: ImageAttachment[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
 			const trimmedInput = text?.trim()
+			const imageDataUrls = images?.map((img) => img.dataUrl)
 
 			if (isStreaming) {
 				vscode.postMessage({ type: "cancelTask" })
@@ -916,12 +953,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "browser_action_launch":
 				case "use_mcp_server":
 					// Only send text/images if they exist
-					if (trimmedInput || (images && images.length > 0)) {
+					if (trimmedInput || (imageDataUrls && imageDataUrls.length > 0)) {
 						vscode.postMessage({
 							type: "askResponse",
 							askResponse: "noButtonClicked",
 							text: trimmedInput,
-							images: images,
+							images: imageDataUrls,
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -951,7 +988,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, isStreaming],
+		[clineAsk, startNewTask, isStreaming, setInputValue, setSelectedImages],
 	)
 
 	// kilocode_change: handle "Run Everything" click - auto-approve all commands for current task
@@ -1046,8 +1083,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					// Only handle selectedImages if it's not for editing context
 					// When context is "edit", ChatRow will handle the images
 					if (message.context !== "edit") {
-						setSelectedImages((prevImages: string[]) =>
-							appendImages(prevImages, message.images, MAX_IMAGES_PER_MESSAGE),
+						setSelectedImages((prevImages) =>
+							appendImages(prevImages, normalizeImages(message.images), MAX_IMAGES_PER_MESSAGE),
 						)
 					}
 					break
@@ -1139,6 +1176,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handleSetChatBoxMessage,
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
+			setSelectedImages,
 		],
 	)
 
@@ -1707,9 +1745,76 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			result.push([...currentGroup])
 		}
 
+		// Second pass: Group consecutive exploration-related messages
+		// Each tool invocation produces: ask:tool → api_req_started → say:tool
+		// We group all these related messages together, then only create
+		// an ExplorationGroup if there are 2+ exploration tool RESULTS (say:tool)
+		const explorationGroupedResult: (ClineMessage | ClineMessage[] | ExplorationGroup)[] = []
+		let currentExplorationGroup: ClineMessage[] = []
+
+		const endExplorationGroup = () => {
+			if (currentExplorationGroup.length > 0) {
+				// Count how many exploration tool RESULTS (say:tool) are in the group
+				const resultCount = currentExplorationGroup.filter((m) => isExplorationToolResult(m)).length
+
+				// Only create a group if there are 2+ tool results
+				if (resultCount >= 2) {
+					const lastMsg = currentExplorationGroup[currentExplorationGroup.length - 1]
+					explorationGroupedResult.push({
+						_type: "explorationGroup",
+						messages: [...currentExplorationGroup],
+						isStreaming: lastMsg?.partial === true,
+					})
+				} else {
+					// Not enough tools to group - emit as individual messages
+					currentExplorationGroup.forEach((m) => explorationGroupedResult.push(m))
+				}
+				currentExplorationGroup = []
+			}
+		}
+
+		result.forEach((item) => {
+			// Browser session groups are already arrays - pass them through unchanged
+			if (Array.isArray(item)) {
+				// End any ongoing exploration group before a browser session
+				endExplorationGroup()
+				explorationGroupedResult.push(item)
+				return
+			}
+
+			// Single message
+			const message = item as ClineMessage
+
+			// Check if this message is related to an exploration tool
+			// (ask:tool, say:tool, or api_req_started between them)
+			if (isExplorationRelatedMessage(message)) {
+				currentExplorationGroup.push(message)
+			} else {
+				// End exploration group before non-exploration message
+				endExplorationGroup()
+				explorationGroupedResult.push(message)
+			}
+		})
+
+		// Handle case where exploration group is last
+		if (currentExplorationGroup.length > 0) {
+			const resultCount = currentExplorationGroup.filter((m) => isExplorationToolResult(m)).length
+
+			if (resultCount >= 2) {
+				const lastMsg = currentExplorationGroup[currentExplorationGroup.length - 1]
+				explorationGroupedResult.push({
+					_type: "explorationGroup",
+					messages: [...currentExplorationGroup],
+					isStreaming: lastMsg?.partial === true,
+				})
+			} else {
+				currentExplorationGroup.forEach((m) => explorationGroupedResult.push(m))
+			}
+		}
+
 		if (isCondensing) {
 			// Show indicator after clicking condense button
-			result.push({
+			explorationGroupedResult.push({
 				type: "say",
 				say: "condense_context",
 				ts: Date.now(),
@@ -1717,8 +1822,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			})
 		}
 
-		return result
+		return explorationGroupedResult
 	}, [isCondensing, visibleMessages])
+
+	// Filtered groupedMessages for components that don't support ExplorationGroup
+	const groupedMessagesWithoutExploration = useMemo(() => {
+		return groupedMessages.filter((item) => !("_type" in item && item._type === "explorationGroup")) as (
+			| ClineMessage
+			| ClineMessage[]
+		)[]
+	}, [groupedMessages])
 
 	// scrolling
 
@@ -1835,7 +1948,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const userFeedbackIndices = useMemo(() => {
 		const indices: number[] = []
 		groupedMessages.forEach((msg, i) => {
-			if (!Array.isArray(msg) && msg.type === "say" && msg.say === "user_feedback") {
+			// Skip exploration groups and arrays (browser sessions)
+			if (Array.isArray(msg)) return
+			if ("_type" in msg && msg._type === "explorationGroup") return
+			// Now TypeScript knows msg is ClineMessage
+			const message = msg as ClineMessage
+			if (message.type === "say" && message.say === "user_feedback") {
 				indices.push(i)
 			}
 		})
@@ -1998,7 +2116,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			if (event?.shiftKey) {
 				// Always append to existing text, don't overwrite
-				setInputValue((currentValue: string) => {
+				setInputValue((currentValue) => {
 					return currentValue !== "" ? `${currentValue} \n${suggestion.answer}` : suggestion.answer
 				})
 			} else {
@@ -2025,7 +2143,47 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [])
 
 	const itemContent = useCallback(
-		(index: number, messageOrGroup: ClineMessage | ClineMessage[]) => {
+		(index: number, messageOrGroup: ClineMessage | ClineMessage[] | ExplorationGroup) => {
+			// exploration group - check by _type property
+			if (
+				messageOrGroup &&
+				typeof messageOrGroup === "object" &&
+				"_type" in messageOrGroup &&
+				messageOrGroup._type === "explorationGroup"
+			) {
+				const explorationGroup = messageOrGroup as ExplorationGroup
+				return (
+					<ExplorationGroupRow
+						messages={explorationGroup.messages}
+						isLast={index === groupedMessages.length - 1}
+						lastModifiedMessage={lastModifiedMessage}
+						onHeightChange={handleRowHeightChange}
+						isStreaming={isStreaming}
+						isExpanded={expandedRows[explorationGroup.messages[0]?.ts] ?? false}
+						onToggleExpand={(messageTs: number) => {
+							setExpandedRows((prev: Record<number, boolean>) => ({
+								...prev,
+								[messageTs]: !prev[messageTs],
+							}))
+						}}
+						expandedRows={expandedRows}
+						toggleRowExpansion={toggleRowExpansion}
+						handleSuggestionClickInRow={handleSuggestionClickInRow}
+						handleBatchFileResponse={handleBatchFileResponse}
+						highlightedMessageIndex={highlightedMessageIndex}
+						enableCheckpoints={enableCheckpoints}
+						handleFollowUpUnmount={handleFollowUpUnmount}
+						currentFollowUpTs={currentFollowUpTs}
+						enableButtons={enableButtons}
+						primaryButtonText={primaryButtonText}
+						secondaryButtonText={secondaryButtonText}
+						handlePrimaryButtonClick={handlePrimaryButtonClick}
+						handleSecondaryButtonClick={handleSecondaryButtonClick}
+						isAgentManagerMode={isAgentManagerMode}
+					/>
+				)
+			}
+
 			// browser session group
 			if (Array.isArray(messageOrGroup)) {
 				return (
@@ -2046,14 +2204,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				)
 			}
 
-			// regular message
+			// regular message - at this point messageOrGroup is ClineMessage
+			const message = messageOrGroup as ClineMessage
 			const isEditable =
-				messageOrGroup.type === "ask" &&
-				messageOrGroup.ask === "tool" &&
+				message.type === "ask" &&
+				message.ask === "tool" &&
 				(() => {
 					let tool: any = {}
 					try {
-						tool = JSON.parse(messageOrGroup.text || "{}")
+						tool = JSON.parse(message.text || "{}")
 					} catch (_e) {
 						tool = {}
 					}
@@ -2062,9 +2221,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			return (
 				<ChatRow
-					key={messageOrGroup.ts}
-					message={messageOrGroup}
-					isExpanded={expandedRows[messageOrGroup.ts] || false}
+					key={message.ts}
+					message={message}
+					isExpanded={expandedRows[message.ts] || false}
 					onToggleExpand={toggleRowExpansion} // This was already stabilized
 					lastModifiedMessage={lastModifiedMessage} // Memoized reference
 					isLast={index === groupedMessages.length - 1} // Array length is stable enough vs inline computation
@@ -2075,7 +2234,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					highlighted={highlightedMessageIndex === index} // kilocode_change: add highlight prop
 					enableCheckpoints={enableCheckpoints} // kilocode_change
 					onFollowUpUnmount={handleFollowUpUnmount}
-					isFollowUpAnswered={messageOrGroup.isAnswered === true || messageOrGroup.ts === currentFollowUpTs}
+					isFollowUpAnswered={message.isAnswered === true || message.ts === currentFollowUpTs}
 					editable={isEditable}
 					onPrimaryButtonClick={handlePrimaryButtonClick}
 					onSecondaryButtonClick={handleSecondaryButtonClick}
@@ -2083,6 +2242,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					enableButtons={enableButtons && index === groupedMessages.length - 1}
 					primaryButtonText={primaryButtonText}
 					secondaryButtonText={secondaryButtonText}
+					isAgentManagerMode={isAgentManagerMode} // kilocode_change: pass agent manager mode
 				/>
 			)
 		},
@@ -2105,6 +2265,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handleSecondaryButtonClick,
 			secondaryButtonText,
 			handleRunEverythingClick,
+			isAgentManagerMode, // kilocode_change: add to dependencies
 		],
 	)
 
@@ -2330,9 +2491,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const areButtonsVisible = showScrollToBottom || primaryButtonText || secondaryButtonText
 
 	return (
-		<div
-			data-testid="chat-view"
-			className={isHidden ? "hidden" : "fixed top-0 left-0 right-0 bottom-0 flex flex-col overflow-hidden"}>
+		<div data-testid="chat-view" className={isHidden ? "hidden" : "absolute inset-0 flex flex-col overflow-hidden"}>
 			{(showAnnouncement || showAnnouncementModal) && (
 				<Announcement
 					hideAnnouncement={() => {
@@ -2345,438 +2504,429 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					}}
 				/>
 			)}
-			{task ? (
-				<>
-					{/* forked_change start */}
-					{/* <TaskHeader
-						task={task}
-						tokensIn={apiMetrics.totalTokensIn}
-						tokensOut={apiMetrics.totalTokensOut}
-						cacheWrites={apiMetrics.totalCacheWrites}
-						cacheReads={apiMetrics.totalCacheReads}
-						totalCost={apiMetrics.totalCost}
-						contextTokens={apiMetrics.contextTokens}
-						buttonsDisabled={sendingDisabled}
-						handleCondenseContext={handleCondenseContext}
-						todos={latestTodos}
-					/> */}
-					<KiloTaskHeader
-						task={task}
-						tokensIn={apiMetrics.totalTokensIn}
-						tokensOut={apiMetrics.totalTokensOut}
-						cacheWrites={apiMetrics.totalCacheWrites}
-						cacheReads={apiMetrics.totalCacheReads}
-						totalCost={apiMetrics.totalCost}
-						contextTokens={apiMetrics.contextTokens}
-						handleCondenseContext={handleCondenseContext}
-						onClose={handleTaskCloseButtonClick}
-						groupedMessages={groupedMessages}
-						onMessageClick={handleMessageClick}
-						isTaskActive={sendingDisabled}
-						todos={latestTodos}
-						title={(task as any)?.title}
-					/>
 
-					{hasSystemPromptOverride && (
-						<div className="px-3">
-							<SystemPromptWarning />
+			{!task && isAgentManagerMode ? (
+				<div className="flex-1 flex flex-col items-center justify-center relative px-8 pb-32">
+					<div className="w-full max-w-[650px] flex flex-col gap-1">
+						<div className="text-xs text-[var(--vscode-descriptionForeground)] flex items-center gap-2 ml-6 opacity-70">
+							<span className="font-medium text-sm">
+								{currentTaskItem?.workspace?.split(/[/\\]/).pop() ||
+									cwd?.split(/[/\\]/).pop() ||
+									"Workspace"}
+							</span>
 						</div>
-					)}
-
-					{showCheckpointWarning && (
-						<div className="px-3">
-							<CheckpointWarning />
-						</div>
-					)}
-				</>
-			) : (
-				<div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 relative">
-					{/* {!showTelemetryBanner && (
-						<div>
-							<OrganizationSelector className="absolute top-2 right-3" />
-						</div>
-					)} */}
-					{/* forked_change start: changed the classes to support notifications */}
-					<div className="w-full h-full flex flex-col gap-4 px-3.5 transition-all duration-300">
-						{/* forked_change end */}
-						{/* Version indicator in top-right corner - only on welcome screen */}
-						{/* kilocode_change: do not show */}
-						{/* <VersionIndicator
-							onClick={() => setShowAnnouncementModal(true)}
-							className="absolute top-2 right-3 z-10"
+						<ChatTextArea
+							ref={textAreaRef}
+							inputValue={inputValue}
+							setInputValue={setInputValue}
+							sendingDisabled={sendingDisabled || isProfileDisabled}
+							selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+							selectedImages={selectedImages}
+							setSelectedImages={setSelectedImages}
+							onSend={() => handleSendMessage(inputValue, selectedImages)}
+							onSelectImages={selectImages}
+							shouldDisableImages={shouldDisableImages}
+							onHeightChange={() => {}}
+							mode={mode}
+							setMode={setMode}
+							modeShortcutText={modeShortcutText}
+							sendMessageOnEnter={sendMessageOnEnter}
+							isStreaming={isStreaming}
+							onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
 						/>
+						{/* <div className="flex items-center gap-2 mt-1 ml-4">
+							<button className="text-xs px-3 py-1.5 rounded-full border border-[var(--vscode-panel-border)] hover:bg-[var(--vscode-list-hoverBackground)] cursor-pointer text-[var(--vscode-foreground)] transition-colors inline-flex items-center">
+								Open Editor Window
+							</button>
+						</div> */}
+					</div>
+				</div>
+			) : (
+				<>
+					{task ? (
+						<div className={`${isAgentManagerMode ? "ml-12 mr-64" : "mx-0"}`}>
+							<KiloTaskHeader
+								task={task}
+								tokensIn={apiMetrics.totalTokensIn}
+								tokensOut={apiMetrics.totalTokensOut}
+								cacheWrites={apiMetrics.totalCacheWrites}
+								cacheReads={apiMetrics.totalCacheReads}
+								totalCost={apiMetrics.totalCost}
+								contextTokens={apiMetrics.contextTokens}
+								handleCondenseContext={handleCondenseContext}
+								onClose={handleTaskCloseButtonClick}
+								groupedMessages={groupedMessagesWithoutExploration}
+								onMessageClick={handleMessageClick}
+								isTaskActive={sendingDisabled}
+								todos={latestTodos}
+								title={(task as any)?.title}
+								isAgentManagerMode={isAgentManagerMode}
+							/>
 
-						<RooHero /> */}
+							{hasSystemPromptOverride && (
+								<div className="px-3">
+									<SystemPromptWarning />
+								</div>
+							)}
 
-						{/* forked_change start: KilocodeNotifications + Layout fixes */}
-						{/* TelemetryBanner removed */}
-						<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
-							<KilocodeNotifications />
+							{showCheckpointWarning && (
+								<div className="px-3">
+									<CheckpointWarning />
+								</div>
+							)}
 						</div>
-						<div className="flex flex-grow flex-col justify-start gap-4">
-							{/* forked_change end */}
-							{/* <p className="text-vscode-editor-foreground leading-normal font-vscode-font-family text-center text-balance max-w-[380px] mx-auto my-0">
-								<Trans
-									i18nKey="chat:about"
-									components={{
-										DocsLink: (
-											<a
-												href={buildDocLink("", "welcome")}
-												target="_blank"
-												rel="noopener noreferrer">
-												the docs
-											</a>
-										),
-									}}
-								/>
-							</p> */}
-							{/* {taskHistoryFullLength === 0 && <IdeaSuggestionsBox />} */}
-							{/*<div className="mb-2.5">
-								{cloudIsAuthenticated || taskHistory.length < 4 ? <RooTips /> : <RooCloudCTA />}
-							</div> kilocode_change: do not show */}
-							{/* Show the task history preview if expanded and tasks exist */}
-							{/* AI Code Reviews Setup Box - Hidden in review only mode */}
-							{!isReviewOnlyMode && (
-								<div className="w-full min-w-0 mb-1 p-3 border border-[var(--color-matterai-border)] rounded-xl bg-vscode-editor-background/50">
-									<div className="flex flex-col gap-2">
-										{/* Top section: Title/Subtitle left, Icons right */}
-										<div className="flex justify-between gap-4 items-center min-w-0">
-											<div className="flex flex-col gap-1">
-												<div className="flex flex-row gap-2 items-start">
-													<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-														Setup Agentic PR Reviews
-													</p>
-													<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
-														<img
-															src={iconsBaseUri + "/github-ic.png"}
-															alt="GitHub"
-															className="w-4 h-4"
-														/>
-														<img
-															src={iconsBaseUri + "/gitlab-ic.png"}
-															alt="GitLab"
-															className="w-4 h-4"
-														/>
+					) : (
+						<div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 relative">
+							<div className="w-full h-full flex flex-col gap-4 px-3.5 transition-all duration-300">
+								<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
+									<KilocodeNotifications />
+								</div>
+								<div className="flex flex-grow flex-col justify-start gap-2">
+									{!isReviewOnlyMode && (
+										<div className="w-full min-w-0 mt-4 mb-1 p-3 border border-[var(--vscode-activityBar-border)] rounded-2xl bg-vscode-editor-background/50">
+											<div className="flex flex-col gap-2">
+												{/* Top section: Title/Subtitle left, Icons right */}
+												<div className="flex justify-between gap-4 items-center min-w-0">
+													<div className="flex flex-col gap-1">
+														<div className="flex flex-row gap-2 items-start">
+															<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
+																Setup Agentic PR Reviews
+															</p>
+															<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
+																<img
+																	src={iconsBaseUri + "/github-ic.png"}
+																	alt="GitHub"
+																	className="w-4 h-4"
+																/>
+																<img
+																	src={iconsBaseUri + "/gitlab-ic.png"}
+																	alt="GitLab"
+																	className="w-4 h-4"
+																/>
 
-														<img
-															src={iconsBaseUri + "/bitbucket-ic.png"}
-															alt="Bitbucket"
-															className="w-4 h-4"
-														/>
-													</div>
-												</div>
-												<p className="text-xs p-0 m-0 font-regular text-vscode-foreground opacity-70">
-													Close PRs 50% faster with 80% less bugs
-												</p>
-												{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
+																<img
+																	src={iconsBaseUri + "/bitbucket-ic.png"}
+																	alt="Bitbucket"
+																	className="w-4 h-4"
+																/>
+															</div>
+														</div>
+														<p className="text-xs p-0 m-0 font-regular text-vscode-foreground opacity-70">
+															Close PRs 50% faster with 80% less bugs
+														</p>
+														{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
 												70% faster code reviews
 											</p> */}
-												<div className="flex flex-row gap-2">
-													<div className="self-start mt-1">
-														<VSCodeButtonLink
-															appearance="primary"
-															href="https://app.matterai.so/get-started">
-															Get Started for free
-														</VSCodeButtonLink>
-													</div>
-													<div className="self-start mt-1">
-														<VSCodeButtonLink
-															appearance="secondary"
-															href="https://docs.matterai.so/quickstart-ai-code-review-agent">
-															View Demo
-														</VSCodeButtonLink>
+														<div className="flex flex-row gap-2">
+															<div className="self-start mt-1">
+																<VSCodeButtonLink
+																	appearance="primary"
+																	href="https://app.matterai.so/get-started">
+																	Get Started for free
+																</VSCodeButtonLink>
+															</div>
+															<div className="self-start mt-1">
+																<VSCodeButtonLink
+																	appearance="secondary"
+																	href="https://docs.matterai.so/quickstart-ai-code-review-agent">
+																	View Demo
+																</VSCodeButtonLink>
+															</div>
+														</div>
 													</div>
 												</div>
 											</div>
 										</div>
-									</div>
-								</div>
-							)}
-							{/* Background tasks - Hidden in review only mode */}
-							{!isReviewOnlyMode && backgroundRunningTasks && backgroundRunningTasks.length > 0 && (
-								<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)] max-h-[50%] flex flex-col overflow-hidden">
-									<div className="flex flex-row items-center gap-1 mb-1 shrink-0">
-										<ListVideoIcon className="w-3 h-3 rtl:-scale-x-100" />
-										<span className="text-sm font-semibold text-vscode-foreground">
-											Background Agents
-										</span>
-										{/* <span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
-											{backgroundRunningTasks.filter((t) => t.status === "running").length}{" "}
-											running
-										</span> */}
-									</div>
-									<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
-										{backgroundRunningTasks.map((bt) => {
-											const resolvedStatus =
-												bt.status ??
-												((bt as { isCompleted?: boolean }).isCompleted
-													? "completed"
-													: "running")
-											const statusMeta = backgroundTaskStatusMeta[resolvedStatus]
-											const isRunning = resolvedStatus === "running"
-
-											return (
-												<div
-													key={bt.taskId}
-													className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
-													onClick={() => {
-														vscode.postMessage({
-															type: "switchToBackgroundTask",
-															taskId: bt.taskId,
-														})
-													}}>
-													<div className="flex-1 flex flex-col gap-1 min-w-0">
-														<div className="flex items-center gap-2">
-															<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
-																{bt.taskLabel || "New Task"}
-															</span>
-														</div>
-														<div className="flex items-center gap-2">
-															<>
-																<span
-																	className={`flex items-center justify-center w-2 h-2 rounded-full ${statusMeta.dotClassName}`}
-																/>
-																<span className="text-xs text-[var(--vscode-descriptionForeground)]">
-																	{statusMeta.label}
-																</span>
-															</>
-															{bt.apiModelId && (
-																<div className="flex items-center gap-2">
-																	<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/40" />
-																	<span className="text-xs text-[var(--vscode-descriptionForeground)] truncate max-w-[150px]">
-																		{bt.apiModelId}
-																	</span>
-																</div>
-															)}
-														</div>
-													</div>
-													<button
-														type="button"
-														className="shrink-0 inline-flex items-center justify-center rounded-sm p-1 text-[var(--vscode-descriptionForeground)] hover:bg-[var(--vscode-toolbar-hoverBackground)] hover:text-[var(--vscode-foreground)] transition-colors"
-														title="Remove task from background list"
-														onClick={(event) => {
-															event.preventDefault()
-															event.stopPropagation()
-															vscode.postMessage({
-																type: "dismissBackgroundTask",
-																taskId: bt.taskId,
-															})
-														}}>
-														<X className="size-3" />
-													</button>
+									)}
+									{!isReviewOnlyMode &&
+										backgroundRunningTasks &&
+										backgroundRunningTasks.length > 0 && (
+											<div className="w-full min-w-0 mb-0 p-2 rounded-2xl bg-vscode-editor-background/50 border border-[var(--vscode-activityBar-border)] max-h-[50%] flex flex-col overflow-hidden">
+												<div className="flex flex-row items-center gap-1 mb-1 ml-1 shrink-0 opacity-70">
+													<ListVideoIcon className="w-3 h-3 rtl:-scale-x-100" />
+													<span className="text-sm text-vscode-foreground">
+														Background Agents
+													</span>
 												</div>
-											)
-										})}
-									</div>
+												<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
+													{backgroundRunningTasks.map((bt) => {
+														const resolvedStatus =
+															bt.status ??
+															((bt as { isCompleted?: boolean }).isCompleted
+																? "completed"
+																: "running")
+														const statusMeta = backgroundTaskStatusMeta[resolvedStatus]
+														const isRunning = resolvedStatus === "running"
+
+														return (
+															<div
+																key={bt.taskId}
+																className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-xl border border-[var(--vscode-activityBar-border)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
+																onClick={() => {
+																	vscode.postMessage({
+																		type: "switchToBackgroundTask",
+																		taskId: bt.taskId,
+																	})
+																}}>
+																<div className="flex-1 flex flex-col gap-1 min-w-0">
+																	<div className="flex items-center gap-2">
+																		<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
+																			{bt.taskLabel || "New Agent"}
+																		</span>
+																	</div>
+																	<div className="flex items-center gap-2">
+																		<>
+																			<span
+																				className={`flex items-center justify-center w-2 h-2 rounded-full ${statusMeta.dotClassName}`}
+																			/>
+																			<span className="text-xs text-[var(--vscode-descriptionForeground)]">
+																				{statusMeta.label}
+																			</span>
+																		</>
+																		{bt.apiModelId && (
+																			<div className="flex items-center gap-2">
+																				<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/40" />
+																				<span className="text-xs text-[var(--vscode-descriptionForeground)] truncate max-w-[150px]">
+																					{bt.apiModelId}
+																				</span>
+																			</div>
+																		)}
+																	</div>
+																</div>
+																<button
+																	type="button"
+																	className="shrink-0 inline-flex items-center justify-center rounded-sm p-1 text-[var(--vscode-descriptionForeground)] hover:bg-[var(--vscode-toolbar-hoverBackground)] hover:text-[var(--vscode-foreground)] transition-colors"
+																	title="Remove task from background list"
+																	onClick={(event) => {
+																		event.preventDefault()
+																		event.stopPropagation()
+																		vscode.postMessage({
+																			type: "dismissBackgroundTask",
+																			taskId: bt.taskId,
+																		})
+																	}}>
+																	<X className="size-3" />
+																</button>
+															</div>
+														)
+													})}
+												</div>
+											</div>
+										)}
+									{!isReviewOnlyMode && taskHistoryFullLength > 0 && isExpanded && (
+										<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
+									)}
 								</div>
-							)}
-							{/* History preview - Hidden in review only mode */}
-							{!isReviewOnlyMode && taskHistoryFullLength > 0 && isExpanded && (
-								<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
-							)}
-						</div>
-						{/* forked_change end */}
-					</div>
-				</div>
-			)}
-
-			{/*
-			// Flex layout explanation:
-			// 1. Content div above uses flex: "1 1 0" to:
-			//    - Grow to fill available space (flex-grow: 1)
-			//    - Shrink when AutoApproveMenu needs space (flex-shrink: 1)
-			//    - Start from zero size (flex-basis: 0) to ensure proper distribution
-			//    minHeight: 0 allows it to shrink below its content height
-			//
-			// 2. AutoApproveMenu uses flex: "0 1 auto" to:
-			//    - Not grow beyond its content (flex-grow: 0)
-			//    - Shrink when viewport is small (flex-shrink: 1)
-			//    - Use its content size as basis (flex-basis: auto)
-			//    This ensures it takes its natural height when there's space
-			//    but becomes scrollable when the viewport is too small
-			*/}
-			{/* kilocode_change: added settings toggle for this */}
-			{!task && showAutoApproveMenu && (
-				<div className="mb-1 flex-initial min-h-0">
-					<AutoApproveMenu />
-				</div>
-			)}
-
-			{task && (
-				<>
-					<div className="grow flex flex-col relative" ref={scrollContainerRef}>
-						{/* kilocode_change: Sticky user message - positioned outside Virtuoso for true sticky behavior */}
-						<div
-							ref={stickyHeaderRef}
-							className="absolute top-0 left-0 right-0 z-10 pl-3 pr-1 py-0.5 pointer-events-none">
-							<div className="pointer-events-auto">
-								<StickyUserMessage
-									task={task}
-									messages={groupedMessages}
-									stickyIndex={stickyMessageIndex}
-								/>
 							</div>
 						</div>
-						<Virtuoso
-							ref={virtuosoRef}
-							key={task.ts}
-							className="scrollable grow overflow-y-scroll mb-1 scrollbar-hide"
-							// increasing top by 3_000 to prevent jumping around when user collapses a row
-							increaseViewportBy={{ top: 400, bottom: 400 }} // kilocode_change: use more modest numbers to see if they reduce gray screen incidence
-							data={groupedMessages}
-							itemContent={itemContent}
-							// kilocode_change: Spacer at top of list so items don't hide behind the sticky header
-							components={{
-								Header: () => <div style={{ height: stickyHeaderHeight }} />,
-							}}
-							atBottomStateChange={(isAtBottom: boolean) => {
-								setIsAtBottom(isAtBottom)
-								if (isAtBottom) {
-									disableAutoScrollRef.current = false
+					)}
+
+					{!task && showAutoApproveMenu && (
+						<div className="mb-1 flex-initial min-h-0">
+							<AutoApproveMenu />
+						</div>
+					)}
+
+					{task && (
+						<>
+							<div
+								className={`grow flex flex-col relative ${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}
+								ref={scrollContainerRef}>
+								{/* kilocode_change: Sticky user message - positioned outside Virtuoso for true sticky behavior */}
+								<div
+									ref={stickyHeaderRef}
+									className="absolute -top-1 left-0 right-0 z-10 pl-3 pr-1 py-0.5 pointer-events-none">
+									<div className="pointer-events-auto">
+										<StickyUserMessage
+											task={task}
+											messages={groupedMessagesWithoutExploration}
+											stickyIndex={stickyMessageIndex}
+										/>
+									</div>
+								</div>
+								<Virtuoso
+									ref={virtuosoRef}
+									key={task.ts}
+									className="scrollable grow overflow-y-scroll mb-1 scrollbar-hide"
+									// increasing top by 3_000 to prevent jumping around when user collapses a row
+									increaseViewportBy={{ top: 400, bottom: 400 }} // kilocode_change: use more modest numbers to see if they reduce gray screen incidence
+									data={groupedMessages}
+									itemContent={itemContent}
+									// kilocode_change: Spacer at top of list so items don't hide behind the sticky header
+									components={{
+										Header: () => <div style={{ height: stickyHeaderHeight }} />,
+									}}
+									atBottomStateChange={(isAtBottom: boolean) => {
+										setIsAtBottom(isAtBottom)
+										if (isAtBottom) {
+											disableAutoScrollRef.current = false
+										}
+										// setShowScrollToBottom(disableAutoScrollRef.current && !isAtBottom)
+									}}
+									atBottomThreshold={10}
+									initialTopMostItemIndex={groupedMessages.length - 1}
+									// kilocode_change: Capture scroller element for pixel-perfect sticky tracking
+									scrollerRef={(ref) => {
+										if (ref instanceof HTMLElement) {
+											virtuosoScrollerRef.current = ref
+										}
+									}}
+								/>
+							</div>
+							<div className={`flex-initial min-h-0 ${!areButtonsVisible ? "mb-1" : ""}`}>
+								{showAutoApproveMenu && <AutoApproveMenu />}
+							</div>
+						</>
+					)}
+
+					<div
+						className={`${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}>
+						<QueuedMessages
+							queue={messageQueue}
+							onRemove={(index) => {
+								if (messageQueue[index]) {
+									vscode.postMessage({ type: "removeQueuedMessage", text: messageQueue[index].id })
 								}
-								// setShowScrollToBottom(disableAutoScrollRef.current && !isAtBottom)
 							}}
-							atBottomThreshold={10}
-							initialTopMostItemIndex={groupedMessages.length - 1}
-							// kilocode_change: Capture scroller element for pixel-perfect sticky tracking
-							scrollerRef={(ref) => {
-								if (ref instanceof HTMLElement) {
-									virtuosoScrollerRef.current = ref
+							onUpdate={(index, newText) => {
+								if (messageQueue[index]) {
+									vscode.postMessage({
+										type: "editQueuedMessage",
+										payload: {
+											id: messageQueue[index].id,
+											text: newText,
+											images: messageQueue[index].images,
+										},
+									})
+								}
+							}}
+							onForceSend={(index) => {
+								if (messageQueue[index]) {
+									vscode.postMessage({ type: "forceSendQueuedMessage", text: messageQueue[index].id })
 								}
 							}}
 						/>
 					</div>
-					<div className={`flex-initial min-h-0 ${!areButtonsVisible ? "mb-1" : ""}`}>
-						{showAutoApproveMenu && <AutoApproveMenu />}
-					</div>
-				</>
-			)}
-
-			<QueuedMessages
-				queue={messageQueue}
-				onRemove={(index) => {
-					if (messageQueue[index]) {
-						vscode.postMessage({ type: "removeQueuedMessage", text: messageQueue[index].id })
-					}
-				}}
-				onUpdate={(index, newText) => {
-					if (messageQueue[index]) {
-						vscode.postMessage({
-							type: "editQueuedMessage",
-							payload: { id: messageQueue[index].id, text: newText, images: messageQueue[index].images },
-						})
-					}
-				}}
-				onForceSend={(index) => {
-					if (messageQueue[index]) {
-						vscode.postMessage({ type: "forceSendQueuedMessage", text: messageQueue[index].id })
-					}
-				}}
-			/>
-			{!task && showSourceControl && (
-				<div className="z-[1000] w-full min-w-0 px-4 mb-1">
-					<SourceControlPanel
-						fileChanges={_gitChangesForReview}
-						codeReviewResult={codeReviewResults}
-						codeReviewError={codeReviewError}
-						isLoading={isCodeReviewLoading}
-						onRunCodeReview={handleRunCodeReview}
-						onClose={() => setShowSourceControl(false)}
-						hasKilocodeToken={!!apiConfiguration?.kilocodeToken}
-					/>
-				</div>
-			)}
-
-			{/* kilocode_change: Show notification when monthly limit is exhausted */}
-			{isUsageExhausted && !task && (
-				<div className="w-full min-w-0 px-4 mb-4">
-					<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
-						<div className="flex flex-col gap-2">
-							<span className="text-lg font-medium text-[var(--vscode-foreground)]">
-								You are out of Orbital Credits
-							</span>
-							<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
-								To continue using Orbital, upgrade your plan or switch to Auto model.
-							</span>
+					{!task && showSourceControl && (
+						<div className="z-[1000] w-full min-w-0 px-4 mb-1">
+							<SourceControlPanel
+								fileChanges={_gitChangesForReview}
+								codeReviewResult={codeReviewResults}
+								codeReviewError={codeReviewError}
+								isLoading={isCodeReviewLoading}
+								onRunCodeReview={handleRunCodeReview}
+								onClose={() => setShowSourceControl(false)}
+								hasKilocodeToken={!!apiConfiguration?.kilocodeToken}
+							/>
 						</div>
-						<button
-							className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
-							onClick={() =>
-								vscode.postMessage({ type: "openExternal", url: "https://app.matterai.so/orbital" })
-							}>
-							Upgrade
-						</button>
-					</div>
-				</div>
-			)}
+					)}
 
-			{!task && (
-				<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1.5"}`}>
-					<VSCodeButton
-						appearance="secondary"
-						className="flex w-full min-w-full code-review-btn"
-						onClick={() => {
-							setShowSourceControl(true)
-							// If there's an error, automatically retry when opening
-							if (codeReviewError && !isCodeReviewLoading) {
-								handleRunCodeReview()
-							}
-						}}
-						disabled={isCodeReviewLoading}>
-						{codeReviewError ? (
-							<>
-								<span className="codicon codicon-refresh mr-1" />
-								Retry AI Code Review ({_gitChangesForReview.length}{" "}
-								{_gitChangesForReview.length === 1 ? "change" : "changes"})
-							</>
-						) : (
-							<>
-								Run AI Code Review ({_gitChangesForReview.length}{" "}
-								{_gitChangesForReview.length === 1 ? "change" : "changes"})
-							</>
-						)}
-					</VSCodeButton>
-				</div>
-			)}
-			{/* Chat input area - Hidden in review only mode */}
-			{!isReviewOnlyMode && (
-				<ChatTextArea
-					ref={textAreaRef}
-					inputValue={inputValue}
-					setInputValue={setInputValue}
-					sendingDisabled={sendingDisabled || isProfileDisabled}
-					selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
-					selectedImages={selectedImages}
-					setSelectedImages={setSelectedImages}
-					onSend={() => handleSendMessage(inputValue, selectedImages)}
-					onSelectImages={selectImages}
-					shouldDisableImages={shouldDisableImages}
-					onHeightChange={() => {
-						if (isAtBottom) {
-							scrollToBottomAuto()
-						}
-					}}
-					mode={mode}
-					setMode={setMode}
-					modeShortcutText={modeShortcutText}
-					sendMessageOnEnter={sendMessageOnEnter} // kilocode_change
-					isStreaming={isStreaming}
-					onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
-				/>
-			)}
-			{/* kilocode_change: added settings toggle the profile and model selection */}
-			{!isReviewOnlyMode && <BottomControls showApiConfig />}
-			{/* kilocode_change: end */}
+					{/* kilocode_change: Show notification when monthly limit is exhausted */}
+					{isUsageExhausted && !task && (
+						<div className="w-full min-w-0 px-4 mb-4">
+							<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
+								<div className="flex flex-col gap-2">
+									<span className="text-lg font-medium text-[var(--vscode-foreground)]">
+										You are out of Orbital Credits
+									</span>
+									<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
+										To continue using Orbital, upgrade your plan or switch to Auto model.
+									</span>
+								</div>
+								<button
+									className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
+									onClick={() =>
+										vscode.postMessage({
+											type: "openExternal",
+											url: "https://app.matterai.so/orbital",
+										})
+									}>
+									Upgrade
+								</button>
+							</div>
+						</div>
+					)}
 
-			{/* kilocode_change: disable {isProfileDisabled && (
+					{!task && (
+						<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1.5"}`}>
+							<VSCodeButton
+								appearance="secondary"
+								className="flex w-full min-w-full code-review-btn"
+								style={{
+									borderRadius: "25px !important",
+								}}
+								onClick={() => {
+									setShowSourceControl(true)
+									// If there's an error, automatically retry when opening
+									if (codeReviewError && !isCodeReviewLoading) {
+										handleRunCodeReview()
+									}
+								}}
+								disabled={isCodeReviewLoading}>
+								{codeReviewError ? (
+									<>
+										<span className="codicon codicon-refresh mr-1" />
+										Retry AI Code Review ({_gitChangesForReview.length}{" "}
+										{_gitChangesForReview.length === 1 ? "change" : "changes"})
+									</>
+								) : (
+									<>
+										Run AI Code Review ({_gitChangesForReview.length}{" "}
+										{_gitChangesForReview.length === 1 ? "change" : "changes"})
+									</>
+								)}
+							</VSCodeButton>
+						</div>
+					)}
+					{/* Chat input area - Hidden in review only mode */}
+					{!isReviewOnlyMode && (
+						<div
+							className={`${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}>
+							<ChatTextArea
+								ref={textAreaRef}
+								inputValue={inputValue}
+								setInputValue={setInputValue}
+								sendingDisabled={sendingDisabled || isProfileDisabled}
+								selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+								selectedImages={selectedImages}
+								setSelectedImages={setSelectedImages}
+								onSend={() => handleSendMessage(inputValue, selectedImages)}
+								onSelectImages={selectImages}
+								shouldDisableImages={shouldDisableImages}
+								onHeightChange={() => {
+									if (isAtBottom) {
+										scrollToBottomAuto()
+									}
+								}}
+								mode={mode}
+								setMode={setMode}
+								modeShortcutText={modeShortcutText}
+								sendMessageOnEnter={sendMessageOnEnter} // kilocode_change
+								isStreaming={isStreaming}
+								onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
+							/>
+						</div>
+					)}
+					{/* kilocode_change: added settings toggle the profile and model selection */}
+					{!isReviewOnlyMode && (
+						<div
+							className={`${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}>
+							<BottomControls showApiConfig />
+						</div>
+					)}
+					{/* kilocode_change: end */}
+
+					{/* kilocode_change: disable {isProfileDisabled && (
 				<div className="px-3">
 					<ProfileViolationWarning />
 				</div>
 			)} */}
 
-			<div id="roo-portal" />
-			{/* kilocode_change: disable  */}
-			{/* <CloudUpsellDialog open={isUpsellOpen} onOpenChange={closeUpsell} onConnect={handleConnect} /> */}
+					<div id="roo-portal" />
+					{/* kilocode_change: disable  */}
+					{/* <CloudUpsellDialog open={isUpsellOpen} onOpenChange={closeUpsell} onConnect={handleConnect} /> */}
+				</>
+			)}
 		</div>
 	)
 }

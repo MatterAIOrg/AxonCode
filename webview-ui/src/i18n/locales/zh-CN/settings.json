@@ -33,8 +33,8 @@
 		"ui": "UI",
 		"experimental": "实验性",
 		"language": "语言",
+		"codeIndex": "代码索引",
 		"developerTools": "开发者工具",
-		"mcp": "MCP 服务器",
 		"display": "显示",
 		"codeReview": "AI 代码审查"
 	},

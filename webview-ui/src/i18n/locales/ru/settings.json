@@ -33,6 +33,7 @@
 		"ui": "UI",
 		"experimental": "Экспериментальное",
 		"language": "Язык",
+		"codeIndex": "Индексация кода",
 		"developerTools": "Инструменты разработчика",
 		"display": "Показать",
 		"codeReview": "AI Code Reviews"

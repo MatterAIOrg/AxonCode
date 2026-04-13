@@ -38,8 +38,8 @@
 		"tooltip": "Try the operation again"
 	},
 	"startNewTask": {
-		"title": "Start New Task",
-		"tooltip": "Begin a new task"
+		"title": "Start New Agent",
+		"tooltip": "Begin a new agent"
 	},
 	"reportBug": {
 		"title": "Report Bug"
@@ -426,5 +426,17 @@
 		"problems": "Problems",
 		"terminal": "Terminal",
 		"url": "Paste URL to fetch contents"
+	},
+	"exploration": {
+		"exploring": "Exploring...",
+		"explored": "Explored",
+		"filesCount": "{{count}} file",
+		"filesCount_other": "{{count}} files",
+		"searchesCount": "{{count}} search",
+		"searchesCount_other": "{{count}} searches",
+		"commandsCount": "{{count}} command",
+		"commandsCount_other": "{{count}} commands",
+		"othersCount": "{{count}} other",
+		"othersCount_other": "{{count}} others"
 	}
 }

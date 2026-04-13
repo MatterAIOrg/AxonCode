@@ -34,6 +34,7 @@
 		"ui": "واجهة المستخدم",
 		"experimental": "تجريبي",
 		"language": "اللغة",
+		"codeIndex": "فهرسة الكود",
 		"developerTools": "أدوات المطور",
 		"codeReview": "مراجعات الكود بالذكاء الاصطناعي"
 	},

@@ -76,6 +76,7 @@ import { setTtsEnabled, setTtsSpeed } from "../../utils/tts"
 import { getWorkspaceGitInfo } from "../../utils/git"
 import { getWorkspacePath } from "../../utils/path"
 import { OrganizationAllowListViolationError } from "../../utils/errors"
+import { isOrbitalIDE } from "../../utils/detectOrbitalIDE" // kilocode_change
 
 import { setPanel } from "../../activate/registerCommands"
 
@@ -2308,8 +2309,8 @@ ${prompt}
 					(uiMessages.length > 0
 						? uiMessages[0].text
 							? uiMessages[0].text.substring(0, 50) + "..."
-							: "Image Task"
-						: "New Task")
+							: "Image Agent"
+						: "New Agent")
 
 				const status = this.getBackgroundTaskStatus(rootTask)
 
@@ -2522,6 +2523,7 @@ ${prompt}
 			codeReviewSettings,
 			contextWindowUsage: this.getCurrentTask()?.contextWindowUsage, // kilocode_change: Track context window usage
 			backgroundRunningTasks, // multi-chat support
+			isOrbital: isOrbitalIDE(), // kilocode_change: Orbital IDE detection for Agent Manager
 		}
 	}
 

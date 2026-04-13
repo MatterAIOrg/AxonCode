@@ -24,6 +24,7 @@ import { IpcServer } from "@roo-code/ipc"
 import { Package } from "../shared/package"
 import { ClineProvider } from "../core/webview/ClineProvider"
 import { openClineInNewTab } from "../activate/registerCommands"
+import { stringsToImageAttachments } from "../shared/ExtensionMessage"
 
 export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 	private readonly outputChannel: vscode.OutputChannel
@@ -133,7 +134,12 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 		await provider.removeClineFromStack()
 		await provider.postStateToWebview()
 		await provider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
-		await provider.postMessageToWebview({ type: "invoke", invoke: "newChat", text, images })
+		await provider.postMessageToWebview({
+			type: "invoke",
+			invoke: "newChat",
+			text,
+			images: stringsToImageAttachments(images),
+		})
 
 		const options: CreateTaskOptions = {
 			consecutiveMistakeLimit: Number.MAX_SAFE_INTEGER,
@@ -186,7 +192,12 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 	}
 
 	public async sendMessage(text?: string, images?: string[]) {
-		await this.sidebarProvider.postMessageToWebview({ type: "invoke", invoke: "sendMessage", text, images })
+		await this.sidebarProvider.postMessageToWebview({
+			type: "invoke",
+			invoke: "sendMessage",
+			text,
+			images: stringsToImageAttachments(images),
+		})
 	}
 
 	public async pressPrimaryButton() {

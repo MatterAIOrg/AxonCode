@@ -5,6 +5,7 @@ import * as fs from "fs/promises"
 import pWaitFor from "p-wait-for"
 import delay from "delay"
 import * as vscode from "vscode"
+import { createPatch } from "diff"
 // forked_change start
 import axios from "axios"
 import { codeReviewSettingsSchema, CodeReviewSettings, getKiloUrlFromToken, isGlobalStateKey } from "@roo-code/types"
@@ -52,6 +53,7 @@ import {
 	checkoutRestorePayloadSchema,
 } from "../../shared/WebviewMessage"
 import type { WebviewMessage as WebviewMessageType } from "../../shared/WebviewMessage"
+import { extractDataUrls, stringsToImageAttachments } from "../../shared/ExtensionMessage"
 import { checkExistKey } from "../../shared/checkExistApiConfig"
 import { experimentDefault } from "../../shared/experiments"
 import { Terminal } from "../../integrations/terminal/Terminal"
@@ -884,7 +886,7 @@ export const webviewMessageHandler = async (
 			messageTs,
 			text: editedContent,
 			hasCheckpoint,
-			images,
+			images: stringsToImageAttachments(images),
 			apiProvider,
 			apiModelId,
 			thirdPartySelectedModel,
@@ -1166,7 +1168,7 @@ export const webviewMessageHandler = async (
 			// agentically running promises in old instance don't affect our new
 			// task. This essentially creates a fresh slate for the new task.
 			try {
-				await provider.createTask(message.text, message.images)
+				await provider.createTask(message.text, extractDataUrls(message.images))
 				// Task created successfully - notify the UI to reset
 				await provider.postMessageToWebview({
 					type: "invoke",
@@ -1299,26 +1301,34 @@ export const webviewMessageHandler = async (
 			const pendingEdits = currentTask.fileEditReviewController.getPendingEdits()
 
 			const files = Array.from(pendingEdits.values()).map((edit) => {
-				// Calculate additions and deletions from all accumulated edits
+				const lastEdit = edit.edits[edit.edits.length - 1]
+				const beforeContent = edit.originalContent || lastEdit?.originalContent || ""
+				const afterContent = lastEdit?.newContent || ""
+				const diffLines = myersDiff(beforeContent, afterContent)
 				let totalAdditions = 0
 				let totalDeletions = 0
 
-				// Process each edit to accumulate diff stats
-				for (const editEntry of edit.edits) {
-					const beforeContent = editEntry.originalContent || ""
-					const afterContent = editEntry.newContent || ""
-
-					// Use proper diff algorithm to calculate changes
-					const diffLines = myersDiff(beforeContent, afterContent)
-
-					for (const diffLine of diffLines) {
-						if (diffLine.type === "new") {
-							totalAdditions++
-						} else if (diffLine.type === "old") {
-							totalDeletions++
-						}
+				for (const diffLine of diffLines) {
+					if (diffLine.type === "new") {
+						totalAdditions++
+					} else if (diffLine.type === "old") {
+						totalDeletions++
 					}
 				}
+
+				const normalizedBefore = beforeContent.endsWith("\n") ? beforeContent : `${beforeContent}\n`
+				const normalizedAfter = afterContent.endsWith("\n") ? afterContent : `${afterContent}\n`
+				const diff = createPatch(edit.relPath, normalizedBefore, normalizedAfter, undefined, undefined, {
+					context: 4,
+				})
+					.split("\n")
+					.filter((line) => !line.startsWith("Index: ") && !/^=+$/.test(line))
+					.map((line) => {
+						if (line.startsWith("--- ")) return `--- a/${edit.relPath}`
+						if (line.startsWith("+++ ")) return `+++ b/${edit.relPath}`
+						return line
+					})
+					.join("\n")
 
 				// Get the first changed line number from the diff anchor (1-indexed for VS Code)
 				const firstLineNumber = edit.diffAnchor ? edit.diffAnchor.start.line + 1 : undefined
@@ -1331,6 +1341,13 @@ export const webviewMessageHandler = async (
 						deletions: totalDeletions,
 					},
 					firstLineNumber,
+					status:
+						beforeContent.length === 0 && afterContent.length > 0
+							? "A"
+							: afterContent.length === 0
+								? "D"
+								: "M",
+					diff,
 				}
 			})
 
@@ -1546,7 +1563,9 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			break
 		case "askResponse":
-			provider.getCurrentTask()?.handleWebviewAskResponse(message.askResponse!, message.text, message.images)
+			provider
+				.getCurrentTask()
+				?.handleWebviewAskResponse(message.askResponse!, message.text, extractDataUrls(message.images))
 			break
 		case "autoCondenseContext":
 			await updateGlobalState("autoCondenseContext", message.bool)
@@ -2627,7 +2646,7 @@ ${comment.suggestion}
 					message.value,
 					"edit",
 					message.editedMessageContent,
-					message.images,
+					extractDataUrls(message.images),
 					message.apiProvider,
 					message.apiModelId,
 					message.thirdPartySelectedModel,
@@ -3271,7 +3290,7 @@ ${comment.suggestion}
 					message.messageTs,
 					message.text,
 					message.restoreCheckpoint,
-					message.images,
+					extractDataUrls(message.images),
 					message.apiProvider,
 					message.apiModelId,
 					message.thirdPartySelectedModel,
@@ -3994,6 +4013,14 @@ ${comment.suggestion}
 			provider.postMessageToWebview({ type: "action", action: "cloudButtonClicked" })
 			break
 		}
+		case "plusButtonClicked": {
+			// kilocode_change: Move agent to background
+			await provider.moveCurrentTaskToBackground()
+			await provider.refreshWorkspace()
+			provider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
+			provider.postMessageToWebview({ type: "action", action: "focusInput" })
+			break
+		}
 		case "rooCloudSignIn": {
 			try {
 				TelemetryService.instance.captureEvent(TelemetryEventName.AUTHENTICATION_INITIATED)
@@ -4486,6 +4513,21 @@ ${comment.suggestion}
 			await vscode.commands.executeCommand(getCommand("focusPanel"))
 			break
 		}
+		case "maximizeSideBar": {
+			// Maximize the sidebar panel width
+			await vscode.commands.executeCommand("workbench.action.maximizeAuxiliaryBar")
+			break
+		}
+		case "minimizeSideBar": {
+			// Minimize the sidebar panel width
+			await vscode.commands.executeCommand("workbench.action.toggleMaximizedAuxiliaryBar")
+			break
+		}
+		case "openSideBar": {
+			// Open the sidebar panel without maximizing
+			await vscode.commands.executeCommand("workbench.action.openAuxiliaryBar")
+			break
+		}
 		case "filterMarketplaceItems": {
 			if (marketplaceManager && message.filters) {
 				try {
@@ -4950,7 +4992,9 @@ ${comment.suggestion}
 		 */
 
 		case "queueMessage": {
-			provider.getCurrentTask()?.messageQueueService.addMessage(message.text ?? "", message.images)
+			provider
+				.getCurrentTask()
+				?.messageQueueService.addMessage(message.text ?? "", extractDataUrls(message.images))
 			break
 		}
 		case "removeQueuedMessage": {

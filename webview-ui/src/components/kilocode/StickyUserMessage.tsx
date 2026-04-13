@@ -72,7 +72,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 			)}
 			style={{
 				backgroundColor: "var(--vscode-editor-background)",
-				boxShadow: "rgb(18 18 18 / 88%) 0px 7px 29px 0px",
+				boxShadow: "rgb(18 18 18 / 88%) 0px 7px 19px 0px",
 			}}>
 			<div
 				className="flex items-center justify-between gap-2 cursor-pointer"
@@ -104,7 +104,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 				</div>
 			</div>
 			{isExpanded && stickyMessage.images && stickyMessage.images.length > 0 && (
-				<div className="mt-1">
+				<div className="mt-0">
 					{stickyMessage.images.slice(0, 4).map((img, i) => (
 						<img
 							key={i}

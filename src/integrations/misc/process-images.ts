@@ -2,7 +2,12 @@ import * as vscode from "vscode"
 import fs from "fs/promises"
 import * as path from "path"
 
-export async function selectImages(): Promise<string[]> {
+export interface ImageAttachment {
+	dataUrl: string
+	name: string
+}
+
+export async function selectImages(): Promise<ImageAttachment[]> {
 	const options: vscode.OpenDialogOptions = {
 		canSelectMany: true,
 		openLabel: "Select",
@@ -24,7 +29,8 @@ export async function selectImages(): Promise<string[]> {
 			const base64 = buffer.toString("base64")
 			const mimeType = getMimeType(imagePath)
 			const dataUrl = `data:${mimeType};base64,${base64}`
-			return dataUrl
+			const name = path.basename(imagePath)
+			return { dataUrl, name }
 		}),
 	)
 }

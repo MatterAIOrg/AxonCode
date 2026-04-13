@@ -36,6 +36,29 @@ import { ClineRulesToggles } from "./cline-rules"
 import { KiloCodeWrapperProperties } from "./kilocode/wrapper"
 // forked_change end
 
+// Image attachment type shared between extension and webview
+export interface ImageAttachment {
+	dataUrl: string
+	name: string
+}
+
+// Helper to extract dataUrls from ImageAttachment array or string array
+export function extractDataUrls(images: ImageAttachment[] | string[] | undefined): string[] {
+	if (!images) return []
+	if (images.length === 0) return []
+	// Check if first element is a string (dataUrl) or ImageAttachment
+	if (typeof images[0] === "string") {
+		return images as string[]
+	}
+	return (images as ImageAttachment[]).map((img) => img.dataUrl)
+}
+
+// Helper to convert string[] (dataUrls) to ImageAttachment[]
+export function stringsToImageAttachments(images: string[] | undefined): ImageAttachment[] {
+	if (!images) return []
+	return images.map((dataUrl, index) => ({ dataUrl, name: `image-${index}` }))
+}
+
 // Command interface for frontend/backend communication
 export interface Command {
 	name: string
@@ -195,7 +218,7 @@ export interface ExtensionMessage {
 		| "settingsFocus" // kilocode_change: Third-party providers settings
 	invoke?: "newChat" | "sendMessage" | "primaryButtonClick" | "secondaryButtonClick" | "setChatBoxMessage"
 	state?: ExtensionState
-	images?: string[]
+	images?: ImageAttachment[]
 	filePaths?: string[]
 	openedTabs?: Array<{
 		label: string
@@ -474,6 +497,7 @@ export type ExtensionState = Pick<
 	taskSyncEnabled: boolean
 	featureRoomoteControlEnabled: boolean
 	showTimestamps?: boolean
+	isOrbital?: boolean // kilocode_change: Orbital IDE detection for Agent Manager
 	backgroundRunningTasks?: Array<{
 		taskId: string
 		taskLabel: string
@@ -517,6 +541,8 @@ export interface ClineSayTool {
 		| "useSkill"
 		| "webFetch"
 		| "webSearch"
+		| "executeCommand"
+		| "planFileEdit"
 	path?: string
 	diff?: string
 	content?: string
@@ -574,6 +600,8 @@ export interface ClineSayTool {
 		url: string
 		title: string
 	}>
+	// Properties for planFileEdit tool
+	filename?: string
 }
 
 // Must keep in sync with system prompt.

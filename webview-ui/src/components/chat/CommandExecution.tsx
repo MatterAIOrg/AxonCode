@@ -10,6 +10,7 @@ import { safeJsonParse } from "@roo/safeJsonParse"
 import { COMMAND_OUTPUT_STRING } from "@roo/combineCommandSequences"
 
 import { Button, StandardTooltip } from "@src/components/ui"
+import { ImageAttachment } from "@src/components/common/Thumbnails"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
@@ -31,8 +32,8 @@ interface CommandExecutionProps {
 	icon?: JSX.Element | null
 	title?: JSX.Element | null
 	// Button props for command ask
-	onPrimaryButtonClick?: (text?: string, images?: string[]) => void
-	onSecondaryButtonClick?: (text?: string, images?: string[]) => void
+	onPrimaryButtonClick?: (text?: string, images?: ImageAttachment[]) => void
+	onSecondaryButtonClick?: (text?: string, images?: ImageAttachment[]) => void
 	onRunEverythingClick?: () => void
 	enableButtons?: boolean
 	primaryButtonText?: string
@@ -259,7 +260,7 @@ export const CommandExecution = memo(
 					</div>
 				</div>
 
-				<div className="bg-vscode-editor-background border border-vscode-border rounded-xl mt-2 overflow-hidden flex flex-col">
+				<div className="bg-vscode-editor-background border border-vscode-border rounded-2xl mt-2 overflow-hidden flex flex-col mb-1">
 					<div className="p-2 overflow-y-auto max-h-[calc(100vh/2.5)]">
 						<CodeBlock source={command} language="shell" />
 						<OutputContainer isExpanded={isExpanded} output={output} />

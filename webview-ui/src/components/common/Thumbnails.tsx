@@ -2,17 +2,48 @@ import React, { useState, useRef, useLayoutEffect, memo } from "react"
 import { useWindowSize } from "react-use"
 import { vscode } from "@src/utils/vscode"
 
+export interface ImageAttachment {
+	dataUrl: string
+	name: string
+}
+
 interface ThumbnailsProps {
-	images: string[]
+	images: string[] | ImageAttachment[]
 	style?: React.CSSProperties
-	setImages?: React.Dispatch<React.SetStateAction<string[]>>
+	setImages?: React.Dispatch<React.SetStateAction<string[]>> | React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 	onHeightChange?: (height: number) => void
+}
+
+// Helper to truncate filename to max 10 chars
+const truncateFilename = (name: string, maxLength: number = 10): string => {
+	if (name.length <= maxLength) return name
+	const lastDotIndex = name.lastIndexOf(".")
+	if (lastDotIndex <= 0) {
+		return name.slice(0, Math.max(0, maxLength - 3)) + "..."
+	}
+	const extension = name.slice(lastDotIndex)
+	const baseName = name.slice(0, lastDotIndex)
+	const truncatedBase = baseName.slice(0, Math.max(0, maxLength - extension.length - 3)) + "..."
+	return truncatedBase + extension
+}
+
+// Helper to convert legacy string[] or ImageAttachment[] to ImageAttachment[]
+export const normalizeImages = (images: string[] | ImageAttachment[] | undefined): ImageAttachment[] => {
+	if (!images) return []
+	return images.map((img, index) => {
+		if (typeof img === "string") {
+			return { dataUrl: img, name: `image_${index + 1}` }
+		}
+		return img
+	})
 }
 
 const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProps) => {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
 	const { width } = useWindowSize()
+
+	const normalizedImages = normalizeImages(images)
 
 	useLayoutEffect(() => {
 		if (containerRef.current) {
@@ -27,65 +58,105 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 	}, [images, width, onHeightChange])
 
 	const handleDelete = (index: number) => {
-		setImages?.((prevImages) => prevImages.filter((_, i) => i !== index))
+		if (!setImages) return
+		// @ts-expect-error - TypeScript struggles with the union type
+		setImages((prevImages: string[] | ImageAttachment[]) => prevImages.filter((_, i) => i !== index))
 	}
 
 	const isDeletable = setImages !== undefined
 
-	const handleImageClick = (image: string) => {
-		vscode.postMessage({ type: "openImage", text: image })
+	const handleImageClick = (image: ImageAttachment) => {
+		vscode.postMessage({ type: "openImage", text: image.dataUrl })
 	}
 
 	return (
 		<div
 			ref={containerRef}
-			className=""
+			className="thumbnails-container"
 			style={{
 				display: "flex",
 				flexWrap: "wrap",
-				gap: 5,
-				rowGap: 3,
+				gap: 8,
+				rowGap: 6,
 				...style,
 			}}>
-			{images.map((image, index) => (
+			{normalizedImages.map((image, index) => (
 				<div
 					key={index}
 					style={{ position: "relative" }}
 					onMouseEnter={() => setHoveredIndex(index)}
 					onMouseLeave={() => setHoveredIndex(null)}>
-					<img
-						src={image}
-						alt={`Thumbnail ${index + 1}`}
+					{/* Pill container */}
+					<div
 						style={{
-							width: 34,
-							height: 34,
-							objectFit: "cover",
-							borderRadius: 4,
+							display: "flex",
+							alignItems: "center",
+							backgroundColor: "var(--vscode-badge-background)",
+							borderRadius: 16,
+							padding: "2px 10px 2px 2px",
+							gap: 6,
 							cursor: "pointer",
+							transition: "background-color 0.15s",
 						}}
 						onClick={() => handleImageClick(image)}
-					/>
+						onMouseEnter={(e) => {
+							e.currentTarget.style.backgroundColor = "var(--vscode-list-hoverBackground)"
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.backgroundColor = "var(--vscode-badge-background)"
+						}}>
+						{/* Circular image */}
+						<img
+							src={image.dataUrl}
+							alt={`Thumbnail ${index + 1}`}
+							style={{
+								width: 24,
+								height: 24,
+								objectFit: "cover",
+								borderRadius: "50%",
+								flexShrink: 0,
+							}}
+						/>
+						{/* Filename */}
+						<span
+							style={{
+								fontSize: 11,
+								color: "var(--vscode-badge-foreground)",
+								whiteSpace: "nowrap",
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+								maxWidth: 100,
+								fontFamily: "var(--vscode-font-family)",
+							}}>
+							{truncateFilename(image.name)}
+						</span>
+					</div>
+					{/* Delete button */}
 					{isDeletable && hoveredIndex === index && (
 						<div
-							onClick={() => handleDelete(index)}
+							onClick={(e) => {
+								e.stopPropagation()
+								handleDelete(index)
+							}}
 							style={{
 								position: "absolute",
 								top: -5,
 								right: -5,
-								width: 20,
-								height: 20,
+								width: 18,
+								height: 18,
 								borderRadius: "50%",
 								backgroundColor: "var(--vscode-badge-background)",
 								display: "flex",
 								justifyContent: "center",
 								alignItems: "center",
 								cursor: "pointer",
+								zIndex: 10,
 							}}>
 							<span
 								className="codicon codicon-close"
 								style={{
 									color: "var(--vscode-foreground)",
-									fontSize: 10,
+									fontSize: 12,
 									fontWeight: "bold",
 								}}></span>
 						</div>

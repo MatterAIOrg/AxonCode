@@ -19,6 +19,8 @@ import {
 import { Mode } from "./modes"
 import { ImplementPlanPayload, OpenPlanFilePayload } from "./ExtensionMessage"
 
+import { ImageAttachment } from "./ExtensionMessage"
+
 export type ClineAskResponse =
 	| "yesButtonClicked"
 	| "noButtonClicked"
@@ -334,12 +336,16 @@ export interface WebviewMessage {
 		| "applyAllCodeReviewFixes"
 		| "getGitChangesForReview"
 		| "gitChangesForReview"
-		| "codeReviewSettings" // kilocode_change
-		| "showToast" // kilocode_change
-		| "get_memories" // kilocode_change: Chat memories
-		| "memories_response" // kilocode_change: Chat memories response
-		| "delete_memory" // kilocode_change: Delete memory
-		| "memory_deleted" // kilocode_change: Memory deleted response
+		| "codeReviewSettings"
+		| "showToast"
+		| "get_memories"
+		| "memories_response"
+		| "delete_memory"
+		| "memory_deleted"
+		| "maximizeSideBar"
+		| "minimizeSideBar"
+		| "openSideBar"
+		| "plusButtonClicked" // kilocode_change: Move agent to background
 	// forked_change end
 	text?: string
 	editedMessageContent?: string

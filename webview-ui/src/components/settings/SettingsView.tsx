@@ -3,6 +3,7 @@ import {
 	Bell, // kilocode_change
 	CheckCheck,
 	CircleUserRound,
+	Database,
 	GitPullRequest,
 	// Info, // kilocode_change: hidden for now
 	Languages,
@@ -61,6 +62,7 @@ import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
 import { BrowserSettings } from "./BrowserSettings"
 // import { CheckpointSettings } from "./CheckpointSettings"
+import { CodeIndexSettings } from "./CodeIndexSettings"
 import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewSettings"
 // import { ContextManagementSettings } from "./ContextManagementSettings"
 // import { DisplaySettings } from "./DisplaySettings" // kilocode_change
@@ -100,6 +102,7 @@ const sectionNames = [
 	"experimental",
 	"language",
 	// "mcp", // kilocode_change: hidden for now
+	"codeIndex", // kilocode_change
 	"codeReview", // kilocode_change
 	"developerTools", // kilocode_change: renamed from about
 ] as const
@@ -614,6 +617,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			// { id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Languages },
 			// { id: "mcp", icon: Server }, // kilocode_change: hidden for now
+			{ id: "codeIndex", icon: Database }, // kilocode_change
 			{ id: "developerTools", icon: Wrench }, // kilocode_change: renamed from about with wrench icon
 		],
 		[], // kilocode_change
@@ -1027,6 +1031,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						{/* kilocode_change */}
 						{/* MCP Section - hidden for now */}
 						{/* {activeTab === "mcp" && <McpView />} */}
+
+						{/* Code Index Section */}
+						{activeTab === "codeIndex" && <CodeIndexSettings />}
 
 						{/* Code Review Section */}
 						{activeTab === "codeReview" && (

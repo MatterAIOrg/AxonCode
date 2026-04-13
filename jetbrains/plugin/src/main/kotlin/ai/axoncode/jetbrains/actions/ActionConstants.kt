@@ -26,7 +26,7 @@ object ActionNames {
     const val ADD_TO_CONTEXT = "Add to Context"
 
     /** Action to create a new task */
-    const val NEW_TASK = "New Task"
+    const val NEW_TASK = "New Agent"
 }
 
 /**

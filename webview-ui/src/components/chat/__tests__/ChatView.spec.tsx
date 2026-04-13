@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 import { ExtensionStateContextProvider } from "@src/context/ExtensionStateContext"
 import { vscode } from "@src/utils/vscode"
+import { ImageAttachment } from "@src/components/common/Thumbnails"
 
 import ChatView, { ChatViewProps } from "../ChatView"
 
@@ -162,7 +163,7 @@ interface ChatTextAreaProps {
 	inputValue?: string
 	sendingDisabled?: boolean
 	placeholderText?: string
-	selectedImages?: string[]
+	selectedImages?: ImageAttachment[]
 	shouldDisableImages?: boolean
 }
 
@@ -268,6 +269,10 @@ const defaultProps: ChatViewProps = {
 	isHidden: false,
 	showAnnouncement: false,
 	hideAnnouncement: () => {},
+	inputValue: "",
+	setInputValue: () => {},
+	selectedImages: [],
+	setSelectedImages: () => {},
 }
 
 const queryClient = new QueryClient()

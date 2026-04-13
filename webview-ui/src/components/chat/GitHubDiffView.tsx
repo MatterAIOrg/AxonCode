@@ -17,10 +17,11 @@ interface GitHubDiffViewProps {
 	isExpanded: boolean
 	onToggleExpand?: () => void
 	onOpenFile?: () => void
+	maxHeight?: string
 }
 
 type ParsedDiffRow =
-	| { kind: "spacer"; key: string }
+	| { kind: "spacer"; key: string; hiddenLineCount: number }
 	| { kind: "hunk"; key: string; oldStart: number; newStart: number }
 	| {
 			kind: "line"
@@ -44,7 +45,13 @@ const parseUnifiedDiff = (diff: string): ParsedDiffRow[] => {
 	let hunkIndex = 0
 
 	for (const rawLine of lines) {
-		if (rawLine.startsWith("diff --git") || rawLine.startsWith("--- ") || rawLine.startsWith("+++ ")) {
+		if (
+			rawLine.startsWith("diff --git") ||
+			rawLine.startsWith("--- ") ||
+			rawLine.startsWith("+++ ") ||
+			rawLine.startsWith("Index: ") ||
+			/^=+$/.test(rawLine)
+		) {
 			continue
 		}
 
@@ -58,7 +65,11 @@ const parseUnifiedDiff = (diff: string): ParsedDiffRow[] => {
 				nextNewLine > previousVisibleNewLine + 1 &&
 				rows[rows.length - 1]?.kind !== "spacer"
 			) {
-				rows.push({ kind: "spacer", key: `spacer-${hunkIndex}` })
+				rows.push({
+					kind: "spacer",
+					key: `spacer-${hunkIndex}`,
+					hiddenLineCount: nextNewLine - previousVisibleNewLine - 1,
+				})
 			}
 
 			oldLine = nextOldLine
@@ -113,7 +124,7 @@ const parseUnifiedDiff = (diff: string): ParsedDiffRow[] => {
 	return rows
 }
 
-const GitHubDiffView = memo(({ diff, filePath, isExpanded }: GitHubDiffViewProps) => {
+const GitHubDiffView = memo(({ diff, filePath, isExpanded, maxHeight = "20rem" }: GitHubDiffViewProps) => {
 	const language = useMemo(() => getLanguageFromPath(filePath || "") || "text", [filePath])
 	const headerRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -134,15 +145,13 @@ const GitHubDiffView = memo(({ diff, filePath, isExpanded }: GitHubDiffViewProps
 	return (
 		<div>
 			{isExpanded && (
-				<div className="w-full mt-2" style={{ marginLeft: `${diffMarginLeft}px` }}>
+				<div className="w-full mt-1" style={{ marginLeft: `${diffMarginLeft}px` }}>
 					<div
-						className="rounded-xl overflow-auto scrollbar-hide min-w-0"
+						className="rounded-md overflow-auto scrollbar-hide min-w-0"
 						style={{
-							maxHeight: "20rem",
-							border: "1px solid var(--vscode-editorWidget-border)",
+							maxHeight,
+							border: "1px solid var(--vscode-activityBar-border)",
 							background: "var(--vscode-editorWidget-background)",
-							boxShadow:
-								"inset 0 1px 0 color-mix(in srgb, var(--vscode-editorWidget-border) 20%, transparent)",
 						}}>
 						{/* Diff content */}
 						<div
@@ -234,9 +243,11 @@ DiffSyntaxLine.displayName = "DiffSyntaxLine"
 const UnifiedDiffView = memo(({ diff, language }: { diff: string; language: string }) => {
 	const rows = parseUnifiedDiff(diff)
 	const lineNumberStyle: CSSProperties = {
-		width: "3.75rem",
+		width: "2.15rem",
 		flexShrink: 0,
 		paddingRight: "0.625rem",
+		paddingTop: "0.375rem",
+		paddingLeft: "0.375rem",
 		textAlign: "right",
 		userSelect: "none",
 		fontVariantNumeric: "tabular-nums",
@@ -262,12 +273,11 @@ const UnifiedDiffView = memo(({ diff, language }: { diff: string; language: stri
 							}}>
 							<span style={lineNumberStyle} />
 							<span
-								className="pl-2"
+								className="pl-2 text-xs"
 								style={{
-									letterSpacing: "0.08em",
-									opacity: 0.7,
+									opacity: 0.76,
 								}}>
-								...
+								{row.hiddenLineCount} unmodified {row.hiddenLineCount === 1 ? "line" : "lines"}
 							</span>
 						</div>
 					)
@@ -287,17 +297,13 @@ const UnifiedDiffView = memo(({ diff, language }: { diff: string; language: stri
 				let lineNumberBackground: string | undefined
 
 				if (isAddition) {
-					background =
-						"color-mix(in srgb, var(--vscode-diffEditor-insertedLineBackground) 22%, var(--vscode-editor-background))"
-					accent = "var(--vscode-gitDecoration-addedResourceForeground)"
-					lineNumberBackground =
-						"color-mix(in srgb, var(--vscode-diffEditor-insertedLineBackground) 36%, var(--vscode-editor-background))"
+					background = "color-mix(in srgb, #3fa266 12%, var(--vscode-editor-background))"
+					accent = "#3fa266"
+					lineNumberBackground = "color-mix(in srgb, #3fa266 26%, var(--vscode-editor-background))"
 				} else if (isDeletion) {
-					background =
-						"color-mix(in srgb, var(--vscode-diffEditor-removedLineBackground) 22%, var(--vscode-editor-background))"
-					accent = "var(--vscode-gitDecoration-deletedResourceForeground)"
-					lineNumberBackground =
-						"color-mix(in srgb, var(--vscode-diffEditor-removedLineBackground) 36%, var(--vscode-editor-background))"
+					background = "color-mix(in srgb, #fc6b83 12%, var(--vscode-editor-background))"
+					accent = "#fc6b83"
+					lineNumberBackground = "color-mix(in srgb, #fc6b83 26%, var(--vscode-editor-background))"
 				}
 
 				return (
@@ -314,15 +320,15 @@ const UnifiedDiffView = memo(({ diff, language }: { diff: string; language: stri
 							style={{
 								...lineNumberStyle,
 								color: isAddition
-									? "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 82%, var(--vscode-editor-foreground))"
+									? "color-mix(in srgb, #3fa266 82%, var(--vscode-editor-foreground))"
 									: isDeletion
-										? "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 82%, var(--vscode-editor-foreground))"
+										? "color-mix(in srgb, #fc6b83 82%, var(--vscode-editor-foreground))"
 										: "var(--vscode-editorLineNumber-activeForeground)",
 								background: lineNumberBackground,
 							}}>
 							{displayLineNumber ?? ""}
 						</span>
-						<span className="flex-grow pl-2 pr-4 whitespace-pre">
+						<span className="flex-grow pl-0.5 pt-1.5 pr-4 whitespace-pre">
 							<DiffSyntaxLine content={row.content || " "} language={language} />
 						</span>
 					</div>

@@ -33,6 +33,7 @@
 		"ui": "UI",
 		"experimental": "Experimental",
 		"language": "Idioma",
+		"codeIndex": "Indexació de codi",
 		"developerTools": "Eines de desenvolupador",
 		"display": "Mostrar",
 		"codeReview": "Revisions de Codi amb IA"

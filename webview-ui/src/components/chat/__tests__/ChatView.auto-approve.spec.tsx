@@ -86,6 +86,10 @@ const defaultProps: ChatViewProps = {
 	isHidden: false,
 	showAnnouncement: false,
 	hideAnnouncement: () => {},
+	inputValue: "",
+	setInputValue: () => {},
+	selectedImages: [],
+	setSelectedImages: () => {},
 }
 
 const renderChatView = (props: Partial<ChatViewProps> = {}) => {

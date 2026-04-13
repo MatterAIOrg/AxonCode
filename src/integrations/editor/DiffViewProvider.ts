@@ -332,7 +332,7 @@ export class DiffViewProvider {
 			const fileContent = await fs.readFile(absolutePath, "utf-8")
 			const lines = fileContent.split("\n")
 			const totalLines = lines.length
-			const contextLines = 10 // Lines of context before and after changes
+			const contextLines = 4 // Lines of context before and after changes
 
 			let startLine = 0
 			let endLine = totalLines

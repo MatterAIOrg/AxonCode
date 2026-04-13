@@ -4,6 +4,7 @@ import { useEvent } from "react-use"
 
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 import TranslationProvider from "./i18n/TranslationContext"
+import { ImageAttachment, normalizeImages } from "./components/common/Thumbnails"
 
 import { TelemetryEventName } from "@roo-code/types"
 import ChatView, { ChatViewRef } from "./components/chat/ChatView"
@@ -24,6 +25,7 @@ import ErrorBoundary from "./components/ErrorBoundary"
 import { HumanRelayDialog } from "./components/human-relay/HumanRelayDialog"
 import BottomControls from "./components/kilocode/BottomControls" // kilocode_change
 import ModesView from "./components/modes/ModesView"
+import { AgentManagerView } from "./components/agent/AgentManagerView"
 import { MemoryService } from "./services/MemoryService" // kilocode_change
 // import { AccountView } from "./components/account/AccountView" // kilocode_change: we have our own profile view
 // import { CloudView } from "./components/cloud/CloudView" // kilocode_change: not rendering this
@@ -53,7 +55,7 @@ interface EditMessageDialogState {
 	messageTs: number
 	text: string
 	hasCheckpoint: boolean
-	images?: string[]
+	images?: ImageAttachment[]
 	apiProvider?: string
 	apiModelId?: string
 	thirdPartySelectedModel?: string
@@ -96,6 +98,7 @@ const App = () => {
 		mdmCompliant,
 		apiConfiguration, // kilocode_change
 		codeReviewSettings, // kilocode_change
+		isOrbital, // kilocode_change: Orbital IDE detection for Agent Manager
 	} = useExtensionState()
 	const { showToast } = useToast()
 
@@ -104,6 +107,11 @@ const App = () => {
 
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 	const [tab, setTab] = useState<Tab>("chat")
+	const [isAgentManagerOpen, setIsAgentManagerOpen] = useState(false)
+
+	// Lifted state for ChatTextArea to persist across Agent/Agent Manager mode switches
+	const [chatInputValue, setChatInputValue] = useState("")
+	const [chatSelectedImages, setChatSelectedImages] = useState<ImageAttachment[]>([])
 
 	const [humanRelayDialogState, setHumanRelayDialogState] = useState<HumanRelayDialogState>({
 		isOpen: false,
@@ -123,6 +131,9 @@ const App = () => {
 		text: "",
 		hasCheckpoint: false,
 		images: [],
+		apiProvider: undefined,
+		apiModelId: undefined,
+		thirdPartySelectedModel: undefined,
 	})
 
 	const settingsRef = useRef<SettingsViewRef>(null)
@@ -210,7 +221,7 @@ const App = () => {
 					messageTs: message.messageTs,
 					text: message.text,
 					hasCheckpoint: message.hasCheckpoint || false,
-					images: message.images || [],
+					images: normalizeImages(message.images),
 					apiProvider: message.apiProvider,
 					apiModelId: message.apiModelId,
 					thirdPartySelectedModel: message.thirdPartySelectedModel,
@@ -255,6 +266,28 @@ const App = () => {
 		}
 	}, [telemetrySetting, telemetryKey, telemetryDistinctId, didHydrateState])
 	// forked_change end
+
+	// Toggle Agent Manager sidebar - only triggered by user clicks, never automatic
+	const openAgentManager = useCallback(() => {
+		setIsAgentManagerOpen(true)
+		if (isOrbital) {
+			vscode.postMessage({ type: "maximizeSideBar" })
+		}
+	}, [isOrbital])
+
+	const closeAgentManager = useCallback(() => {
+		setIsAgentManagerOpen(false)
+		if (isOrbital) {
+			vscode.postMessage({ type: "minimizeSideBar" })
+		}
+	}, [isOrbital])
+
+	// Open sidebar on mount in Orbital mode (without maximizing)
+	useEffect(() => {
+		if (isOrbital && didHydrateState) {
+			vscode.postMessage({ type: "openSideBar" })
+		}
+	}, [isOrbital, didHydrateState])
 
 	// Tell the extension that we are ready to receive messages.
 	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
@@ -362,12 +395,49 @@ const App = () => {
 			{/* {tab === "account" && (
 				<AccountView userInfo={cloudUserInfo} isAuthenticated={false} onDone={() => switchTab("chat")} />
 			)} */}
-			<ChatView
-				ref={chatViewRef}
-				isHidden={tab !== "chat"}
-				showAnnouncement={showAnnouncement}
-				hideAnnouncement={() => setShowAnnouncement(false)}
-			/>
+			<AgentManagerView isOpen={isOrbital ? isAgentManagerOpen : false}>
+				<ChatView
+					ref={chatViewRef}
+					isHidden={tab !== "chat"}
+					showAnnouncement={showAnnouncement}
+					hideAnnouncement={() => setShowAnnouncement(false)}
+					isAgentManagerMode={isOrbital ? isAgentManagerOpen : false}
+					inputValue={chatInputValue}
+					setInputValue={setChatInputValue}
+					selectedImages={chatSelectedImages}
+					setSelectedImages={setChatSelectedImages}
+				/>
+			</AgentManagerView>
+
+			{/* Floating Toggle at the top center - Only show in Orbital IDE */}
+			{tab === "chat" && isOrbital && (
+				<div className="absolute top-0 right-3.5 z-50 pointer-events-none flex justify-center">
+					<div className="pointer-events-auto bg-[var(--vscode-sideBar-background)] border border-[var(--vscode-panel-border)] p-0.5 rounded-lg flex items-center shadow-lg relative">
+						<div
+							className="absolute top-1 bottom-1 rounded-md bg-[var(--vscode-button-background)] transition-transform duration-200 ease-in-out"
+							style={{
+								left: "4px",
+								width: isAgentManagerOpen ? "calc(100% - 65px)" : "calc(100% - 155px)",
+								transform: isAgentManagerOpen ? "translateX(56px)" : "translateX(0)",
+							}}
+						/>
+						<button
+							onClick={closeAgentManager}
+							className={`relative z-10 px-3 py-0.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center ${!isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
+							Agent
+						</button>
+						<button
+							onClick={openAgentManager}
+							className={`relative z-10 px-3 py-0.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center ${isAgentManagerOpen ? "text-[var(--vscode-button-foreground)]" : "text-[var(--vscode-foreground)] opacity-70 hover:opacity-100"}`}>
+							Agent Manager
+							<span className="ml-1.5 text-[8px] px-1.5 py-0 rounded bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)]">
+								BETA
+							</span>
+						</button>
+					</div>
+				</div>
+			)}
+
 			<MemoizedHumanRelayDialog
 				isOpen={humanRelayDialogState.isOpen}
 				requestId={humanRelayDialogState.requestId}
@@ -432,7 +502,7 @@ const App = () => {
 							type: "editMessageConfirm",
 							messageTs: editMessageDialogState.messageTs,
 							text: editMessageDialogState.text,
-							images: editMessageDialogState.images,
+							images: editMessageDialogState.images?.map((img) => img.dataUrl),
 							apiProvider: editMessageDialogState.apiProvider,
 							apiModelId: editMessageDialogState.apiModelId,
 							thirdPartySelectedModel: editMessageDialogState.thirdPartySelectedModel,

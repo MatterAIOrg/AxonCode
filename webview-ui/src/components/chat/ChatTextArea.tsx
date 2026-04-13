@@ -22,8 +22,8 @@ import {
 
 import { cn } from "@/lib/utils"
 import { renderMentionChip } from "@/utils/chat-render"
-import { FilePlus2, MessageSquareX, VolumeX } from "lucide-react"
-import Thumbnails from "../common/Thumbnails"
+import { MessageSquareX, VolumeX } from "lucide-react"
+import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import KiloModeSelector from "../kilocode/KiloModeSelector"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
 import { useSelectedModel } from "../ui/hooks/useSelectedModel"
@@ -31,13 +31,12 @@ import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import ContextMenu from "./ContextMenu"
 import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
 import { ImageWarningBanner } from "./ImageWarningBanner" // kilocode_change
-import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
 
 // forked_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
-import { ArrowRight02Icon } from "@/utils/customIcons"
+import { ArrowRight02Icon, ImageAdd02Icon } from "@/utils/customIcons"
 import {
 	SlashCommand,
 	getMatchingSlashCommands,
@@ -52,8 +51,8 @@ interface ChatTextAreaProps {
 	setInputValue: (value: string) => void
 	sendingDisabled: boolean
 	selectApiConfigDisabled: boolean
-	selectedImages: string[]
-	setSelectedImages: React.Dispatch<React.SetStateAction<string[]>>
+	selectedImages: ImageAttachment[]
+	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 	onSend: () => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
@@ -618,7 +617,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					// forked_change end: Image validation with warning messages
 
 					const imagePromises = imageItems.map((item) => {
-						return new Promise<string | null>((resolve) => {
+						return new Promise<ImageAttachment | null>((resolve) => {
 							const blob = item.getAsFile()
 
 							if (!blob) {
@@ -626,6 +625,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								return
 							}
 
+							const fileName = blob.name || `image_${Date.now()}.png`
 							const reader = new FileReader()
 
 							reader.onloadend = () => {
@@ -634,7 +634,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									resolve(null)
 								} else {
 									const result = reader.result
-									resolve(typeof result === "string" ? result : null)
+									if (typeof result === "string") {
+										resolve({ dataUrl: result, name: fileName })
+									} else {
+										resolve(null)
+									}
 								}
 							}
 
@@ -643,10 +647,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					})
 
 					const imageDataArray = await Promise.all(imagePromises)
-					const dataUrls = imageDataArray.filter((dataUrl): dataUrl is string => dataUrl !== null)
+					const validImages = imageDataArray.filter((img): img is ImageAttachment => img !== null)
 
-					if (dataUrls.length > 0) {
-						setSelectedImages((prevImages) => [...prevImages, ...dataUrls].slice(0, MAX_IMAGES_PER_MESSAGE))
+					if (validImages.length > 0) {
+						setSelectedImages((prevImages) =>
+							[...prevImages, ...validImages].slice(0, MAX_IMAGES_PER_MESSAGE),
+						)
 					} else {
 						console.warn(t("chat:noValidImages"))
 					}
@@ -1278,7 +1284,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						// forked_change end: Image validation with warning messages for drag and drop
 
 						const imagePromises = imageFiles.map((file) => {
-							return new Promise<string | null>((resolve) => {
+							return new Promise<ImageAttachment | null>((resolve) => {
 								const reader = new FileReader()
 
 								reader.onloadend = () => {
@@ -1287,7 +1293,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 										resolve(null)
 									} else {
 										const result = reader.result
-										resolve(typeof result === "string" ? result : null)
+										if (typeof result === "string") {
+											resolve({ dataUrl: result, name: file.name || `image_${Date.now()}.png` })
+										} else {
+											resolve(null)
+										}
 									}
 								}
 
@@ -1296,15 +1306,16 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						})
 
 						const imageDataArray = await Promise.all(imagePromises)
-						const dataUrls = imageDataArray.filter((dataUrl): dataUrl is string => dataUrl !== null)
+						const validImages = imageDataArray.filter((img): img is ImageAttachment => img !== null)
 
-						if (dataUrls.length > 0) {
+						if (validImages.length > 0) {
+							const imageUrls = validImages.map((img) => img.dataUrl)
 							setSelectedImages((prevImages) =>
-								[...prevImages, ...dataUrls].slice(0, MAX_IMAGES_PER_MESSAGE),
+								[...prevImages, ...validImages].slice(0, MAX_IMAGES_PER_MESSAGE),
 							)
 
 							if (typeof vscode !== "undefined") {
-								vscode.postMessage({ type: "draggedImages", dataUrls: dataUrls })
+								vscode.postMessage({ type: "draggedImages", dataUrls: imageUrls })
 							}
 						} else {
 							console.warn(t("chat:noValidImages"))
@@ -1479,7 +1490,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					"flex-col",
 					"min-h-0",
 					"overflow-hidden",
-					"rounded-xl",
+					"rounded-2xl",
 					isFocused
 						? "border border-[var(--vscode-activityBar-border)]"
 						: isDraggingOver
@@ -1600,31 +1611,15 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						{!isEditMode && (
 							<div className="flex items-center gap-0.5">
 								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
-								<IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />
 							</div>
 						)}
-						<StandardTooltip content="Add Context (@)">
+						<StandardTooltip content={t("chat:addImages")}>
 							<button
-								aria-label="Add Context (@)"
-								disabled={showContextMenu}
+								aria-label={t("chat:addImages")}
+								disabled={shouldDisableImages}
 								onClick={() => {
-									if (showContextMenu || !textAreaRef.current) return
-
-									textAreaRef.current.focus()
-									const { value: currentValue, cursor: currentCursorPosition } =
-										getCurrentInputSnapshot()
-									const nextValue =
-										currentValue.slice(0, currentCursorPosition) +
-										" @" +
-										currentValue.slice(currentCursorPosition)
-									const nextCursorPosition = currentCursorPosition + 2
-
-									setInputValue(nextValue)
-									setCursorPosition(nextCursorPosition)
-									intendedCursorPositionRef.current = nextCursorPosition
-									setShowContextMenu(true)
-									setSearchQuery("")
-									setSelectedMenuIndex(4)
+									if (shouldDisableImages) return
+									onSelectImages()
 								}}
 								className={cn(
 									"relative inline-flex items-center justify-center",
@@ -1634,11 +1629,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"transition-all duration-150",
 									"focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
-									!showContextMenu && "cursor-pointer",
-									showContextMenu &&
+									!shouldDisableImages && "cursor-pointer",
+									shouldDisableImages &&
 										"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
 								)}>
-								<FilePlus2 className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
+								<ImageAdd02Icon className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
 							</button>
 						</StandardTooltip>
 						{isEditMode && (

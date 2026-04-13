@@ -8,6 +8,7 @@ import { useCopyToClipboard } from "@/utils/clipboard"
 
 import { DeleteTaskDialog } from "../history/DeleteTaskDialog"
 import { IconButton } from "./IconButton"
+import { Copy01Icon, Tick02Icon } from "@/utils/customIcons"
 // import { ShareButton } from "./ShareButton" // kilocode_change unused
 // import { CloudTaskButton } from "./CloudTaskButton" // kilocode_change: unused
 
@@ -29,11 +30,12 @@ export const TaskActions = ({ item, buttonsDisabled }: TaskActionsProps) => {
 				onClick={() => vscode.postMessage({ type: "exportCurrentTask" })}
 			/>
 			{item?.task && (
-				<IconButton
-					iconClass={showCopyFeedback ? "codicon-check" : "codicon-copy"}
+				<button
+					className="relative inline-flex items-center justify-center bg-transparent border-none p-1.5 rounded-md min-w-[28px] min-h-[28px] text-vscode-foreground opacity-85 transition-all duration-150 hover:opacity-100 hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)] focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder active:bg-[rgba(255,255,255,0.1)] cursor-pointer"
 					title={t("history:copyPrompt")}
-					onClick={(e) => copyWithFeedback(item.task, e)}
-				/>
+					onClick={(e) => copyWithFeedback(item.task, e)}>
+					{showCopyFeedback ? <Tick02Icon className="size-4" /> : <Copy01Icon className="size-3" />}
+				</button>
 			)}
 			{!!item?.size && item.size > 0 && (
 				<>
