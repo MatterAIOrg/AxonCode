@@ -22,7 +22,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { renderMentionChip } from "@/utils/chat-render"
-import { FilePlus2, MessageSquareX, VolumeX } from "lucide-react"
+import { MessageSquareX, VolumeX } from "lucide-react"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import KiloModeSelector from "../kilocode/KiloModeSelector"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
@@ -37,7 +37,7 @@ import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
 
 // forked_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
-import { ArrowRight02Icon } from "@/utils/customIcons"
+import { ArrowRight02Icon, ImageAdd02Icon } from "@/utils/customIcons"
 import {
 	SlashCommand,
 	getMatchingSlashCommands,
@@ -1615,22 +1615,13 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								<IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />
 							</div>
 						)}
-						<StandardTooltip content="Add Context (@)">
+						<StandardTooltip content={t("chat:addImages")}>
 							<button
-								aria-label="Add Context (@)"
-								disabled={showContextMenu}
+								aria-label={t("chat:addImages")}
+								disabled={shouldDisableImages}
 								onClick={() => {
-									if (showContextMenu || !textAreaRef.current) return
-
-									textAreaRef.current.focus()
-									const { cursor: currentCursorPosition } = getCurrentInputSnapshot()
-
-									// Store cursor position for later use when selecting
-									setCursorPosition(currentCursorPosition)
-									intendedCursorPositionRef.current = currentCursorPosition
-									setShowContextMenu(true)
-									setSearchQuery("")
-									setSelectedMenuIndex(4)
+									if (shouldDisableImages) return
+									onSelectImages()
 								}}
 								className={cn(
 									"relative inline-flex items-center justify-center",
@@ -1640,11 +1631,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"transition-all duration-150",
 									"focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
-									!showContextMenu && "cursor-pointer",
-									showContextMenu &&
+									!shouldDisableImages && "cursor-pointer",
+									shouldDisableImages &&
 										"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
 								)}>
-								<FilePlus2 className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
+								<ImageAdd02Icon className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
 							</button>
 						</StandardTooltip>
 						{isEditMode && (
