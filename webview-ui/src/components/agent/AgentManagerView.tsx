@@ -27,7 +27,7 @@ export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ children, is
 	const workspaces = useMemo(() => {
 		const groups: Record<string, typeof tasks> = {}
 		tasks.forEach((task) => {
-			const ws = task.workspace || "matteraiorg/docs"
+			const ws = task.workspace || "Unknown Workspace"
 			if (!groups[ws]) groups[ws] = []
 			groups[ws].push(task)
 		})

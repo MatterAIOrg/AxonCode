@@ -17,9 +17,13 @@ interface ThumbnailsProps {
 // Helper to truncate filename to max 10 chars
 const truncateFilename = (name: string, maxLength: number = 10): string => {
 	if (name.length <= maxLength) return name
-	const extension = name.slice(name.lastIndexOf("."))
-	const baseName = name.slice(0, name.lastIndexOf("."))
-	const truncatedBase = baseName.slice(0, maxLength - extension.length - 3) + "..."
+	const lastDotIndex = name.lastIndexOf(".")
+	if (lastDotIndex === -1) {
+		return name.slice(0, Math.max(0, maxLength - 3)) + "..."
+	}
+	const extension = name.slice(lastDotIndex)
+	const baseName = name.slice(0, lastDotIndex)
+	const truncatedBase = baseName.slice(0, Math.max(0, maxLength - extension.length - 3)) + "..."
 	return truncatedBase + extension
 }
 
