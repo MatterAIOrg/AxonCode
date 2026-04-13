@@ -31,7 +31,6 @@ import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import ContextMenu from "./ContextMenu"
 import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
 import { ImageWarningBanner } from "./ImageWarningBanner" // kilocode_change
-import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
 
@@ -1612,7 +1611,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						{!isEditMode && (
 							<div className="flex items-center gap-0.5">
 								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
-								<IndexingStatusBadge className={cn({ hidden: containerWidth < 235 })} />
 							</div>
 						)}
 						<StandardTooltip content={t("chat:addImages")}>

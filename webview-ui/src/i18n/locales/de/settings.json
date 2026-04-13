@@ -33,6 +33,7 @@
 		"ui": "UI",
 		"experimental": "Experimentell",
 		"language": "Sprache",
+		"codeIndex": "Code-Indexierung",
 		"developerTools": "Entwickler-Tools",
 		"display": "Anzeigen",
 		"codeReview": "KI-Code-Reviews"

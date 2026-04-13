@@ -35,6 +35,7 @@
 		"ui": "UI",
 		"experimental": "ทดลอง",
 		"language": "ภาษา",
+		"codeIndex": "การสร้างดัชนีโค้ด",
 		"developerTools": "เครื่องมือนักพัฒนา",
 		"codeReview": "AI Code Reviews"
 	},

@@ -33,7 +33,8 @@
 		"ui": "UI",
 		"experimental": "Expérimental",
 		"language": "Langue",
-		"developerTools": "Outils de Développement",
+		"codeIndex": "Indexation de code",
+		"developerTools": "Outils Développeur",
 		"display": "Afficher",
 		"codeReview": "Revues de Code IA"
 	},
