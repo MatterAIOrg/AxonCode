@@ -18,7 +18,7 @@ interface ThumbnailsProps {
 const truncateFilename = (name: string, maxLength: number = 10): string => {
 	if (name.length <= maxLength) return name
 	const lastDotIndex = name.lastIndexOf(".")
-	if (lastDotIndex === -1) {
+	if (lastDotIndex <= 0) {
 		return name.slice(0, Math.max(0, maxLength - 3)) + "..."
 	}
 	const extension = name.slice(lastDotIndex)
