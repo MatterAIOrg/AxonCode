@@ -104,7 +104,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 	return (
 		<div className="group">
 			<div
-				className="flex items-center justify-start gap-1 pr-2 mt-0.5 cursor-pointer select-none opacity-40 hover:opacity-100"
+				className="flex items-center justify-start gap-1 pr-2 cursor-pointer select-none opacity-40 hover:opacity-100 -mb-1"
 				onClick={handleToggle}>
 				<div className="flex items-center gap-1">
 					{/* <Lightbulb className="w-3" /> */}

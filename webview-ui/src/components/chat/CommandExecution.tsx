@@ -260,7 +260,7 @@ export const CommandExecution = memo(
 					</div>
 				</div>
 
-				<div className="bg-vscode-editor-background border border-vscode-border rounded-xl mt-2 overflow-hidden flex flex-col">
+				<div className="bg-vscode-editor-background border border-vscode-border rounded-2xl mt-2 overflow-hidden flex flex-col mb-1">
 					<div className="p-2 overflow-y-auto max-h-[calc(100vh/2.5)]">
 						<CodeBlock source={command} language="shell" />
 						<OutputContainer isExpanded={isExpanded} output={output} />

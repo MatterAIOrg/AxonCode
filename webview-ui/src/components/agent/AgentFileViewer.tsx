@@ -92,7 +92,9 @@ const AgentFileViewer: React.FC = () => {
 	const displayLines = displayContent.split("\n")
 
 	const handleOpenInEditor = () => {
-		const pathToOpen = isOutsideWorkspace ? filePath : "./" + filePath
+		// For absolute paths (outside workspace or outside CWD but inside workspace), use the path directly
+		// For relative paths, prefix with ./
+		const pathToOpen = isOutsideWorkspace || filePath?.startsWith("/") ? filePath : "./" + filePath
 		vscode.postMessage({
 			type: "openFile",
 			text: pathToOpen,

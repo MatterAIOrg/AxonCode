@@ -434,6 +434,8 @@
 		"filesCount_other": "{{count}} files",
 		"searchesCount": "{{count}} search",
 		"searchesCount_other": "{{count}} searches",
+		"commandsCount": "{{count}} command",
+		"commandsCount_other": "{{count}} commands",
 		"othersCount": "{{count}} other",
 		"othersCount_other": "{{count}} others"
 	}

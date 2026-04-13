@@ -590,8 +590,10 @@ export const ChatRowContent = ({
 						agentFileViewer.openDiffReview()
 						return
 					}
-					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
-					const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
+					// For absolute paths (outside workspace or outside CWD but inside workspace), use the path directly
+					// For relative paths, prefix with ./
+					const filePath =
+						tool.isOutsideWorkspace || tool.path?.startsWith("/") ? tool.path : "./" + tool.path
 					vscode.postMessage({
 						type: "openFile",
 						text: filePath,
@@ -782,8 +784,10 @@ export const ChatRowContent = ({
 						agentFileViewer.openDiffReview()
 						return
 					}
-					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
-					const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
+					// For absolute paths (outside workspace or outside CWD but inside workspace), use the path directly
+					// For relative paths, prefix with ./
+					const filePath =
+						tool.isOutsideWorkspace || tool.path?.startsWith("/") ? tool.path : "./" + tool.path
 					vscode.postMessage({
 						type: "openFile",
 						text: filePath,
@@ -900,8 +904,10 @@ export const ChatRowContent = ({
 						})
 						return
 					}
-					// For absolute paths (outside workspace), use the path directly; for relative paths, prefix with ./
-					const filePath = tool.isOutsideWorkspace ? tool.path : "./" + tool.path
+					// For absolute paths (outside workspace or outside CWD but inside workspace), use the path directly
+					// For relative paths, prefix with ./
+					const filePath =
+						tool.isOutsideWorkspace || tool.path?.startsWith("/") ? tool.path : "./" + tool.path
 					vscode.postMessage({
 						type: "openFile",
 						text: filePath,

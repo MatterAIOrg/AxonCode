@@ -72,7 +72,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 			)}
 			style={{
 				backgroundColor: "var(--vscode-editor-background)",
-				boxShadow: "rgb(18 18 18 / 88%) 0px 7px 29px 0px",
+				boxShadow: "rgb(18 18 18 / 88%) 0px 7px 19px 0px",
 			}}>
 			<div
 				className="flex items-center justify-between gap-2 cursor-pointer"

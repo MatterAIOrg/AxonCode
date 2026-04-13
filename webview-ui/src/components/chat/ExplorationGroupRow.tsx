@@ -20,6 +20,7 @@ export type ExplorationToolType =
 	| "fetchInstructions"
 	| "checkPastChatMemories"
 	| "useSkill"
+	| "executeCommand"
 
 export interface ExplorationGroup {
 	_type: "explorationGroup"
@@ -43,6 +44,7 @@ const EXPLORATION_TOOLS: string[] = [
 	"fetchInstructions",
 	"checkPastChatMemories",
 	"useSkill",
+	"executeCommand",
 	// snake_case variants (from LLM tool calls)
 	"read_file",
 	"list_files_top_level",
@@ -55,6 +57,7 @@ const EXPLORATION_TOOLS: string[] = [
 	"fetch_instructions",
 	"check_past_chat_memories",
 	"use_skill",
+	"execute_command",
 ]
 
 // Helper to extract tool name from message
@@ -108,6 +111,16 @@ function isReasoning(message: ClineMessage): boolean {
 	return message.type === "say" && message.say === "reasoning"
 }
 
+// Check if a message is a command ask
+function isCommandAsk(message: ClineMessage): boolean {
+	return message.type === "ask" && message.ask === "command"
+}
+
+// Check if a message is command output
+function isCommandOutput(message: ClineMessage): boolean {
+	return message.type === "say" && message.say === "command_output"
+}
+
 // Check if a message should be included in an exploration group
 // This includes: ask:tool (for exploration tools, including partial), say:tool (for exploration tools),
 // api_req_started, checkpoint_saved, whitespace-only text, and reasoning
@@ -118,6 +131,9 @@ export function isExplorationRelatedMessage(message: ClineMessage): boolean {
 	if (isExplorationToolAsk(message)) return true
 	// Include say:tool for exploration tools
 	if (isExplorationToolSay(message)) return true
+	// Include command asks and outputs
+	if (isCommandAsk(message)) return true
+	if (isCommandOutput(message)) return true
 	// Include api_req_started messages (pass-through)
 	if (isApiReqStarted(message)) return true
 	// Include checkpoint_saved messages (pass-through)
@@ -136,6 +152,10 @@ export function isExplorationRelatedMessage(message: ClineMessage): boolean {
 export function isExplorationToolResult(message: ClineMessage): boolean {
 	// Exploration tools only use ask:tool, never say:tool
 	if (isExplorationToolAsk(message) && message.partial !== true) {
+		return true
+	}
+	// Command asks are results when complete (not partial)
+	if (isCommandAsk(message) && message.partial !== true) {
 		return true
 	}
 	// Write tools use say:tool
@@ -166,6 +186,7 @@ function normalizeToolName(toolName: string): string {
 		fetch_instructions: "fetchInstructions",
 		check_past_chat_memories: "checkPastChatMemories",
 		use_skill: "useSkill",
+		execute_command: "executeCommand",
 	}
 	return toolNameMap[toolName] || toolName
 }
@@ -173,9 +194,10 @@ function normalizeToolName(toolName: string): string {
 // Count tool types in a group
 // For exploration tools, count complete ask:tool messages (not partial)
 // For write tools, count say:tool messages
-function getToolCounts(messages: ClineMessage[]): { files: number; searches: number; other: number } {
+function getToolCounts(messages: ClineMessage[]): { files: number; searches: number; commands: number; other: number } {
 	let files = 0
 	let searches = 0
+	let commands = 0
 	let other = 0
 
 	for (const message of messages) {
@@ -196,10 +218,16 @@ function getToolCounts(messages: ClineMessage[]): { files: number; searches: num
 					normalizedTool === "webSearch"
 				) {
 					searches++
+				} else if (normalizedTool === "executeCommand") {
+					commands++
 				} else {
 					other++
 				}
 			}
+		}
+		// Count command asks (separate from tool-based commands)
+		if (message.type === "ask" && message.ask === "command" && message.partial !== true) {
+			commands++
 		}
 		// Write tools: count say:tool messages (not exploration tools)
 		if (message.type === "say" && (message.say as string) === "tool") {
@@ -210,7 +238,7 @@ function getToolCounts(messages: ClineMessage[]): { files: number; searches: num
 		}
 	}
 
-	return { files, searches, other }
+	return { files, searches, commands, other }
 }
 
 // Format duration in Xs/Ym format (e.g., "5s", "1m30s", "2m")
@@ -264,6 +292,9 @@ function getGroupSummary(
 	if (counts.searches > 0) {
 		parts.push(t("chat:exploration.searchesCount", { count: counts.searches }))
 	}
+	if (counts.commands > 0) {
+		parts.push(t("chat:exploration.commandsCount", { count: counts.commands }))
+	}
 	if (counts.other > 0) {
 		parts.push(t("chat:exploration.othersCount", { count: counts.other }))
 	}
@@ -291,6 +322,9 @@ function getExploringProgress(
 	}
 	if (counts.searches > 0) {
 		parts.push(t("chat:exploration.searchesCount", { count: counts.searches }))
+	}
+	if (counts.commands > 0) {
+		parts.push(t("chat:exploration.commandsCount", { count: counts.commands }))
 	}
 	if (counts.other > 0) {
 		parts.push(t("chat:exploration.othersCount", { count: counts.other }))
@@ -360,10 +394,14 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 	const [elapsedTime, setElapsedTime] = useState(0)
 
 	// Determine if this group is currently being explored (last message is partial or streaming)
+	// For parallel tools, each group must independently check if it's still streaming
 	const isExploring = useMemo(() => {
-		if (!isLast) return false
 		const lastMsg = messages[messages.length - 1]
-		return lastMsg?.partial === true || isStreaming
+		// Check if this group's last message is partial (still being streamed)
+		if (lastMsg?.partial === true) return true
+		// For the last group, also check global streaming state
+		if (isLast && isStreaming) return true
+		return false
 	}, [isLast, messages, isStreaming])
 
 	// Get start and end times for this exploration group
