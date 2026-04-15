@@ -1,4 +1,5 @@
 import React, { memo, useState, useCallback, useMemo, useEffect, useRef } from "react"
+import { useSize } from "react-use"
 import { useTranslation } from "react-i18next"
 import type { ClineMessage, SuggestionItem } from "@roo-code/types"
 import { safeJsonParse } from "@roo/safeJsonParse"
@@ -392,6 +393,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 	const { t } = useTranslation()
 	const [localExpanded, setLocalExpanded] = useState(true)
 	const [elapsedTime, setElapsedTime] = useState(0)
+	const prevHeightRef = useRef(0)
 
 	// Determine if this group is currently being explored (last message is partial or streaming)
 	// For parallel tools, each group must independently check if it's still streaming
@@ -460,7 +462,8 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 	// Generate exploring progress text with live elapsed time
 	const exploringText = useMemo(() => getExploringProgress(messages, t, elapsedTime), [messages, t, elapsedTime])
 
-	return (
+	// Wrap the entire component with useSize to track height changes for scroll adjustment
+	const [rowElement, { height: rowHeight }] = useSize(
 		<div className="group">
 			{/* Header - matches ReasoningBlock style */}
 			<div
@@ -513,8 +516,21 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 					))}
 				</div>
 			)}
-		</div>
+		</div>,
 	)
+
+	// Call onHeightChange when height changes (for scroll adjustment in parent)
+	useEffect(() => {
+		const isInitialRender = prevHeightRef.current === 0
+		if (isLast && rowHeight !== 0 && rowHeight !== Infinity && rowHeight !== prevHeightRef.current) {
+			if (!isInitialRender) {
+				onHeightChange(rowHeight > prevHeightRef.current)
+			}
+			prevHeightRef.current = rowHeight
+		}
+	}, [rowHeight, isLast, onHeightChange])
+
+	return rowElement
 })
 
 export default ExplorationGroupRow

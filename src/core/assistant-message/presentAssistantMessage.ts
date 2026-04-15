@@ -477,6 +477,27 @@ export async function presentAssistantMessage(cline: Task) {
 			}
 			// forked_change end
 
+			// forked_change start: Check if context condensation is needed before executing tools
+			// that may add significant content to the context window.
+			// This prevents context window overflow when the LLM requests to read files
+			// with a nearly full context.
+			const toolsThatAddContent = [
+				"read_file",
+				"search_files",
+				"list_files",
+				"list_code_definition_names",
+				"codebase_search",
+				"lsp",
+				"web_fetch",
+				"web_search",
+				"use_mcp_tool",
+				"access_mcp_resource",
+			]
+			if (!block.partial && toolsThatAddContent.includes(block.name)) {
+				await cline.checkAndCondenseContext()
+			}
+			// forked_change end
+
 			switch (block.name) {
 				case "update_todo_list":
 					await updateTodoListTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)

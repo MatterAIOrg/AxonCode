@@ -121,7 +121,12 @@ import { parseMentions } from "../mentions" // kilocode_change
 import { parseKiloSlashCommands } from "../slash-commands/kilo" // kilocode_change
 import { GlobalFileNames } from "../../shared/globalFileNames" // kilocode_change
 import { ensureLocalKilorulesDirExists } from "../context/instructions/kilo-rules" // kilocode_change
-import { getMessagesSinceLastSummary, summarizeConversation } from "../condense"
+import {
+	getMessagesSinceLastSummary,
+	summarizeConversation,
+	MIN_CONDENSE_THRESHOLD,
+	MAX_CONDENSE_THRESHOLD,
+} from "../condense"
 import { Gpt5Metadata, ClineMessageWithMetadata } from "./types"
 import { MessageQueueService } from "../message-queue/MessageQueueService"
 
@@ -3113,6 +3118,117 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				contextCondense,
 			)
 		}
+	}
+
+	/**
+	 * Checks if context condensation is needed before executing a tool that may add significant content.
+	 * This prevents context window overflow when the LLM requests to read files with a nearly full context.
+	 * @returns true if condensation was performed, false otherwise
+	 */
+	public async checkAndCondenseContext(): Promise<boolean> {
+		const state = await this.providerRef.deref()?.getState()
+		const {
+			autoCondenseContext = true,
+			autoCondenseContextPercent = 100,
+			profileThresholds = {},
+			customCondensingPrompt,
+			condensingApiConfigId,
+			listApiConfigMeta,
+		} = state ?? {}
+
+		// If auto-condense is disabled, skip
+		if (!autoCondenseContext) {
+			return false
+		}
+
+		const { contextTokens } = this.getTokenUsage()
+		const modelInfo = this.api.getModel().info
+		const contextWindow = modelInfo.contextWindow
+
+		// Calculate context usage percentage
+		const contextPercent = (100 * contextTokens) / contextWindow
+
+		// Determine the effective threshold
+		const currentProfileId = this.getCurrentProfileId(state)
+		let effectiveThreshold = autoCondenseContextPercent
+		const profileThreshold = profileThresholds[currentProfileId]
+		if (
+			profileThreshold !== undefined &&
+			profileThreshold >= MIN_CONDENSE_THRESHOLD &&
+			profileThreshold <= MAX_CONDENSE_THRESHOLD
+		) {
+			effectiveThreshold = profileThreshold
+		}
+
+		// Check if we're at or above the threshold
+		if (contextPercent < effectiveThreshold) {
+			return false
+		}
+
+		console.log(
+			`[Task#${this.taskId}] Pre-tool context check: ${contextTokens} tokens (${contextPercent.toFixed(1)}%) ` +
+				`exceeds threshold ${effectiveThreshold}%. Triggering condensation.`,
+		)
+
+		// Determine API handler to use for condensing
+		let condensingApiHandler: ApiHandler | undefined
+		if (condensingApiConfigId && listApiConfigMeta && Array.isArray(listApiConfigMeta)) {
+			const matchingConfig = listApiConfigMeta.find((config) => config.id === condensingApiConfigId)
+			if (matchingConfig) {
+				const profile = await this.providerRef.deref()?.providerSettingsManager.getProfile({
+					id: condensingApiConfigId,
+				})
+				if (profile && profile.apiProvider) {
+					condensingApiHandler = buildApiHandler(profile)
+				}
+			}
+		}
+
+		const maxTokens = getModelMaxOutputTokens({
+			modelId: this.api.getModel().id,
+			model: modelInfo,
+			settings: this.apiConfiguration,
+		})
+
+		const truncateResult = await truncateConversationIfNeeded({
+			messages: this.apiConversationHistory,
+			totalTokens: contextTokens || 0,
+			maxTokens,
+			contextWindow,
+			apiHandler: this.api,
+			autoCondenseContext,
+			autoCondenseContextPercent,
+			systemPrompt: await this.getSystemPrompt(),
+			taskId: this.taskId,
+			customCondensingPrompt,
+			condensingApiHandler,
+			profileThresholds,
+			currentProfileId,
+		})
+
+		if (truncateResult.messages !== this.apiConversationHistory) {
+			await this.overwriteApiConversationHistory(truncateResult.messages)
+		}
+
+		if (truncateResult.summary) {
+			const { summary, cost, prevContextTokens, newContextTokens = 0 } = truncateResult
+			const contextCondense: ContextCondense = { summary, cost, newContextTokens, prevContextTokens }
+			await this.say(
+				"condense_context",
+				undefined /* text */,
+				undefined /* images */,
+				false /* partial */,
+				undefined /* checkpoint */,
+				undefined /* progressStatus */,
+				{ isNonInteractive: true } /* options */,
+				contextCondense,
+			)
+			// Set flag to skip previous_response_id on the next API call
+			this.skipPrevResponseIdOnce = true
+			return true
+		}
+
+		return false
 	}
 
 	public async *attemptApiRequest(retryAttempt: number = 0): ApiStream {
