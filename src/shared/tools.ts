@@ -73,6 +73,7 @@ export const toolParamNames = [
 	"code_edit",
 	"files",
 	"filename",
+	"edits",
 	// forked_change end
 	"args",
 	"start_line",
@@ -189,6 +190,11 @@ export interface FileEditToolUse extends ToolUse {
 		Partial<Pick<Record<ToolParamName, string>, "replace_all" | "target_file">>
 }
 
+export interface MultiFileEditToolUse extends ToolUse {
+	name: "multi_file_edit"
+	params: Required<Pick<Record<ToolParamName, string>, "edits">>
+}
+
 export interface FileWriteToolUse extends ToolUse {
 	name: "file_write"
 	params: Required<Pick<Record<ToolParamName, string>, "file_path" | "content" | "line_count">>
@@ -221,6 +227,7 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	read_file: "read files",
 	fetch_instructions: "fetch instructions",
 	file_edit: "replace text in files",
+	multi_file_edit: "batch edit multiple files",
 	file_write: "write new files",
 	search_files: "search files",
 	list_files: "list files",
@@ -267,6 +274,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 	edit: {
 		tools: [
 			"file_edit",
+			"multi_file_edit",
 			"file_write",
 			"new_rule", // kilocode_change
 			"generate_image",

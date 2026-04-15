@@ -1,0 +1,912 @@
+- generic [ref=e2]:
+  - region
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner [ref=e6]:
+      - heading "Navigation Menu" [level=2] [ref=e7]
+      - generic [ref=e8]:
+        - link "Homepage" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - navigation "Global" [ref=e16]:
+            - list [ref=e17]:
+              - listitem [ref=e18]:
+                - button "Platform" [ref=e20] [cursor=pointer]:
+                  - text: Platform
+                  - img [ref=e21]
+              - listitem [ref=e23]:
+                - button "Solutions" [ref=e25] [cursor=pointer]:
+                  - text: Solutions
+                  - img [ref=e26]
+              - listitem [ref=e28]:
+                - button "Resources" [ref=e30] [cursor=pointer]:
+                  - text: Resources
+                  - img [ref=e31]
+              - listitem [ref=e33]:
+                - button "Open Source" [ref=e35] [cursor=pointer]:
+                  - text: Open Source
+                  - img [ref=e36]
+              - listitem [ref=e38]:
+                - button "Enterprise" [ref=e40] [cursor=pointer]:
+                  - text: Enterprise
+                  - img [ref=e41]
+              - listitem [ref=e43]:
+                - link "Pricing" [ref=e44] [cursor=pointer]:
+                  - /url: https://github.com/pricing
+                  - generic [ref=e45]: Pricing
+          - generic [ref=e46]:
+            - button "Search or jump to…" [ref=e49] [cursor=pointer]:
+              - img [ref=e51]
+            - link "Sign in" [ref=e54] [cursor=pointer]:
+              - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FMatterAIOrg%2FOrbital-Extension%2Fpull%2F79
+            - link "Sign up" [ref=e55] [cursor=pointer]:
+              - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E%2Fvoltron%2Fpull_requests_fragments%2Fpull_request_layout&source=header-repo&source_repo=MatterAIOrg%2FOrbital-Extension
+            - button "Appearance settings" [disabled] [ref=e58]:
+              - img
+  - main [ref=e62]:
+    - generic [ref=e63]:
+      - generic [ref=e64]:
+        - generic [ref=e66]:
+          - img [ref=e67]
+          - link "MatterAIOrg" [ref=e70] [cursor=pointer]:
+            - /url: /MatterAIOrg
+          - generic [ref=e71]: /
+          - strong [ref=e72]:
+            - link "Orbital-Extension" [ref=e73] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension
+          - generic [ref=e74]: Public
+        - generic [ref=e75]:
+          - list:
+            - listitem [ref=e76]:
+              - link "You must be signed in to change notification settings" [ref=e77] [cursor=pointer]:
+                - /url: /login?return_to=%2FMatterAIOrg%2FOrbital-Extension
+                - img [ref=e78]
+                - text: Notifications
+            - listitem [ref=e80]:
+              - link "Fork 0" [ref=e81] [cursor=pointer]:
+                - /url: /login?return_to=%2FMatterAIOrg%2FOrbital-Extension
+                - img [ref=e82]
+                - text: Fork
+                - generic "0" [ref=e84]
+            - listitem [ref=e85]:
+              - link "You must be signed in to star a repository" [ref=e87] [cursor=pointer]:
+                - /url: /login?return_to=%2FMatterAIOrg%2FOrbital-Extension
+                - img [ref=e88]
+                - text: Star
+                - generic "2 users starred this repository" [ref=e90]: "2"
+      - navigation "Repository" [ref=e91]:
+        - list [ref=e92]:
+          - listitem [ref=e93]:
+            - link "Code" [ref=e94] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension
+              - img [ref=e95]
+              - generic [ref=e97]: Code
+          - listitem [ref=e98]:
+            - link "Issues" [ref=e99] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension/issues
+              - img [ref=e100]
+              - generic [ref=e103]: Issues
+          - listitem [ref=e104]:
+            - link "Pull requests 1" [ref=e105] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension/pulls
+              - img [ref=e106]
+              - generic [ref=e108]: Pull requests
+              - generic "1" [ref=e109]
+          - listitem [ref=e110]:
+            - link "Actions" [ref=e111] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension/actions
+              - img [ref=e112]
+              - generic [ref=e114]: Actions
+          - listitem [ref=e115]:
+            - link "Projects" [ref=e116] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension/projects
+              - img [ref=e117]
+              - generic [ref=e119]: Projects
+          - listitem [ref=e120]:
+            - link "Security and quality" [ref=e121] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension/security
+              - img [ref=e122]
+              - generic [ref=e124]: Security and quality
+          - listitem [ref=e125]:
+            - link "Insights" [ref=e126] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension/pulse
+              - img [ref=e127]
+              - generic [ref=e129]: Insights
+    - generic [ref=e136]:
+      - generic [ref=e139]:
+        - 'heading "release/v6.0.0 #79" [level=1] [ref=e141]':
+          - text: release/v6.0.0
+          - generic [ref=e143]: "#79"
+        - generic [ref=e146]:
+          - generic [ref=e148]:
+            - img "Pull request" [ref=e149]
+            - text: Open
+          - generic [ref=e152]:
+            - link "code-crusher" [ref=e153] [cursor=pointer]:
+              - /url: /code-crusher
+            - text: wants to merge 17 commits into
+            - link "main" [ref=e154] [cursor=pointer]:
+              - /url: /MatterAIOrg/Orbital-Extension/tree/main
+            - generic [ref=e155]: from
+            - generic [ref=e156]:
+              - link "release/v6.0.0" [ref=e157] [cursor=pointer]:
+                - /url: /MatterAIOrg/Orbital-Extension/tree/release/v6.0.0
+              - button "Copy head branch name to clipboard" [ref=e158] [cursor=pointer]:
+                - img [ref=e159]
+        - generic [ref=e162]:
+          - generic [ref=e164]:
+            - generic [ref=e165]: +3,447
+            - generic [ref=e166]: "-657"
+            - generic [ref=e167]: "Lines changed: 3447 additions & 657 deletions"
+          - navigation "Pull request navigation tabs" [ref=e176]:
+            - tablist [ref=e177]:
+              - tab "Conversation (4)" [selected] [ref=e178] [cursor=pointer]:
+                - img [ref=e179]
+                - text: Conversation
+                - generic [ref=e181]: "4"
+                - generic [ref=e182]: (4)
+              - tab "Commits (17)" [ref=e183] [cursor=pointer]:
+                - img [ref=e184]
+                - text: Commits
+                - generic [ref=e186]: "17"
+                - generic [ref=e187]: (17)
+              - tab "Checks (13)" [ref=e188] [cursor=pointer]:
+                - img [ref=e189]
+                - text: Checks
+                - generic [ref=e191]: "13"
+                - generic [ref=e192]: (13)
+              - tab "Files changed (68)" [ref=e193] [cursor=pointer]:
+                - img [ref=e194]
+                - text: Files changed
+                - generic [ref=e196]: "68"
+                - generic [ref=e197]: (68)
+      - generic [ref=e202]:
+        - generic [ref=e204]:
+          - heading "Conversation" [level=2] [ref=e205]
+          - generic [ref=e206]:
+            - generic [ref=e207]:
+              - generic [ref=e209]:
+                - link "@code-crusher" [ref=e210] [cursor=pointer]:
+                  - /url: /code-crusher
+                  - img "@code-crusher" [ref=e211]
+                - generic [ref=e213]:
+                  - generic [ref=e214]:
+                    - generic [ref=e215]:
+                      - group [ref=e217]:
+                        - button "Show options" [ref=e218] [cursor=pointer]:
+                          - img "Show options" [ref=e221]
+                      - generic "This user is a member of the MatterAIOrg organization." [ref=e224]:
+                        - generic [ref=e225]: Member
+                    - heading "code-crusher commented Apr 13, 20264 minutes ago •" [level=3] [ref=e226]:
+                      - generic [ref=e227]:
+                        - strong [ref=e228]:
+                          - link "code-crusher" [ref=e229] [cursor=pointer]:
+                            - /url: /code-crusher
+                        - text: commented
+                        - link "Apr 13, 20264 minutes ago" [ref=e230] [cursor=pointer]:
+                          - /url: "#issue-4252960274"
+                        - generic [ref=e231]:
+                          - generic [ref=e232]: •
+                          - group [ref=e233]:
+                            - button "edited" [ref=e234] [cursor=pointer]:
+                              - generic [ref=e235]:
+                                - text: edited
+                                - img [ref=e236]
+                  - list [ref=e242]:
+                    - listitem [ref=e243]:
+                      - strong [ref=e244]: "feat: add agent file viewer and manager components"
+                    - listitem [ref=e245]:
+                      - strong [ref=e246]: agent manager toggle animation
+                    - listitem [ref=e247]:
+                      - strong [ref=e248]: agent toggle sidebar
+                    - listitem [ref=e249]:
+                      - strong [ref=e250]: streamlined chat UI + better agent manager
+                    - listitem [ref=e251]:
+                      - strong [ref=e252]: update copy icon
+                    - listitem [ref=e253]:
+                      - strong [ref=e254]: better diff view for edit tool
+                    - listitem [ref=e255]:
+                      - strong [ref=e256]: fix maximize states
+                    - listitem [ref=e257]:
+                      - strong [ref=e258]: cleanup UI
+                    - listitem [ref=e259]:
+                      - strong [ref=e260]: "feat: Refactor image handling to use ImageAttachment interface and UI improvements"
+                    - listitem [ref=e261]:
+                      - strong [ref=e262]: "feat: Add tooltips for Axon models in ModelSelector"
+                    - listitem [ref=e263]:
+                      - strong [ref=e264]: "feat: Add elapsed time display to exploration groups"
+                    - listitem [ref=e265]:
+                      - strong [ref=e266]: "chore: update CHANGELOG.md for v6.0.0 release"
+                    - listitem [ref=e267]:
+                      - strong [ref=e268]: "fix(ExplorationGroupRow): handle execute_command messages in exploration groups"
+                    - listitem [ref=e269]:
+                      - strong [ref=e270]: "feat: replace add context icon with ImageAdd02Icon and directly open image picker"
+                    - listitem [ref=e271]:
+                      - strong [ref=e272]: Move code indexing UI from chat view to settings page
+                    - listitem [ref=e273]:
+                      - strong [ref=e274]: update pkg version
+                    - listitem [ref=e275]:
+                      - strong [ref=e276]: heavy stroke for img icon
+              - generic [ref=e277]:
+                - generic [ref=e279]:
+                  - generic [ref=e280]:
+                    - img [ref=e282]
+                    - generic [ref=e284]:
+                      - link "matterai-app" [ref=e285] [cursor=pointer]:
+                        - /url: /apps/matterai-app
+                      - generic [ref=e286]: bot
+                      - text: and others added 17 commits
+                      - link "April 9, 2026 18:554 days ago" [ref=e287] [cursor=pointer]:
+                        - /url: "#commits-pushed-f178635"
+                  - generic [ref=e288]:
+                    - generic [ref=e289]:
+                      - img [ref=e291]
+                      - generic [ref=e296]:
+                        - generic [ref=e298]:
+                          - link "@matterai-app" [ref=e299] [cursor=pointer]:
+                            - /url: /apps/matterai-app
+                            - img "@matterai-app" [ref=e300]
+                          - link "@code-crusher" [ref=e301] [cursor=pointer]:
+                            - /url: /code-crusher
+                            - img "@code-crusher" [ref=e302]
+                        - generic [ref=e303]:
+                          - code [ref=e304]:
+                            - 'link "feat: add agent file viewer and manager components" [ref=e305] [cursor=pointer]':
+                              - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/f1786359cdff695b8c2d83ee92e70d9a137543fb
+                          - button "…" [ref=e307] [cursor=pointer]
+                        - code [ref=e315]:
+                          - link "f178635" [ref=e316] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/f1786359cdff695b8c2d83ee92e70d9a137543fb
+                    - generic [ref=e317]:
+                      - img [ref=e319]
+                      - generic [ref=e324]:
+                        - link "@code-crusher" [ref=e327] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e328]
+                        - code [ref=e330]:
+                          - link "agent manager toggle animation" [ref=e331] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/1f55b10dc566c3a49c5175e1e4e9ef2e1bcf8b3a
+                        - code [ref=e339]:
+                          - link "1f55b10" [ref=e340] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/1f55b10dc566c3a49c5175e1e4e9ef2e1bcf8b3a
+                    - generic [ref=e341]:
+                      - img [ref=e343]
+                      - generic [ref=e348]:
+                        - link "@code-crusher" [ref=e351] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e352]
+                        - code [ref=e354]:
+                          - link "agent toggle sidebar" [ref=e355] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/30b367b969d3f8dfec1a6372032d16cddc753989
+                        - code [ref=e363]:
+                          - link "30b367b" [ref=e364] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/30b367b969d3f8dfec1a6372032d16cddc753989
+                    - generic [ref=e365]:
+                      - img [ref=e367]
+                      - generic [ref=e372]:
+                        - link "@code-crusher" [ref=e375] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e376]
+                        - code [ref=e378]:
+                          - link "streamlined chat UI + better agent manager" [ref=e379] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/a76ab85206d1daebf7475143c0074af0cbee75d8
+                        - code [ref=e387]:
+                          - link "a76ab85" [ref=e388] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/a76ab85206d1daebf7475143c0074af0cbee75d8
+                    - generic [ref=e389]:
+                      - img [ref=e391]
+                      - generic [ref=e396]:
+                        - link "@code-crusher" [ref=e399] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e400]
+                        - code [ref=e402]:
+                          - link "update copy icon" [ref=e403] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/3ac2b1d9c4a9f03d0c28bae64da37722225b5742
+                        - code [ref=e411]:
+                          - link "3ac2b1d" [ref=e412] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/3ac2b1d9c4a9f03d0c28bae64da37722225b5742
+                    - generic [ref=e413]:
+                      - img [ref=e415]
+                      - generic [ref=e420]:
+                        - link "@code-crusher" [ref=e423] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e424]
+                        - code [ref=e426]:
+                          - link "better diff view for edit tool" [ref=e427] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/877bff8345fc785d5d6f902a9dabbaf8c41dba08
+                        - code [ref=e435]:
+                          - link "877bff8" [ref=e436] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/877bff8345fc785d5d6f902a9dabbaf8c41dba08
+                    - generic [ref=e437]:
+                      - img [ref=e439]
+                      - generic [ref=e444]:
+                        - link "@code-crusher" [ref=e447] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e448]
+                        - code [ref=e450]:
+                          - link "fix maximize states" [ref=e451] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/227ee71532f669fe95c776ac3a51da00778528ed
+                        - code [ref=e459]:
+                          - link "227ee71" [ref=e460] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/227ee71532f669fe95c776ac3a51da00778528ed
+                    - generic [ref=e461]:
+                      - img [ref=e463]
+                      - generic [ref=e468]:
+                        - link "@code-crusher" [ref=e471] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e472]
+                        - code [ref=e474]:
+                          - link "cleanup UI" [ref=e475] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/3c2086292c3b8d2f723930574fa55557ce42f0c8
+                        - code [ref=e483]:
+                          - link "3c20862" [ref=e484] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/3c2086292c3b8d2f723930574fa55557ce42f0c8
+                    - generic [ref=e485]:
+                      - img [ref=e487]
+                      - generic [ref=e492]:
+                        - generic [ref=e494]:
+                          - link "@matterai-app" [ref=e495] [cursor=pointer]:
+                            - /url: /apps/matterai-app
+                            - img "@matterai-app" [ref=e496]
+                          - link "@code-crusher" [ref=e497] [cursor=pointer]:
+                            - /url: /code-crusher
+                            - img "@code-crusher" [ref=e498]
+                        - generic [ref=e499]:
+                          - code [ref=e500]:
+                            - 'link "feat: Refactor image handling to use ImageAttachment interface and UI…" [ref=e501] [cursor=pointer]':
+                              - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/951096fd3d7a8248bfdbf14ceca878aaa8303bdd
+                          - button "…" [ref=e503] [cursor=pointer]
+                        - code [ref=e511]:
+                          - link "951096f" [ref=e512] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/951096fd3d7a8248bfdbf14ceca878aaa8303bdd
+                    - generic [ref=e513]:
+                      - img [ref=e515]
+                      - generic [ref=e520]:
+                        - generic [ref=e522]:
+                          - link "@matterai-app" [ref=e523] [cursor=pointer]:
+                            - /url: /apps/matterai-app
+                            - img "@matterai-app" [ref=e524]
+                          - link "@code-crusher" [ref=e525] [cursor=pointer]:
+                            - /url: /code-crusher
+                            - img "@code-crusher" [ref=e526]
+                        - generic [ref=e527]:
+                          - code [ref=e528]:
+                            - 'link "feat: Add tooltips for Axon models in ModelSelector" [ref=e529] [cursor=pointer]':
+                              - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/c5c59d3b8b7119e5fadfe3321d6834e5e220bae1
+                          - button "…" [ref=e531] [cursor=pointer]
+                        - code [ref=e539]:
+                          - link "c5c59d3" [ref=e540] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/c5c59d3b8b7119e5fadfe3321d6834e5e220bae1
+                    - generic [ref=e541]:
+                      - img [ref=e543]
+                      - generic [ref=e548]:
+                        - generic [ref=e550]:
+                          - link "@matterai-app" [ref=e551] [cursor=pointer]:
+                            - /url: /apps/matterai-app
+                            - img "@matterai-app" [ref=e552]
+                          - link "@code-crusher" [ref=e553] [cursor=pointer]:
+                            - /url: /code-crusher
+                            - img "@code-crusher" [ref=e554]
+                        - generic [ref=e555]:
+                          - code [ref=e556]:
+                            - 'link "feat: Add elapsed time display to exploration groups" [ref=e557] [cursor=pointer]':
+                              - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/7b7b930385737fd0adc49759162566e2f3c253ee
+                          - button "…" [ref=e559] [cursor=pointer]
+                        - code [ref=e567]:
+                          - link "7b7b930" [ref=e568] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/7b7b930385737fd0adc49759162566e2f3c253ee
+                    - generic [ref=e569]:
+                      - img [ref=e571]
+                      - generic [ref=e576]:
+                        - link "@code-crusher" [ref=e579] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e580]
+                        - code [ref=e582]:
+                          - 'link "chore: update CHANGELOG.md for v6.0.0 release" [ref=e583] [cursor=pointer]':
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/fa3911eeb13b21d3858230f62672022b8a04f2bf
+                        - code [ref=e591]:
+                          - link "fa3911e" [ref=e592] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/fa3911eeb13b21d3858230f62672022b8a04f2bf
+                    - generic [ref=e593]:
+                      - img [ref=e595]
+                      - generic [ref=e600]:
+                        - link "@code-crusher" [ref=e603] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e604]
+                        - generic [ref=e605]:
+                          - code [ref=e606]:
+                            - 'link "fix(ExplorationGroupRow): handle execute_command messages in explorat…" [ref=e607] [cursor=pointer]':
+                              - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/5db5aff415b35c91a8f9dc55df3e47588c8bbe9d
+                          - button "…" [ref=e609] [cursor=pointer]
+                        - code [ref=e617]:
+                          - link "5db5aff" [ref=e618] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/5db5aff415b35c91a8f9dc55df3e47588c8bbe9d
+                    - generic [ref=e619]:
+                      - img [ref=e621]
+                      - generic [ref=e626]:
+                        - generic [ref=e628]:
+                          - link "@matterai-app" [ref=e629] [cursor=pointer]:
+                            - /url: /apps/matterai-app
+                            - img "@matterai-app" [ref=e630]
+                          - link "@code-crusher" [ref=e631] [cursor=pointer]:
+                            - /url: /code-crusher
+                            - img "@code-crusher" [ref=e632]
+                        - generic [ref=e633]:
+                          - code [ref=e634]:
+                            - 'link "feat: replace add context icon with ImageAdd02Icon and directly open …" [ref=e635] [cursor=pointer]':
+                              - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/a10c6587fc4093e2a4e69c85c34c419b65e8a624
+                          - button "…" [ref=e637] [cursor=pointer]
+                        - code [ref=e645]:
+                          - link "a10c658" [ref=e646] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/a10c6587fc4093e2a4e69c85c34c419b65e8a624
+                    - generic [ref=e647]:
+                      - img [ref=e649]
+                      - generic [ref=e654]:
+                        - generic [ref=e656]:
+                          - link "@matterai-app" [ref=e657] [cursor=pointer]:
+                            - /url: /apps/matterai-app
+                            - img "@matterai-app" [ref=e658]
+                          - link "@code-crusher" [ref=e659] [cursor=pointer]:
+                            - /url: /code-crusher
+                            - img "@code-crusher" [ref=e660]
+                        - generic [ref=e661]:
+                          - code [ref=e662]:
+                            - link "Move code indexing UI from chat view to settings page" [ref=e663] [cursor=pointer]:
+                              - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/c490fc94d346152902bab8de5ec034eb6087a3b9
+                          - button "…" [ref=e665] [cursor=pointer]
+                        - code [ref=e673]:
+                          - link "c490fc9" [ref=e674] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/c490fc94d346152902bab8de5ec034eb6087a3b9
+                    - generic [ref=e675]:
+                      - img [ref=e677]
+                      - generic [ref=e682]:
+                        - link "@code-crusher" [ref=e685] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e686]
+                        - code [ref=e688]:
+                          - link "update pkg version" [ref=e689] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/faeb1c599a927cd661107d3007fde05bb1cb9658
+                        - code [ref=e697]:
+                          - link "faeb1c5" [ref=e698] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/faeb1c599a927cd661107d3007fde05bb1cb9658
+                    - generic [ref=e699]:
+                      - img [ref=e701]
+                      - generic [ref=e706]:
+                        - link "@code-crusher" [ref=e709] [cursor=pointer]:
+                          - /url: /code-crusher
+                          - img "@code-crusher" [ref=e710]
+                        - code [ref=e712]:
+                          - link "heavy stroke for img icon" [ref=e713] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/1e973c0bf792bf55eaf8f51965d4d32f96056ebf
+                        - code [ref=e721]:
+                          - link "1e973c0" [ref=e722] [cursor=pointer]:
+                            - /url: /MatterAIOrg/Orbital-Extension/pull/79/commits/1e973c0bf792bf55eaf8f51965d4d32f96056ebf
+                - generic [ref=e724]:
+                  - link "@matterai-app" [ref=e726] [cursor=pointer]:
+                    - /url: /apps/matterai-app
+                    - img "@matterai-app" [ref=e727]
+                  - generic [ref=e729]:
+                    - generic [ref=e730]:
+                      - generic [ref=e731]:
+                        - group [ref=e733]:
+                          - button "Show options" [ref=e734] [cursor=pointer]:
+                            - img "Show options" [ref=e737]
+                        - generic "This user has previously committed to the Orbital-Extension repository." [ref=e740]:
+                          - generic [ref=e741]: Contributor
+                      - heading "matterai-app bot commented Apr 13, 20263 minutes ago" [level=3] [ref=e742]:
+                        - generic [ref=e743]:
+                          - strong [ref=e744]:
+                            - link "matterai-app" [ref=e745] [cursor=pointer]:
+                              - /url: /apps/matterai-app
+                            - generic [ref=e746]: bot
+                          - text: commented
+                          - link "Apr 13, 20263 minutes ago" [ref=e747] [cursor=pointer]:
+                            - /url: "#issuecomment-4235166289"
+                    - table [ref=e750]:
+                      - rowgroup [ref=e751]:
+                        - row [ref=e752]:
+                          - cell [ref=e753]:
+                            - heading "Summary By MatterAI MatterAI logo" [level=1] [ref=e754]:
+                              - text: Summary By MatterAI
+                              - link "MatterAI logo" [ref=e755] [cursor=pointer]:
+                                - /url: https://app.matterai.so
+                                - img "MatterAI logo" [ref=e756]
+                            - heading "🔄 What Changed" [level=3] [ref=e757]
+                            - paragraph [ref=e758]:
+                              - text: Release v6.0.0 introduces the
+                              - strong [ref=e759]: Agent Manager
+                              - text: ", a major UI/UX overhaul enabling multi-agent background task management and a dedicated side-panel file viewer. It implements full-stack"
+                              - strong [ref=e760]: image attachment support
+                              - text: (paste, drag-drop, and selection) across the webview, extension API, and core task execution. Additionally, it adds
+                              - strong [ref=e761]: Codebase Indexing
+                              - text: settings for Qdrant and various embedding providers, alongside improved diff rendering logic using Myers diff for pending edits.
+                            - heading "🔍 Impact of the Change" [level=3] [ref=e762]
+                            - paragraph [ref=e763]:
+                              - text: Users can now manage multiple concurrent AI agents, view aggregated file changes in a structured sidebar, and provide visual context via images. The architectural shift to lifted state in
+                              - code [ref=e764]: App.tsx
+                              - text: ensures chat persistence during mode switches, significantly improving the multi-tasking workflow within the IDE.
+                            - heading "📁 Total Files Changed" [level=3] [ref=e765]
+                            - group [ref=e766]:
+                              - generic "Click to Expand" [ref=e767] [cursor=pointer]
+                            - heading "🧪 Test Added/Recommended" [level=3] [ref=e768]
+                            - heading "Added" [level=4] [ref=e769]
+                            - list [ref=e770]:
+                              - listitem [ref=e771]:
+                                - code [ref=e772]: ShadowCheckpointService.spec.ts
+                                - text: ": Updated to verify that checkpoints can be forced for new agents even without file changes."
+                            - heading "Recommended" [level=4] [ref=e773]
+                            - list [ref=e774]:
+                              - listitem [ref=e775]:
+                                - strong [ref=e776]: Unit Tests
+                                - text: ": For"
+                                - code [ref=e777]: ExplorationGroupRow
+                                - text: to ensure various tool combinations group correctly.
+                              - listitem [ref=e778]:
+                                - strong [ref=e779]: Performance Tests
+                                - text: ": For"
+                                - code [ref=e780]: myersDiff
+                                - text: in
+                                - code [ref=e781]: webviewMessageHandler.ts
+                                - text: to ensure large file edits don't block the UI thread.
+                            - heading "🔒 Security Vulnerabilities" [level=3] [ref=e782]
+                            - paragraph [ref=e783]: No critical vulnerabilities detected. Image processing is restricted to base64 encoding within the extension context, and vector DB settings use VS Code's secret storage for API keys.
+                            - heading "Context" [level=2] [ref=e784]
+                            - paragraph [ref=e785]: Releasing v6.0.0 to support multi-agent workflows and visual context via images.
+                            - heading "Implementation" [level=2] [ref=e786]
+                            - paragraph [ref=e787]:
+                              - text: Implemented a new
+                              - code [ref=e788]: AgentManagerView
+                              - text: that wraps the
+                              - code [ref=e789]: ChatView
+                              - text: . Lifted state for the chat input and images to the root
+                              - code [ref=e790]: App
+                              - text: component to prevent data loss when switching between the active agent and the manager. Added a
+                              - code [ref=e791]: webviewMessageHandler
+                              - text: case for
+                              - code [ref=e792]: plusButtonClicked
+                              - text: to move agents to the background.
+                            - heading "How to Test" [level=2] [ref=e793]
+                            - list [ref=e794]:
+                              - listitem [ref=e795]: Open the Orbital IDE.
+                              - listitem [ref=e796]: Click the "Agent Manager" toggle at the top.
+                              - listitem [ref=e797]: Start a new agent and attach an image via the paperclip icon or by pasting.
+                              - listitem [ref=e798]: Move the agent to the background and verify it appears in the "Background Agents" list.
+                            - heading "Get in Touch" [level=2] [ref=e799]
+                            - paragraph [ref=e800]: N/A
+                - generic [ref=e803]:
+                  - generic [ref=e804]:
+                    - link "matterai-app[bot]" [ref=e805] [cursor=pointer]:
+                      - /url: /apps/matterai-app
+                      - img "matterai-app[bot]" [ref=e806]
+                    - img [ref=e808]
+                    - generic [ref=e810]:
+                      - generic [ref=e811]:
+                        - strong [ref=e812]:
+                          - link "matterai-app" [ref=e813] [cursor=pointer]:
+                            - /url: /apps/matterai-app
+                          - generic [ref=e814]: bot
+                        - text: reviewed
+                        - link "Apr 13, 20262 minutes ago" [ref=e816] [cursor=pointer]:
+                          - /url: "#pullrequestreview-4097556427"
+                      - link "View reviewed changes" [ref=e818] [cursor=pointer]:
+                        - /url: /MatterAIOrg/Orbital-Extension/pull/79/files/1e973c0bf792bf55eaf8f51965d4d32f96056ebf
+                        - generic [ref=e820]: View reviewed changes
+                  - generic [ref=e823]:
+                    - generic [ref=e824]:
+                      - generic [ref=e825]:
+                        - group [ref=e827]:
+                          - button "Show options" [ref=e828] [cursor=pointer]:
+                            - img "Show options" [ref=e831]
+                        - generic "This user has previously committed to the Orbital-Extension repository." [ref=e834]:
+                          - generic [ref=e835]: Contributor
+                      - heading "matterai-app bot left a comment" [level=3] [ref=e836]:
+                        - generic [ref=e837]:
+                          - strong [ref=e838]:
+                            - link "matterai-app" [ref=e839] [cursor=pointer]:
+                              - /url: /apps/matterai-app
+                            - generic [ref=e840]: bot
+                          - text: left a comment
+                    - generic [ref=e843]:
+                      - paragraph [ref=e844]: "🧪 PR Review is completed: Found a couple of issues: a hardcoded fallback string in AgentManagerView and a logic error in filename truncation when the file has no extension."
+                      - group [ref=e845]:
+                        - generic "Skipped files" [ref=e846] [cursor=pointer]
+                  - generic [ref=e848]:
+                    - group [ref=e852]:
+                      - button "Collapse comment thread" [expanded] [ref=e853] [cursor=pointer]:
+                        - link "webview-ui/src/components/agent/AgentManagerView.tsx" [ref=e856]:
+                          - /url: /MatterAIOrg/Orbital-Extension/pull/79/files/1e973c0bf792bf55eaf8f51965d4d32f96056ebf#diff-1526a72b2fb7a046a6ad6c9927fc06bc0d2d1de2047805b6456cb93fda485393
+                      - generic [ref=e857]:
+                        - table [ref=e860]:
+                          - rowgroup [ref=e861]:
+                            - 'row "27 + const workspaces = useMemo(() => {" [ref=e862]':
+                              - cell [ref=e863] [cursor=pointer]
+                              - cell "27" [ref=e864] [cursor=pointer]
+                              - 'cell "+ const workspaces = useMemo(() => {" [ref=e865]':
+                                - generic [ref=e866]: "+ const workspaces = useMemo(() => {"
+                            - 'row "28 + const groups: Record<string, typeof tasks> = {}" [ref=e867]':
+                              - cell [ref=e868] [cursor=pointer]
+                              - cell "28" [ref=e869] [cursor=pointer]
+                              - 'cell "+ const groups: Record<string, typeof tasks> = {}" [ref=e870]':
+                                - generic [ref=e871]: "+ const groups: Record<string, typeof tasks> = {}"
+                            - 'row "29 + tasks.forEach((task) => {" [ref=e872]':
+                              - cell [ref=e873] [cursor=pointer]
+                              - cell "29" [ref=e874] [cursor=pointer]
+                              - 'cell "+ tasks.forEach((task) => {" [ref=e875]':
+                                - generic [ref=e876]: "+ tasks.forEach((task) => {"
+                            - row "30 + const ws = task.workspace || \"matteraiorg/docs\"" [ref=e877]:
+                              - cell [ref=e878] [cursor=pointer]
+                              - cell "30" [ref=e879] [cursor=pointer]
+                              - cell "+ const ws = task.workspace || \"matteraiorg/docs\"" [ref=e880]:
+                                - generic [ref=e881]: + const ws = task.workspace || "matteraiorg/docs"
+                        - generic [ref=e885]:
+                          - generic [ref=e886]:
+                            - generic [ref=e887]:
+                              - group [ref=e889]:
+                                - button "Show options" [ref=e890] [cursor=pointer]:
+                                  - img "Show options" [ref=e893]
+                              - generic "This user has previously committed to the Orbital-Extension repository." [ref=e896]:
+                                - generic [ref=e897]: Contributor
+                            - heading "@matterai-app matterai-app bot Apr 13, 20262 minutes ago" [level=3] [ref=e898]:
+                              - generic [ref=e899]:
+                                - img "@matterai-app" [ref=e901]
+                                - strong [ref=e902]:
+                                  - link "matterai-app" [ref=e903] [cursor=pointer]:
+                                    - /url: /apps/matterai-app
+                                  - generic [ref=e904]: bot
+                                - link "Apr 13, 20262 minutes ago" [ref=e905] [cursor=pointer]:
+                                  - /url: "#discussion_r3071924491"
+                          - generic [ref=e909]:
+                            - paragraph [ref=e910]: 🟡 Code Quality
+                            - paragraph [ref=e911]:
+                              - strong [ref=e912]: "Issue:"
+                              - text: The fallback workspace name is hardcoded to
+                              - code [ref=e913]: "\"matteraiorg/docs\""
+                              - text: ", which seems specific to a particular environment or repository and will look confusing to other users."
+                            - paragraph [ref=e914]:
+                              - strong [ref=e915]: "Fix:"
+                              - text: Use a generic fallback name like
+                              - code [ref=e916]: "\"Unknown Workspace\""
+                              - text: or
+                              - code [ref=e917]: "\"Default Workspace\""
+                              - text: .
+                            - paragraph [ref=e918]:
+                              - strong [ref=e919]: "Impact:"
+                              - text: Improves user experience by avoiding confusing, hardcoded repository names for tasks without a workspace.
+                            - generic [ref=e920]:
+                              - generic [ref=e922]: Suggested change
+                              - table [ref=e924]:
+                                - rowgroup [ref=e925]:
+                                  - row "30 - const ws = task.workspace || \"matteraiorg/docs\"" [ref=e926]:
+                                    - cell "30" [ref=e927] [cursor=pointer]
+                                    - cell "- const ws = task.workspace || \"matteraiorg/docs\"" [ref=e928]:
+                                      - text: "- const ws = task.workspace ||"
+                                      - generic [ref=e929]: "\"matteraiorg/docs\""
+                                  - row "30 + const ws = task.workspace || \"Unknown Workspace\"" [ref=e930]:
+                                    - cell "30" [ref=e931] [cursor=pointer]
+                                    - cell "+ const ws = task.workspace || \"Unknown Workspace\"" [ref=e932]:
+                                      - text: + const ws = task.workspace ||
+                                      - generic [ref=e933]: "\"Unknown Workspace\""
+                    - group [ref=e937]:
+                      - button "Collapse comment thread" [expanded] [ref=e938] [cursor=pointer]:
+                        - link "webview-ui/src/components/common/Thumbnails.tsx" [ref=e941]:
+                          - /url: /MatterAIOrg/Orbital-Extension/pull/79/files/1e973c0bf792bf55eaf8f51965d4d32f96056ebf#diff-50bcaf8d761032f9e186cd07f8303c7a90f312739c07f3bb4af5062ee736c677
+                      - generic [ref=e942]:
+                        - generic [ref=e944]: Comment on lines +18 to +24
+                        - table [ref=e947]:
+                          - rowgroup [ref=e948]:
+                            - 'row "18 + const truncateFilename = (name: string, maxLength: number = 10): string => {" [ref=e949]':
+                              - cell [ref=e950] [cursor=pointer]
+                              - cell "18" [ref=e951] [cursor=pointer]
+                              - 'cell "+ const truncateFilename = (name: string, maxLength: number = 10): string => {" [ref=e952]':
+                                - generic [ref=e953]: "+ const truncateFilename = (name: string, maxLength: number = 10): string => {"
+                            - row "19 + if (name.length <= maxLength) return name" [ref=e954]:
+                              - cell [ref=e955] [cursor=pointer]
+                              - cell "19" [ref=e956] [cursor=pointer]
+                              - cell "+ if (name.length <= maxLength) return name" [ref=e957]:
+                                - generic [ref=e958]: + if (name.length <= maxLength) return name
+                            - row "20 + const extension = name.slice(name.lastIndexOf(\".\"))" [ref=e959]:
+                              - cell [ref=e960] [cursor=pointer]
+                              - cell "20" [ref=e961] [cursor=pointer]
+                              - cell "+ const extension = name.slice(name.lastIndexOf(\".\"))" [ref=e962]:
+                                - generic [ref=e963]: + const extension = name.slice(name.lastIndexOf("."))
+                            - row "21 + const baseName = name.slice(0, name.lastIndexOf(\".\"))" [ref=e964]:
+                              - cell [ref=e965] [cursor=pointer]
+                              - cell "21" [ref=e966] [cursor=pointer]
+                              - cell "+ const baseName = name.slice(0, name.lastIndexOf(\".\"))" [ref=e967]:
+                                - generic [ref=e968]: + const baseName = name.slice(0, name.lastIndexOf("."))
+                            - row "22 + const truncatedBase = baseName.slice(0, maxLength - extension.length - 3) + \"...\"" [ref=e969]:
+                              - cell [ref=e970] [cursor=pointer]
+                              - cell "22" [ref=e971] [cursor=pointer]
+                              - cell "+ const truncatedBase = baseName.slice(0, maxLength - extension.length - 3) + \"...\"" [ref=e972]:
+                                - generic [ref=e973]: + const truncatedBase = baseName.slice(0, maxLength - extension.length - 3) + "..."
+                            - row "23 + return truncatedBase + extension" [ref=e974]:
+                              - cell [ref=e975] [cursor=pointer]
+                              - cell "23" [ref=e976] [cursor=pointer]
+                              - cell "+ return truncatedBase + extension" [ref=e977]:
+                                - generic [ref=e978]: + return truncatedBase + extension
+                            - 'row "24 + }" [ref=e979]':
+                              - cell [ref=e980] [cursor=pointer]
+                              - cell "24" [ref=e981] [cursor=pointer]
+                              - 'cell "+ }" [ref=e982]':
+                                - generic [ref=e983]: "+ }"
+                        - generic [ref=e987]:
+                          - generic [ref=e988]:
+                            - generic [ref=e989]:
+                              - group [ref=e991]:
+                                - button "Show options" [ref=e992] [cursor=pointer]:
+                                  - img "Show options" [ref=e995]
+                              - generic "This user has previously committed to the Orbital-Extension repository." [ref=e998]:
+                                - generic [ref=e999]: Contributor
+                            - heading "@matterai-app matterai-app bot Apr 13, 20262 minutes ago" [level=3] [ref=e1000]:
+                              - generic [ref=e1001]:
+                                - img "@matterai-app" [ref=e1003]
+                                - strong [ref=e1004]:
+                                  - link "matterai-app" [ref=e1005] [cursor=pointer]:
+                                    - /url: /apps/matterai-app
+                                  - generic [ref=e1006]: bot
+                                - link "Apr 13, 20262 minutes ago" [ref=e1007] [cursor=pointer]:
+                                  - /url: "#discussion_r3071924510"
+                          - generic [ref=e1011]:
+                            - paragraph [ref=e1012]: 🟠 Logic Error
+                            - paragraph [ref=e1013]:
+                              - strong [ref=e1014]: "Issue:"
+                              - text: The
+                              - code [ref=e1015]: truncateFilename
+                              - text: function does not correctly handle filenames without an extension. If
+                              - code [ref=e1016]: lastIndexOf(".")
+                              - text: returns
+                              - code [ref=e1017]: "-1"
+                              - text: ","
+                              - code [ref=e1018]: slice(-1)
+                              - text: will extract the last character as the extension, leading to weird truncation results like
+                              - code [ref=e1019]: Docker...e
+                              - text: for
+                              - code [ref=e1020]: Dockerfile
+                              - text: .
+                            - paragraph [ref=e1021]:
+                              - strong [ref=e1022]: "Fix:"
+                              - text: Check if
+                              - code [ref=e1023]: lastIndexOf(".")
+                              - text: is
+                              - code [ref=e1024]: "-1"
+                              - text: and handle filenames without extensions properly.
+                            - paragraph [ref=e1025]:
+                              - strong [ref=e1026]: "Impact:"
+                              - text: Prevents incorrect truncation of filenames without extensions.
+                            - generic [ref=e1027]:
+                              - generic [ref=e1029]: Suggested change
+                              - table [ref=e1031]:
+                                - rowgroup [ref=e1032]:
+                                  - 'row "18 - const truncateFilename = (name: string, maxLength: number = 10): string => {" [ref=e1033]':
+                                    - cell "18" [ref=e1034] [cursor=pointer]
+                                    - 'cell "- const truncateFilename = (name: string, maxLength: number = 10): string => {" [ref=e1035]'
+                                  - row "19 - if (name.length <= maxLength) return name" [ref=e1036]:
+                                    - cell "19" [ref=e1037] [cursor=pointer]
+                                    - cell "- if (name.length <= maxLength) return name" [ref=e1038]
+                                  - row "20 - const extension = name.slice(name.lastIndexOf(\".\"))" [ref=e1039]:
+                                    - cell "20" [ref=e1040] [cursor=pointer]
+                                    - cell "- const extension = name.slice(name.lastIndexOf(\".\"))" [ref=e1041]
+                                  - row "21 - const baseName = name.slice(0, name.lastIndexOf(\".\"))" [ref=e1042]:
+                                    - cell "21" [ref=e1043] [cursor=pointer]
+                                    - cell "- const baseName = name.slice(0, name.lastIndexOf(\".\"))" [ref=e1044]
+                                  - row "22 - const truncatedBase = baseName.slice(0, maxLength - extension.length - 3) + \"...\"" [ref=e1045]:
+                                    - cell "22" [ref=e1046] [cursor=pointer]
+                                    - cell "- const truncatedBase = baseName.slice(0, maxLength - extension.length - 3) + \"...\"" [ref=e1047]
+                                  - row "23 - return truncatedBase + extension" [ref=e1048]:
+                                    - cell "23" [ref=e1049] [cursor=pointer]
+                                    - cell "- return truncatedBase + extension" [ref=e1050]
+                                  - 'row "24 - }" [ref=e1051]':
+                                    - cell "24" [ref=e1052] [cursor=pointer]
+                                    - 'cell "- }" [ref=e1053]'
+                                  - 'row "18 + const truncateFilename = (name: string, maxLength: number = 10): string => {" [ref=e1054]':
+                                    - cell "18" [ref=e1055] [cursor=pointer]
+                                    - 'cell "+ const truncateFilename = (name: string, maxLength: number = 10): string => {" [ref=e1056]'
+                                  - row "19 + if (name.length <= maxLength) return name" [ref=e1057]:
+                                    - cell "19" [ref=e1058] [cursor=pointer]
+                                    - cell "+ if (name.length <= maxLength) return name" [ref=e1059]
+                                  - row "20 + const lastDotIndex = name.lastIndexOf(\".\")" [ref=e1060]:
+                                    - cell "20" [ref=e1061] [cursor=pointer]
+                                    - cell "+ const lastDotIndex = name.lastIndexOf(\".\")" [ref=e1062]
+                                  - 'row "21 + if (lastDotIndex === -1) {" [ref=e1063]':
+                                    - cell "21" [ref=e1064] [cursor=pointer]
+                                    - 'cell "+ if (lastDotIndex === -1) {" [ref=e1065]': "+ if (lastDotIndex === -1) {"
+                                  - row "22 + return name.slice(0, Math.max(0, maxLength - 3)) + \"...\"" [ref=e1066]:
+                                    - cell "22" [ref=e1067] [cursor=pointer]
+                                    - cell "+ return name.slice(0, Math.max(0, maxLength - 3)) + \"...\"" [ref=e1068]
+                                  - 'row "23 + }" [ref=e1069]':
+                                    - cell "23" [ref=e1070] [cursor=pointer]
+                                    - 'cell "+ }" [ref=e1071]'
+                                  - row "24 + const extension = name.slice(lastDotIndex)" [ref=e1072]:
+                                    - cell "24" [ref=e1073] [cursor=pointer]
+                                    - cell "+ const extension = name.slice(lastDotIndex)" [ref=e1074]
+                                  - row "25 + const baseName = name.slice(0, lastDotIndex)" [ref=e1075]:
+                                    - cell "25" [ref=e1076] [cursor=pointer]
+                                    - cell "+ const baseName = name.slice(0, lastDotIndex)" [ref=e1077]
+                                  - row "26 + const truncatedBase = baseName.slice(0, Math.max(0, maxLength - extension.length - 3)) + \"...\"" [ref=e1078]:
+                                    - cell "26" [ref=e1079] [cursor=pointer]
+                                    - cell "+ const truncatedBase = baseName.slice(0, Math.max(0, maxLength - extension.length - 3)) + \"...\"" [ref=e1080]
+                                  - row "27 + return truncatedBase + extension" [ref=e1081]:
+                                    - cell "27" [ref=e1082] [cursor=pointer]
+                                    - cell "+ return truncatedBase + extension" [ref=e1083]
+                                  - 'row "28 + }" [ref=e1084]':
+                                    - cell "28" [ref=e1085] [cursor=pointer]
+                                    - 'cell "+ }" [ref=e1086]'
+            - generic [ref=e1090]:
+              - link "Sign up for free" [ref=e1091] [cursor=pointer]:
+                - /url: /join?source=comment-repo
+              - strong [ref=e1092]: to join this conversation on GitHub
+              - text: . Already have an account?
+              - link "Sign in to comment" [ref=e1093] [cursor=pointer]:
+                - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FMatterAIOrg%2FOrbital-Extension%2Fpull%2F79
+        - generic [ref=e1097]:
+          - form "Select reviewers" [ref=e1099]:
+            - heading "Reviewers" [level=3] [ref=e1100]
+            - paragraph [ref=e1102]:
+              - generic [ref=e1103]:
+                - link "@matterai-app" [ref=e1104] [cursor=pointer]:
+                  - /url: /apps/matterai-app
+                  - img "@matterai-app" [ref=e1105]
+                - link "matterai-app[bot]" [ref=e1106] [cursor=pointer]:
+                  - /url: /apps/matterai-app
+              - link "matterai-app[bot] left review comments" [ref=e1107] [cursor=pointer]:
+                - /url: /MatterAIOrg/Orbital-Extension/pull/79/files/1e973c0bf792bf55eaf8f51965d4d32f96056ebf
+                - img [ref=e1109]
+          - form "Select assignees" [ref=e1112]:
+            - heading "Assignees" [level=3] [ref=e1113]
+            - text: No one assigned
+          - generic [ref=e1114]:
+            - heading "Labels" [level=3] [ref=e1115]
+            - generic [ref=e1116]: None yet
+          - form "Select projects" [ref=e1118]:
+            - heading "Projects" [level=3] [ref=e1119]
+            - text: None yet
+          - form "Select milestones" [ref=e1121]:
+            - heading "Milestone" [level=3] [ref=e1122]
+            - text: No milestone
+          - form "Link issues" [ref=e1128]:
+            - heading "Development" [level=3] [ref=e1129]
+            - paragraph [ref=e1130]: Successfully merging this pull request may close these issues.
+            - paragraph [ref=e1132]: None yet
+          - generic [ref=e1134]:
+            - heading "1 participant" [level=3] [ref=e1135]
+            - link "@code-crusher" [ref=e1137] [cursor=pointer]:
+              - /url: /code-crusher
+              - img "@code-crusher" [ref=e1138]
+  - contentinfo [ref=e1139]:
+    - heading "Footer" [level=2] [ref=e1140]
+    - generic [ref=e1141]:
+      - generic [ref=e1142]:
+        - link "GitHub Homepage" [ref=e1143] [cursor=pointer]:
+          - /url: https://github.com
+          - img [ref=e1144]
+        - generic [ref=e1146]: © 2026 GitHub, Inc.
+      - navigation "Footer" [ref=e1147]:
+        - heading "Footer navigation" [level=3] [ref=e1148]
+        - list "Footer navigation" [ref=e1149]:
+          - listitem [ref=e1150]:
+            - link "Terms" [ref=e1151] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+          - listitem [ref=e1152]:
+            - link "Privacy" [ref=e1153] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+          - listitem [ref=e1154]:
+            - link "Security" [ref=e1155] [cursor=pointer]:
+              - /url: https://github.com/security
+          - listitem [ref=e1156]:
+            - link "Status" [ref=e1157] [cursor=pointer]:
+              - /url: https://www.githubstatus.com/
+          - listitem [ref=e1158]:
+            - link "Community" [ref=e1159] [cursor=pointer]:
+              - /url: https://github.community/
+          - listitem [ref=e1160]:
+            - link "Docs" [ref=e1161] [cursor=pointer]:
+              - /url: https://docs.github.com/
+          - listitem [ref=e1162]:
+            - link "Contact" [ref=e1163] [cursor=pointer]:
+              - /url: https://support.github.com?tags=dotcom-footer
+          - listitem [ref=e1164]:
+            - button "Manage cookies" [ref=e1166] [cursor=pointer]
+          - listitem [ref=e1167]:
+            - button "Do not share my personal information" [ref=e1169] [cursor=pointer]

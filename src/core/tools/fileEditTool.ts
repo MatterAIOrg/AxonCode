@@ -28,6 +28,15 @@ export async function fileEditTool(
 	pushToolResult: PushToolResult,
 	removeClosingTag: RemoveClosingTag,
 ): Promise<void> {
+	// Defensive fallback: if the model accidentally sent an 'edits' array
+	// (meant for multi_file_edit), redirect transparently instead of failing.
+	const editsParam = (block.params as any).edits
+	if (editsParam !== undefined) {
+		// Lazy import to avoid circular dependency
+		const { multiFileEditTool } = await import("./multiFileEditTool")
+		return multiFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
+	}
+
 	// Support both file_path (new) and target_file (legacy)
 	const filePath = (block.params as any).file_path || block.params.target_file
 	const oldString = block.params.old_string
@@ -252,7 +261,7 @@ async function validateParams(
 	return true
 }
 
-function performReplacement(
+export function performReplacement(
 	content: string,
 	oldString: string,
 	newString: string,
@@ -524,33 +533,39 @@ function* indentationFlexibleReplacer(content: string, find: string): Generator<
 	}
 }
 
-function* escapeNormalizedReplacer(content: string, find: string): Generator<string, void, undefined> {
-	const unescapeString = (str: string): string =>
-		str.replace(/\\(n|t|r|'|"|`|\\|\n|\$)/g, (match, captured) => {
-			switch (captured) {
-				case "n":
-					return "\n"
-				case "t":
-					return "\t"
-				case "r":
-					return "\r"
-				case "'":
-					return "'"
-				case '"':
-					return '"'
-				case "`":
-					return "`"
-				case "\\":
-					return "\\"
-				case "\n":
-					return "\n"
-				case "$":
-					return "$"
-				default:
-					return match
-			}
-		})
+/**
+ * Unescapes common escape sequences in a string.
+ * Converts \n to newline, \t to tab, \" to quote, etc.
+ * This is needed when the model sends escape sequences as literal text.
+ */
+export function unescapeString(str: string): string {
+	return str.replace(/\\(n|t|r|'|"|`|\\|\n|\$)/g, (match, captured) => {
+		switch (captured) {
+			case "n":
+				return "\n"
+			case "t":
+				return "\t"
+			case "r":
+				return "\r"
+			case "'":
+				return "'"
+			case '"':
+				return '"'
+			case "`":
+				return "`"
+			case "\\":
+				return "\\"
+			case "\n":
+				return "\n"
+			case "$":
+				return "$"
+			default:
+				return match
+		}
+	})
+}
 
+function* escapeNormalizedReplacer(content: string, find: string): Generator<string, void, undefined> {
 	const unescapedFind = unescapeString(find)
 
 	if (content.includes(unescapedFind)) {
@@ -800,7 +815,7 @@ function extractBlock(content: string, lines: string[], start: number, end: numb
 	return content.substring(startIndex, endIndex)
 }
 
-function truncatePreview(value: string, limit: number): string {
+export function truncatePreview(value: string, limit: number): string {
 	if (value.length <= limit) {
 		return value
 	}
@@ -834,7 +849,7 @@ function escapeRegExp(value: string): string {
  * Calculate the 1-based line number where the edit occurs.
  * Returns undefined if the old string is empty or not found.
  */
-function calculateEditLineNumber(content: string, oldString: string): number | undefined {
+export function calculateEditLineNumber(content: string, oldString: string): number | undefined {
 	if (!oldString || !content) return undefined
 
 	// Try to find the old string in the content

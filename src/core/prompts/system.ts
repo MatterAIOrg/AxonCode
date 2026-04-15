@@ -89,12 +89,15 @@ Common tool calls and explanations
 
 ## file_edit
 
-**Description**: Perform targeted text replacements within a single file without constructing manual diff blocks.
+**Description**: Make exactly ONE targeted text replacement in ONE file.
 
 **When to use**:
+- You need to make a **single** edit to a single file.
 - You know the exact text that should be replaced and its updated form.
-- You want a deterministic edit without invoking Fast Apply models.
-- You need to delete or rewrite a block of code but don't want to craft search/replace diff markers manually.
+
+**When NOT to use**:
+- If you have **2 or more edits** to make (even to the same file), use \`multi_file_edit\` instead.
+- Never call \`file_edit\` multiple times in sequence. Batch your edits with \`multi_file_edit\`.
 
 **Parameters**:
 1. \`file_path\` — Absolute path to the file you want to modify (e.g., /Users/username/project/src/file.ts).
@@ -102,10 +105,49 @@ Common tool calls and explanations
 3. \`new_string\` — The text that should replace the match. Use an empty string to delete the matched content.
 4. \`replace_all\` (optional, default false) — Set to true to replace every occurrence of the matched text. Leave false to replace only a single uniquely identified match.
 
-**Guidance**:
-- Prefer multi-line snippets for \`old_string\` to help the tool locate the correct section.
-- If multiple matches exist, either refine \`old_string\` or set \`replace_all\` to true when you intend to change every occurrence.
-- The tool shows a diff before applying changes so you can confirm the result.
+## multi_file_edit
+
+**Description**: Make multiple text replacements across one or more files in a single tool call. This is the **preferred** tool for editing when you have 2+ changes to make.
+
+**When to use**:
+- You have **2 or more edits** to make, whether to the same file or different files.
+- You want to batch edits efficiently instead of making multiple separate tool calls.
+
+**Parameters**:
+1. \`edits\` — An array of edit objects. Each edit has:
+   - \`file_path\` — Absolute path to the file to modify.
+   - \`old_string\` — Exact text to replace (provide enough context for a unique match).
+   - \`new_string\` — Replacement text.
+   - \`replace_all\` (optional) — Set to true to replace every occurrence.
+
+**Behavior**:
+- Edits within the same file are applied bottom-to-top to preserve line offsets.
+- Each edit is reported individually (success/failure) so you know exactly which edits worked.
+- If an edit fails, other edits in the same file are still attempted.
+
+**Example** (editing 2 places in the same file):
+\`\`\`json
+{
+  "edits": [
+    {"file_path": "/path/to/file.ts", "old_string": "const x = 1", "new_string": "const x = 2"},
+    {"file_path": "/path/to/file.ts", "old_string": "return x", "new_string": "return x + 1"}
+  ]
+}
+\`\`\`
+
+**Example** (editing across multiple files):
+\`\`\`json
+{
+  "edits": [
+    {"file_path": "/path/to/api.ts", "old_string": "v1", "new_string": "v2"},
+    {"file_path": "/path/to/config.ts", "old_string": "version: 1", "new_string": "version: 2"}
+  ]
+}
+\`\`\`
+
+**Guidance for choosing between file_edit and multi_file_edit**:
+- 1 edit → \`file_edit\`
+- 2+ edits → \`multi_file_edit\` (always)
 
 ## read_file Tool Usage
 

@@ -13,6 +13,7 @@ import { browserActionTool } from "../tools/browserActionTool"
 import { executeCommandTool } from "../tools/executeCommandTool"
 import { fetchInstructionsTool } from "../tools/fetchInstructionsTool"
 import { fileEditTool } from "../tools/fileEditTool"
+import { multiFileEditTool } from "../tools/multiFileEditTool"
 import { fileWriteTool } from "../tools/fileWriteTool"
 import { listCodeDefinitionNamesTool } from "../tools/listCodeDefinitionNamesTool"
 import { listFilesTool } from "../tools/listFilesTool"
@@ -168,6 +169,19 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.task}']`
 					case "file_edit":
 						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
+					case "multi_file_edit": {
+						let editCount = 0
+						try {
+							const editsRaw = (block.params as any).edits
+							if (editsRaw) {
+								const edits = JSON.parse(editsRaw)
+								editCount = Array.isArray(edits) ? edits.length : 0
+							}
+						} catch {
+							// During streaming, edits might be incomplete
+						}
+						return `[${block.name} for ${editCount} edits]`
+					}
 					case "file_write":
 						return `[${block.name} for '${(block.params as any).file_path}']`
 					case "list_files":
@@ -469,6 +483,9 @@ export async function presentAssistantMessage(cline: Task) {
 					break
 				case "file_edit":
 					await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
+					break
+				case "multi_file_edit":
+					await multiFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
 					break
 				case "file_write":
 					await fileWriteTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
