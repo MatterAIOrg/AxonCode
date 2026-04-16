@@ -144,11 +144,25 @@ export const renderMentionChip = (
 	return `<span class="mention-chip" data-mention-value="${mentionValue}" aria-label="${label}">${iconHtml}<span class="mention-chip__primary">${escapedPrimary}</span>${lineHtml}</span>`
 }
 
+// Icon name for slash commands (using a VSCode codicon via CSS)
+export const renderSlashCommandChip = (commandName: string, _materialIconsBaseUri: string): string => {
+	const escapedCommand = escapeHtml(commandName)
+	const label = escapeHtml(`/${commandName}`)
+	const commandValue = escapeHtml(`/${commandName}`)
+
+	// Use CommandIcon SVG as inline HTML
+	const iconHtml = `<svg class="slash-command-chip__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M15 9V15H9V9H15Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M15 15H18C19.6569 15 21 16.3431 21 18C21 19.6569 19.6569 21 18 21C16.3431 21 15 19.6569 15 18V15Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M9 15.002H6C4.34315 15.002 3 16.3451 3 18.002C3 19.6588 4.34315 21.002 6 21.002C7.65685 21.002 9 19.6588 9 18.002V15.002Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M15 9L15 6C15 4.34315 16.3431 3 18 3C19.6569 3 21 4.34315 21 6C21 7.65685 19.6569 9 18 9H15Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M9 9V6C9 4.34315 7.65685 3 6 3C4.34315 3 3 4.34315 3 6C3 7.65685 4.34315 9 6 9H9Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>`
+
+	return `<span class="slash-command-chip" data-command-value="${commandValue}" aria-label="${label}">${iconHtml}<span class="slash-command-chip__primary">${escapedCommand}</span></span>`
+}
+
 export const valueToHtml = (
 	value: string,
 	materialIconsBaseUri: string,
 	mentionMap: Map<string, string>,
 	customModes: any[] = [],
+	localWorkflowToggles: Record<string, boolean> = {},
+	globalWorkflowToggles: Record<string, boolean> = {},
 ): string => {
 	let processedText = escapeHtml(value || "")
 
@@ -168,20 +182,33 @@ export const valueToHtml = (
 		const endIndex = spaceIndex > -1 ? spaceIndex : processedText.length
 		const commandText = processedText.substring(slashIndex + 1, endIndex)
 
-		const isValidCommand = validateSlashCommand(commandText, customModes)
+		const isValidCommand = validateSlashCommand(
+			commandText,
+			customModes,
+			localWorkflowToggles,
+			globalWorkflowToggles,
+		)
 
 		if (isValidCommand) {
-			const fullCommand = processedText.substring(slashIndex, endIndex)
-			const highlighted = `<mark class="slash-command-match-textarea-highlight">${fullCommand}</mark>`
-			processedText = processedText.substring(0, slashIndex) + highlighted + processedText.substring(endIndex)
+			const chipHtml = renderSlashCommandChip(commandText, materialIconsBaseUri)
+			processedText = processedText.substring(0, slashIndex) + chipHtml + processedText.substring(endIndex)
 		}
 	}
 
 	return processedText || '<br data-plain-break="true">'
 }
 
-const validateSlashCommand = (commandText: string, customModes: any[]): boolean => {
-	const validCommands = ["newtask", "loadtask", "mode", "settings", "help"]
+const validateSlashCommand = (
+	commandText: string,
+	customModes: any[],
+	localWorkflowToggles: Record<string, boolean> = {},
+	globalWorkflowToggles: Record<string, boolean> = {},
+): boolean => {
+	const validCommands = ["newtask", "compact"]
 	const modeCommands = customModes?.map((mode) => mode.slug) || []
-	return [...validCommands, ...modeCommands].includes(commandText)
+	const workflowCommands = [
+		...Object.keys(localWorkflowToggles).filter((k) => localWorkflowToggles[k]),
+		...Object.keys(globalWorkflowToggles).filter((k) => globalWorkflowToggles[k]),
+	].map((path) => path.split("/").pop() || "")
+	return [...validCommands, ...modeCommands, ...workflowCommands].includes(commandText)
 }

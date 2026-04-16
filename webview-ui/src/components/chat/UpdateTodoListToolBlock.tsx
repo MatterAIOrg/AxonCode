@@ -176,7 +176,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 							className="codicon codicon-checklist mr-1.5"
 							style={{ color: "var(--vscode-foreground)" }}
 						/> */}
-						<span className="font-bold mr-2" style={{}}>
+						<span className="font-semibold" style={{}}>
 							Todo List Updated
 						</span>
 						<div className="flex-grow" />

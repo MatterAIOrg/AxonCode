@@ -23,12 +23,7 @@ export function getSupportedSlashCommands(
 			name: "newtask",
 			description: "Create a new task with context from the current task",
 		},
-		{
-			name: "newrule",
-			description: "Create a new Axon rule with context from your conversation",
-		},
-		{ name: "reportbug", description: "Create a AxonCode GitHub issue" },
-		{ name: "smol", description: "Condenses your current context window" },
+		{ name: "compact", description: "Condenses your current context window" },
 	]
 
 	// Add mode-switching commands dynamically

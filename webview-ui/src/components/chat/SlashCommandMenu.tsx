@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useEffect } from "react"
 import { SlashCommand, getMatchingSlashCommands } from "@/utils/slash-commands"
 import { useExtensionState } from "@/context/ExtensionStateContext" // kilocode_change
+import { cn } from "@/lib/utils"
 
 interface SlashCommandMenuProps {
 	onSelect: (command: SlashCommand) => void
@@ -51,22 +52,18 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 
 	return (
 		<div
-			className="absolute bottom-[calc(100%-10px)] left-[15px] right-[15px] overflow-x-hidden z-[1000] rounded-lg border border-[var(--color-matterai-border)] outline-none"
+			className="absolute bottom-[calc(100%-10px)] left-[15px] right-[15px] overflow-x-hidden z-[1000] rounded-md border border-[var(--color-matterai-border)] outline-none"
 			onMouseDown={onMouseDown}>
-			<div
-				ref={menuRef}
-				className="bg-[var(--vscode-dropdown-background)] border border-[var(--vscode-editorGroup-border)] rounded-[3px] shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col max-h-[200px] overflow-y-auto" // Corrected rounded and shadow
-			>
+			<div ref={menuRef} className="bg-vscode-editor-background flex flex-col max-h-[200px] overflow-y-auto">
 				{filteredCommands.length > 0 ? (
 					filteredCommands.map((command, index) => (
 						<div
 							key={command.name}
-							className={`py-2 px-3 cursor-pointer flex flex-col border-b border-[var(--vscode-editorGroup-border)] ${
-								// Corrected padding
-								index === selectedIndex
-									? "bg-[var(--vscode-quickInputList-focusBackground)] text-[var(--vscode-quickInputList-focusForeground)]"
-									: "" // Removed bg-transparent
-							} hover:bg-[var(--vscode-list-hoverBackground)]`}
+							className={cn(
+								"py-1.5 px-3 cursor-pointer flex flex-col text-sm opacity-80",
+								index === selectedIndex &&
+									"opacity-100 bg-[var(--vscode-menu-background)] text-vscode-list-activeSelectionForeground",
+							)}
 							onClick={() => handleClick(command)}
 							onMouseEnter={() => setSelectedIndex(index)}>
 							<div className="font-bold whitespace-nowrap overflow-hidden text-ellipsis">
@@ -79,8 +76,6 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 					))
 				) : (
 					<div className="py-2 px-3 cursor-default flex flex-col">
-						{" "}
-						{/* Corrected padding, removed border, changed cursor */}
 						<div className="text-[0.85em] text-[var(--vscode-descriptionForeground)]">
 							No matching commands found
 						</div>

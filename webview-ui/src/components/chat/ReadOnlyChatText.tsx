@@ -11,7 +11,7 @@ interface ReadOnlyChatTextProps {
 }
 
 export const ReadOnlyChatText: React.FC<ReadOnlyChatTextProps> = ({ value, className, onClick, title }) => {
-	const { customModes, filePaths, openedTabs } = useExtensionState()
+	const { customModes, filePaths, openedTabs, localWorkflows, globalWorkflows } = useExtensionState()
 	const [materialIconsBaseUri, setMaterialIconsBaseUri] = useState("")
 	const contentRef = useRef<HTMLDivElement>(null)
 	const mentionMapRef = useRef<Map<string, string>>(new Map())
@@ -48,8 +48,15 @@ export const ReadOnlyChatText: React.FC<ReadOnlyChatTextProps> = ({ value, class
 
 	const htmlContent = useMemo(() => {
 		if (!value) return '<br data-plain-break="true">'
-		return valueToHtml(value, materialIconsBaseUri, mentionMapRef.current, customModes)
-	}, [value, materialIconsBaseUri, customModes])
+		return valueToHtml(
+			value,
+			materialIconsBaseUri,
+			mentionMapRef.current,
+			customModes,
+			localWorkflows,
+			globalWorkflows,
+		)
+	}, [value, materialIconsBaseUri, customModes, localWorkflows, globalWorkflows])
 
 	const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
 		const target = e.target as HTMLElement

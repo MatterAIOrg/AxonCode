@@ -34,9 +34,11 @@ export async function processKiloUserContentMentions({
 	includeDiagnosticMessages?: boolean
 	maxDiagnosticMessages?: number
 	maxReadFileLine?: number
-}): Promise<[Anthropic.Messages.ContentBlockParam[], boolean]> {
+}): Promise<[Anthropic.Messages.ContentBlockParam[], boolean, boolean]> {
 	// Track if we need to check kilorules file
 	let needsRulesFileCheck = false
+	// Track if we should trigger direct context condensation
+	let shouldCondense = false
 
 	/**
 	 * Process mentions in user content, specifically within task and feedback tags
@@ -57,7 +59,11 @@ export async function processKiloUserContentMentions({
 
 		return await Promise.all(
 			userContent.map(async (block) => {
-				const shouldProcessMentions = (text: string) => text.includes("<task>") || text.includes("<feedback>")
+				const shouldProcessMentions = (text: string) =>
+					text.includes("<task>") ||
+					text.includes("<feedback>") ||
+					text.includes("<answer>") ||
+					text.includes("<user_message>")
 
 				if (block.type === "text") {
 					if (shouldProcessMentions(block.text)) {
@@ -75,14 +81,18 @@ export async function processKiloUserContentMentions({
 						)
 
 						// when parsing slash commands, we still want to allow the user to provide their desired context
-						const { processedText, needsRulesFileCheck: needsCheck } = await parseKiloSlashCommands(
-							parsedText,
-							localWorkflowToggles, // kilocode_change
-							globalWorkflowToggles, // kilocode_change
-						)
+						const {
+							processedText,
+							needsRulesFileCheck: needsCheck,
+							shouldCondense: commandRequestsCondense,
+						} = await parseKiloSlashCommands(parsedText, localWorkflowToggles, globalWorkflowToggles)
 
 						if (needsCheck) {
 							needsRulesFileCheck = true
+						}
+
+						if (commandRequestsCondense) {
+							shouldCondense = true
 						}
 
 						return {
@@ -154,5 +164,5 @@ export async function processKiloUserContentMentions({
 	if (needsRulesFileCheck) {
 		kilorulesError = await ensureLocalKilorulesDirExists(cwd, GlobalFileNames.kiloRules)
 	}
-	return [processedUserContent, kilorulesError]
+	return [processedUserContent, kilorulesError, shouldCondense]
 }

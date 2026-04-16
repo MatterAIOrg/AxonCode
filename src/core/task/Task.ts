@@ -2125,7 +2125,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			} = (await this.providerRef.deref()?.getState()) ?? {}
 
 			// forked_change start
-			const [parsedUserContent, needsRulesFileCheck] = await processKiloUserContentMentions({
+			const [parsedUserContent, needsRulesFileCheck, shouldCondense] = await processKiloUserContentMentions({
 				context: this.getContext(),
 				userContent: currentUserContent,
 				cwd: this.cwd,
@@ -2143,6 +2143,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					"error",
 					"Issue with processing the /newrule command. Double check that, if '.orbital/rules' already exists, it's a directory and not a file. Otherwise there was an issue referencing this file/directory",
 				)
+			}
+
+			// Handle /compact command - trigger direct context condensation
+			if (shouldCondense) {
+				await this.condenseContext()
+				// End the current request loop - condensation creates its own response
+				// Return true to end the loop (similar to how tool use completion ends the loop)
+				return true
 			}
 			// forked_change end
 
@@ -2894,9 +2902,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	async loadContext(
 		userContent: UserContent,
 		includeFileDetails: boolean = false,
-	): Promise<[UserContent, string, boolean]> {
+	): Promise<[UserContent, string, boolean, boolean]> {
 		// Track if we need to check clinerulesFile
 		let needsClinerulesFileCheck = false
+		// Track if we should trigger direct context condensation
+		let shouldCondense = false
 
 		// bookmark
 		const { localWorkflowToggles, globalWorkflowToggles } = await refreshWorkflowToggles(
@@ -2926,14 +2936,18 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 							)
 
 							// when parsing slash commands, we still want to allow the user to provide their desired context
-							const { processedText, needsRulesFileCheck: needsCheck } = await parseKiloSlashCommands(
-								parsedText,
-								localWorkflowToggles,
-								globalWorkflowToggles,
-							)
+							const {
+								processedText,
+								needsRulesFileCheck: needsCheck,
+								shouldCondense: commandRequestsCondense,
+							} = await parseKiloSlashCommands(parsedText, localWorkflowToggles, globalWorkflowToggles)
 
 							if (needsCheck) {
 								needsClinerulesFileCheck = true
+							}
+
+							if (commandRequestsCondense) {
+								shouldCondense = true
 							}
 
 							return {
@@ -2963,8 +2977,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			clinerulesError = await ensureLocalKilorulesDirExists(this.cwd, GlobalFileNames.kiloRules)
 		}
 
-		// Return all results
-		return [processedUserContent, environmentDetails, clinerulesError]
+		// Return all results (including shouldCondense flag)
+		return [processedUserContent, environmentDetails, clinerulesError, shouldCondense]
 	}
 	// forked_change end
 
