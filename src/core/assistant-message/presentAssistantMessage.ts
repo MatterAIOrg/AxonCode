@@ -90,7 +90,7 @@ export async function presentAssistantMessage(cline: Task) {
 
 	switch (block.type) {
 		case "text": {
-			if (cline.didRejectTool || cline.didAlreadyUseTool) {
+			if (cline.didRejectTool) {
 				break
 			}
 
@@ -296,9 +296,10 @@ export async function presentAssistantMessage(cline: Task) {
 				pushToolResult_withToolUseId_kilocode(...items)
 				// forked_change end
 
-				// Once a tool result has been collected, ignore all other tool
-				// uses since we should only ever present one tool result per
-				// message.
+				// Track that at least one tool ran during this assistant turn.
+				// We still continue processing later content blocks because
+				// native/OpenAI responses may legitimately batch multiple tool
+				// calls into a single assistant message.
 				cline.didAlreadyUseTool = true
 			}
 
@@ -638,7 +639,7 @@ export async function presentAssistantMessage(cline: Task) {
 	// skip execution since `didRejectTool` and iterate until `contentIndex` is
 	// set to message length and it sets userMessageContentReady to true itself
 	// (instead of preemptively doing it in iterator).
-	if (!block.partial || cline.didRejectTool || cline.didAlreadyUseTool) {
+	if (!block.partial || cline.didRejectTool) {
 		// Block is finished streaming and executing.
 		if (cline.currentStreamingContentIndex === cline.assistantMessageContent.length - 1) {
 			// It's okay that we increment if !didCompleteReadingStream, it'll
