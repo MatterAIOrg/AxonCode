@@ -267,12 +267,18 @@ export class AssistantMessageParser {
 					// This regex looks for property names followed by colon and unquoted values that contain word characters, dots, asterisks, etc.
 					fixedArgs = fixedArgs.replace(/("([^"]+)"\s*:\s*)([a-zA-Z0-9_.*\/\\-]+)(?=\s*[,\]}])/g, '$1"$3"')
 
-					parsedArgs = JSON.parse(fixedArgs)
+					// Only attempt to parse if arguments look like JSON (start with { or [)
+					// During streaming, arguments may contain natural language text initially
+					const trimmedArgs = fixedArgs.trim()
+					if (trimmedArgs.startsWith("{") || trimmedArgs.startsWith("[")) {
+						parsedArgs = JSON.parse(fixedArgs)
 
-					// Fix any double-encoded parameters
-					parsedArgs = parseDoubleEncodedParams(parsedArgs)
+						// Fix any double-encoded parameters
+						parsedArgs = parseDoubleEncodedParams(parsedArgs)
 
-					isComplete = true
+						isComplete = true
+					}
+					// If arguments don't look like JSON yet, continue accumulating (don't mark as complete)
 				}
 			} catch (error) {
 				// Arguments are not yet complete valid JSON, continue accumulating
@@ -627,8 +633,13 @@ export class AssistantMessageParser {
 			let parsedArgs: Record<string, any> = {}
 			try {
 				if (accumulatedCall.function?.arguments?.trim()) {
-					parsedArgs = JSON.parse(accumulatedCall.function.arguments)
-					parsedArgs = parseDoubleEncodedParams(parsedArgs)
+					// Only attempt to parse if arguments look like JSON (start with { or [)
+					const trimmedArgs = accumulatedCall.function.arguments.trim()
+					if (trimmedArgs.startsWith("{") || trimmedArgs.startsWith("[")) {
+						parsedArgs = JSON.parse(accumulatedCall.function.arguments)
+						parsedArgs = parseDoubleEncodedParams(parsedArgs)
+					}
+					// If arguments don't look like JSON, parsedArgs remains empty object
 				}
 			} catch (error) {
 				// Arguments are still not valid JSON — remove the partial block so it

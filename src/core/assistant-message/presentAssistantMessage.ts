@@ -301,6 +301,14 @@ export async function presentAssistantMessage(cline: Task) {
 				// native/OpenAI responses may legitimately batch multiple tool
 				// calls into a single assistant message.
 				cline.didAlreadyUseTool = true
+
+				// If this is not a partial block (i.e., the tool has completed execution),
+				// and the stream has finished reading, set userMessageContentReady
+				// to allow the task loop to continue. This is critical for native tool
+				// calls where the block state might not trigger the normal completion flow.
+				if (!block.partial && cline.didCompleteReadingStream) {
+					cline.userMessageContentReady = true
+				}
 			}
 
 			const askApproval = async (
