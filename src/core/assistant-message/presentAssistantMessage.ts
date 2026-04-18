@@ -508,9 +508,36 @@ export async function presentAssistantMessage(cline: Task) {
 			// forked_change end
 
 			switch (block.name) {
-				case "update_todo_list":
-					await updateTodoListTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+				case "update_todo_list": {
+					// For native tool calls, the partial block is just for UI display during streaming.
+					// We should only execute the actual tool logic when the block is complete (partial: false).
+					if (!block.partial) {
+						await updateTodoListTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+					} else {
+						// For partial blocks, just update the UI display without executing
+						// The tool will be executed when the complete block arrives
+						const todosRaw = block.params.todos || ""
+						try {
+							const { parseMarkdownChecklist } = await import("../tools/updateTodoListTool")
+							const todos = parseMarkdownChecklist(todosRaw)
+							const approvalMsg = JSON.stringify({
+								tool: "updateTodoList",
+								todos,
+							})
+							await cline.ask("tool", approvalMsg, true).catch(() => {})
+						} catch {
+							// Ignore parsing errors for partial blocks
+						}
+					}
 					break
+				}
 				case "file_edit":
 					await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
 					break
