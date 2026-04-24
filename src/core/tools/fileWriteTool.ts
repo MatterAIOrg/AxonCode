@@ -307,6 +307,14 @@ export async function fileWriteTool(
 			await cline.diffViewProvider.saveChanges(diagnosticsEnabled, writeDelayMs)
 		}
 
+		// Add to file edit review controller so it shows in AcceptRejectButtons
+		cline.fileEditReviewController.addEdit({
+			relPath: filePath,
+			absolutePath,
+			originalContent,
+			newContent: content,
+		})
+
 		// Track file operation
 		if (filePath) {
 			await cline.fileContextTracker.trackFileContext(filePath, "roo_edited" as RecordSource)

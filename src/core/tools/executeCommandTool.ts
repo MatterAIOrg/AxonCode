@@ -107,7 +107,9 @@ export async function executeCommandTool(
 			} catch (error: unknown) {
 				const status: CommandExecutionStatus = { executionId, status: "fallback" }
 				provider?.postMessageToWebview({ type: "commandExecutionStatus", text: JSON.stringify(status) })
-				await task.say("shell_integration_warning")
+				await task.say("shell_integration_warning", undefined, undefined, undefined, undefined, undefined, {
+					isNonInteractive: true,
+				})
 
 				if (error instanceof ShellIntegrationError) {
 					const [rejected, result] = await executeCommand(task, {
@@ -216,7 +218,7 @@ export async function executeCommand(
 				terminalOutputCharacterLimit,
 			)
 
-			task.say("command_output", result)
+			task.say("command_output", result, undefined, undefined, undefined, undefined, { isNonInteractive: true })
 			completed = true
 		},
 		onShellExecutionStarted: (pid: number | undefined) => {
@@ -277,7 +279,15 @@ export async function executeCommand(
 			if (isTimedOut) {
 				const status: CommandExecutionStatus = { executionId, status: "timeout" }
 				provider?.postMessageToWebview({ type: "commandExecutionStatus", text: JSON.stringify(status) })
-				await task.say("error", t("common:errors:command_timeout", { seconds: commandExecutionTimeoutSeconds }))
+				await task.say(
+					"error",
+					t("common:errors:command_timeout", { seconds: commandExecutionTimeoutSeconds }),
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					{ isNonInteractive: true },
+				)
 				task.terminalProcess = undefined
 
 				return [
@@ -315,7 +325,7 @@ export async function executeCommand(
 
 	if (message) {
 		const { text, images } = message
-		await task.say("user_feedback", text, images)
+		await task.say("user_feedback", text, images, undefined, undefined, undefined, { isNonInteractive: true })
 
 		return [
 			true,
