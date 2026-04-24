@@ -3,6 +3,7 @@ import { memo, useState } from "react"
 import type { ClineMessage } from "@roo-code/types"
 import { ReadOnlyChatText } from "../chat/ReadOnlyChatText"
 import { cn } from "@src/lib/utils"
+import { useVSCodeTheme } from "@src/kilocode/hooks/useVSCodeTheme"
 
 export interface StickyUserMessageProps {
 	task: ClineMessage
@@ -20,6 +21,8 @@ export interface StickyUserMessageProps {
  */
 const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessageProps) => {
 	const [isExpanded, setIsExpanded] = useState(false)
+	const theme = useVSCodeTheme()
+	const isLightTheme = theme === "vs" || theme?.includes("light")
 
 	// Get the message to display based on stickyIndex
 	// stickyIndex: null = task prompt, number = index in messages array (groupedMessages)
@@ -72,7 +75,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 			)}
 			style={{
 				backgroundColor: "var(--vscode-editor-background)",
-				boxShadow: "rgb(18 18 18 / 88%) 0px 7px 19px 0px",
+				boxShadow: isLightTheme ? "rgb(0 0 0 / 15%) 0px 7px 19px 0px" : "rgb(18 18 18 / 88%) 0px 7px 19px 0px",
 			}}>
 			<div
 				className="flex items-center justify-between gap-2 cursor-pointer"
