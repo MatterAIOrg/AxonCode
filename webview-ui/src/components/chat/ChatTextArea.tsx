@@ -21,7 +21,7 @@ import {
 } from "@src/utils/context-mentions"
 
 import { cn } from "@/lib/utils"
-import { renderMentionChip } from "@/utils/chat-render"
+import { renderMentionChip, renderSlashCommandChip } from "@/utils/chat-render"
 import { MessageSquareX, VolumeX } from "lucide-react"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import KiloModeSelector from "../kilocode/KiloModeSelector"
@@ -372,6 +372,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return el.dataset.mentionValue
 				}
 
+				if (el.dataset?.commandValue) {
+					return el.dataset.commandValue
+				}
+
 				if (el.tagName === "BR") {
 					return "\n"
 				}
@@ -404,6 +408,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				const el = node as HTMLElement
 				if (el.dataset?.mentionValue) {
 					return el.dataset.mentionValue.length
+				}
+
+				if (el.dataset?.commandValue) {
+					return el.dataset.commandValue.length
 				}
 
 				if (el.tagName === "BR") {
@@ -712,19 +720,23 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					const spaceIndex = processedText.indexOf(" ", slashIndex)
 					const endIndex = spaceIndex > -1 ? spaceIndex : processedText.length
 					const commandText = processedText.substring(slashIndex + 1, endIndex)
-					const isValidCommand = validateSlashCommand(commandText, customModes)
+					const isValidCommand = validateSlashCommand(
+						commandText,
+						customModes,
+						localWorkflows,
+						globalWorkflows,
+					)
 
 					if (isValidCommand) {
-						const fullCommand = processedText.substring(slashIndex, endIndex)
-						const highlighted = `<mark class="slash-command-match-textarea-highlight">${fullCommand}</mark>`
+						const chipHtml = renderSlashCommandChip(commandText, materialIconsBaseUri)
 						processedText =
-							processedText.substring(0, slashIndex) + highlighted + processedText.substring(endIndex)
+							processedText.substring(0, slashIndex) + chipHtml + processedText.substring(endIndex)
 					}
 				}
 
 				return processedText || '<br data-plain-break="true">'
 			},
-			[customModes, renderMentionChipLocal],
+			[customModes, renderMentionChipLocal, localWorkflows, globalWorkflows, materialIconsBaseUri],
 		)
 
 		const setCaretPosition = useCallback(
@@ -759,6 +771,16 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							const index = siblings.indexOf(elNode)
 							const targetIndex = remaining === 0 ? index : index + 1
 							remaining = Math.max(remaining - elNode.dataset.mentionValue.length, 0)
+							return createRangeAt(parent, targetIndex)
+						}
+
+						if (elNode.dataset?.commandValue) {
+							const parent = elNode.parentNode
+							if (!parent) return null
+							const siblings = Array.from(parent.childNodes)
+							const index = siblings.indexOf(elNode)
+							const targetIndex = remaining === 0 ? index : index + 1
+							remaining = Math.max(remaining - elNode.dataset.commandValue.length, 0)
 							return createRangeAt(parent, targetIndex)
 						}
 
@@ -1494,7 +1516,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					isFocused
 						? "border border-[var(--vscode-activityBar-border)]"
 						: isDraggingOver
-							? "border-2 border-dashed border-[var(--vscode-activityBar-border)]"
+							? "border-1 border-dashed border-[var(--vscode-activityBar-border)]"
 							: "border border-[var(--vscode-activityBar-border)]",
 					isDraggingOver
 						? "bg-[color-mix(in_srgb,var(--vscode-input-background)_95%,white)]"
@@ -1779,10 +1801,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"z-[1000]",
 									"mb-2",
 									"filter",
-									"drop-shadow-md",
-									"rounded-xl",
-									"border",
-									"border-[var(--vscode-activityBar-border)]",
+									"border-none",
 									"outline-none",
 								)}>
 								<ContextMenu

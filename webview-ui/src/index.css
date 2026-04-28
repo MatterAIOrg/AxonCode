@@ -561,6 +561,16 @@ vscode-text-field::part(input) {
 	color: white;
 }
 
+body.vscode-light .mention-context-textarea-highlight,
+body[data-vscode-theme-kind="vs"] .mention-context-textarea-highlight,
+body.vscode-light .mention-context-highlight,
+body[data-vscode-theme-kind="vs"] .mention-context-highlight,
+body.vscode-light .mention-context-highlight-with-shadow,
+body[data-vscode-theme-kind="vs"] .mention-context-highlight-with-shadow {
+	background-color: color-mix(in srgb, var(--vscode-button-background) 20%, #ffffff 80%);
+	color: var(--vscode-foreground);
+}
+
 .mention-chip {
 	display: inline-flex;
 	align-items: center;
@@ -574,6 +584,11 @@ vscode-text-field::part(input) {
 	font-size: inherit;
 	font-weight: 400;
 	vertical-align: bottom;
+}
+
+body.vscode-light .mention-chip,
+body[data-vscode-theme-kind="vs"] .mention-chip {
+	background-color: color-mix(in srgb, var(--vscode-button-background) 20%, #ffffff 80%);
 }
 
 .mention-chip__icon {

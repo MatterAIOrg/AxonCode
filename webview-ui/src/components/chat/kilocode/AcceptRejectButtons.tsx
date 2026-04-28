@@ -2,6 +2,7 @@ import { Button } from "@/components/ui"
 import { vscode } from "@/utils/vscode"
 import { useCallback, useEffect, useState } from "react"
 import { getIconForFilePath, getIconUrlByName } from "vscode-material-icons"
+import { useVSCodeTheme } from "@/kilocode/hooks/useVSCodeTheme"
 
 type FileChange = {
 	relPath: string
@@ -18,6 +19,8 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 	const [isLoading, setIsLoading] = useState(true)
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [materialIconsBaseUri, setMaterialIconsBaseUri] = useState("")
+	const theme = useVSCodeTheme()
+	const isLightTheme = theme === "vs" || theme?.includes("light")
 
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
@@ -101,7 +104,7 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 		<div
 			className="flex flex-col w-full border border-vscode-editorWidget-border rounded-lg overflow-hidden bg-vscode-editor-background"
 			style={{
-				boxShadow: "rgb(18 18 18 / 88%) 0px 7px 29px 0px",
+				boxShadow: isLightTheme ? "rgb(0 0 0 / 15%) 0px 7px 29px 0px" : "rgb(18 18 18 / 88%) 0px 7px 29px 0px",
 			}}>
 			{/* File List - Only show when expanded */}
 			{isExpanded && (

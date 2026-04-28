@@ -13,6 +13,7 @@ import { browserActionTool } from "../tools/browserActionTool"
 import { executeCommandTool } from "../tools/executeCommandTool"
 import { fetchInstructionsTool } from "../tools/fetchInstructionsTool"
 import { fileEditTool } from "../tools/fileEditTool"
+import { multiFileEditTool } from "../tools/multiFileEditTool"
 import { fileWriteTool } from "../tools/fileWriteTool"
 import { listCodeDefinitionNamesTool } from "../tools/listCodeDefinitionNamesTool"
 import { listFilesTool } from "../tools/listFilesTool"
@@ -89,7 +90,7 @@ export async function presentAssistantMessage(cline: Task) {
 
 	switch (block.type) {
 		case "text": {
-			if (cline.didRejectTool || cline.didAlreadyUseTool) {
+			if (cline.didRejectTool) {
 				break
 			}
 
@@ -168,6 +169,19 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.task}']`
 					case "file_edit":
 						return `[${block.name} for '${(block.params as any).file_path || block.params.target_file}']`
+					case "multi_file_edit": {
+						let editCount = 0
+						try {
+							const editsRaw = (block.params as any).edits
+							if (editsRaw) {
+								const edits = JSON.parse(editsRaw)
+								editCount = Array.isArray(edits) ? edits.length : 0
+							}
+						} catch {
+							// During streaming, edits might be incomplete
+						}
+						return `[${block.name} for ${editCount} edits]`
+					}
 					case "file_write":
 						return `[${block.name} for '${(block.params as any).file_path}']`
 					case "list_files":
@@ -282,10 +296,19 @@ export async function presentAssistantMessage(cline: Task) {
 				pushToolResult_withToolUseId_kilocode(...items)
 				// forked_change end
 
-				// Once a tool result has been collected, ignore all other tool
-				// uses since we should only ever present one tool result per
-				// message.
+				// Track that at least one tool ran during this assistant turn.
+				// We still continue processing later content blocks because
+				// native/OpenAI responses may legitimately batch multiple tool
+				// calls into a single assistant message.
 				cline.didAlreadyUseTool = true
+
+				// If this is not a partial block (i.e., the tool has completed execution),
+				// and the stream has finished reading, set userMessageContentReady
+				// to allow the task loop to continue. This is critical for native tool
+				// calls where the block state might not trigger the normal completion flow.
+				if (!block.partial && cline.didCompleteReadingStream) {
+					cline.userMessageContentReady = true
+				}
 			}
 
 			const askApproval = async (
@@ -463,12 +486,63 @@ export async function presentAssistantMessage(cline: Task) {
 			}
 			// forked_change end
 
+			// forked_change start: Check if context condensation is needed before executing tools
+			// that may add significant content to the context window.
+			// This prevents context window overflow when the LLM requests to read files
+			// with a nearly full context.
+			const toolsThatAddContent = [
+				"read_file",
+				"search_files",
+				"list_files",
+				"list_code_definition_names",
+				"codebase_search",
+				"lsp",
+				"web_fetch",
+				"web_search",
+				"use_mcp_tool",
+				"access_mcp_resource",
+			]
+			if (!block.partial && toolsThatAddContent.includes(block.name)) {
+				await cline.checkAndCondenseContext()
+			}
+			// forked_change end
+
 			switch (block.name) {
-				case "update_todo_list":
-					await updateTodoListTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+				case "update_todo_list": {
+					// For native tool calls, the partial block is just for UI display during streaming.
+					// We should only execute the actual tool logic when the block is complete (partial: false).
+					if (!block.partial) {
+						await updateTodoListTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+					} else {
+						// For partial blocks, just update the UI display without executing
+						// The tool will be executed when the complete block arrives
+						const todosRaw = block.params.todos || ""
+						try {
+							const { parseMarkdownChecklist } = await import("../tools/updateTodoListTool")
+							const todos = parseMarkdownChecklist(todosRaw)
+							const approvalMsg = JSON.stringify({
+								tool: "updateTodoList",
+								todos,
+							})
+							await cline.ask("tool", approvalMsg, true).catch(() => {})
+						} catch {
+							// Ignore parsing errors for partial blocks
+						}
+					}
 					break
+				}
 				case "file_edit":
 					await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
+					break
+				case "multi_file_edit":
+					await multiFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
 					break
 				case "file_write":
 					await fileWriteTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
@@ -600,7 +674,7 @@ export async function presentAssistantMessage(cline: Task) {
 	// skip execution since `didRejectTool` and iterate until `contentIndex` is
 	// set to message length and it sets userMessageContentReady to true itself
 	// (instead of preemptively doing it in iterator).
-	if (!block.partial || cline.didRejectTool || cline.didAlreadyUseTool) {
+	if (!block.partial || cline.didRejectTool) {
 		// Block is finished streaming and executing.
 		if (cline.currentStreamingContentIndex === cline.assistantMessageContent.length - 1) {
 			// It's okay that we increment if !didCompleteReadingStream, it'll

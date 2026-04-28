@@ -533,6 +533,7 @@ export interface ClineSayTool {
 		| "newTask"
 		| "finishTask"
 		| "fileEdit"
+		| "multiFileEdit"
 		| "generateImage"
 		| "imageGenerated"
 		| "runSlashCommand"

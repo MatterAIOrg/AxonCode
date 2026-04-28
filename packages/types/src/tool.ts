@@ -18,6 +18,7 @@ export const toolNames = [
 	"execute_command",
 	"read_file",
 	"file_edit",
+	"multi_file_edit",
 	"file_write",
 	"search_files",
 	"list_files",

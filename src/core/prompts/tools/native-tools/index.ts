@@ -9,6 +9,7 @@ import lsp from "./lsp"
 import { read_file_single } from "./read_file"
 import searchFiles from "./search_files"
 import fileEdit from "./file_edit"
+import multiFileEdit from "./multi_file_edit"
 import fileWrite from "./file_write"
 import updateTodoList from "./update_todo_list"
 import codebaseSearch from "./codebase_search"
@@ -18,6 +19,7 @@ import webSearch from "./web_search"
 
 export const nativeTools = [
 	fileEdit,
+	multiFileEdit,
 	fileWrite,
 	askFollowupQuestion,
 	attemptCompletion,

@@ -196,6 +196,8 @@
 		"wantsToEditOutsideWorkspace": "Edit (outside workspace)",
 		"wantsToEditProtected": "edit protected configuration file",
 		"wantsToApplyBatchChanges": "apply changes to multiple files",
+		"wantsToEditMultiple": "Edit {{count}} files",
+		"wantsToEditMultipleProtected": "edit protected configuration files",
 		"wantsToGenerateImage": "generate image",
 		"wantsToGenerateImageOutsideWorkspace": "generate image(outside workspace)",
 		"wantsToGenerateImageProtected": "generate image(protected location)",

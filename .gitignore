@@ -69,3 +69,6 @@ qdrant_storage/
 
 # Manual release guide
 MANUAL_RELEASE.md
+
+# Playwright MCP
+.playwright-mcp/

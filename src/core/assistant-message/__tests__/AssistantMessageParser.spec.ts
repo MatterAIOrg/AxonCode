@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it } from "vitest"
+
 // npx vitest src/core/assistant-message/__tests__/AssistantMessageParser.spec.ts
 
 import { AssistantMessageParser } from "../AssistantMessageParser"
@@ -170,6 +172,77 @@ describe("AssistantMessageParser (streaming)", () => {
 			expect((result[3] as ToolUse).name).toBe("read_file")
 			expect((result[3] as ToolUse).params.path).toBe("file2.ts")
 		})
+
+		it("should retain multiple native tool calls from one assistant response", () => {
+			parser.processChunk("Let me inspect this.")
+
+			const yielded = [
+				...parser.processNativeToolCalls([
+					{
+						index: 0,
+						id: "search_files:0",
+						type: "function",
+						function: {
+							name: "search_files",
+							arguments: '{"path":"src","regex":"JSON\\\\\\\\.parse","file_pattern":"*.ts"}',
+						},
+					},
+					{
+						index: 1,
+						id: "read_file:1",
+						type: "function",
+						function: {
+							name: "read_file",
+							arguments: '{"file_path":"src/one.ts"}',
+						},
+					},
+					{
+						index: 2,
+						id: "read_file:2",
+						type: "function",
+						function: {
+							name: "read_file",
+							arguments: '{"file_path":"src/two.ts"}',
+						},
+					},
+				]),
+			]
+
+			const result = parser.getContentBlocks().filter((block) => !isEmptyTextContent(block))
+
+			expect(yielded).toHaveLength(6)
+			expect(result).toHaveLength(4)
+			expect(result[0]).toEqual({
+				type: "text",
+				content: "Let me inspect this.",
+				partial: false,
+			})
+			expect(result[1]).toMatchObject({
+				type: "tool_use",
+				name: "search_files",
+				partial: false,
+				toolUseId: "search_files:0",
+			})
+			expect((result[1] as ToolUse).params).toEqual({
+				path: "src",
+				regex: "JSON\\\\.parse",
+				file_pattern: "*.ts",
+			})
+			expect(result[2]).toMatchObject({
+				type: "tool_use",
+				name: "read_file",
+				partial: false,
+				toolUseId: "read_file:1",
+			})
+			expect((result[2] as ToolUse).params).toEqual({ file_path: "src/one.ts" })
+			expect(result[3]).toMatchObject({
+				type: "tool_use",
+				name: "read_file",
+				partial: false,
+				toolUseId: "read_file:2",
+			})
+			expect((result[3] as ToolUse).params).toEqual({ file_path: "src/two.ts" })
+		})
 	})
 
 	describe("special and edge cases", () => {
@@ -320,6 +393,91 @@ describe("AssistantMessageParser (streaming)", () => {
 			// Third tool use (execute_command)
 			expect(result[5].type).toBe("tool_use")
 			expect((result[5] as ToolUse).name).toBe("execute_command")
+		})
+	})
+
+	describe("native tool calls with content", () => {
+		it("should handle tool calls with natural language text in arguments (streaming)", () => {
+			// Simulate LLM sending content text in tool call arguments initially
+			// This can happen when both delta.content and delta.tool_calls are present
+			parser.processChunk("Now I have the documentation. Let me create the Cloudflare Worker project.")
+
+			// First delta: content text in arguments (should not crash)
+			const yielded1 = [
+				...parser.processNativeToolCalls([
+					{
+						index: 0,
+						id: "file_write:0",
+						type: "function",
+						function: {
+							name: "file_write",
+							// Natural language text instead of JSON - should be handled gracefully
+							arguments: "Now I have the documentation. Let me create the Cloudflare Worker project.",
+						},
+					},
+				]),
+			]
+
+			// Should not yield anything yet since arguments don't look like JSON
+			expect(yielded1).toHaveLength(0)
+
+			// Second delta: actual JSON arguments
+			const yielded2 = [
+				...parser.processNativeToolCalls([
+					{
+						index: 0,
+						function: {
+							name: "file_write",
+							arguments: '{"file_path": "/Users/xblack/Documents/gravity/reflare/package.json"}',
+						},
+					},
+				]),
+			]
+
+			// Should yield the complete tool use
+			expect(yielded2.length).toBeGreaterThan(0)
+
+			const result = parser.getContentBlocks().filter((block) => !isEmptyTextContent(block))
+
+			// Should have text content and the tool use
+			expect(result.length).toBeGreaterThanOrEqual(2)
+			expect(result[0].type).toBe("text")
+			expect((result[0] as TextContent).content).toContain("Now I have the documentation")
+		})
+
+		it("should not crash when tool call arguments don't look like JSON", () => {
+			// This simulates the exact error scenario from the bug report
+			parser.processChunk("Let me create the files.")
+
+			// Tool call with natural language arguments (not JSON)
+			expect(() => {
+				parser.processNativeToolCalls([
+					{
+						index: 0,
+						id: "file_write:0",
+						type: "function",
+						function: {
+							name: "file_write",
+							arguments: "Now I have the documentation...",
+						},
+					},
+				])
+			}).not.toThrow()
+
+			// Now provide valid JSON arguments
+			const yielded = [
+				...parser.processNativeToolCalls([
+					{
+						index: 0,
+						function: {
+							name: "file_write",
+							arguments: '{"file_path": "test.json", "content": "{}"}',
+						},
+					},
+				]),
+			]
+
+			expect(yielded.length).toBeGreaterThan(0)
 		})
 	})
 

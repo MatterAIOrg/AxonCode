@@ -19,6 +19,13 @@ function enabledWorkflowToggles(workflowToggles: ClineRulesToggles) {
 		}))
 }
 
+export interface ParsedSlashCommandsResult {
+	processedText: string
+	needsRulesFileCheck: boolean
+	detectedCommands: string[]
+	shouldCondense: boolean
+}
+
 /**
  * This file is a duplicate of parseSlashCommands, but it adds a check for the newrule command
  * and processes Kilo-specific slash commands. It should be merged with parseSlashCommands in the future.
@@ -27,12 +34,12 @@ export async function parseKiloSlashCommands(
 	text: string,
 	localWorkflowToggles: ClineRulesToggles,
 	globalWorkflowToggles: ClineRulesToggles,
-): Promise<{ processedText: string; needsRulesFileCheck: boolean }> {
+): Promise<ParsedSlashCommandsResult> {
+	const detectedCommands: string[] = []
+
 	const commandReplacements: Record<string, ((userInput: string) => string) | undefined> = {
 		newtask: newTaskToolResponse,
-		newrule: newRuleToolResponse,
-		reportbug: reportBugToolResponse,
-		smol: condenseToolResponse,
+		compact: undefined, // compact is handled specially - triggers direct condensation
 	}
 
 	// this currently allows matching prepended whitespace prior to /slash-command
@@ -53,7 +60,29 @@ export async function parseKiloSlashCommands(
 			// match[2] is just the command name (e.g. "newtask")
 
 			const commandName = match[2] // casing matters
+			detectedCommands.push(commandName)
+
 			const command = commandReplacements[commandName]
+
+			// Handle compact command specially - triggers direct condensation
+			if (commandName === "compact") {
+				const fullMatchStartIndex = match.index
+				const fullMatch = match[0]
+				const relativeStartIndex = fullMatch.indexOf(match[1])
+				const slashCommandStartIndex = fullMatchStartIndex + relativeStartIndex
+				const slashCommandEndIndex = slashCommandStartIndex + match[1].length
+
+				// Remove the slash command from text but mark for condensation
+				const textWithoutSlashCommand =
+					text.substring(0, slashCommandStartIndex) + text.substring(slashCommandEndIndex)
+
+				return {
+					processedText: textWithoutSlashCommand,
+					needsRulesFileCheck: false,
+					detectedCommands,
+					shouldCondense: true,
+				}
+			}
 
 			if (command) {
 				const fullMatchStartIndex = match.index
@@ -71,7 +100,12 @@ export async function parseKiloSlashCommands(
 					text.substring(0, slashCommandStartIndex) + text.substring(slashCommandEndIndex)
 				const processedText = command(textWithoutSlashCommand)
 
-				return { processedText, needsRulesFileCheck: commandName === "newrule" }
+				return {
+					processedText,
+					needsRulesFileCheck: commandName === "newrule",
+					detectedCommands,
+					shouldCondense: false,
+				}
 			}
 
 			const matchingWorkflow = [
@@ -100,7 +134,12 @@ export async function parseKiloSlashCommands(
 						`<explicit_instructions type="${matchingWorkflow.fileName}">\n${workflowContent}\n</explicit_instructions>\n` +
 						textWithoutSlashCommand
 
-					return { processedText, needsRulesFileCheck: false }
+					return {
+						processedText,
+						needsRulesFileCheck: false,
+						detectedCommands,
+						shouldCondense: false,
+					}
 				} catch (error) {
 					console.error(`Error reading workflow file ${matchingWorkflow.fullPath}: ${error}`)
 				}
@@ -109,5 +148,10 @@ export async function parseKiloSlashCommands(
 	}
 
 	// if no supported commands are found, return the original text
-	return { processedText: text, needsRulesFileCheck: false }
+	return {
+		processedText: text,
+		needsRulesFileCheck: false,
+		detectedCommands,
+		shouldCondense: false,
+	}
 }

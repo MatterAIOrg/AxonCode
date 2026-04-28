@@ -49,7 +49,7 @@ export const ContextUsageIndicator: React.FC<ContextUsageIndicatorProps> = ({ cl
 						cy={size / 2}
 						r={radius}
 						fill="none"
-						stroke="#c4fdff"
+						stroke="var(--vscode-descriptionForeground)"
 						strokeWidth={strokeWidth}
 						strokeOpacity={0.2}
 					/>
@@ -59,7 +59,7 @@ export const ContextUsageIndicator: React.FC<ContextUsageIndicatorProps> = ({ cl
 						cy={size / 2}
 						r={radius}
 						fill="none"
-						stroke="#c4fdff"
+						stroke="var(--vscode-descriptionForeground)"
 						strokeWidth={strokeWidth}
 						strokeDasharray={circumference}
 						strokeDashoffset={strokeDashoffset}

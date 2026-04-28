@@ -5,7 +5,41 @@
 	background-color: color-mix(in srgb, var(--vscode-focusBorder) 30%, transparent);
 	border-radius: 3px;
 	box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--vscode-focusBorder) 30%, transparent);
-	color: transparent;
+}
+
+/* Slash command chip styles - similar to mention-chip */
+.slash-command-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 6px;
+	background-color: var(--vscode-button-secondaryBackground, var(--vscode-editorWidget-background));
+	border: 1px solid var(--vscode-button-secondaryBorder, var(--vscode-editorWidget-border));
+	border-radius: 4px;
+	font-size: 0.9em;
+	color: var(--vscode-button-secondaryForeground, var(--vscode-editorWidget-foreground));
+	vertical-align: middle;
+	margin: 0 2px;
+	cursor: default;
+	user-select: none;
+}
+
+.slash-command-chip__icon {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	color: var(--vscode-button-secondaryForeground, var(--vscode-editorWidget-foreground));
+}
+
+.slash-command-chip__primary {
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /* Custom slow pulse animation for task progress squares */

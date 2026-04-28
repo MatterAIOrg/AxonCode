@@ -672,6 +672,15 @@ export const ChatRowContent = ({
 					</>
 				)
 			}
+			case "multiFileEdit": {
+				// This case is now mostly unused since multiFileEditTool emits individual fileEdit messages
+				// Keeping as fallback for any edge cases
+				return (
+					<div style={headerStyle} className="">
+						<span style={{}}>{t("chat:fileOperations.wantsToEditMultiple", { count: 1 })}</span>
+					</div>
+				)
+			}
 			case "planFileEdit":
 				return (
 					<div

@@ -133,7 +133,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 				</div>
 			</div>
 			{(content?.trim()?.length ?? 0) > 0 && !isCollapsed && (
-				<div ref={contentRef} className="text-vscode-descriptionForeground max-h-[300px] overflow-y-auto">
+				<div ref={contentRef} className="text-vscode-descriptionForeground max-h-[300px] overflow-y-auto mt-2">
 					<MarkdownBlock markdown={content} />
 				</div>
 			)}

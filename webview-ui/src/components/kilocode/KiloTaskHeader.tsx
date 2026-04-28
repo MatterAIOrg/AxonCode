@@ -30,7 +30,7 @@ export interface TaskHeaderProps {
 
 const KiloTaskHeader = ({
 	onClose,
-	isAgentManagerMode,
+	// isAgentManagerMode,
 	// todos,
 	title,
 }: TaskHeaderProps) => {
@@ -39,7 +39,6 @@ const KiloTaskHeader = ({
 			<div
 				className={cn("py-1 flex flex-col relative z-1")}
 				style={{
-					boxShadow: `${isAgentManagerMode ? "none" : "rgb(18 18 18 / 88%) 0px 7px 29px 0px"}`,
 					position: "relative",
 					zIndex: 1,
 				}}>
