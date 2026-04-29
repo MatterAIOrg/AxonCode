@@ -479,6 +479,101 @@ describe("AssistantMessageParser (streaming)", () => {
 
 			expect(yielded.length).toBeGreaterThan(0)
 		})
+
+		it("should preserve string content that happens to be valid JSON (file_write package.json)", () => {
+			// Regression: parseDoubleEncodedParams used to recurse into string property
+			// values and JSON.parse anything that looked like JSON, which corrupted
+			// file_write content for files that themselves contain JSON (e.g. package.json,
+			// tsconfig.json). The tool then received `content` as an object instead of a
+			// string and silently dropped the call.
+			const packageJsonContent =
+				'{\n  "name": "orb-proxy-worker",\n  "version": "1.0.0",\n  "main": "src/index.ts"\n}\n'
+
+			const yielded = [
+				...parser.processNativeToolCalls([
+					{
+						index: 0,
+						id: "call_pkg",
+						type: "function",
+						function: {
+							name: "file_write",
+							arguments: JSON.stringify({
+								content: packageJsonContent,
+								file_path: "/tmp/package.json",
+								line_count: 5,
+							}),
+						},
+					},
+				]),
+			]
+
+			expect(yielded.length).toBeGreaterThan(0)
+
+			const toolUse = parser
+				.getContentBlocks()
+				.find((b) => b.type === "tool_use" && (b as ToolUse).name === "file_write") as ToolUse
+			expect(toolUse).toBeDefined()
+			expect(toolUse.partial).toBe(false)
+			// Critical: content must remain a string with the original JSON text intact.
+			expect(typeof toolUse.params.content).toBe("string")
+			expect(toolUse.params.content).toBe(packageJsonContent)
+			expect(toolUse.params.file_path).toBe("/tmp/package.json")
+		})
+
+		it("should handle parallel file_write tool calls in a single delta", () => {
+			// Mirrors the user's bug: two file_write calls arrive in one delta, both
+			// with content that is itself JSON. parseDoubleEncodedParams used to walk
+			// into the `content` strings and JSON.parse them, turning content into an
+			// object and silently dropping the calls.
+			const pkgContent = '{\n  "name": "orb-proxy-worker"\n}\n'
+			const tsConfigContent = '{\n  "compilerOptions": { "target": "ES2021" }\n}\n'
+
+			void [
+				...parser.processNativeToolCalls([
+					{
+						index: 0,
+						id: "call_pkg",
+						type: "function",
+						function: {
+							name: "file_write",
+							arguments: JSON.stringify({
+								content: pkgContent,
+								file_path: "/tmp/package.json",
+								line_count: 3,
+							}),
+						},
+					},
+					{
+						index: 1,
+						id: "call_tsconfig",
+						type: "function",
+						function: {
+							name: "file_write",
+							arguments: JSON.stringify({
+								content: tsConfigContent,
+								file_path: "/tmp/tsconfig.json",
+								line_count: 3,
+							}),
+						},
+					},
+				]),
+			]
+
+			const toolUses = parser
+				.getContentBlocks()
+				.filter((b) => b.type === "tool_use" && (b as ToolUse).name === "file_write") as ToolUse[]
+			expect(toolUses).toHaveLength(2)
+			// Both calls must be marked complete so they actually execute.
+			expect(toolUses.every((t) => t.partial === false)).toBe(true)
+			// Critical: content must remain a string with the original JSON text intact,
+			// not be re-decoded into an object by parseDoubleEncodedParams.
+			const pkgUse = toolUses.find((t) => t.params.file_path === "/tmp/package.json")
+			const tsUse = toolUses.find((t) => t.params.file_path === "/tmp/tsconfig.json")
+			expect(typeof pkgUse?.params.content).toBe("string")
+			expect(typeof tsUse?.params.content).toBe("string")
+			expect(pkgUse?.params.content).toBe(pkgContent)
+			expect(tsUse?.params.content).toBe(tsConfigContent)
+		})
 	})
 
 	describe("size limit handling", () => {
