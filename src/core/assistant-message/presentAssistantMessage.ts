@@ -243,6 +243,21 @@ export async function presentAssistantMessage(cline: Task) {
 				}
 			}
 
+			// forked_change start: Track whether a tool_result was pushed for this
+			// tool_use block. We use this in the try/finally below to guarantee that
+			// every non-partial tool_use with a toolUseId gets a matching tool_result
+			// pushed onto userMessageContent — otherwise the assistant's tool_use blocks
+			// (which were already added to apiConversationHistory) won't pair up with
+			// the user's tool_result blocks on the next API call, causing the provider
+			// to reject the request with a tool_use_id mismatch.
+			//
+			// Common ways the result can fail to be pushed:
+			//   - cline.ask() throws "Current ask promise was ignored" mid-tool
+			//   - a duplicate tool call short-circuits via checkAndRegisterToolCall
+			//   - an unexpected error escapes the tool handler before pushToolResult
+			let toolResultPushed = false
+			// forked_change end
+
 			const pushToolResult_withToolUseId_kilocode = (
 				...items: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[]
 			) => {
@@ -252,267 +267,368 @@ export async function presentAssistantMessage(cline: Task) {
 				} else {
 					cline.userMessageContent.push(...items)
 				}
+				// forked_change: mark that this tool_use already has a result so the
+				// safety net in the finally block doesn't double-push.
+				toolResultPushed = true
 			}
 
-			if (cline.didRejectTool) {
-				// Ignore any tool content after user has rejected tool once.
-				if (!block.partial) {
-					pushToolResult_withToolUseId_kilocode({
-						type: "text",
-						text: `Skipping tool ${toolDescription()} due to user rejecting a previous tool.`,
-					})
-				} else {
-					// Partial tool after user rejected a previous tool.
-					pushToolResult_withToolUseId_kilocode({
-						type: "text",
-						text: `Tool ${toolDescription()} was interrupted and not executed due to user rejecting a previous tool.`,
-					})
-				}
+			// forked_change: hoist provider state lookup out of the try below so
+			// `customModes` stays in the same lexical scope as `toolDescription`
+			// (which captures it via closure) and so the safety net in the finally
+			// can still see it if needed. We accept a small risk of error here —
+			// the call is wrapped in `?? {}` and is typically safe.
+			const { mode: _mode_kilocode, customModes: _customModes_kilocode } =
+				(await cline.providerRef.deref()?.getState()) ?? {}
+			const mode = _mode_kilocode
+			const customModes = _customModes_kilocode
 
-				break
-			}
-
-			// Check for duplicate tool calls (same name + same args) when the tool call is complete
-			// Only check/register when !block.partial to avoid registering partial streaming updates
-			// which would cause the final complete call to be incorrectly flagged as duplicate
-			if (!block.partial) {
-				const toolCallSignature = cline.getToolCallSignature(block.name, block.params)
-				if (cline.checkAndRegisterToolCall(toolCallSignature)) {
-					cline.didAlreadyUseTool = true
-					break
-				}
-			}
-
-			const pushToolResult = (content: ToolResponse) => {
-				// forked_change start
-				const items = new Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam>()
-
-				// No prefix - just return raw tool output
-				if (typeof content === "string") {
-					items.push({ type: "text", text: content || "(tool did not return anything)" })
-				} else {
-					items.push(...content)
-				}
-				pushToolResult_withToolUseId_kilocode(...items)
-				// forked_change end
-
-				// Track that at least one tool ran during this assistant turn.
-				// We still continue processing later content blocks because
-				// native/OpenAI responses may legitimately batch multiple tool
-				// calls into a single assistant message.
-				cline.didAlreadyUseTool = true
-
-				// If this is not a partial block (i.e., the tool has completed execution),
-				// and the stream has finished reading, set userMessageContentReady
-				// to allow the task loop to continue. This is critical for native tool
-				// calls where the block state might not trigger the normal completion flow.
-				if (!block.partial && cline.didCompleteReadingStream) {
-					cline.userMessageContentReady = true
-				}
-			}
-
-			const askApproval = async (
-				type: ClineAsk,
-				partialMessage?: string,
-				progressStatus?: ToolProgressStatus,
-				isProtected?: boolean,
-			) => {
-				// forked_change start: yolo mode
-
-				const state = await cline.providerRef.deref()?.getState()
-				if (state?.yoloMode) {
-					return true
-				}
-				// kilocode_change start: auto-approve all commands for current task
-				if (type === "command" && cline.autoApproveAllCommands) {
-					return true
-				}
-				// kilocode_change end
-				// forked_change end
-
-				const { response, text, images } = await cline.ask(
-					type,
-					partialMessage,
-					false,
-					progressStatus,
-					isProtected || false,
-				)
-
-				if (response !== "yesButtonClicked") {
-					// On reject, do nothing - just reject
-					cline.didRejectTool = true
-
-					// If the user sent a message (which caused the rejection), it might be queued
-					// Process any queued messages now
-					cline.processQueuedMessages()
-
-					return false
-				}
-
-				// Handle yesButtonClicked with text.
-				if (text) {
-					await cline.say("user_feedback", text, images)
-					pushToolResult(formatResponse.toolResult(formatResponse.toolApprovedWithFeedback(text), images))
-				}
-
-				return true
-			}
-
-			const askFinishSubTaskApproval = async () => {
-				// Ask the user to approve this task has completed, and he has
-				// reviewed it, and we can declare task is finished and return
-				// control to the parent task to continue running the rest of
-				// the sub-tasks.
-				const toolMessage = JSON.stringify({ tool: "finishTask" })
-				return await askApproval("tool", toolMessage)
-			}
-
-			const handleError = async (action: string, error: Error) => {
-				const errorString = `Error ${action}: ${JSON.stringify(serializeError(error))}`
-
-				await cline.say(
-					"error",
-					`Error ${action}:\n${error.message ?? JSON.stringify(serializeError(error), null, 2)}`,
-				)
-
-				pushToolResult(formatResponse.toolError(errorString))
-			}
-
-			// If block is partial, remove partial closing tag so its not
-			// presented to user.
-			const removeClosingTag = (tag: ToolParamName, text?: string): string => {
-				if (!block.partial) {
-					return text || ""
-				}
-
-				if (!text) {
-					return ""
-				}
-
-				// This regex dynamically constructs a pattern to match the
-				// closing tag:
-				// - Optionally matches whitespace before the tag.
-				// - Matches '<' or '</' optionally followed by any subset of
-				//   characters from the tag name.
-				const tagRegex = new RegExp(
-					`\\s?<\/?${tag
-						.split("")
-						.map((char) => `(?:${char})?`)
-						.join("")}$`,
-					"g",
-				)
-
-				return text.replace(tagRegex, "")
-			}
-
-			if (block.name !== "browser_action") {
-				await cline.browserSession.closeBrowser()
-			}
-
-			if (!block.partial) {
-				cline.recordToolUsage(block.name)
-				TelemetryService.instance.captureToolUsage(cline.taskId, block.name)
-			}
-
-			// Validate tool use before execution.
-			const { mode, customModes } = (await cline.providerRef.deref()?.getState()) ?? {}
-
+			// forked_change start: Wrap the entire tool_use processing body in a
+			// try/catch/finally. Any throw from cline.ask, validateToolUse, the
+			// repetition check, the per-tool handlers, or any helper here is caught
+			// here and converted into a tool_result, instead of bubbling out and
+			// leaving the assistant tool_use unmatched.
 			try {
-				validateToolUse(
-					block.name as ToolName,
-					mode ?? defaultModeSlug,
-					customModes ?? [],
-					{ file_edit: cline.diffEnabled },
-					block.params,
-				)
-			} catch (error) {
-				cline.consecutiveMistakeCount++
-				pushToolResult(formatResponse.toolError(error.message))
-				break
-			}
+				// forked_change end
 
-			// Check for identical consecutive tool calls.
-			if (!block.partial) {
-				// Use the detector to check for repetition, passing the ToolUse
-				// block directly.
-				const repetitionCheck = cline.toolRepetitionDetector.check(block)
-
-				// If execution is not allowed, notify user and break.
-				if (!repetitionCheck.allowExecution && repetitionCheck.askUser) {
-					// Handle repetition similar to mistake_limit_reached pattern.
-					const { response, text, images } = await cline.ask(
-						repetitionCheck.askUser.messageKey as ClineAsk,
-						repetitionCheck.askUser.messageDetail.replace("{toolName}", block.name),
-					)
-
-					if (response === "messageResponse") {
-						// Add user feedback to userContent.
-						pushToolResult_withToolUseId_kilocode(
-							{
-								type: "text" as const,
-								text: `Tool repetition limit reached. User feedback: ${text}`,
-							},
-							...formatResponse.imageBlocks(images),
-						)
-
-						// Add user feedback to chat.
-						await cline.say("user_feedback", text, images)
-
-						// Track tool repetition in telemetry.
-						TelemetryService.instance.captureConsecutiveMistakeError(cline.taskId)
+				if (cline.didRejectTool) {
+					// Ignore any tool content after user has rejected tool once.
+					if (!block.partial) {
+						pushToolResult_withToolUseId_kilocode({
+							type: "text",
+							text: `Skipping tool ${toolDescription()} due to user rejecting a previous tool.`,
+						})
+					} else {
+						// Partial tool after user rejected a previous tool.
+						pushToolResult_withToolUseId_kilocode({
+							type: "text",
+							text: `Tool ${toolDescription()} was interrupted and not executed due to user rejecting a previous tool.`,
+						})
 					}
 
-					// Return tool result message about the repetition
-					pushToolResult(
-						formatResponse.toolError(
-							`Tool call repetition limit reached for ${block.name}. Please try a different approach.`,
-						),
-					)
 					break
 				}
-			}
 
-			await checkpointSaveAndMark(cline) // kilocode_change: moved out of switch
+				// Check for duplicate tool calls (same name + same args) when the tool call is complete
+				// Only check/register when !block.partial to avoid registering partial streaming updates
+				// which would cause the final complete call to be incorrectly flagged as duplicate
+				if (!block.partial) {
+					const toolCallSignature = cline.getToolCallSignature(block.name, block.params)
+					if (cline.checkAndRegisterToolCall(toolCallSignature)) {
+						cline.didAlreadyUseTool = true
+						// forked_change: explicitly push a tool_result for the duplicate so the
+						// assistant tool_use is paired in the API conversation history. Without
+						// this push, the bare `break` below would leave the tool_use unmatched
+						// and the next request would fail with a tool_use_id mismatch.
+						pushToolResult_withToolUseId_kilocode({
+							type: "text",
+							text: `Duplicate tool call detected for ${toolDescription()}. The same tool call was already executed in this turn — its previous result still applies. Please move on or try a different approach.`,
+						})
+						break
+					}
+				}
 
-			// forked_change start: Clean up stale partial tool ask message from
-			// native tool call streaming before the complete tool handler runs.
-			// During streaming, a partial ask("tool", ..., true) is created to
-			// show a spinner. Some tool handlers (e.g., file_edit) use
-			// say("tool", ...) for the complete version, which doesn't update
-			// the partial ask — causing duplicate messages. This removes the
-			// stale partial so only the complete message is shown.
-			if (!block.partial && block.toolUseId) {
-				await cline.removeStalePartialToolAskMessage()
-			}
-			// forked_change end
+				const pushToolResult = (content: ToolResponse) => {
+					// forked_change start
+					const items = new Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam>()
 
-			// forked_change start: Check if context condensation is needed before executing tools
-			// that may add significant content to the context window.
-			// This prevents context window overflow when the LLM requests to read files
-			// with a nearly full context.
-			const toolsThatAddContent = [
-				"read_file",
-				"search_files",
-				"list_files",
-				"list_code_definition_names",
-				"codebase_search",
-				"lsp",
-				"web_fetch",
-				"web_search",
-				"use_mcp_tool",
-				"access_mcp_resource",
-			]
-			if (!block.partial && toolsThatAddContent.includes(block.name)) {
-				await cline.checkAndCondenseContext()
-			}
-			// forked_change end
+					// No prefix - just return raw tool output
+					if (typeof content === "string") {
+						items.push({ type: "text", text: content || "(tool did not return anything)" })
+					} else {
+						items.push(...content)
+					}
+					pushToolResult_withToolUseId_kilocode(...items)
+					// forked_change end
 
-			switch (block.name) {
-				case "update_todo_list": {
-					// For native tool calls, the partial block is just for UI display during streaming.
-					// We should only execute the actual tool logic when the block is complete (partial: false).
+					// Track that at least one tool ran during this assistant turn.
+					// We still continue processing later content blocks because
+					// native/OpenAI responses may legitimately batch multiple tool
+					// calls into a single assistant message.
+					cline.didAlreadyUseTool = true
+
+					// If this is not a partial block (i.e., the tool has completed execution),
+					// and the stream has finished reading, set userMessageContentReady
+					// to allow the task loop to continue. This is critical for native tool
+					// calls where the block state might not trigger the normal completion flow.
+					if (!block.partial && cline.didCompleteReadingStream) {
+						cline.userMessageContentReady = true
+					}
+				}
+
+				const askApproval = async (
+					type: ClineAsk,
+					partialMessage?: string,
+					progressStatus?: ToolProgressStatus,
+					isProtected?: boolean,
+				) => {
+					// forked_change start: yolo mode
+
+					const state = await cline.providerRef.deref()?.getState()
+					if (state?.yoloMode) {
+						return true
+					}
+					// kilocode_change start: auto-approve all commands for current task
+					if (type === "command" && cline.autoApproveAllCommands) {
+						return true
+					}
+					// kilocode_change end
+					// forked_change end
+
+					// forked_change start: only `execute_command` (ask type "command") ever
+					// surfaces a Run/Cancel prompt. Every other tool — file edits, MCP, web,
+					// browser actions, etc. — must auto-approve. We still surface the tool's
+					// final UI row (so the user can see what ran), but we never block on a
+					// real user response: setImmediate posts a "yesButtonClicked" right
+					// after the ask starts waiting, and we .catch() any race-condition
+					// throw (e.g. "Current ask promise was ignored") so the tool flow can
+					// always continue. This pattern mirrors what webFetchTool / readFileTool
+					// were already doing inline; centralising it here protects every tool.
+					if (type !== "command") {
+						if (partialMessage) {
+							setImmediate(() => {
+								try {
+									// Guard for tests where cline is a partial mock without this method.
+									cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
+								} catch {
+									// best-effort; never let the auto-approval poke crash the flow
+								}
+							})
+							await cline
+								.ask(type, partialMessage, false, progressStatus, isProtected || false)
+								.catch(() => {})
+						}
+						return true
+					}
+					// forked_change end
+
+					const { response, text, images } = await cline.ask(
+						type,
+						partialMessage,
+						false,
+						progressStatus,
+						isProtected || false,
+					)
+
+					if (response !== "yesButtonClicked") {
+						// On reject, do nothing - just reject
+						cline.didRejectTool = true
+
+						// If the user sent a message (which caused the rejection), it might be queued
+						// Process any queued messages now
+						cline.processQueuedMessages()
+
+						return false
+					}
+
+					// Handle yesButtonClicked with text.
+					if (text) {
+						await cline.say("user_feedback", text, images)
+						pushToolResult(formatResponse.toolResult(formatResponse.toolApprovedWithFeedback(text), images))
+					}
+
+					return true
+				}
+
+				const askFinishSubTaskApproval = async () => {
+					// Ask the user to approve this task has completed, and he has
+					// reviewed it, and we can declare task is finished and return
+					// control to the parent task to continue running the rest of
+					// the sub-tasks.
+					const toolMessage = JSON.stringify({ tool: "finishTask" })
+					return await askApproval("tool", toolMessage)
+				}
+
+				const handleError = async (action: string, error: Error) => {
+					const errorString = `Error ${action}: ${JSON.stringify(serializeError(error))}`
+
+					await cline.say(
+						"error",
+						`Error ${action}:\n${error.message ?? JSON.stringify(serializeError(error), null, 2)}`,
+					)
+
+					pushToolResult(formatResponse.toolError(errorString))
+				}
+
+				// If block is partial, remove partial closing tag so its not
+				// presented to user.
+				const removeClosingTag = (tag: ToolParamName, text?: string): string => {
 					if (!block.partial) {
-						await updateTodoListTool(
+						return text || ""
+					}
+
+					if (!text) {
+						return ""
+					}
+
+					// This regex dynamically constructs a pattern to match the
+					// closing tag:
+					// - Optionally matches whitespace before the tag.
+					// - Matches '<' or '</' optionally followed by any subset of
+					//   characters from the tag name.
+					const tagRegex = new RegExp(
+						`\\s?<\/?${tag
+							.split("")
+							.map((char) => `(?:${char})?`)
+							.join("")}$`,
+						"g",
+					)
+
+					return text.replace(tagRegex, "")
+				}
+
+				if (block.name !== "browser_action") {
+					await cline.browserSession.closeBrowser()
+				}
+
+				if (!block.partial) {
+					cline.recordToolUsage(block.name)
+					TelemetryService.instance.captureToolUsage(cline.taskId, block.name)
+				}
+
+				// Validate tool use before execution.
+				// forked_change: `mode` and `customModes` are now hoisted above the
+				// outer tool_use try block so toolDescription's closure can see them.
+				try {
+					validateToolUse(
+						block.name as ToolName,
+						mode ?? defaultModeSlug,
+						customModes ?? [],
+						{ file_edit: cline.diffEnabled },
+						block.params,
+					)
+				} catch (error) {
+					cline.consecutiveMistakeCount++
+					pushToolResult(formatResponse.toolError(error.message))
+					break
+				}
+
+				// Check for identical consecutive tool calls.
+				if (!block.partial) {
+					// Use the detector to check for repetition, passing the ToolUse
+					// block directly.
+					const repetitionCheck = cline.toolRepetitionDetector.check(block)
+
+					// If execution is not allowed, notify user and break.
+					if (!repetitionCheck.allowExecution && repetitionCheck.askUser) {
+						// Handle repetition similar to mistake_limit_reached pattern.
+						const { response, text, images } = await cline.ask(
+							repetitionCheck.askUser.messageKey as ClineAsk,
+							repetitionCheck.askUser.messageDetail.replace("{toolName}", block.name),
+						)
+
+						if (response === "messageResponse") {
+							// Add user feedback to userContent.
+							pushToolResult_withToolUseId_kilocode(
+								{
+									type: "text" as const,
+									text: `Tool repetition limit reached. User feedback: ${text}`,
+								},
+								...formatResponse.imageBlocks(images),
+							)
+
+							// Add user feedback to chat.
+							await cline.say("user_feedback", text, images)
+
+							// Track tool repetition in telemetry.
+							TelemetryService.instance.captureConsecutiveMistakeError(cline.taskId)
+						}
+
+						// Return tool result message about the repetition
+						pushToolResult(
+							formatResponse.toolError(
+								`Tool call repetition limit reached for ${block.name}. Please try a different approach.`,
+							),
+						)
+						break
+					}
+				}
+
+				await checkpointSaveAndMark(cline) // kilocode_change: moved out of switch
+
+				// forked_change start: Clean up stale partial tool ask message from
+				// native tool call streaming before the complete tool handler runs.
+				// During streaming, a partial ask("tool", ..., true) is created to
+				// show a spinner. Some tool handlers (e.g., file_edit) use
+				// say("tool", ...) for the complete version, which doesn't update
+				// the partial ask — causing duplicate messages. This removes the
+				// stale partial so only the complete message is shown.
+				if (!block.partial && block.toolUseId) {
+					await cline.removeStalePartialToolAskMessage()
+				}
+				// forked_change end
+
+				// forked_change start: Check if context condensation is needed before executing tools
+				// that may add significant content to the context window.
+				// This prevents context window overflow when the LLM requests to read files
+				// with a nearly full context.
+				const toolsThatAddContent = [
+					"read_file",
+					"search_files",
+					"list_files",
+					"list_code_definition_names",
+					"codebase_search",
+					"lsp",
+					"web_fetch",
+					"web_search",
+					"use_mcp_tool",
+					"access_mcp_resource",
+				]
+				if (!block.partial && toolsThatAddContent.includes(block.name)) {
+					await cline.checkAndCondenseContext()
+				}
+				// forked_change end
+
+				switch (block.name) {
+					case "update_todo_list": {
+						// For native tool calls, the partial block is just for UI display during streaming.
+						// We should only execute the actual tool logic when the block is complete (partial: false).
+						if (!block.partial) {
+							await updateTodoListTool(
+								cline,
+								block,
+								askApproval,
+								handleError,
+								pushToolResult,
+								removeClosingTag,
+							)
+						} else {
+							// For partial blocks, just update the UI display without executing
+							// The tool will be executed when the complete block arrives
+							const todosRaw = block.params.todos || ""
+							try {
+								const { parseMarkdownChecklist } = await import("../tools/updateTodoListTool")
+								const todos = parseMarkdownChecklist(todosRaw)
+								const approvalMsg = JSON.stringify({
+									tool: "updateTodoList",
+									todos,
+								})
+								await cline.ask("tool", approvalMsg, true).catch(() => {})
+							} catch {
+								// Ignore parsing errors for partial blocks
+							}
+						}
+						break
+					}
+					case "file_edit":
+						await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
+						break
+					case "multi_file_edit":
+						await multiFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
+						break
+					case "file_write":
+						await fileWriteTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "read_file":
+						await readFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "fetch_instructions":
+						await fetchInstructionsTool(cline, block, askApproval, handleError, pushToolResult)
+						break
+					case "list_files":
+						await listFilesTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "codebase_search":
+						await codebaseSearchTool(
 							cline,
 							block,
 							askApproval,
@@ -520,140 +636,183 @@ export async function presentAssistantMessage(cline: Task) {
 							pushToolResult,
 							removeClosingTag,
 						)
-					} else {
-						// For partial blocks, just update the UI display without executing
-						// The tool will be executed when the complete block arrives
-						const todosRaw = block.params.todos || ""
-						try {
-							const { parseMarkdownChecklist } = await import("../tools/updateTodoListTool")
-							const todos = parseMarkdownChecklist(todosRaw)
-							const approvalMsg = JSON.stringify({
-								tool: "updateTodoList",
-								todos,
-							})
-							await cline.ask("tool", approvalMsg, true).catch(() => {})
-						} catch {
-							// Ignore parsing errors for partial blocks
-						}
-					}
-					break
+						break
+					case "list_code_definition_names":
+						await listCodeDefinitionNamesTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+						break
+					case "lsp":
+						await lspTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "search_files":
+						await searchFilesTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "browser_action":
+						await browserActionTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+						break
+					case "execute_command":
+						await executeCommandTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+						break
+					case "use_mcp_tool":
+						await useMcpToolTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "mcp_authenticate":
+						await mcpAuthenticateTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+						break
+					case "access_mcp_resource":
+						await accessMcpResourceTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+						break
+					case "ask_followup_question":
+						await askFollowupQuestionTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+						break
+					case "switch_mode":
+						await switchModeTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "new_task":
+						await newTaskTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "attempt_completion":
+						await attemptCompletionTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+							toolDescription,
+							askFinishSubTaskApproval,
+						)
+						break
+					// forked_change start
+					case "new_rule":
+						await newRuleTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "report_bug":
+						await reportBugTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "condense":
+						await condenseTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					// forked_change end
+					case "run_slash_command":
+						await runSlashCommandTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+						break
+					case "generate_image":
+						await generateImageTool(
+							cline,
+							block,
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						)
+						break
+					case "use_skill":
+						await useSkillTool(cline, block, handleError, pushToolResult)
+						break
+					case "web_fetch":
+						await webFetchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "web_search":
+						await webSearchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					default:
+						break
 				}
-				case "file_edit":
-					await fileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
-					break
-				case "multi_file_edit":
-					await multiFileEditTool(cline, block, handleError, pushToolResult, removeClosingTag)
-					break
-				case "file_write":
-					await fileWriteTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "read_file":
-					await readFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "fetch_instructions":
-					await fetchInstructionsTool(cline, block, askApproval, handleError, pushToolResult)
-					break
-				case "list_files":
-					await listFilesTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "codebase_search":
-					await codebaseSearchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "list_code_definition_names":
-					await listCodeDefinitionNamesTool(
-						cline,
-						block,
-						askApproval,
-						handleError,
-						pushToolResult,
-						removeClosingTag,
-					)
-					break
-				case "lsp":
-					await lspTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "search_files":
-					await searchFilesTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "browser_action":
-					await browserActionTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "execute_command":
-					await executeCommandTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "use_mcp_tool":
-					await useMcpToolTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "mcp_authenticate":
-					await mcpAuthenticateTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "access_mcp_resource":
-					await accessMcpResourceTool(
-						cline,
-						block,
-						askApproval,
-						handleError,
-						pushToolResult,
-						removeClosingTag,
-					)
-					break
-				case "ask_followup_question":
-					await askFollowupQuestionTool(
-						cline,
-						block,
-						askApproval,
-						handleError,
-						pushToolResult,
-						removeClosingTag,
-					)
-					break
-				case "switch_mode":
-					await switchModeTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "new_task":
-					await newTaskTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "attempt_completion":
-					await attemptCompletionTool(
-						cline,
-						block,
-						askApproval,
-						handleError,
-						pushToolResult,
-						removeClosingTag,
-						toolDescription,
-						askFinishSubTaskApproval,
-					)
-					break
-				// forked_change start
-				case "new_rule":
-					await newRuleTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "report_bug":
-					await reportBugTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "condense":
-					await condenseTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				// forked_change end
-				case "run_slash_command":
-					await runSlashCommandTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "generate_image":
-					await generateImageTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "use_skill":
-					await useSkillTool(cline, block, handleError, pushToolResult)
-					break
-				case "web_fetch":
-					await webFetchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				case "web_search":
-					await webSearchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
-					break
-				default:
-					break
+
+				// forked_change start: close the try and add catch/finally for the tool_use
+				// safety net. The catch keeps a thrown error (e.g. "Current ask promise was
+				// ignored") from escaping presentAssistantMessage, and the finally guarantees
+				// a matching tool_result is pushed for every non-partial tool_use with a
+				// toolUseId so the assistant tool_use / user tool_result pairing stays
+				// consistent in the API conversation history.
+			} catch (error) {
+				const errMsg = error instanceof Error ? error.message : String(error)
+				console.error(`[presentAssistantMessage] Tool '${block.name}' processing threw: ${errMsg}`, error)
+				try {
+					await cline.say("error", `Tool '${block.name}' failed: ${errMsg}`)
+				} catch {
+					// best-effort; never let the error reporter itself break the loop
+				}
+			} finally {
+				// CRITICAL: every non-partial tool_use with a toolUseId MUST have a
+				// matching tool_result pushed, even on failure. The assistant message
+				// already contains the tool_use block, so without a paired tool_result
+				// the next API request will be rejected for an unmatched tool_use_id.
+				if (!block.partial && block.toolUseId && block.toolUseId.length > 0 && !toolResultPushed) {
+					try {
+						cline.userMessageContent.push({
+							type: "tool_result",
+							tool_use_id: block.toolUseId,
+							content: [
+								{
+									type: "text",
+									text: `Tool '${block.name}' did not produce a result (an internal error or interrupted ask occurred). Please try a different approach or ask the user for clarification.`,
+								},
+							],
+						})
+						toolResultPushed = true
+
+						// Make sure the task loop can move forward even on failure —
+						// otherwise the next iteration may hang waiting for a result.
+						cline.didAlreadyUseTool = true
+						if (cline.didCompleteReadingStream) {
+							cline.userMessageContentReady = true
+						}
+					} catch (e) {
+						console.error("[presentAssistantMessage] Failed to push fallback tool_result:", e)
+					}
+				}
 			}
+			// forked_change end
 
 			break
 	}

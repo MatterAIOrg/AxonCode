@@ -15,48 +15,54 @@ export interface NativeToolCall {
 }
 
 /**
- * Recursively parse any string values that appear to be JSON-encoded.
- * This handles cases where the model double-encodes parameters.
+ * Unwrap top-level double JSON encoding of tool-call arguments.
  *
- * @param obj - The object to process
- * @returns The object with any double-encoded strings parsed
+ * Some models stringify the entire `arguments` object an extra time, so after
+ * the first `JSON.parse` we end up with a string that itself contains JSON.
+ * This helper detects that case and parses it again (repeatedly, in case the
+ * model wrapped it more than once).
+ *
+ * IMPORTANT: We deliberately do NOT recurse into string values inside an
+ * already-parsed object/array. Tool parameters such as `file_write.content`,
+ * `apply_diff.diff`, etc. legitimately contain text that may look like JSON
+ * (e.g. writing a `package.json` or `tsconfig.json`). Re-decoding those
+ * strings would mutate them into objects and break tools that expect a
+ * string — silently dropping the call.
+ *
+ * @param obj - Either a parsed tool-call arguments object/array, or a raw
+ *   string that may itself be a JSON-encoded object/array (the double-encoded
+ *   case).
+ * @returns The unwrapped value. Object/array inputs are returned unchanged.
  */
 export function parseDoubleEncodedParams(obj: any): any {
 	if (obj === null || obj === undefined) {
 		return obj
 	}
 
-	// If it's a string that looks like JSON, try to parse it
+	// Only unwrap when the input itself is a string that looks like a JSON
+	// object/array. This is the genuine double-encoding case.
 	if (typeof obj === "string") {
 		const trimmed = obj.trim()
 		if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
 			try {
 				const parsed = JSON.parse(obj)
-				// Recursively process the parsed value in case it has more double-encoding
-				// console.debug("[AssistantMessageParser] Parsed double-encoded JSON:", JSON.stringify(parsed))
-				return parseDoubleEncodedParams(parsed)
+				// If the parse produced yet another string, the model wrapped
+				// it more than twice — recurse to peel another layer. Otherwise
+				// (object/array/primitive) return as-is so we don't mangle
+				// nested string values.
+				if (typeof parsed === "string") {
+					return parseDoubleEncodedParams(parsed)
+				}
+				return parsed
 			} catch {
-				// Not valid JSON, return as-is
+				// Not valid JSON, return the original string as-is.
 				return obj
 			}
 		}
 		return obj
 	}
 
-	// If it's an array, recursively process each element
-	if (Array.isArray(obj)) {
-		return obj.map((item) => parseDoubleEncodedParams(item))
-	}
-
-	// If it's an object, recursively process each property
-	if (typeof obj === "object") {
-		const result: Record<string, any> = {}
-		for (const [key, value] of Object.entries(obj)) {
-			result[key] = parseDoubleEncodedParams(value)
-		}
-		return result
-	}
-
-	// Primitive types (number, boolean, etc.) return as-is
+	// Object / array / primitive — already in its intended shape. Returning
+	// as-is preserves any string property values that happen to look like JSON.
 	return obj
 }

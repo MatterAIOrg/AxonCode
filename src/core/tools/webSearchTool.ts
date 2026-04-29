@@ -50,11 +50,18 @@ export async function webSearchTool(
 	// Send message to UI and auto-approve (no approval needed for web tools)
 	const completeMessage = JSON.stringify({ ...sharedMessageProps, query } satisfies ClineSayTool)
 
-	// Auto-approve - show in UI and immediately approve
+	// Auto-approve - show in UI and immediately approve.
+	// forked_change: guard handleWebviewAskResponse (mocks in tests may not
+	// implement it) and swallow any race-condition error from cline.ask (e.g.
+	// "Current ask promise was ignored") so it never aborts the tool flow.
 	setImmediate(() => {
-		cline.handleWebviewAskResponse("yesButtonClicked", undefined, undefined)
+		try {
+			cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
+		} catch {
+			// best-effort
+		}
 	})
-	await cline.ask("tool", completeMessage, false)
+	await cline.ask("tool", completeMessage, false).catch(() => {})
 
 	// Get kilocodeToken from provider state
 	const provider = await cline.providerRef.deref()

@@ -322,11 +322,18 @@ export async function readFileTool(
 			} satisfies ClineSayTool)
 
 			// kilocode_change: Auto-approve - show in UI and immediately approve
-			// Use setImmediate to trigger approval AFTER ask starts waiting for response
+			// Use setImmediate to trigger approval AFTER ask starts waiting for response.
+			// forked_change: guard handleWebviewAskResponse (mocks in tests may not
+			// implement it) and swallow any race-condition error from cline.ask
+			// (e.g. "Current ask promise was ignored") so the tool never aborts.
 			setImmediate(() => {
-				cline.handleWebviewAskResponse("yesButtonClicked", undefined, undefined)
+				try {
+					cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
+				} catch {
+					// best-effort
+				}
 			})
-			await cline.ask("tool", completeMessage, false)
+			await cline.ask("tool", completeMessage, false).catch(() => {})
 
 			// Auto-approve all files
 			filesToApprove.forEach((fileResult) => {
@@ -357,11 +364,18 @@ export async function readFileTool(
 			} satisfies ClineSayTool)
 
 			// kilocode_change: Auto-approve - show in UI and immediately approve
-			// Use setImmediate to trigger approval AFTER ask starts waiting for response
+			// Use setImmediate to trigger approval AFTER ask starts waiting for response.
+			// forked_change: guard handleWebviewAskResponse (mocks in tests may not
+			// implement it) and swallow any race-condition error from cline.ask
+			// (e.g. "Current ask promise was ignored") so the tool never aborts.
 			setImmediate(() => {
-				cline.handleWebviewAskResponse("yesButtonClicked", undefined, undefined)
+				try {
+					cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
+				} catch {
+					// best-effort
+				}
 			})
-			await cline.ask("tool", completeMessage, false)
+			await cline.ask("tool", completeMessage, false).catch(() => {})
 
 			updateFileResult(fileResult.path, {
 				status: "approved",
