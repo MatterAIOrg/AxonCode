@@ -606,7 +606,12 @@ export const ChatRowContent = ({
 							className={`animate-fade-up flex flex-row gap-1 items-start w-full cursor-pointer`}
 							onClick={handleToggleExpand}>
 							<div style={headerStyle} className="">
-								{tool.isProtected ? (
+								{message.partial ? (
+									<span
+										className="codicon codicon-loading codicon-modifier-spin"
+										style={{ marginBottom: "-1.5px", marginRight: "4px" }}
+									/>
+								) : tool.isProtected ? (
 									<span
 										className="codicon codicon-lock"
 										style={{
@@ -616,11 +621,17 @@ export const ChatRowContent = ({
 									/>
 								) : null}
 								<span style={{}}>
-									{tool.isProtected
-										? t("chat:fileOperations.wantsToEditProtected")
-										: tool.isOutsideWorkspace
-											? t("chat:fileOperations.wantsToEditOutsideWorkspace")
-											: t("chat:fileOperations.wantsToEdit")}
+									{message.partial
+										? tool.isProtected
+											? t("chat:fileOperations.editingFileProtected")
+											: tool.isOutsideWorkspace
+												? t("chat:fileOperations.editingFileOutsideWorkspace")
+												: t("chat:fileOperations.editingFile")
+										: tool.isProtected
+											? t("chat:fileOperations.wantsToEditProtected")
+											: tool.isOutsideWorkspace
+												? t("chat:fileOperations.wantsToEditOutsideWorkspace")
+												: t("chat:fileOperations.wantsToEdit")}
 								</span>
 							</div>
 							<div className="flex items-center gap-2 w-fit -mt-[1px]">
@@ -809,7 +820,12 @@ export const ChatRowContent = ({
 							className={`animate-fade-up flex flex-row gap-1 items-start w-full cursor-pointer`}
 							onClick={handleToggleExpand}>
 							<div style={headerStyle} className="">
-								{tool.isProtected ? (
+								{message.partial ? (
+									<span
+										className="codicon codicon-loading codicon-modifier-spin"
+										style={{ marginBottom: "-1.5px", marginRight: "4px" }}
+									/>
+								) : tool.isProtected ? (
 									<span
 										className="codicon codicon-lock"
 										style={{
@@ -819,11 +835,17 @@ export const ChatRowContent = ({
 									/>
 								) : null}
 								<span style={{}}>
-									{tool.isProtected
-										? t("chat:fileOperations.wantsToEditProtected")
-										: tool.isOutsideWorkspace
-											? t("chat:fileOperations.wantsToCreateOutsideWorkspace")
-											: t("chat:fileOperations.wantsToCreate")}
+									{message.partial
+										? tool.isProtected
+											? t("chat:fileOperations.creatingFileProtected")
+											: tool.isOutsideWorkspace
+												? t("chat:fileOperations.creatingFileOutsideWorkspace")
+												: t("chat:fileOperations.creatingFile")
+										: tool.isProtected
+											? t("chat:fileOperations.wantsToEditProtected")
+											: tool.isOutsideWorkspace
+												? t("chat:fileOperations.wantsToCreateOutsideWorkspace")
+												: t("chat:fileOperations.wantsToCreate")}
 								</span>
 							</div>
 							<div className="flex items-center gap-2 w-fit -mt-[1px]">

@@ -374,6 +374,10 @@ Code chunks that you receive (via tool calls or from user) may include inline li
 </inline_line_numbers>
 
 CRITICAL: For any task, small or big, you will always and always use the update_todo_list tool to create the TODO list, always keep is upto date with updates to the status and updating/editing the list as needed.
+
+## Github commits
+
+By default, you will attribute all Github commits to matterai-app[bot], unless specified otherwise.
 `,
 		whenToUse:
 			"Use this mode when you need to write, modify, or refactor code. Ideal for implementing features, fixing bugs, creating new files, or making code improvements across any programming language or framework.",

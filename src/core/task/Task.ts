@@ -2343,7 +2343,22 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								}
 								formattedReasoning = formattedReasoning.replace(/<\/?think>/g, "")
 								if (formattedReasoning.trim()) {
-									await this.say("reasoning", formattedReasoning, undefined, true)
+									// forked_change: mark reasoning streaming as non-interactive
+									// so it does NOT update `lastMessageTs`. Otherwise, when
+									// reasoning chunks arrive while a tool is awaiting approval
+									// (e.g. execute_command), the new partial-reasoning say
+									// supersedes the ask's `askTs` and `Task.ask`'s pWaitFor
+									// throws "Current ask promise was ignored", surfacing as
+									// "Error executing command: Current ask promise was ignored".
+									await this.say(
+										"reasoning",
+										formattedReasoning,
+										undefined,
+										true,
+										undefined,
+										undefined,
+										{ isNonInteractive: true },
+									)
 								}
 								break
 							}
