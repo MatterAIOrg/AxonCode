@@ -193,28 +193,16 @@ export async function attemptCompletionTool(
 			}
 
 			await cline.say("user_feedback", text ?? "", images)
-			const toolResults: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[] = []
 
-			toolResults.push({
-				type: "text",
-				text: `The user has provided feedback on the results. Consider their input to continue the task, and then attempt completion again.\n<feedback>\n${text}\n</feedback>`,
-			})
+			const feedbackContent: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[] = [
+				{
+					type: "text",
+					text: `The user has provided feedback on the results. Consider their input to continue the task, and then attempt completion again.\n<feedback>\n${text}\n</feedback>`,
+				},
+				...formatResponse.imageBlocks(images),
+			]
 
-			toolResults.push(...formatResponse.imageBlocks(images))
-
-			// forked_change start
-			if (block.toolUseId) {
-				cline.userMessageContent.push({
-					type: "tool_result",
-					tool_use_id: block.toolUseId,
-					content: [{ type: "text", text: `${toolDescription()} Result:` }, ...toolResults],
-				})
-				return
-			}
-			// forked_change end
-
-			cline.userMessageContent.push({ type: "text", text: `${toolDescription()} Result:` })
-			cline.userMessageContent.push(...toolResults)
+			pushToolResult([{ type: "text", text: `${toolDescription()} Result:` }, ...feedbackContent])
 
 			return
 		}

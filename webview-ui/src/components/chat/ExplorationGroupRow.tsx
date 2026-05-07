@@ -362,6 +362,7 @@ interface ExplorationGroupRowProps {
 	secondaryButtonText: string | undefined
 	handlePrimaryButtonClick: () => void
 	handleSecondaryButtonClick: () => void
+	handleRunEverythingClick?: () => void
 	isAgentManagerMode: boolean | undefined
 }
 

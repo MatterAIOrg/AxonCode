@@ -350,7 +350,18 @@ export async function presentAssistantMessage(cline: Task) {
 					// and the stream has finished reading, set userMessageContentReady
 					// to allow the task loop to continue. This is critical for native tool
 					// calls where the block state might not trigger the normal completion flow.
-					if (!block.partial && cline.didCompleteReadingStream) {
+					//
+					// forked_change: only do this on the LAST content block. With parallel
+					// native tool calls, multiple tool_use blocks live in the same assistant
+					// message; setting userMessageContentReady=true after the first tool's
+					// pushToolResult races the recursion processing later blocks — pWaitFor
+					// in the task loop returns and fires off the next request with only one
+					// tool_result, leaving subsequent tool_uses unmatched.
+					if (
+						!block.partial &&
+						cline.didCompleteReadingStream &&
+						cline.currentStreamingContentIndex >= cline.assistantMessageContent.length - 1
+					) {
 						cline.userMessageContentReady = true
 					}
 				}
@@ -369,6 +380,23 @@ export async function presentAssistantMessage(cline: Task) {
 					}
 					// kilocode_change start: auto-approve all commands for current task
 					if (type === "command" && cline.autoApproveAllCommands) {
+						// Mirror the non-command auto-approve path: surface the final UI row
+						// (so the user can see what ran) and resolve the pending ask without
+						// blocking on a real user response. Without this, the partial command
+						// message is never marked complete and subsequent commands keep their
+						// Run/Cancel UI visible because the previous ask never resolved.
+						if (partialMessage) {
+							setImmediate(() => {
+								try {
+									cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
+								} catch {
+									// best-effort; never let the auto-approval poke crash the flow
+								}
+							})
+							await cline
+								.ask(type, partialMessage, false, progressStatus, isProtected || false)
+								.catch(() => {})
+						}
 						return true
 					}
 					// kilocode_change end
