@@ -1034,6 +1034,97 @@ describe("addCustomInstructions", () => {
 		expect(readFileMock).toHaveBeenCalledWith(expect.stringContaining("AGENTS.md"), "utf-8")
 	})
 
+	it("should load .orbital/AGENTS.md in addition to project-root AGENTS.md", async () => {
+		// Simulate no .roo/rules-test-mode directory
+		statMock.mockRejectedValueOnce({ code: "ENOENT" })
+
+		// Both root AGENTS.md and .orbital/AGENTS.md exist as regular files
+		lstatMock.mockImplementation((filePath: PathLike) => {
+			const pathStr = filePath.toString()
+			if (pathStr.endsWith("AGENTS.md")) {
+				return Promise.resolve({
+					isSymbolicLink: vi.fn().mockReturnValue(false),
+				})
+			}
+			return Promise.reject({ code: "ENOENT" })
+		})
+
+		readFileMock.mockImplementation((filePath: PathLike) => {
+			const pathStr = filePath.toString().replace(/\\/g, "/")
+			if (pathStr.endsWith("/.orbital/AGENTS.md")) {
+				return Promise.resolve("Orbital agent rules")
+			}
+			if (pathStr.endsWith("AGENTS.md")) {
+				return Promise.resolve("Root agent rules")
+			}
+			return Promise.reject({ code: "ENOENT" })
+		})
+
+		const result = await addCustomInstructions(
+			"mode instructions",
+			"global instructions",
+			"/fake/path",
+			"test-mode",
+			{
+				settings: {
+					maxConcurrentFileReads: 5,
+					todoListEnabled: true,
+					useAgentRules: true,
+					newTaskRequireTodos: false,
+				},
+			},
+		)
+
+		expect(result).toContain("# Agent Rules Standard (AGENTS.md):")
+		expect(result).toContain("Root agent rules")
+		expect(result).toContain("# Agent Rules Standard (.orbital/AGENTS.md):")
+		expect(result).toContain("Orbital agent rules")
+		// Root content appears before .orbital content
+		expect(result.indexOf("Root agent rules")).toBeLessThan(result.indexOf("Orbital agent rules"))
+	})
+
+	it("should load .orbital/AGENTS.md even when project-root AGENTS.md is missing", async () => {
+		// Simulate no .roo/rules-test-mode directory
+		statMock.mockRejectedValueOnce({ code: "ENOENT" })
+
+		lstatMock.mockImplementation((filePath: PathLike) => {
+			const pathStr = filePath.toString().replace(/\\/g, "/")
+			if (pathStr.endsWith("/.orbital/AGENTS.md")) {
+				return Promise.resolve({
+					isSymbolicLink: vi.fn().mockReturnValue(false),
+				})
+			}
+			return Promise.reject({ code: "ENOENT" })
+		})
+
+		readFileMock.mockImplementation((filePath: PathLike) => {
+			const pathStr = filePath.toString().replace(/\\/g, "/")
+			if (pathStr.endsWith("/.orbital/AGENTS.md")) {
+				return Promise.resolve("Orbital-only agent rules")
+			}
+			return Promise.reject({ code: "ENOENT" })
+		})
+
+		const result = await addCustomInstructions(
+			"mode instructions",
+			"global instructions",
+			"/fake/path",
+			"test-mode",
+			{
+				settings: {
+					maxConcurrentFileReads: 5,
+					todoListEnabled: true,
+					useAgentRules: true,
+					newTaskRequireTodos: false,
+				},
+			},
+		)
+
+		expect(result).toContain("# Agent Rules Standard (.orbital/AGENTS.md):")
+		expect(result).toContain("Orbital-only agent rules")
+		expect(result).not.toContain("# Agent Rules Standard (AGENTS.md):")
+	})
+
 	it("should return empty string when no instructions provided", async () => {
 		// Simulate no .orbital/rules directory
 		statMock.mockRejectedValueOnce({ code: "ENOENT" })

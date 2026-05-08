@@ -362,6 +362,7 @@ interface ExplorationGroupRowProps {
 	secondaryButtonText: string | undefined
 	handlePrimaryButtonClick: () => void
 	handleSecondaryButtonClick: () => void
+	handleRunEverythingClick?: () => void
 	isAgentManagerMode: boolean | undefined
 }
 
@@ -444,6 +445,39 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 
 	// Use local expanded state while exploring, controlled state otherwise
 	const expanded = isExploring ? localExpanded : isExpanded
+
+	// Track if we auto-expanded due to a pending command ask that needs buttons
+	const autoExpandedForCommandRef = useRef(false)
+
+	// Check if the last message in this group is a command ask that needs Run/Cancel buttons
+	const hasPendingCommandAsk = useMemo(() => {
+		const lastMsg = messages[messages.length - 1]
+		return enableButtons && isLast && lastMsg?.type === "ask" && lastMsg?.ask === "command"
+	}, [enableButtons, isLast, messages])
+
+	// Auto-expand when a command ask needs user interaction (Run/Cancel buttons)
+	// Collapse back when the command is handled
+	useEffect(() => {
+		if (hasPendingCommandAsk) {
+			if (!expanded) {
+				if (isExploring) {
+					setLocalExpanded(true)
+				} else if (messages[0]) {
+					onToggleExpand(messages[0].ts)
+				}
+				autoExpandedForCommandRef.current = true
+			}
+		} else {
+			if (autoExpandedForCommandRef.current && expanded) {
+				if (isExploring) {
+					setLocalExpanded(false)
+				} else if (messages[0]) {
+					onToggleExpand(messages[0].ts)
+				}
+			}
+			autoExpandedForCommandRef.current = false
+		}
+	}, [hasPendingCommandAsk, expanded, isExploring, messages, onToggleExpand])
 
 	const handleToggle = useCallback(() => {
 		if (isExploring) {

@@ -250,48 +250,59 @@ export async function loadRuleFiles(cwd: string): Promise<string> {
 }
 
 /**
- * Load AGENTS.md or AGENT.md file from the project root if it exists
- * Checks for both AGENTS.md (standard) and AGENT.md (alternative) for compatibility
+ * Load AGENTS.md or AGENT.md from a single directory, preferring AGENTS.md.
+ * The displayName is the label rendered in the section header.
  */
-async function loadAgentRulesFile(cwd: string): Promise<string> {
-	// Try both filenames - AGENTS.md (standard) first, then AGENT.md (alternative)
+async function loadAgentRulesFromDir(dir: string, displayPrefix: string): Promise<string> {
 	const filenames = ["AGENTS.md", "AGENT.md"]
 
 	for (const filename of filenames) {
 		try {
-			const agentPath = path.join(cwd, filename)
+			const agentPath = path.join(dir, filename)
 			let resolvedPath = agentPath
 
-			// Check if file exists and handle symlinks
 			try {
 				const stats = await fs.lstat(agentPath)
 				if (stats.isSymbolicLink()) {
-					// Create a temporary fileInfo array to use with resolveSymLink
 					const fileInfo: Array<{ originalPath: string; resolvedPath: string }> = []
-
-					// Use the existing resolveSymLink function to handle symlink resolution
 					await resolveSymLink(agentPath, fileInfo, 0)
-
-					// Extract the resolved path from fileInfo
 					if (fileInfo.length > 0) {
 						resolvedPath = fileInfo[0].resolvedPath
 					}
 				}
 			} catch (err) {
-				// If lstat fails (file doesn't exist), try next filename
 				continue
 			}
 
-			// Read the content from the resolved path
 			const content = await safeReadFile(resolvedPath)
 			if (content) {
-				return `# Agent Rules Standard (${filename}):\n${content}`
+				return `# Agent Rules Standard (${displayPrefix}${filename}):\n${content}`
 			}
 		} catch (err) {
 			// Silently ignore errors - agent rules files are optional
 		}
 	}
 	return ""
+}
+
+/**
+ * Load AGENTS.md / AGENT.md content from the project root and from `.orbital/`.
+ * Both locations are merged; project root content is listed first.
+ */
+async function loadAgentRulesFile(cwd: string): Promise<string> {
+	const sections: string[] = []
+
+	const rootContent = await loadAgentRulesFromDir(cwd, "")
+	if (rootContent) {
+		sections.push(rootContent)
+	}
+
+	const orbitalContent = await loadAgentRulesFromDir(path.join(cwd, ".orbital"), ".orbital/")
+	if (orbitalContent) {
+		sections.push(orbitalContent)
+	}
+
+	return sections.join("\n\n")
 }
 
 export async function addCustomInstructions(
