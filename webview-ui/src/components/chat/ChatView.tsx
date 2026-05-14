@@ -70,6 +70,7 @@ import ExplorationGroupRow, {
 import { showSystemNotification } from "@/kilocode/helpers" // kilocode_change
 import BottomControls from "../kilocode/BottomControls" // kilocode_change
 import KiloTaskHeader from "../kilocode/KiloTaskHeader" // kilocode_change
+import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilocode_change
 import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
@@ -2823,28 +2824,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 					{/* kilocode_change: Show notification when monthly limit is exhausted */}
 					{isUsageExhausted && !task && (
-						<div className="w-full min-w-0 px-4 mb-4">
-							<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
-								<div className="flex flex-col gap-2">
-									<span className="text-lg font-medium text-[var(--vscode-foreground)]">
-										You are out of Orbital Credits
-									</span>
-									<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
-										To continue using Orbital, upgrade your plan or switch to Auto model.
-									</span>
-								</div>
-								<button
-									className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
-									onClick={() =>
-										vscode.postMessage({
-											type: "openExternal",
-											url: "https://app.matterai.so/orbital",
-										})
-									}>
-									Upgrade
-								</button>
-							</div>
-						</div>
+						<OutOfCreditsBanner
+							className="w-full min-w-0 px-4 mb-4"
+							creditsResetDate={profileData?.creditsResetDate}
+						/>
 					)}
 
 					{!task && (

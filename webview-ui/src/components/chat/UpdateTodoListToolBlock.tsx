@@ -1,4 +1,4 @@
-import { CheckCircle } from "lucide-react"
+import { Check } from "lucide-react"
 import React, { useEffect, useRef, useState } from "react"
 import MarkdownBlock from "../common/MarkdownBlock"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
@@ -208,47 +208,60 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 					{Array.isArray(editTodos) && editTodos.length > 0 ? (
 						<ul style={{ margin: 0, paddingLeft: 0, listStyle: "none" }}>
 							{editTodos.map((todo, idx) => {
+								const boxBase: React.CSSProperties = {
+									display: "inline-flex",
+									alignItems: "center",
+									justifyContent: "center",
+									width: 13,
+									height: 13,
+									borderRadius: 3,
+									marginRight: 6,
+									marginTop: 3,
+									flexShrink: 0,
+									boxSizing: "border-box",
+								}
 								let icon
 								if (todo.status === "completed") {
 									icon = (
-										<CheckCircle
-											size={10}
+										<span
 											style={{
-												color: "var(--vscode-button-background)",
-												marginRight: 6,
-												marginTop: 6,
-												flexShrink: 0,
-											}}
-										/>
+												...boxBase,
+												border: "0.5px solid var(--vscode-descriptionForeground)",
+												background: "var(--vscode-descriptionForeground)",
+											}}>
+											<Check
+												size={9}
+												strokeWidth={2.5}
+												style={{ color: "var(--vscode-editor-background)" }}
+											/>
+										</span>
 									)
 								} else if (todo.status === "in_progress") {
 									icon = (
 										<span
 											style={{
-												display: "inline-block",
-												width: 10,
-												height: 10,
-												borderRadius: "50%",
-												background: "var(--color-matterai-yellow)",
-												marginRight: 6,
-												marginTop: 7,
-												flexShrink: 0,
-											}}
-										/>
+												...boxBase,
+												border: "0.5px solid var(--vscode-foreground)",
+												background: "transparent",
+											}}>
+											<span
+												style={{
+													display: "inline-block",
+													width: 5,
+													height: 5,
+													borderRadius: "50%",
+													background: "var(--vscode-foreground)",
+												}}
+											/>
+										</span>
 									)
 								} else {
 									icon = (
 										<span
 											style={{
-												display: "inline-block",
-												width: 8,
-												height: 8,
-												borderRadius: "50%",
-												border: "1px solid var(--vscode-descriptionForeground)",
+												...boxBase,
+												border: "0.5px solid var(--vscode-foreground)",
 												background: "transparent",
-												marginRight: 6,
-												marginTop: 7,
-												flexShrink: 0,
 											}}
 										/>
 									)
@@ -296,10 +309,11 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 													fontWeight: 500,
 													color:
 														todo.status === "completed"
-															? "var(--vscode-foreground)"
-															: todo.status === "in_progress"
-																? "var(--color-matterai-yellow)"
-																: "var(--color-vscode-descriptionForeground)",
+															? "var(--vscode-descriptionForeground)"
+															: "var(--vscode-foreground)",
+													textDecoration:
+														todo.status === "completed" ? "line-through" : "none",
+													opacity: todo.status === "completed" ? 0.7 : 1,
 													fontSize: 13,
 													marginRight: 6,
 													padding: "1px 3px",

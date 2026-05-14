@@ -483,6 +483,7 @@ export type ProfileData = {
 	plan?: string
 	remainingReviews?: number
 	usagePercentage?: number
+	creditsResetDate?: string
 }
 
 export interface ProfileDataResponsePayload {

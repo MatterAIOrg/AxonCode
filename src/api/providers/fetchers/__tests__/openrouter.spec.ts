@@ -236,7 +236,7 @@ describe("OpenRouter API", () => {
 				const models = await getOpenRouterModels()
 
 				// Static models should be present (without openrouter/ prefix)
-				expect(models["axon-auto"]).toBeDefined()
+				expect(models["axon-2-5-mini"]).toBeDefined()
 				expect(models["axon-code"]).toBeDefined()
 				expect(models["axon-code-2"]).toBeDefined()
 			})
@@ -259,7 +259,7 @@ describe("OpenRouter API", () => {
 				const models = await getOpenRouterModels()
 				expect(typeof models).toBe("object")
 				// Static models should still be present
-				expect(models["axon-auto"]).toBeDefined()
+				expect(models["axon-2-5-mini"]).toBeDefined()
 			})
 
 			it("should handle empty response", async () => {
