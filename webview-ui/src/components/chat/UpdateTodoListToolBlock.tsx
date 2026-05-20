@@ -176,7 +176,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 							className="codicon codicon-checklist mr-1.5"
 							style={{ color: "var(--vscode-foreground)" }}
 						/> */}
-						<span className="font-semibold" style={{}}>
+						<span className="" style={{}}>
 							Todo List Updated
 						</span>
 						<div className="flex-grow" />
@@ -285,12 +285,12 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 												style={{
 													flex: 1,
 													minWidth: 0,
-													fontWeight: 500,
+													fontWeight: 300,
 													color: "var(--vscode-input-foreground)",
 													background: "var(--vscode-input-background)",
 													border: "none",
 													outline: "none",
-													fontSize: 13,
+													fontSize: 12,
 													marginRight: 6,
 													padding: "1px 3px",
 													borderBottom: "1px solid var(--vscode-input-border)",
@@ -306,7 +306,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 												style={{
 													flex: 1,
 													minWidth: 0,
-													fontWeight: 500,
+													fontWeight: 300,
 													color:
 														todo.status === "completed"
 															? "var(--vscode-descriptionForeground)"
@@ -314,7 +314,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 													textDecoration:
 														todo.status === "completed" ? "line-through" : "none",
 													opacity: todo.status === "completed" ? 0.7 : 1,
-													fontSize: 13,
+													fontSize: 12,
 													marginRight: 6,
 													padding: "1px 3px",
 													lineHeight: "1.4",
@@ -375,12 +375,12 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 										style={{
 											flex: 1,
 											minWidth: 0,
-											fontWeight: 500,
+											fontWeight: 300,
 											color: "var(--vscode-foreground)",
 											background: "transparent",
 											border: "none",
 											outline: "none",
-											fontSize: 13,
+											fontSize: 12,
 											marginRight: 6,
 											padding: "1px 3px",
 											borderBottom: "1px solid #eee",

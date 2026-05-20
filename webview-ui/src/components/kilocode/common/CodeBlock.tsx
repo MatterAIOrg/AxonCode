@@ -108,12 +108,12 @@ export const StyledPre = styled.div<{
 		windowshade === "true" ? `${collapsedHeight || WINDOW_SHADE_SETTINGS.collapsedHeight}px` : "none"};
 	overflow-y: auto;
 	padding: 10px;
-	border-radius: 5px;
+	border-radius: 12px;
 	${({ preStyle }) => preStyle && { ...preStyle }}
 
 	pre {
 		background-color: ${CODE_BLOCK_BG_COLOR};
-		border-radius: 5px;
+		border-radius: 12px;
 		margin: 0;
 		padding: 10px;
 		width: 100%;

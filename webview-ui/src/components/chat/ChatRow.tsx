@@ -610,7 +610,7 @@ export const ChatRowContent = ({
 								{message.partial ? (
 									<span
 										className="codicon codicon-loading codicon-modifier-spin"
-										style={{ marginBottom: "-1.5px", marginRight: "4px" }}
+										style={{ fontSize: "12px", marginBottom: "-1.5px", marginRight: "4px" }}
 									/>
 								) : tool.isProtected ? (
 									<span
@@ -824,7 +824,7 @@ export const ChatRowContent = ({
 								{message.partial ? (
 									<span
 										className="codicon codicon-loading codicon-modifier-spin"
-										style={{ marginBottom: "-1.5px", marginRight: "4px" }}
+										style={{ fontSize: "12px", marginBottom: "-1.5px", marginRight: "4px" }}
 									/>
 								) : tool.isProtected ? (
 									<span

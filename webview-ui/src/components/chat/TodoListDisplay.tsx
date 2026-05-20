@@ -285,13 +285,13 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 										{icon}
 										<span
 											style={{
-												fontWeight: 500,
+												fontWeight: 200,
 												color:
 													todo.status === "completed"
 														? "var(--vscode-descriptionForeground)"
 														: "var(--vscode-foreground)",
 												textDecoration: todo.status === "completed" ? "line-through" : "none",
-												opacity: todo.status === "completed" ? 0.7 : 1,
+												opacity: todo.status === "completed" ? 0.7 : 0.9,
 												wordBreak: "break-word",
 											}}>
 											{todo.content}
