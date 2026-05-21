@@ -128,7 +128,10 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 				</div>
 				<div className="flex items-center gap-1">
 					<ArrowDown01Icon
-						className={cn("size-4 transition-all group-hover:opacity-100", !isCollapsed && "rotate-180")}
+						className={cn(
+							"size-4 transition-all opacity-0 group-hover:opacity-100 -rotate-90",
+							!isCollapsed && "rotate-180",
+						)}
 					/>
 				</div>
 			</div>

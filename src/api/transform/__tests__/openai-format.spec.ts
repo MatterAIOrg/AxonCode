@@ -128,4 +128,65 @@ describe("convertToOpenAiMessages", () => {
 		expect(toolMessage.tool_call_id).toBe("weather-123")
 		expect(toolMessage.content).toBe("Current temperature in London: 20°C")
 	})
+
+	describe("tool_call/tool_result pairing safety net", () => {
+		it("backfills a placeholder tool message for an unanswered parallel tool_call", () => {
+			// Assistant requested two tool calls but only the first was answered — the
+			// exact shape that makes OpenAI-compatible providers reject the request.
+			const anthropicMessages: Anthropic.Messages.MessageParam[] = [
+				{
+					role: "assistant",
+					content: [
+						{ type: "tool_use", id: "call_1", name: "read_file", input: { file_path: "App.tsx" } },
+						{ type: "tool_use", id: "call_2", name: "read_file", input: { file_path: "index.css" } },
+					],
+				},
+				{
+					role: "user",
+					content: [{ type: "tool_result", tool_use_id: "call_1", content: "App.tsx contents" }],
+				},
+			]
+
+			const openAiMessages = convertToOpenAiMessages(anthropicMessages)
+
+			// assistant + tool(call_1) + backfilled tool(call_2)
+			expect(openAiMessages).toHaveLength(3)
+			expect(openAiMessages[0].role).toBe("assistant")
+
+			const first = openAiMessages[1] as OpenAI.Chat.ChatCompletionToolMessageParam
+			expect(first.role).toBe("tool")
+			expect(first.tool_call_id).toBe("call_1")
+			expect(first.content).toBe("App.tsx contents")
+
+			const backfilled = openAiMessages[2] as OpenAI.Chat.ChatCompletionToolMessageParam
+			expect(backfilled.role).toBe("tool")
+			expect(backfilled.tool_call_id).toBe("call_2")
+			expect(backfilled.content).toBe("")
+		})
+
+		it("leaves a fully-answered parallel tool call untouched", () => {
+			const anthropicMessages: Anthropic.Messages.MessageParam[] = [
+				{
+					role: "assistant",
+					content: [
+						{ type: "tool_use", id: "call_1", name: "read_file", input: { file_path: "a.ts" } },
+						{ type: "tool_use", id: "call_2", name: "read_file", input: { file_path: "b.ts" } },
+					],
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "tool_result", tool_use_id: "call_1", content: "a" },
+						{ type: "tool_result", tool_use_id: "call_2", content: "b" },
+					],
+				},
+			]
+
+			const openAiMessages = convertToOpenAiMessages(anthropicMessages)
+
+			expect(openAiMessages).toHaveLength(3)
+			expect((openAiMessages[1] as OpenAI.Chat.ChatCompletionToolMessageParam).tool_call_id).toBe("call_1")
+			expect((openAiMessages[2] as OpenAI.Chat.ChatCompletionToolMessageParam).tool_call_id).toBe("call_2")
+		})
+	})
 })

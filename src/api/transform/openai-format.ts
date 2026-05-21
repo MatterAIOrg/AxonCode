@@ -187,5 +187,68 @@ export function convertToOpenAiMessages(
 		}
 	}
 
-	return openAiMessages
+	// forked_change start: Final safety net before the request leaves for the provider.
+	// The OpenAI spec requires every assistant `tool_calls[i].id` to be answered by a
+	// `tool` message. Our task loop already guarantees this upstream, but if anything
+	// ever slips through (a malformed resumed history, a future regression, an
+	// interrupted turn), a single unmatched tool_call makes the provider reject the
+	// whole request. Rather than fail, backfill a placeholder `tool` message for any
+	// tool_call that has no result so the request always stays spec-compliant.
+	return backfillMissingToolResults(openAiMessages)
+}
+
+/**
+ * Ensures every assistant `tool_calls` entry is followed by a `tool` message for its
+ * id. Any tool_call left unanswered gets a synthesized `tool` message with empty
+ * content inserted right after the assistant message's existing tool results, so the
+ * tool_call/tool_result pairing the provider validates is never broken.
+ */
+function backfillMissingToolResults(
+	messages: OpenAI.Chat.ChatCompletionMessageParam[],
+): OpenAI.Chat.ChatCompletionMessageParam[] {
+	const result: OpenAI.Chat.ChatCompletionMessageParam[] = []
+
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i]
+		result.push(message)
+
+		const toolCalls =
+			message.role === "assistant"
+				? (message as OpenAI.Chat.ChatCompletionAssistantMessageParam).tool_calls
+				: undefined
+		if (!toolCalls || toolCalls.length === 0) {
+			continue
+		}
+
+		// Only backfill once the turn has actually been processed — i.e. another
+		// message follows. A trailing assistant `tool_calls` message (the model just
+		// emitted it, results not collected yet) is a valid intermediate history and
+		// is never what we send to request the next turn, so leave it untouched.
+		if (i === messages.length - 1) {
+			continue
+		}
+
+		// Carry over the `tool` messages that already answer this assistant message and
+		// record which tool_call ids they cover.
+		const respondedIds = new Set<string>()
+		let j = i + 1
+		while (j < messages.length && messages[j].role === "tool") {
+			const toolMessage = messages[j] as OpenAI.Chat.ChatCompletionToolMessageParam
+			respondedIds.add(toolMessage.tool_call_id)
+			result.push(toolMessage)
+			j++
+		}
+
+		// Backfill a placeholder for every tool_call that wasn't answered.
+		for (const toolCall of toolCalls) {
+			if (!respondedIds.has(toolCall.id)) {
+				result.push({ role: "tool", tool_call_id: toolCall.id, content: "" })
+			}
+		}
+
+		// Skip the tool messages we already copied across.
+		i = j - 1
+	}
+
+	return result
 }

@@ -92,6 +92,11 @@ import { RooIgnoreController } from "../ignore/RooIgnoreController"
 import { RooProtectedController } from "../protect/RooProtectedController"
 import { type AssistantMessageContent, presentAssistantMessage } from "../assistant-message"
 import { AssistantMessageParser } from "../assistant-message/AssistantMessageParser"
+import {
+	allToolResultsCollected,
+	reconcileAssistantToolUses,
+	toolUseIdsRequiringResults,
+} from "./toolCallResultPairing" // forked_change: keep assistant tool_calls and tool_results paired 1:1
 import { truncateConversationIfNeeded } from "../sliding-window"
 import { ClineProvider } from "../webview/ClineProvider"
 import { MultiSearchReplaceDiffStrategy } from "../diff/strategies/multi-search-replace"
@@ -2712,8 +2717,25 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				this.assistantMessageParser.finalizeContentBlocks()
 				this.assistantMessageContent = this.assistantMessageParser.getContentBlocks()
 
-				// forked_change start: Extract any newly finalized tool uses that weren't captured during streaming
-				// This can happen when native tool calls arrive in a single complete chunk
+				// forked_change start: Reconcile the assistant message's tool calls with the
+				// finalized, executable content blocks.
+				//
+				// `this.assistantMessageContent` (after finalizeContentBlocks) is the exact set
+				// of tool_use blocks that `presentAssistantMessage` will execute and produce a
+				// tool_result for. The streaming-accumulated `assistantToolUses`, however, also
+				// holds tool calls that were *yielded as partials* during streaming — and a
+				// partial whose JSON never became valid is dropped from the content blocks at
+				// finalization (see AssistantMessageParser.finalizeNativeToolCalls). If we kept
+				// that partial in the assistant message it would be an orphan tool_call: the
+				// assistant turn advertises a tool_call that is never executed, so no matching
+				// tool_result is ever produced, and the next request violates the OpenAI spec
+				// (assistant has N tool_calls, user turn has fewer tool_results).
+				//
+				// So the finalized content blocks are the source of truth: keep the streamed
+				// entries that survived finalization (preserving their order), then append any
+				// tool calls that only finalized at end-of-stream (e.g. native calls that
+				// arrived in a single complete chunk). The result is that every tool_call in the
+				// assistant message is guaranteed to be executed and to get a tool_result.
 				const toolUsesFromFinalizedContent = this.assistantMessageContent
 					.filter((block): block is ToolUse => block.type === "tool_use")
 					.map(
@@ -2725,13 +2747,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						}),
 					)
 
-				// Add any tool uses that aren't already in assistantToolUses
-				const existingToolUseIds = new Set(assistantToolUses.map((tu) => tu.id))
-				for (const toolUse of toolUsesFromFinalizedContent) {
-					if (!existingToolUseIds.has(toolUse.id)) {
-						assistantToolUses.push(toolUse)
-					}
-				}
+				assistantToolUses = reconcileAssistantToolUses(assistantToolUses, toolUsesFromFinalizedContent)
 				// forked_change end
 
 				// forked_change start: Fix native tool calls not being executed
@@ -2845,7 +2861,30 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					// 	this.userMessageContentReady = true
 					// }
 
-					await pWaitFor(() => this.userMessageContentReady)
+					// forked_change start: Don't fire the next request until EVERY tool_call in
+					// the assistant message we just added has its matching tool_result collected.
+					//
+					// With parallel native tool calls, `userMessageContentReady` is flipped true
+					// by a positional "this is the last content block" heuristic inside
+					// presentAssistantMessage. Under interleaved streaming that flag can briefly
+					// go true after only the first tool's result has been pushed onto
+					// `userMessageContent`. If `pWaitFor` resolves on the flag alone we capture a
+					// partial result set and send an assistant turn with N tool_calls followed by
+					// fewer tool_results — which OpenAI-compatible providers reject outright.
+					//
+					// Gate on the actual data instead of the flag: every id in
+					// `assistantToolUses` is, by the reconciliation above, an executable content
+					// block, and presentAssistantMessage's finally-block guarantees each executed
+					// tool_use produces a tool_result — so this wait is guaranteed to resolve and
+					// cannot deadlock. (`this.abort` short-circuits so a cancel never hangs here.)
+					const expectedToolResultIds = toolUseIdsRequiringResults(assistantToolUses)
+
+					await pWaitFor(
+						() =>
+							this.userMessageContentReady &&
+							(this.abort || allToolResultsCollected(expectedToolResultIds, this.userMessageContent)),
+					)
+					// forked_change end
 
 					// If the model did not tool use, then we need to tell it to
 					// either use a tool or attempt_completion.

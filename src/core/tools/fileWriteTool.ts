@@ -17,6 +17,11 @@ import { unescapeHtmlEntities, unescapeJsonContent } from "../../utils/text-norm
 import { DEFAULT_WRITE_DELAY_MS, getActiveToolUseStyle } from "@roo-code/types"
 import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
 
+// Maximum content length to send to the webview during partial streaming.
+// Sending full content for large files causes IPC bottlenecks and freezes
+// the UI. The full content is preserved for the final write operation.
+const MAX_PARTIAL_DISPLAY_CONTENT_LENGTH = 5000
+
 // Analytics event types for file_write tool
 interface FileWriteAnalytics {
 	toolName: "file_write"
@@ -100,10 +105,23 @@ export async function fileWriteTool(
 			// Pre-processing content for display
 			let displayContent = content
 			if (displayContent.startsWith("```")) {
-				displayContent = displayContent.split("\n").slice(1).join("\n")
+				displayContent = displayContent.split("").slice(1).join("")
 			}
 			if (displayContent.endsWith("```")) {
-				displayContent = displayContent.split("\n").slice(0, -1).join("\n")
+				displayContent = displayContent.split("").slice(0, -1).join("")
+			}
+
+			// Truncate large content for UI preview during streaming to prevent
+			// IPC and rendering bottlenecks. The full content is preserved for
+			// the final write operation.
+			if (displayContent.length > MAX_PARTIAL_DISPLAY_CONTENT_LENGTH) {
+				const truncatedLength = MAX_PARTIAL_DISPLAY_CONTENT_LENGTH
+				const lastNewline = displayContent.lastIndexOf("", truncatedLength)
+				if (lastNewline > truncatedLength * 0.8) {
+					displayContent = displayContent.slice(0, lastNewline) + "... (content truncated during streaming)"
+				} else {
+					displayContent = displayContent.slice(0, truncatedLength) + "..."
+				}
 			}
 
 			// For partial display, use the filePath as-is (may be incomplete)

@@ -1,6 +1,7 @@
 import cloneDeep from "clone-deep"
 import { serializeError } from "serialize-error"
 
+import type { AssistantMessageContent } from "./parseAssistantMessage"
 import { TelemetryService } from "@roo-code/telemetry"
 import type { ClineAsk, ToolName, ToolProgressStatus } from "@roo-code/types"
 
@@ -86,7 +87,12 @@ export async function presentAssistantMessage(cline: Task) {
 		return
 	}
 
-	const block = cloneDeep(cline.assistantMessageContent[cline.currentStreamingContentIndex]) // need to create copy bc while stream is updating the array, it could be updating the reference block properties too
+	const rawBlock = cline.assistantMessageContent[cline.currentStreamingContentIndex]
+	// Shallow copy is sufficient - strings are immutable and we only need to
+	// prevent the stream from mutating the reference. Deep cloning large
+	// content strings would be expensive and unnecessary.
+	const block: AssistantMessageContent =
+		rawBlock.type === "tool_use" ? { ...rawBlock, params: { ...rawBlock.params } } : { ...rawBlock }
 
 	switch (block.type) {
 		case "text": {
