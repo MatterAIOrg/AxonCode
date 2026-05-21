@@ -498,7 +498,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 
 	// Wrap the entire component with useSize to track height changes for scroll adjustment
 	const [rowElement, { height: rowHeight }] = useSize(
-		<div className="group">
+		<div className="group/exploration">
 			{/* Header - matches ReasoningBlock style */}
 			<div
 				className="flex items-center justify-start ml-4 gap-1 mt-0.5 pr-2 mb-1 cursor-pointer select-none opacity-40 hover:opacity-100"
@@ -506,7 +506,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 				<div className="flex items-center gap-1">
 					<span
 						className={cn(
-							"text-vscode-foreground hover:text-[var(--vscode-button-background)]",
+							"text-sm text-vscode-foreground hover:text-[var(--vscode-button-background)]",
 							isExploring && "animate-shimmer",
 						)}>
 						{isExploring ? exploringText : summary}
@@ -515,8 +515,8 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 				<div className="flex items-center gap-1">
 					<ArrowDown01Icon
 						className={cn(
-							"size-4 transition-all opacity-0 group-hover:opacity-100 rotate-90",
-							!expanded && "rotate-180",
+							"size-4 transition-all -rotate-90",
+							expanded ? "opacity-100 rotate-0" : "opacity-0 group-hover/exploration:opacity-100",
 						)}
 					/>
 				</div>
