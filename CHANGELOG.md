@@ -4,11 +4,11 @@
 
 ### Fixed
 
-- **Chat title display**: Handle JSON-wrapped title strings from server — `fetchTaskTitle` now supports plain string, JSON object, and stringified JSON responses, with normalized-title fallback at every consumer layer (`taskMetadata`, `getTaskHistory`, `ClineProvider.getTaskHistory`, `KiloTaskHeader`) to clean already-persisted malformed titles
+- **Chat title display**: Handle JSON-wrapped title strings from server, now supports plain string, JSON object, and stringified JSON responses, with normalized-title fallback at every consumer layer to clean already-persisted malformed titles
 
 ### Changed
 
-- Updated kilocode models, OpenRouter spec tests, exploration group row, out of credits banner, pretty model name, and openrouter provider hooks
+- Updated matterai models, llm router spec tests, exploration group row, out of credits banner, pretty model name, and openrouter provider hooks
 
 ---
 
