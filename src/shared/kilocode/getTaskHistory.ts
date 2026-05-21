@@ -3,6 +3,35 @@ import { HistoryItem } from "@roo-code/types"
 import { highlightFzfMatch } from "../../../webview-ui/src/utils/highlight" // weird hack, but apparently it works
 import { TaskHistoryRequestPayload, TaskHistoryResponsePayload } from "../WebviewMessage"
 
+/**
+ * Normalize a potentially malformed title string.
+ * The server or persisted data may store the title as a JSON object string
+ * like `'{"title":"My Title"}'` instead of just `"My Title"`.
+ */
+function normalizeTitle(raw: string | undefined): string | undefined {
+	if (!raw) return undefined
+
+	const trimmed = raw.trim()
+	if (!trimmed) return undefined
+
+	// If it looks like a JSON object, try to extract the title property
+	if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+		try {
+			const parsed = JSON.parse(trimmed)
+			if (typeof parsed === "object") {
+				const maybe = parsed?.title
+				if (typeof maybe === "string" && maybe.trim()) {
+					return maybe.trim()
+				}
+			}
+		} catch {
+			// Not valid JSON, return as-is
+		}
+	}
+
+	return trimmed
+}
+
 const PAGE_SIZE = 20
 
 export function getTaskHistory(
@@ -63,7 +92,10 @@ export function getTaskHistory(
 	const pageIndex = Math.max(0, Math.min(request.pageIndex, pageCount - 1))
 
 	const startIndex = PAGE_SIZE * pageIndex
-	const historyItems = tasks.slice(startIndex, startIndex + PAGE_SIZE)
+	const historyItems = tasks.slice(startIndex, startIndex + PAGE_SIZE).map((item) => ({
+		...item,
+		title: normalizeTitle(item.title) ?? item.task,
+	}))
 
 	return { requestId: request.requestId, historyItems, pageIndex, pageCount }
 }

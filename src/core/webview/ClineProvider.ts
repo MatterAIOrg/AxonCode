@@ -3705,7 +3705,34 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 	private kiloCodeTaskHistorySizeForTelemetryOnly = 0
 
 	public getTaskHistory(): HistoryItem[] {
-		return this.getGlobalState("taskHistory") || []
+		const history = this.getGlobalState("taskHistory") || []
+		return history.map((item) => ({
+			...item,
+			title: this.normalizeTitle(item.title) ?? item.task,
+		}))
+	}
+
+	/**
+	 * Normalize a potentially malformed title string — the server or persisted
+	 * data may store the title as a JSON object string like
+	 * `'{"title":"My Title"}'` instead of just `"My Title"`.
+	 */
+	private normalizeTitle(raw: string | undefined): string | undefined {
+		if (!raw) return undefined
+		const trimmed = raw.trim()
+		if (!trimmed) return undefined
+		if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+			try {
+				const parsed = JSON.parse(trimmed)
+				if (typeof parsed === "object") {
+					const maybe = parsed?.title
+					if (typeof maybe === "string" && maybe.trim()) return maybe.trim()
+				}
+			} catch {
+				// not valid JSON, return as-is
+			}
+		}
+		return trimmed
 	}
 	// forked_change end
 

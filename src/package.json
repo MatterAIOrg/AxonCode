@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "6.2.0",
+	"version": "6.2.3",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -613,7 +613,7 @@
 		"diff-match-patch": "^1.0.5",
 		"exceljs": "^4.4.0",
 		"fast-deep-equal": "^3.1.3",
-		"fast-xml-parser": "^5.0.0",
+		"fast-xml-parser": "^5.3.5",
 		"fastest-levenshtein": "^1.0.16",
 		"fuse.js": "^7.1.0",
 		"fzf": "^0.5.2",

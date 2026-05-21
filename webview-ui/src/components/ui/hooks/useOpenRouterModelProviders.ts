@@ -38,9 +38,9 @@ type KiloCodeModel = {
 }
 
 const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
-	"axon-2-5-mini": {
-		id: "axon-2-5-mini",
-		name: "Axon 2.5 Mini (free)",
+	"axon-code-2-5-mini": {
+		id: "axon-code-2-5-mini",
+		name: "Axon Code 2.5 Mini (free)",
 		description: "Auto is a model that automatically selects the best model for the task",
 		input_modalities: ["text", "image"],
 		context_length: 200000,

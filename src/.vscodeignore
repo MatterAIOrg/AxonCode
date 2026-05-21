@@ -13,8 +13,11 @@
 # Include the built extension
 !dist
 
+# Never ship source maps: ~47MB uncompressed, not needed at runtime,
+# and large enough to stall the Marketplace AV scan (times out -> "failed Virus check").
+dist/**/*.map
+
 # Include the built webview
-!**/*.map
 !webview-ui/audio
 !webview-ui/build/assets/*.js
 !webview-ui/build/assets/*.ttf

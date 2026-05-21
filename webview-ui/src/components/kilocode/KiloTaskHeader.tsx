@@ -10,6 +10,28 @@ import { vscode } from "@src/utils/vscode"
 
 // import { TodoListDisplay } from "../chat/TodoListDisplay"
 
+/**
+ * Normalize a title that may have been stored as a JSON object string
+ * (e.g. `'{"title":"My Title"}'`) instead of a plain string.
+ */
+function normalizeTitle(raw: string | undefined): string | undefined {
+	if (!raw) return undefined
+	const trimmed = raw.trim()
+	if (!trimmed) return undefined
+	if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+		try {
+			const parsed = JSON.parse(trimmed)
+			if (typeof parsed === "object") {
+				const maybe = parsed?.title
+				if (typeof maybe === "string" && maybe.trim()) return maybe.trim()
+			}
+		} catch {
+			// not valid JSON, return as-is
+		}
+	}
+	return trimmed
+}
+
 export interface TaskHeaderProps {
 	task: ClineMessage
 	tokensIn: number
@@ -34,6 +56,7 @@ const KiloTaskHeader = ({
 	// todos,
 	title,
 }: TaskHeaderProps) => {
+	const cleanTitle = normalizeTitle(title)
 	return (
 		<div className="px-3">
 			<div
@@ -45,8 +68,8 @@ const KiloTaskHeader = ({
 				{/* Title with close button */}
 				<div className="flex items-center gap-1">
 					<div className="px-1 py-1 flex items-center gap-1 min-w-0 outline-none">
-						<span className="text-sm truncate opacity-70">{title?.trim() || "New agent..."}</span>
-						{!title?.trim() && (
+						<span className="text-sm truncate opacity-70">{cleanTitle || "New agent..."}</span>
+						{!cleanTitle && (
 							<span
 								className="codicon codicon-loading codicon-modifier-spin shrink-0"
 								style={{ fontSize: "8px" }}

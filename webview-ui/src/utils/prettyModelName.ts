@@ -5,7 +5,7 @@ const AXON_MODEL_CREDITS: Record<string, string> = {
 }
 
 export const AXON_MODEL_TOOLTIPS: Record<string, [string, string]> = {
-	"axon-2-5-mini": ["Free model for very lightweight task", "low thinking"],
+	"axon-code-2-5-mini": ["Free model for very lightweight task", "low thinking"],
 	"axon-code-2-pro": ["Medium cost frontier model for", "small to medium tasks, medium thinking"],
 	"axon-code-2-pro-high": ["Medium cost frontier model for", "small to medium tasks, extended thinking"],
 	"axon-code-2-5-pro": ["High intelligence frontier model", "for complex task, medium thinking"],

@@ -514,7 +514,10 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 				</div>
 				<div className="flex items-center gap-1">
 					<ArrowDown01Icon
-						className={cn("size-4 transition-all group-hover:opacity-100", !expanded && "rotate-180")}
+						className={cn(
+							"size-4 transition-all opacity-0 group-hover:opacity-100 rotate-90",
+							!expanded && "rotate-180",
+						)}
 					/>
 				</div>
 			</div>
