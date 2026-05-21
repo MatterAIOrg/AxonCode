@@ -1,4 +1,4 @@
-import { CheckCircle } from "lucide-react"
+import { Check } from "lucide-react"
 import { useState, useRef, useMemo, useEffect } from "react"
 
 export function TodoListDisplay({ todos }: { todos: any[] }) {
@@ -38,21 +38,75 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 
 	const allCompleted = completedCount === totalCount && totalCount > 0
 
-	// Create the status icon for the most important todo
-	const getMostImportantTodoIcon = () => {
-		if (allCompleted) {
+	// Shared checkbox-style icon used for both the collapsed summary and list items
+	const renderCheckboxIcon = (status: string | undefined, opts?: { marginTop?: number; marginLeft?: number }) => {
+		const marginTop = opts?.marginTop ?? 0
+		const marginLeft = opts?.marginLeft ?? 0
+		const baseBox: React.CSSProperties = {
+			display: "inline-flex",
+			alignItems: "center",
+			justifyContent: "center",
+			width: 13,
+			height: 13,
+			borderRadius: 3,
+			marginRight: 6,
+			marginLeft,
+			marginTop,
+			flexShrink: 0,
+			boxSizing: "border-box",
+		}
+
+		if (status === "completed") {
 			return (
-				<CheckCircle
-					size={10}
+				<span
 					style={{
-						color: "var(--vscode-button-background)",
-						marginRight: 6,
-						flexShrink: 0,
-					}}
-				/>
+						...baseBox,
+						border: "0.5px solid var(--vscode-descriptionForeground)",
+						background: "var(--vscode-descriptionForeground)",
+					}}>
+					<Check size={9} strokeWidth={2.5} style={{ color: "var(--vscode-editor-background)" }} />
+				</span>
 			)
 		}
 
+		if (status === "in_progress") {
+			return (
+				<span
+					style={{
+						...baseBox,
+						border: "0.5px solid var(--vscode-foreground)",
+						background: "transparent",
+					}}>
+					<span
+						style={{
+							display: "inline-block",
+							width: 5,
+							height: 5,
+							borderRadius: "50%",
+							background: "var(--vscode-foreground)",
+						}}
+					/>
+				</span>
+			)
+		}
+
+		// Default not-started todo
+		return (
+			<span
+				style={{
+					...baseBox,
+					border: "0.5px solid var(--vscode-foreground)",
+					background: "transparent",
+				}}
+			/>
+		)
+	}
+
+	// Create the status icon for the most important todo
+	const getMostImportantTodoIcon = () => {
+		if (allCompleted) {
+			return renderCheckboxIcon("completed")
+		}
 		if (!mostImportantTodo) {
 			return (
 				<span
@@ -67,57 +121,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 				/>
 			)
 		}
-
-		if (mostImportantTodo.status === "completed") {
-			return (
-				<span
-					style={{
-						display: "inline-block",
-						width: 8,
-						height: 8,
-						borderRadius: "50%",
-						background: "var(--vscode-button-background)",
-						marginRight: 8,
-						marginLeft: 2,
-						flexShrink: 0,
-					}}
-				/>
-			)
-		}
-
-		if (mostImportantTodo.status === "in_progress") {
-			return (
-				<span
-					style={{
-						display: "inline-block",
-						width: 8,
-						height: 8,
-						borderRadius: "50%",
-						background: "var(--color-matterai-yellow)",
-						marginRight: 8,
-						marginLeft: 2,
-						flexShrink: 0,
-					}}
-				/>
-			)
-		}
-
-		// Default not-started todo
-		return (
-			<span
-				style={{
-					display: "inline-block",
-					width: 8,
-					height: 8,
-					borderRadius: "50%",
-					border: "1px solid var(--color-vscode-descriptionForeground)",
-					background: "transparent",
-					marginRight: 8,
-					marginLeft: 2,
-					flexShrink: 0,
-				}}
-			/>
-		)
+		return renderCheckboxIcon(mostImportantTodo.status)
 	}
 
 	return (
@@ -145,11 +149,9 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 				<span
 					style={{
 						fontWeight: 500,
-						color: allCompleted
-							? "var(--color-matterai-green)"
-							: mostImportantTodo?.status === "in_progress"
-								? "var(--color-matterai-yellow)"
-								: "var(--vscode-foreground)",
+						color: allCompleted ? "var(--vscode-descriptionForeground)" : "var(--vscode-foreground)",
+						textDecoration: allCompleted ? "line-through" : "none",
+						opacity: allCompleted ? 0.7 : 1,
 						flex: 1,
 						overflow: "hidden",
 						textOverflow: "ellipsis",
@@ -268,51 +270,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 								padding: "12px 16px",
 							}}>
 							{todos.map((todo: any, idx: number) => {
-								let icon
-								if (todo.status === "completed") {
-									icon = (
-										<CheckCircle
-											size={10}
-											style={{
-												color: "var(--color-matterai-green)",
-												marginRight: 6,
-												marginTop: 6,
-												flexShrink: 0,
-											}}
-										/>
-									)
-								} else if (todo.status === "in_progress") {
-									icon = (
-										<span
-											style={{
-												display: "inline-block",
-												width: 8,
-												height: 8,
-												borderRadius: "50%",
-												background: "var(--color-matterai-yellow)",
-												marginRight: 8,
-												marginTop: 7,
-												flexShrink: 0,
-											}}
-										/>
-									)
-								} else {
-									icon = (
-										<span
-											style={{
-												display: "inline-block",
-												width: 8,
-												height: 8,
-												borderRadius: "50%",
-												border: "1px solid var(--vscode-descriptionForeground)",
-												background: "transparent",
-												marginRight: 8,
-												marginTop: 7,
-												flexShrink: 0,
-											}}
-										/>
-									)
-								}
+								const icon = renderCheckboxIcon(todo.status, { marginTop: 3 })
 								return (
 									<li
 										key={todo.id || todo.content}
@@ -327,13 +285,13 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 										{icon}
 										<span
 											style={{
-												fontWeight: 500,
+												fontWeight: 200,
 												color:
 													todo.status === "completed"
-														? "var(--vscode-foreground)"
-														: todo.status === "in_progress"
-															? "var(--color-matterai-yellow)"
-															: "var(--color-vscode-descriptionForeground)",
+														? "var(--vscode-descriptionForeground)"
+														: "var(--vscode-foreground)",
+												textDecoration: todo.status === "completed" ? "line-through" : "none",
+												opacity: todo.status === "completed" ? 0.7 : 0.9,
 												wordBreak: "break-word",
 											}}>
 											{todo.content}

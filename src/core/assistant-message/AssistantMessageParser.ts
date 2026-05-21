@@ -86,11 +86,19 @@ export class AssistantMessageParser {
 		const partialParams: Record<string, string> = {}
 		if (!argsString.trim()) return partialParams
 
+		// For very large accumulated arguments, skip expensive regex extraction.
+		// This avoids O(n²) regex work during streaming of large file_write
+		// content. The UI can wait for the complete JSON.
+		const MAX_EXTRACT_LENGTH = 20 * 1024 // 20KB
+		if (argsString.length > MAX_EXTRACT_LENGTH) {
+			return partialParams
+		}
+
 		// Match patterns like "key": "value" or "key": "partial value (without closing quote)
 		// Also match "key": unquoted_value for simple values
-		// Handle escaped quotes within values: \\"
+		// Handle escaped quotes within values: \"
 		const quotedValueRegex = /"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"/g
-		const unquotedValueRegex = /"((?:[^"\\]|\\.)*)"\s*:\s*([a-zA-Z0-9_.*\/\\-]+)/g
+		const unquotedValueRegex = /"((?:[^"\\]|\\.)*)"\s*:\s*([a-zA-Z0-9_.*\/\-]+)/g
 
 		let match
 		// Extract quoted values
@@ -408,17 +416,18 @@ export class AssistantMessageParser {
 
 			// There should not be a param without a tool use.
 			if (this.currentToolUse && this.currentParamName) {
-				const currentParamValue = this.accumulator.slice(this.currentParamValueStartIndex)
-				if (currentParamValue.length > this.MAX_PARAM_LENGTH) {
+				const paramLength = this.accumulator.length - this.currentParamValueStartIndex
+				if (paramLength > this.MAX_PARAM_LENGTH) {
 					// Reset to a safe state
 					this.currentParamName = undefined
 					this.currentParamValueStartIndex = 0
 					continue
 				}
 				const paramClosingTag = `</${this.currentParamName}>`
-				// Streamed param content: always write the currently accumulated value
-				if (currentParamValue.endsWith(paramClosingTag)) {
+				// Check for closing tag without slicing the accumulator
+				if (this.accumulator.endsWith(paramClosingTag)) {
 					// End of param value.
+					const currentParamValue = this.accumulator.slice(this.currentParamValueStartIndex)
 					// Do not trim content parameters to preserve newlines, but strip first and last newline only
 					const paramValue = currentParamValue.slice(0, -paramClosingTag.length)
 					this.currentToolUse.params[this.currentParamName] =
@@ -427,20 +436,17 @@ export class AssistantMessageParser {
 							: paramValue.trim()
 					this.currentParamName = undefined
 					continue
-				} else {
-					// Partial param value is accumulating.
-					// Write the currently accumulated param content in real time
-					this.currentToolUse.params[this.currentParamName] = currentParamValue
-					continue
 				}
+				// Partial param value is accumulating.
+				// Defer update to end of chunk to avoid O(n²) string slicing
+				continue
 			}
 
 			// No currentParamName.
 
 			if (this.currentToolUse) {
-				const currentToolValue = this.accumulator.slice(this.currentToolUseStartIndex)
 				const toolUseClosingTag = `</${this.currentToolUse.name}>`
-				if (currentToolValue.endsWith(toolUseClosingTag)) {
+				if (this.accumulator.endsWith(toolUseClosingTag)) {
 					// End of a tool use.
 					this.currentToolUse.partial = false
 
@@ -557,19 +563,26 @@ export class AssistantMessageParser {
 					// Create a new text content block and add it to contentBlocks
 					this.currentTextContent = {
 						type: "text",
-						content: this.accumulator.slice(this.currentTextContentStartIndex).trim(),
+						content: "", // Defer content assignment to end of chunk
 						partial: true,
 					}
 
 					// Add the new text content to contentBlocks immediately
 					// Ensures it appears in the UI right away
 					this.contentBlocks.push(this.currentTextContent)
-				} else {
-					// Update the existing text content
-					this.currentTextContent.content = this.accumulator.slice(this.currentTextContentStartIndex).trim()
 				}
+				// Defer text content update to end of chunk to avoid O(n²) slicing
 			}
 		}
+		// Update partial param and text content values after processing the
+		// entire chunk to avoid O(n²) string slicing in the hot loop.
+		if (this.currentToolUse && this.currentParamName) {
+			this.currentToolUse.params[this.currentParamName] = this.accumulator.slice(this.currentParamValueStartIndex)
+		}
+		if (this.currentTextContent) {
+			this.currentTextContent.content = this.accumulator.slice(this.currentTextContentStartIndex).trim()
+		}
+
 		// Do not call finalizeContentBlocks() here.
 		// Instead, update any partial blocks in the array and add new ones as they're completed.
 		// This matches the behavior of the original parseAssistantMessage function.

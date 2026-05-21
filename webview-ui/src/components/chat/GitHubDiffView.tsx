@@ -147,7 +147,7 @@ const GitHubDiffView = memo(({ diff, filePath, isExpanded, maxHeight = "20rem" }
 			{isExpanded && (
 				<div className="w-full mt-1" style={{ marginLeft: `${diffMarginLeft}px` }}>
 					<div
-						className="rounded-md overflow-auto scrollbar-hide min-w-0"
+						className="rounded-2xl overflow-auto scrollbar-hide min-w-0"
 						style={{
 							maxHeight,
 							border: "1px solid var(--vscode-activityBar-border)",
@@ -156,6 +156,7 @@ const GitHubDiffView = memo(({ diff, filePath, isExpanded, maxHeight = "20rem" }
 						{/* Diff content */}
 						<div
 							style={{
+								padding: "8px",
 								background:
 									"linear-gradient(180deg, color-mix(in srgb, var(--vscode-sideBar-background) 58%, var(--vscode-editor-background)) 0%, var(--vscode-editorWidget-background) 100%)",
 							}}>

@@ -1,5 +1,27 @@
 # Changelog
 
+## [v6.2.0] - 2026-05-21
+
+### Added
+
+- **Tool call result pairing safety net**: New `backfillMissingToolResults` function in OpenAI format transform that backfills placeholder tool messages for unanswered parallel tool calls, preventing provider rejections when tool_call/tool_result pairs are mismatched
+- **Tool call result pairing module**: Pure functions (`reconcileAssistantToolUses`, `toolUseIdsRequiringResults`, `allToolResultsCollected`) to keep assistant tool_calls and tool_results paired 1:1, with comprehensive unit test coverage
+- **Task.ts reconciliation**: Gating API requests until every tool_call in the assistant message has its matching tool_result collected, preventing partial result sets from being sent to providers
+
+### Changed
+
+- **AssistantMessageParser performance**: Avoided O(n²) string slicing in the streaming hot loop by deferring content updates to end-of-chunk; added 20KB max extract length threshold for large accumulated arguments during streaming
+- **presentAssistantMessage optimization**: Replaced deep clone with shallow copy for streaming content blocks to reduce overhead during large file streaming
+- **FileWriteTool partial display**: Truncated large file content during streaming preview (5KB limit) to prevent IPC bottlenecks and UI freezing
+- **Model list cleanup**: Removed deprecated `axon-code-2-pro` and `axon-code-2-pro-high` model entries from provider configurations
+
+### Fixed
+
+- ReasoningBlock arrow icon rotation styling
+- OutOfCreditsBanner border-radius styling consistency
+
+---
+
 ## [v6.0.0] - 2026-04-10
 
 ### Highlights

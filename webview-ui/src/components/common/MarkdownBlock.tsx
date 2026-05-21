@@ -78,7 +78,7 @@ const StyledMarkdown = styled.div`
 		overflow-x: auto;
 		overflow-y: hidden;
 		background-color: bg-vscode-editor-background;
-		border-radius: 3px;
+		border-radius: 8px;
 	}
 
 	.katex-error {

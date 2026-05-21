@@ -29,6 +29,7 @@ import UpdateTodoListToolBlock from "./UpdateTodoListToolBlock"
 import McpResourceRow from "../mcp/McpResourceRow"
 
 import { LowCreditWarning } from "../kilocode/chat/LowCreditWarning" // kilocode_change
+import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilocode_change
 import { BatchFilePermission } from "./BatchFilePermission"
 import { CommandExecution } from "./CommandExecution"
 import { CommandExecutionError } from "./CommandExecutionError"
@@ -609,7 +610,7 @@ export const ChatRowContent = ({
 								{message.partial ? (
 									<span
 										className="codicon codicon-loading codicon-modifier-spin"
-										style={{ marginBottom: "-1.5px", marginRight: "4px" }}
+										style={{ fontSize: "12px", marginBottom: "-1.5px", marginRight: "4px" }}
 									/>
 								) : tool.isProtected ? (
 									<span
@@ -823,7 +824,7 @@ export const ChatRowContent = ({
 								{message.partial ? (
 									<span
 										className="codicon codicon-loading codicon-modifier-spin"
-										style={{ marginBottom: "-1.5px", marginRight: "4px" }}
+										style={{ fontSize: "12px", marginBottom: "-1.5px", marginRight: "4px" }}
 									/>
 								) : tool.isProtected ? (
 									<span
@@ -1622,30 +1623,7 @@ export const ChatRowContent = ({
 						message.text?.includes("https://app.matterai.so/billing")
 
 					if (isOutOfCreditsMessage) {
-						return (
-							<div className="w-full min-w-0 my-2 pr-1">
-								<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
-									<div className="flex flex-col gap-2">
-										<span className="text-lg font-medium text-[var(--vscode-foreground)]">
-											You are out of Orbital Credits
-										</span>
-										<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
-											To continue using Orbital, upgrade your plan or switch to Auto model.
-										</span>
-									</div>
-									<button
-										className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
-										onClick={() =>
-											vscode.postMessage({
-												type: "openExternal",
-												url: "https://app.matterai.so/orbital",
-											})
-										}>
-										Upgrade
-									</button>
-								</div>
-							</div>
-						)
+						return <OutOfCreditsBanner />
 					}
 
 					return (

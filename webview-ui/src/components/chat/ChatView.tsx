@@ -70,6 +70,7 @@ import ExplorationGroupRow, {
 import { showSystemNotification } from "@/kilocode/helpers" // kilocode_change
 import BottomControls from "../kilocode/BottomControls" // kilocode_change
 import KiloTaskHeader from "../kilocode/KiloTaskHeader" // kilocode_change
+import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilocode_change
 import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
@@ -293,6 +294,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return w.ICONS_BASE_URI || ""
 	})
 
+	// Marketing card rotation state
+	const [activeMarketingCard, setActiveMarketingCard] = useState(0)
+
 	// kilocode_change: Profile data state for usage tracking
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
 
@@ -324,6 +328,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 		window.addEventListener("message", handleMessage)
 		return () => window.removeEventListener("message", handleMessage)
+	}, [])
+
+	// Rotate marketing cards every 10 seconds
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setActiveMarketingCard((prev) => (prev === 0 ? 1 : 0))
+		}, 10000)
+		return () => clearInterval(interval)
 	}, [])
 
 	// Check if usage is over 98% (near exhaustion warning)
@@ -2583,56 +2595,84 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</div>
 								<div className="flex flex-grow flex-col justify-start gap-2">
 									{!isReviewOnlyMode && (
-										<div className="w-full min-w-0 mt-4 mb-1 p-3 border border-[var(--vscode-activityBar-border)] rounded-2xl bg-vscode-editor-background/50">
-											<div className="flex flex-col gap-2">
-												{/* Top section: Title/Subtitle left, Icons right */}
-												<div className="flex justify-between gap-4 items-center min-w-0">
-													<div className="flex flex-col gap-1">
-														<div className="flex flex-row gap-2 items-start">
-															<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-																Setup Agentic PR Reviews
-															</p>
-															<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
-																<img
-																	src={iconsBaseUri + "/github-ic.png"}
-																	alt="GitHub"
-																	className="w-4 h-4"
-																/>
-																<img
-																	src={iconsBaseUri + "/gitlab-ic.png"}
-																	alt="GitLab"
-																	className="w-4 h-4"
-																/>
-
-																<img
-																	src={iconsBaseUri + "/bitbucket-ic.png"}
-																	alt="Bitbucket"
-																	className="w-4 h-4"
-																/>
-															</div>
-														</div>
-														<p className="text-xs p-0 m-0 font-regular text-vscode-foreground opacity-70">
-															Close PRs 50% faster with 80% less bugs
+										<div className="relative w-full min-w-0 mt-4 mb-1 h-[98px]">
+											{/* PR Reviews Card */}
+											<div
+												className={`absolute inset-x-0 top-0 px-3 py-1 border border-[var(--vscode-activityBar-border)] rounded-2xl bg-vscode-editor-background transition-all duration-700 ease-in-out origin-top ${activeMarketingCard === 0 ? "translate-y-0 scale-100 opacity-100 z-10 h-[88px] shadow-sm" : "translate-y-[6px] scale-[0.97] opacity-60 z-0 pointer-events-none h-[88px]"}`}>
+												<div className="flex flex-col gap-1 h-full justify-center">
+													<div className="flex flex-row gap-2 items-center">
+														<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
+															Setup Agentic PR Reviews
 														</p>
-														{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
-												70% faster code reviews
-											</p> */}
-														<div className="flex flex-row gap-2">
-															<div className="self-start mt-1">
-																<VSCodeButtonLink
-																	appearance="primary"
-																	href="https://app.matterai.so/get-started">
-																	Get Started for free
-																</VSCodeButtonLink>
-															</div>
-															<div className="self-start mt-1">
-																<VSCodeButtonLink
-																	appearance="secondary"
-																	href="https://docs.matterai.so/quickstart-ai-code-review-agent">
-																	View Demo
-																</VSCodeButtonLink>
-															</div>
+														<div className="flex items-center flex-row gap-2">
+															<img
+																src={iconsBaseUri + "/github-ic.png"}
+																alt="GitHub"
+																className="w-3.5 h-3.5"
+															/>
+															<img
+																src={iconsBaseUri + "/gitlab-ic.png"}
+																alt="GitLab"
+																className="w-3.5 h-3.5"
+															/>
+															<img
+																src={iconsBaseUri + "/bitbucket-ic.png"}
+																alt="Bitbucket"
+																className="w-3.5 h-3.5"
+															/>
+															<img
+																src={iconsBaseUri + "/azure-devops-ic.png"}
+																alt="Azure DevOps"
+																className="w-3.5 h-3.5"
+															/>
 														</div>
+													</div>
+													<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
+														Close PRs 50% faster with 80% less bugs
+													</p>
+													<div className="flex flex-row gap-2 mt-0.5">
+														<VSCodeButtonLink
+															appearance="primary"
+															href="https://app.matterai.so/get-started">
+															Get Started for free
+														</VSCodeButtonLink>
+														<VSCodeButtonLink
+															appearance="secondary"
+															href="https://docs.matterai.so/quickstart-ai-code-review-agent">
+															View Demo
+														</VSCodeButtonLink>
+													</div>
+												</div>
+											</div>
+
+											{/* Axon Models Card */}
+											<div
+												className={`absolute inset-x-0 top-0 px-3 py-1 border border-[var(--vscode-activityBar-border)] rounded-2xl bg-vscode-editor-background transition-all duration-700 ease-in-out origin-top ${activeMarketingCard === 1 ? "translate-y-0 scale-100 opacity-100 z-10 h-[88px] shadow-sm" : "translate-y-[6px] scale-[0.97] opacity-60 z-0 pointer-events-none h-[88px]"}`}>
+												<div className="flex flex-col gap-1 h-full justify-center">
+													<div className="flex flex-row gap-2 items-center">
+														<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
+															Axon 2.5 Models
+														</p>
+														<img
+															src={iconsBaseUri + "/matterai-ic.svg"}
+															alt="MatterAI"
+															className="w-3.5 h-3.5"
+														/>
+													</div>
+													<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
+														State-of-the-art for coding, agentic tools & general purpose
+													</p>
+													<div className="flex flex-row gap-2 mt-0.5">
+														<VSCodeButtonLink
+															appearance="primary"
+															href="https://app.matterai.so/api-billing">
+															Get Started
+														</VSCodeButtonLink>
+														<VSCodeButtonLink
+															appearance="secondary"
+															href="https://app.matterai.so/axon-models">
+															Learn More
+														</VSCodeButtonLink>
 													</div>
 												</div>
 											</div>
@@ -2823,28 +2863,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 					{/* kilocode_change: Show notification when monthly limit is exhausted */}
 					{isUsageExhausted && !task && (
-						<div className="w-full min-w-0 px-4 mb-4">
-							<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
-								<div className="flex flex-col gap-2">
-									<span className="text-lg font-medium text-[var(--vscode-foreground)]">
-										You are out of Orbital Credits
-									</span>
-									<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
-										To continue using Orbital, upgrade your plan or switch to Auto model.
-									</span>
-								</div>
-								<button
-									className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
-									onClick={() =>
-										vscode.postMessage({
-											type: "openExternal",
-											url: "https://app.matterai.so/orbital",
-										})
-									}>
-									Upgrade
-								</button>
-							</div>
-						</div>
+						<OutOfCreditsBanner
+							className="w-full min-w-0 px-4 mb-4"
+							creditsResetDate={profileData?.creditsResetDate}
+						/>
 					)}
 
 					{!task && (
