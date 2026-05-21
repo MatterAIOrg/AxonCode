@@ -102,9 +102,9 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 	}
 
 	return (
-		<div className="group">
+		<div className="group/reasoning">
 			<div
-				className="flex items-center justify-start gap-1 pr-2 cursor-pointer select-none opacity-40 hover:opacity-100 -mb-1"
+				className="flex items-center justify-start gap-1 mt-0.5 pr-2 cursor-pointer select-none opacity-40 hover:opacity-100"
 				onClick={handleToggle}>
 				<div className="flex items-center gap-1">
 					{/* <Lightbulb className="w-3" /> */}
@@ -129,8 +129,8 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 				<div className="flex items-center gap-1">
 					<ArrowDown01Icon
 						className={cn(
-							"size-4 transition-all opacity-0 group-hover:opacity-100 -rotate-90",
-							!isCollapsed && "rotate-180",
+							"size-4 transition-all -rotate-90",
+							!isCollapsed ? "opacity-100 rotate-0" : "opacity-0 group-hover/reasoning:opacity-100",
 						)}
 					/>
 				</div>

@@ -16,9 +16,46 @@ import { getKiloUrlFromToken } from "@roo-code/types" // kilocode_change
 const taskSizeCache = new NodeCache({ stdTTL: 30, checkperiod: 5 * 60 })
 
 // kilocode_change: Fetch task title from backend
-export interface TaskTitleResponse {
-	taskId: string
-	title: string
+
+/**
+ * Safely extract a clean title string from potentially malformed input.
+ * Handles cases where the title might be stored as:
+ * - A plain string: "My Title"
+ * - A JSON object string: '{"title":"My Title"}'
+ * - An object: { title: "My Title" }
+ */
+function sanitizeTitle(raw: unknown): string | undefined {
+	if (raw == null) return undefined
+
+	if (typeof raw === "string") {
+		const trimmed = raw.trim()
+		if (!trimmed) return undefined
+
+		// Try parsing as JSON if it looks like an object
+		if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+			try {
+				const parsed = JSON.parse(trimmed)
+				const extracted = sanitizeTitle(parsed)
+				if (extracted) return extracted
+			} catch {
+				// Not valid JSON, fall through
+			}
+		}
+
+		return trimmed
+	}
+
+	if (typeof raw === "object") {
+		// Check for .title property (string or nested object/string)
+		const maybe = (raw as Record<string, unknown>)["title"]
+		if (maybe != null) {
+			// Recurse to handle nested cases like { title: { title: "..." } }
+			const extracted = sanitizeTitle(maybe)
+			if (extracted) return extracted
+		}
+	}
+
+	return undefined
 }
 
 /**
@@ -45,15 +82,36 @@ export async function fetchTaskTitle(
 
 	for (let attempt = 1; attempt <= maxRetries; attempt++) {
 		try {
-			const response = await axios.get<TaskTitleResponse>(url, {
+			const response = await axios.get(url, {
 				headers: {
 					Authorization: `Bearer ${kilocodeToken}`,
 				},
 				timeout: 5000, // 5 second timeout
 			})
 
-			if (response.data?.title) {
-				return response.data.title
+			const data = response.data
+
+			if (typeof data === "string") {
+				// Server responded with a string — try parsing as JSON if it looks like one
+				const trimmed = data.trim()
+				if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+					try {
+						const parsed = JSON.parse(trimmed)
+						if (parsed?.title) {
+							return parsed.title
+						}
+					} catch {
+						// Not valid JSON, fall through to use as plain string
+					}
+				}
+				if (trimmed) {
+					return trimmed
+				}
+			} else if (typeof data === "object" && data !== null) {
+				// Server responded with an object — extract title regardless of other fields
+				if (data.title) {
+					return data.title
+				}
 			}
 
 			// If we got a response but no title, retry
@@ -243,7 +301,7 @@ export async function taskMetadata({
 		size: taskDirSize,
 		workspace,
 		mode,
-		title: (taskMessage as any)?.title, // kilocode_change: Include title if available
+		title: sanitizeTitle((taskMessage as any)?.title) ?? undefined, // kilocode_change: Include title if available
 		// Use provided contextWindowUsage if available, otherwise calculate from tokenUsage
 		contextWindowUsage: contextWindowUsage
 			? contextWindowUsage
