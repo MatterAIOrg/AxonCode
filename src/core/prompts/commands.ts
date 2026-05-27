@@ -142,13 +142,15 @@ The user will be presented with a preview of your generated summary and can choo
 Users may refer to this tool as 'compact' as well. You should consider these to be equivalent to 'condense' when used in a similar context.
 
 Parameters:
-- message: (required) The detailed summary of the conversation. If applicable based on the current task, this should include:
-  1. Previous Conversation: High level details about what was discussed throughout the entire conversation with the user. This should be written to allow someone to be able to follow the general overarching conversation flow.
-  2. Current Work: Describe in detail what was being worked on prior to this request to compact the context window. Pay special attention to the more recent messages / conversation.
-  3. Key Technical Concepts: List all important technical concepts, technologies, coding conventions, and frameworks discussed, which might be relevant for continuing with this work.
-  4. Relevant Files and Code: If applicable, enumerate specific files and code sections examined, modified, or created for the task continuation. Pay special attention to the most recent messages and changes.
-  5. Problem Solving: Document problems solved thus far and any ongoing troubleshooting efforts.
-  6. Pending Tasks and Next Steps: Outline all pending tasks that you have explicitly been asked to work on, as well as list the next steps you will take for all outstanding work, if applicable. Include code snippets where they add clarity. For any next steps, include direct quotes from the most recent conversation showing exactly what task you were working on and where you left off. This should be verbatim to ensure there's no information loss in context between tasks.
+- message: (required) The detailed summary of the conversation with maximum information density. This should include:
+  1. ORIGINAL GOAL: Quote the user's original task or request verbatim.
+  2. PROGRESS: What has been accomplished so far. Current state of the work.
+  3. DECISIONS: Architectural choices, naming conventions, coding patterns adopted, and WHY.
+  4. FILES: For each file read, modified, or created — full path, why it matters, changes, key code.
+  5. FAILED APPROACHES: What was tried and did not work. Why. What should NOT be attempted again.
+  6. KNOWLEDGE STATE: Confirmed facts vs assumptions vs unresolved questions.
+  7. ENVIRONMENT: Relevant workspace settings, API providers, active modes, tool versions, constraints.
+  8. NEXT STEPS: Immediate next action with VERBATIM quote of most recent task instruction. All pending tasks with status.
 
 Usage:
 <condense>
@@ -158,32 +160,45 @@ Usage:
 Example:
 <condense>
 <message>
-1. Previous Conversation:
-  [Detailed description]
+1. ORIGINAL GOAL:
+  [Verbatim quote of user's original request]
 
-2. Current Work:
-  [Detailed description]
+2. PROGRESS:
+  [Description of what has been accomplished]
 
-3. Key Technical Concepts:
-  - [Concept 1]
-  - [Concept 2]
+3. DECISIONS:
+  - [Decision 1 and reasoning]
+  - [Decision 2 and reasoning]
   - [...]
 
-4. Relevant Files and Code:
+4. FILES:
   - [File Name 1]
-    - [Summary of why this file is important]
-    - [Summary of the changes made to this file, if any]
-    - [Important Code Snippet]
+    - Path: [...]
+    - Why it matters: [...]
+    - Changes: [...]
+    - Key code: [function signatures, type definitions, etc.]
   - [File Name 2]
-    - [Important Code Snippet]
+    - [...]
   - [...]
 
-5. Problem Solving:
-  [Detailed description]
+5. FAILED APPROACHES:
+  - [Approach 1] — Failed because [...]
+  - [...]
 
-6. Pending Tasks and Next Steps:
-  - [Task 1 details & next steps]
-  - [Task 2 details & next steps]
+6. KNOWLEDGE STATE:
+  - Confirmed: [...]
+  - Assumed: [...]
+  - Unknown: [...]
+
+7. ENVIRONMENT:
+  - [Setting 1]
+  - [Setting 2]
+  - [...]
+
+8. NEXT STEPS:
+  - [Immediate next action with VERBATIM quote of most recent task instruction]
+  - [Pending task 1 with status]
+  - [Pending task 2 with status]
   - [...]
 </message>
 </condense>

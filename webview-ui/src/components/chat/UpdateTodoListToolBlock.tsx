@@ -264,14 +264,13 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 												style={{
 													flex: 1,
 													minWidth: 0,
-													fontWeight: 300,
+													fontWeight: todo.status === "in_progress" ? 500 : 300,
 													color:
 														todo.status === "completed"
 															? "var(--vscode-descriptionForeground)"
 															: "var(--vscode-foreground)",
-													textDecoration:
-														todo.status === "completed" ? "line-through" : "none",
-													opacity: todo.status === "completed" ? 0.7 : 1,
+													textDecoration: todo.status === "completed" ? "none" : "none",
+													opacity: todo.status === "completed" ? 0.8 : 1,
 													fontSize: 12,
 													marginRight: 6,
 													padding: "1px 3px",

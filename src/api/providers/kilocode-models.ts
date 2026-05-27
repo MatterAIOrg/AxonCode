@@ -32,8 +32,8 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		name: "Axon Code 2.5 Mini (free)",
 		description: "Auto is a model that automatically selects the best model for the task",
 		input_modalities: ["text", "image"],
-		context_length: 200000,
-		max_output_length: 32768,
+		context_length: 262000,
+		max_output_length: 64000,
 		output_modalities: ["text"],
 		supported_sampling_parameters: [
 			"temperature",
@@ -67,7 +67,7 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		description:
 			"Axon Code 2.5 Pro is the next-generation of Axon Code for coding tasks, currently in experimental stage.",
 		input_modalities: ["text", "image"],
-		context_length: 200000,
+		context_length: 262000,
 		max_output_length: 64000,
 		output_modalities: ["text"],
 		supported_sampling_parameters: [
@@ -102,7 +102,7 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		description:
 			"Enabled with deep thinking, Axon Code 2.5 Pro High is the next-generation of Axon Code for coding tasks, currently in experimental stage.",
 		input_modalities: ["text", "image"],
-		context_length: 200000,
+		context_length: 262000,
 		max_output_length: 64000,
 		output_modalities: ["text"],
 		supported_sampling_parameters: [

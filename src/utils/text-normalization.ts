@@ -97,24 +97,3 @@ export function unescapeHtmlEntities(text: string): string {
 		.replace(/&rsqb;/g, "]")
 		.replace(/&amp;/g, "&")
 }
-
-/**
- * Unescapes JSON escape sequences in a string.
- * This handles common escape sequences like \n, \t, \\, etc.
- *
- * @param text The string containing JSON escape sequences to unescape
- * @returns The unescaped string with JSON escape sequences converted to their literal characters
- */
-export function unescapeJsonContent(text: string): string {
-	if (!text) return text
-
-	return text
-		.replace(/\\n/g, "\n")
-		.replace(/\\t/g, "\t")
-		.replace(/\\r/g, "\r")
-		.replace(/\\\\/g, "\\")
-		.replace(/\\"/g, '"')
-		.replace(/\\'/g, "'")
-		.replace(/\\b/g, "\b")
-		.replace(/\\f/g, "\f")
-}
