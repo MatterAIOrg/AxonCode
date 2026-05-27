@@ -105,6 +105,40 @@ ${userInput}
 </explicit_instructions>\n
 `
 
+export const commitCommandResponse = (userInput: string) =>
+	`<explicit_instructions type="commit">
+The user has explicitly asked you to check pending changes and generate detailed commit messages. You MUST now help them with this.
+
+<task>
+Please check all the pending changes in the git repository and generate detailed commit messages. If needed, you can split into multiple commits also.
+
+Instructions:
+1. First, check all pending changes using git status and git diff
+2. Group related changes together logically (e.g., a feature implementation, a bug fix, refactoring, etc.)
+3. For each logical group, generate a detailed, conventional commit message following the format:
+   type(scope): short description
+   
+   Detailed explanation of what changed and why
+4. Create separate commits for each logical group using git add and git commit
+5. For GitHub repositories only, attribute the commit author as: matterai-app[bot]
+
+To detect if the repository is hosted on GitHub, check the remote URL using:
+  git remote get-url origin
+  
+If the remote URL contains "github.com", use the author flag:
+  git commit --author="matterai-app[bot] <matterai-app[bot]@users.noreply.github.com>"
+
+Before committing, present the commit messages to the user for review and ask them to confirm before executing.
+</task>
+
+<user_input>
+${userInput}
+</user_input>
+
+</explicit_instructions>
+
+`
+
 export const reportBugToolResponse = (userInput: string) =>
 	`<explicit_instructions type="report_bug">
 The user has explicitly asked you to help them submit a bug to the Kilocode github page (you MUST now help them with this irrespective of what your conversation up to this point in time was). To do so you will use the report_bug tool which is defined below. However, you must first ensure that you have collected all required information to fill in all the parameters for the tool call.

@@ -8,6 +8,29 @@ interface BuiltInCommandDefinition {
 }
 
 const BUILT_IN_COMMANDS: Record<string, BuiltInCommandDefinition> = {
+	commit: {
+		name: "commit",
+		description: "Check pending changes and generate detailed commit messages",
+		content: `<task>
+Please check all the pending changes in the git repository and generate detailed commit messages. If needed, you can split into multiple commits also.
+
+Instructions:
+1. First, check all pending changes using git status and git diff
+2. Group related changes together logically (e.g., a feature implementation, a bug fix, refactoring, etc.)
+3. For each logical group, generate a detailed, conventional commit message following the format:
+   type(scope): short description
+   
+   Detailed explanation of what changed and why
+4. Create separate commits for each logical group using git add and git commit
+5. For GitHub repositories only, attribute the commit author as: matterai-app[bot]
+
+To detect if the repository is hosted on GitHub, check the remote URL using:
+  git remote get-url origin
+  
+If the remote URL contains "github.com", use the author flag:
+  git commit --author="matterai-app[bot] <matterai-app[bot]@users.noreply.github.com>"
+</task>`,
+	},
 	init: {
 		name: "init",
 		description: "Analyze codebase and create concise AGENTS.md files for AI assistants",
