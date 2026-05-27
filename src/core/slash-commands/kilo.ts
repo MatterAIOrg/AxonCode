@@ -8,6 +8,7 @@ import {
 	newRuleToolResponse,
 	reportBugToolResponse,
 	condenseToolResponse,
+	commitCommandResponse,
 } from "../prompts/commands"
 
 function enabledWorkflowToggles(workflowToggles: ClineRulesToggles) {
@@ -40,6 +41,7 @@ export async function parseKiloSlashCommands(
 	const commandReplacements: Record<string, ((userInput: string) => string) | undefined> = {
 		newtask: newTaskToolResponse,
 		compact: undefined, // compact is handled specially - triggers direct condensation
+		commit: commitCommandResponse,
 	}
 
 	// this currently allows matching prepended whitespace prior to /slash-command

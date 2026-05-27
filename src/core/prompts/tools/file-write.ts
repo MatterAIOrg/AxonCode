@@ -18,5 +18,6 @@ export function getFileWriteDescription(): string {
 - Always provide the complete file content, never use comments like "// rest of code here" or "// existing code".
 - The tool will show a diff before applying changes so you can confirm the result.
 - For partial edits to existing files, use the 'file_edit' tool instead.
-- The tool automatically creates parent directories if they don't exist.`
+- The tool automatically creates parent directories if they don't exist.
+- Use actual newlines for line breaks in your content, not backslash-n escape sequences.`
 }

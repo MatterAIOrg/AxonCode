@@ -5,8 +5,8 @@ describe("Built-in Commands", () => {
 		it("should return all built-in commands", async () => {
 			const commands = await getBuiltInCommands()
 
-			expect(commands).toHaveLength(1)
-			expect(commands.map((cmd) => cmd.name)).toEqual(expect.arrayContaining(["init"]))
+			expect(commands).toHaveLength(2)
+			expect(commands.map((cmd) => cmd.name)).toEqual(expect.arrayContaining(["init", "commit"]))
 
 			// Verify all commands have required properties
 			commands.forEach((command) => {
@@ -31,6 +31,13 @@ describe("Built-in Commands", () => {
 			expect(initCommand!.description).toBe(
 				"Analyze codebase and create concise AGENTS.md files for AI assistants",
 			)
+
+			const commitCommand = commands.find((cmd) => cmd.name === "commit")
+			expect(commitCommand).toBeDefined()
+			expect(commitCommand!.content).toContain("pending changes")
+			expect(commitCommand!.content).toContain("commit messages")
+			expect(commitCommand!.content).toContain("matterai-app[bot]")
+			expect(commitCommand!.description).toBe("Check pending changes and generate detailed commit messages")
 		})
 	})
 
@@ -63,10 +70,10 @@ describe("Built-in Commands", () => {
 		it("should return all built-in command names", async () => {
 			const names = await getBuiltInCommandNames()
 
-			expect(names).toHaveLength(1)
-			expect(names).toEqual(expect.arrayContaining(["init"]))
+			expect(names).toHaveLength(2)
+			expect(names).toEqual(expect.arrayContaining(["init", "commit"]))
 			// Order doesn't matter since it's based on filesystem order
-			expect(names.sort()).toEqual(["init"])
+			expect(names.sort()).toEqual(["commit", "init"])
 		})
 
 		it("should return array of strings", async () => {

@@ -20,7 +20,7 @@ export const ContextUsageIndicator: React.FC<ContextUsageIndicatorProps> = ({ cl
 		}
 
 		// Default values when no usage data is available
-		return { currentUsage: 0, maxContext: 200000, percentage: 0 }
+		return { currentUsage: 0, maxContext: 262000, percentage: 0 }
 	}, [contextWindowUsage])
 
 	// SVG circle calculations

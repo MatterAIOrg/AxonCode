@@ -24,6 +24,10 @@ export function getSupportedSlashCommands(
 			description: "Create a new task with context from the current task",
 		},
 		{ name: "compact", description: "Condenses your current context window" },
+		{
+			name: "commit",
+			description: "Check pending changes and generate detailed commit messages",
+		},
 	]
 
 	// Add mode-switching commands dynamically

@@ -1,308 +1,88 @@
-import { Check } from "lucide-react"
-import { useState, useRef, useMemo, useEffect } from "react"
+import { CheckCircle2, Circle, Loader2 } from "lucide-react"
 
 export function TodoListDisplay({ todos }: { todos: any[] }) {
-	const [isCollapsed, setIsCollapsed] = useState(true)
-	const ulRef = useRef<HTMLUListElement>(null)
-	const itemRefs = useRef<(HTMLLIElement | null)[]>([])
-	const scrollIndex = useMemo(() => {
-		const inProgressIdx = todos.findIndex((todo: any) => todo.status === "in_progress")
-		if (inProgressIdx !== -1) return inProgressIdx
-		return todos.findIndex((todo: any) => todo.status !== "completed")
-	}, [todos])
-
-	// Find the most important todo to display when collapsed
-	const mostImportantTodo = useMemo(() => {
-		const inProgress = todos.find((todo: any) => todo.status === "in_progress")
-		if (inProgress) return inProgress
-		return todos.find((todo: any) => todo.status !== "completed")
-	}, [todos])
-	useEffect(() => {
-		if (isCollapsed) return
-		if (!ulRef.current) return
-		if (scrollIndex === -1) return
-		const target = itemRefs.current[scrollIndex]
-		if (target && ulRef.current) {
-			const ul = ulRef.current
-			const targetTop = target.offsetTop - ul.offsetTop
-			const targetHeight = target.offsetHeight
-			const ulHeight = ul.clientHeight
-			const scrollTo = targetTop - (ulHeight / 2 - targetHeight / 2)
-			ul.scrollTop = scrollTo
-		}
-	}, [todos, isCollapsed, scrollIndex])
 	if (!Array.isArray(todos) || todos.length === 0) return null
 
 	const totalCount = todos.length
 	const completedCount = todos.filter((todo: any) => todo.status === "completed").length
 
-	const allCompleted = completedCount === totalCount && totalCount > 0
-
-	// Shared checkbox-style icon used for both the collapsed summary and list items
-	const renderCheckboxIcon = (status: string | undefined, opts?: { marginTop?: number; marginLeft?: number }) => {
-		const marginTop = opts?.marginTop ?? 0
-		const marginLeft = opts?.marginLeft ?? 0
-		const baseBox: React.CSSProperties = {
-			display: "inline-flex",
-			alignItems: "center",
-			justifyContent: "center",
-			width: 13,
-			height: 13,
-			borderRadius: 3,
-			marginRight: 6,
-			marginLeft,
-			marginTop,
-			flexShrink: 0,
-			boxSizing: "border-box",
+	const renderStatusIcon = (status: string | undefined) => {
+		const iconProps = {
+			size: 14,
+			style: {
+				flexShrink: 0,
+				marginTop: 2,
+			} as React.CSSProperties,
 		}
 
 		if (status === "completed") {
-			return (
-				<span
-					style={{
-						...baseBox,
-						border: "0.5px solid var(--vscode-descriptionForeground)",
-						background: "var(--vscode-descriptionForeground)",
-					}}>
-					<Check size={9} strokeWidth={2.5} style={{ color: "var(--vscode-editor-background)" }} />
-				</span>
-			)
+			return <CheckCircle2 {...iconProps} color="var(--vscode-descriptionForeground)" />
 		}
 
 		if (status === "in_progress") {
-			return (
-				<span
-					style={{
-						...baseBox,
-						border: "0.5px solid var(--vscode-foreground)",
-						background: "transparent",
-					}}>
-					<span
-						style={{
-							display: "inline-block",
-							width: 5,
-							height: 5,
-							borderRadius: "50%",
-							background: "var(--vscode-foreground)",
-						}}
-					/>
-				</span>
-			)
+			return <Loader2 {...iconProps} color="var(--vscode-foreground)" className="animate-spin" />
 		}
 
-		// Default not-started todo
-		return (
-			<span
-				style={{
-					...baseBox,
-					border: "0.5px solid var(--vscode-foreground)",
-					background: "transparent",
-				}}
-			/>
-		)
-	}
-
-	// Create the status icon for the most important todo
-	const getMostImportantTodoIcon = () => {
-		if (allCompleted) {
-			return renderCheckboxIcon("completed")
-		}
-		if (!mostImportantTodo) {
-			return (
-				<span
-					className="codicon codicon-checklist"
-					style={{
-						color: "var(--vscode-foreground)",
-						marginRight: 8,
-						marginLeft: 2,
-						flexShrink: 0,
-						fontSize: 14,
-					}}
-				/>
-			)
-		}
-		return renderCheckboxIcon(mostImportantTodo.status)
+		return <Circle {...iconProps} color="var(--vscode-foreground)" />
 	}
 
 	return (
 		<div
-			className="border border-t-0 rounded-b-lg relative"
 			style={{
 				margin: "0px 0px 0px 8px",
-				padding: "6px 10px",
+				padding: "10px 12px",
 				width: "96%",
-				borderRadius: "0px 0px 6px 6px",
-				background: "var(--vscode-editor-background,transparent)",
-				borderColor: "var(--color-matterai-border)",
+				borderRadius: 6,
+				background: "var(--vscode-editor-background, transparent)",
+				border: "1px solid var(--color-matterai-border)",
 			}}>
 			<div
 				style={{
-					display: "flex",
-					alignItems: "center",
-					gap: 2,
-					marginBottom: 0,
-					cursor: "pointer",
-					userSelect: "none",
-				}}
-				onClick={() => setIsCollapsed((v) => !v)}>
-				{getMostImportantTodoIcon()}
-				<span
-					style={{
-						fontWeight: 500,
-						color: allCompleted ? "var(--vscode-descriptionForeground)" : "var(--vscode-foreground)",
-						textDecoration: allCompleted ? "line-through" : "none",
-						opacity: allCompleted ? 0.7 : 1,
-						flex: 1,
-						overflow: "hidden",
-						textOverflow: "ellipsis",
-						whiteSpace: "nowrap",
-					}}>
-					{allCompleted ? "All tasks completed!" : mostImportantTodo?.content || "No pending tasks"}
-				</span>
-				<div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-					{/* <span
-						className="codicon codicon-checklist"
-						style={{
-							color: "var(--vscode-descriptionForeground)",
-							fontSize: 12,
-						}}
-					/> */}
-					<span
-						style={{
-							color: "var(--vscode-descriptionForeground)",
-							fontSize: 12,
-							fontWeight: 500,
-						}}>
-						{completedCount}/{totalCount}
-					</span>
-				</div>
+					color: "var(--vscode-descriptionForeground)",
+					fontSize: 12,
+					marginBottom: 10,
+				}}>
+				{completedCount} out of {totalCount} tasks completed
 			</div>
-			{/* Floating panel for expanded state */}
-			{!isCollapsed && (
-				<>
-					{/* Backdrop */}
-					<div
+			<ul style={{ margin: 0, paddingLeft: 0, listStyle: "none" }}>
+				{todos.map((todo: any, idx: number) => (
+					<li
+						key={todo.id || todo.content}
 						style={{
-							position: "fixed",
-							top: 0,
-							left: 0,
-							right: 0,
-							bottom: 0,
-							background: "rgba(0, 0, 0, 0.1)",
-							zIndex: 1000,
-						}}
-						onClick={() => setIsCollapsed(true)}
-					/>
-					{/* Floating panel */}
-					<div
-						style={{
-							position: "absolute",
-							top: "100%",
-							left: 0,
-							right: 0,
-							marginTop: 4,
-							background: "var(--vscode-editor-background)",
-							border: "1px solid var(--vscode-panel-border)",
-							borderRadius: 6,
-							boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-							zIndex: 1001,
-							maxHeight: "400px",
-							minHeight: "200px",
-							overflow: "hidden",
+							display: "flex",
+							alignItems: "flex-start",
+							gap: 8,
+							marginBottom: idx < todos.length - 1 ? 8 : 0,
+							minHeight: 20,
+							lineHeight: "1.4",
 						}}>
-						{/* Panel header */}
-						<div
+						<span
 							style={{
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "space-between",
-								padding: "12px 16px",
-								borderBottom: "1px solid var(--vscode-panel-border)",
-								background: "var(--vscode-editor-background)",
+								color: "var(--vscode-descriptionForeground)",
+								fontSize: 12,
+								minWidth: 16,
+								flexShrink: 0,
+								marginTop: 2,
 							}}>
-							<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-								{/* <span
-									className="codicon codicon-checklist"
-									style={{ color: "var(--vscode-foreground)" }}
-								/> */}
-								<span style={{ fontSize: 12 }}>Todo List</span>
-								<span
-									style={{
-										color: "var(--vscode-descriptionForeground)",
-										fontSize: 12,
-										fontWeight: 500,
-									}}>
-									{completedCount}/{totalCount}
-								</span>
-							</div>
-							<span
-								className="codicon codicon-chevron-up"
-								style={{
-									fontSize: 14,
-									opacity: 0.7,
-									cursor: "pointer",
-									padding: "4px",
-									borderRadius: "2px",
-								}}
-								onClick={(e) => {
-									e.stopPropagation()
-									setIsCollapsed(true)
-								}}
-								onMouseEnter={(e) => {
-									e.currentTarget.style.opacity = "1"
-									e.currentTarget.style.background = "var(--vscode-toolbar-hoverBackground)"
-								}}
-								onMouseLeave={(e) => {
-									e.currentTarget.style.opacity = "0.7"
-									e.currentTarget.style.background = "transparent"
-								}}
-							/>
-						</div>
-						{/* Todo list */}
-						<ul
-							ref={ulRef}
+							{idx + 1}
+						</span>
+						{renderStatusIcon(todo.status)}
+						<span
 							style={{
-								margin: 0,
-								paddingLeft: 0,
-								listStyle: "none",
-								maxHeight: "340px",
-								overflowY: "auto",
-								padding: "12px 16px",
+								fontSize: 12,
+								color:
+									todo.status === "completed"
+										? "var(--vscode-descriptionForeground)"
+										: "var(--vscode-foreground)",
+								textDecoration: todo.status === "completed" ? "line-through" : "none",
+								opacity: todo.status === "completed" ? 0.7 : 0.9,
+								wordBreak: "break-word",
 							}}>
-							{todos.map((todo: any, idx: number) => {
-								const icon = renderCheckboxIcon(todo.status, { marginTop: 3 })
-								return (
-									<li
-										key={todo.id || todo.content}
-										ref={(el) => (itemRefs.current[idx] = el)}
-										style={{
-											marginBottom: 8,
-											display: "flex",
-											alignItems: "flex-start",
-											minHeight: 20,
-											lineHeight: "1.4",
-										}}>
-										{icon}
-										<span
-											style={{
-												fontWeight: 200,
-												color:
-													todo.status === "completed"
-														? "var(--vscode-descriptionForeground)"
-														: "var(--vscode-foreground)",
-												textDecoration: todo.status === "completed" ? "line-through" : "none",
-												opacity: todo.status === "completed" ? 0.7 : 0.9,
-												wordBreak: "break-word",
-											}}>
-											{todo.content}
-										</span>
-									</li>
-								)
-							})}
-						</ul>
-					</div>
-				</>
-			)}
+							{todo.content}
+						</span>
+					</li>
+				))}
+			</ul>
 		</div>
 	)
 }

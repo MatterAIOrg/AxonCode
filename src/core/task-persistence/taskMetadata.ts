@@ -308,7 +308,7 @@ export async function taskMetadata({
 			: tokenUsage.contextTokens > 0
 				? {
 						currentTokens: tokenUsage.contextTokens,
-						maxTokens: 200000, // Default max tokens for KiloCode models
+						maxTokens: 262000,
 					}
 				: undefined,
 		// Capture model information for task isolation

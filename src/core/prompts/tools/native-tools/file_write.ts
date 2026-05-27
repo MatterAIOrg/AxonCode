@@ -17,7 +17,7 @@ export default {
 				content: {
 					type: "string",
 					description:
-						"Full content to write to the file. For new files, this is the complete file content. For existing files, this will replace the entire file content.",
+						"Full content to write to the file. For new files, this is the complete file content. For existing files, this will replace the entire file content. Use actual newlines for line breaks; JSON escape sequences are handled automatically.",
 				},
 				line_count: {
 					type: "integer",
