@@ -105,6 +105,7 @@ import { OpenRouterHandler } from "../../api/providers"
 import { stringifyError } from "../../shared/kilocode/errorUtils"
 import isWsl from "is-wsl"
 import { getKilocodeDefaultModel } from "../../api/providers/kilocode/getKilocodeDefaultModel"
+import { isValidKilocodeModel } from "../../api/providers/kilocode-models"
 import { getKiloCodeWrapperProperties } from "../../core/kilocode/wrapper"
 import { getKiloUrlFromToken } from "@roo-code/types" // kilocode_change
 import { getKilocodeConfig, getWorkspaceProjectId, KilocodeConfig } from "../../utils/kilo-config-file" // kilocode_change
@@ -2287,6 +2288,21 @@ ${prompt}
 			mergedApiConfiguration = {
 				...apiConfiguration,
 				...currentTask.apiConfiguration,
+			}
+		}
+
+		// Validate global kilocodeModel against available models.
+		// If the stored model ID was removed from the extension's model list
+		// (e.g. after an update), force-reset to the default model.
+		if (apiConfiguration?.apiProvider === "kilocode" && apiConfiguration?.kilocodeModel) {
+			if (!isValidKilocodeModel(apiConfiguration.kilocodeModel)) {
+				const staleModel = apiConfiguration.kilocodeModel
+				const updatedConfig = { ...apiConfiguration, kilocodeModel: undefined }
+				await this.contextProxy.setProviderSettings(updatedConfig)
+				mergedApiConfiguration = { ...mergedApiConfiguration, kilocodeModel: undefined }
+				this.log(
+					`[ModelValidation] Reset stale kilocodeModel "${staleModel}" to default — model no longer available`,
+				)
 			}
 		}
 
