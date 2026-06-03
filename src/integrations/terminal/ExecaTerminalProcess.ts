@@ -4,6 +4,7 @@ import process from "process"
 
 import type { RooTerminal } from "./types"
 import { BaseTerminalProcess } from "./BaseTerminalProcess"
+import { getShellEnvironment, getCapturedShell } from "./ShellEnvironment"
 
 export class ExecaTerminalProcess extends BaseTerminalProcess {
 	private terminalRef: WeakRef<RooTerminal>
@@ -38,13 +39,24 @@ export class ExecaTerminalProcess extends BaseTerminalProcess {
 		try {
 			this.isHot = true
 
+			// Use the user's real login shell (bash/zsh) instead of the
+			// default /bin/sh so that shell syntax matches user expectations.
+			// On Windows, process.env already carries the full system PATH;
+			// using shell:true (cmd.exe) is the safest default there.
+			const shellPath = process.platform === "win32" ? true : getCapturedShell()
+
+			// Use the captured login-shell environment so that CLI tools
+			// installed via Homebrew, nvm, cargo, etc. are on PATH even when
+			// VS Code was launched from the macOS Dock/Finder.
+			const shellEnv = getShellEnvironment()
+
 			this.subprocess = execa({
-				shell: true,
+				shell: shellPath,
 				cwd: this.terminal.getCurrentWorkingDirectory(),
 				all: true,
 				stdin: "ignore", // kilocode_change: ignore stdin to prevent blocking
 				env: {
-					...process.env,
+					...shellEnv,
 					// Ensure UTF-8 encoding for Ruby, CocoaPods, etc.
 					LANG: "en_US.UTF-8",
 					LC_ALL: "en_US.UTF-8",

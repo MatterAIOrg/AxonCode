@@ -23,6 +23,7 @@ vitest.mock("ps-tree", () => ({
 
 import { execa } from "execa"
 import { ExecaTerminalProcess } from "../ExecaTerminalProcess"
+import { invalidateShellEnvironment } from "../ShellEnvironment"
 import type { RooTerminal } from "../types"
 
 describe("ExecaTerminalProcess", () => {
@@ -32,6 +33,7 @@ describe("ExecaTerminalProcess", () => {
 
 	beforeEach(() => {
 		originalEnv = { ...process.env }
+		invalidateShellEnvironment()
 		mockTerminal = {
 			provider: "execa",
 			id: 1,
@@ -52,6 +54,7 @@ describe("ExecaTerminalProcess", () => {
 
 	afterEach(() => {
 		process.env = originalEnv
+		invalidateShellEnvironment()
 		vitest.clearAllMocks()
 	})
 
@@ -59,17 +62,15 @@ describe("ExecaTerminalProcess", () => {
 		it("should set LANG and LC_ALL to en_US.UTF-8", async () => {
 			await terminalProcess.run("echo test")
 			const execaMock = vitest.mocked(execa)
-			expect(execaMock).toHaveBeenCalledWith(
-				expect.objectContaining({
-					shell: true,
-					cwd: "/test/cwd",
-					all: true,
-					env: expect.objectContaining({
-						LANG: "en_US.UTF-8",
-						LC_ALL: "en_US.UTF-8",
-					}),
-				}),
-			)
+			const calledOptions = execaMock.mock.calls[0][0] as any
+			// shell is true on Windows, a string path on Unix (e.g. /bin/zsh)
+			expect(calledOptions.shell).toBeTruthy()
+			expect(calledOptions.cwd).toBe("/test/cwd")
+			expect(calledOptions.all).toBe(true)
+			expect(calledOptions.env).toMatchObject({
+				LANG: "en_US.UTF-8",
+				LC_ALL: "en_US.UTF-8",
+			})
 		})
 
 		it("should preserve existing environment variables", async () => {
