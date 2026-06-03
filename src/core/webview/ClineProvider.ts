@@ -2297,11 +2297,12 @@ ${prompt}
 		if (apiConfiguration?.apiProvider === "kilocode" && apiConfiguration?.kilocodeModel) {
 			if (!isValidKilocodeModel(apiConfiguration.kilocodeModel)) {
 				const staleModel = apiConfiguration.kilocodeModel
-				const updatedConfig = { ...apiConfiguration, kilocodeModel: undefined }
+				const defaultModel = await getKilocodeDefaultModel()
+				const updatedConfig = { ...apiConfiguration, kilocodeModel: defaultModel }
 				await this.contextProxy.setProviderSettings(updatedConfig)
-				mergedApiConfiguration = { ...mergedApiConfiguration, kilocodeModel: undefined }
+				mergedApiConfiguration = { ...mergedApiConfiguration, kilocodeModel: defaultModel }
 				this.log(
-					`[ModelValidation] Reset stale kilocodeModel "${staleModel}" to default — model no longer available`,
+					`[ModelValidation] Reset stale kilocodeModel "${staleModel}" to default "${defaultModel}" — model no longer available`,
 				)
 			}
 		}

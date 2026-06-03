@@ -31,7 +31,9 @@ export async function executeCommandTool(
 	let command: string | undefined = block.params.command
 	const rawCwd: string | undefined = block.params.cwd
 	const customCwd: string | undefined = rawCwd && rawCwd !== "null" ? rawCwd : undefined
-	const customMessage: string | undefined = block.params.message
+	const rawMessage: unknown = block.params.message
+	const customMessage: string | undefined =
+		typeof rawMessage === "string" && rawMessage !== "null" ? rawMessage : undefined
 
 	try {
 		if (block.partial) {

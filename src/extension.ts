@@ -26,7 +26,7 @@ import { ClineProvider } from "./core/webview/ClineProvider"
 import { DIFF_VIEW_URI_SCHEME } from "./integrations/editor/DiffViewProvider"
 import { PlanEditorProvider } from "./integrations/editor/PlanEditorProvider"
 import { TerminalRegistry } from "./integrations/terminal/TerminalRegistry"
-import { captureShellEnvironment } from "./integrations/terminal/ShellEnvironment"
+import { captureShellEnvironment, setShellLogger } from "./integrations/terminal/ShellEnvironment"
 import { McpServerManager } from "./services/mcp/McpServerManager"
 import { CodeIndexManager } from "./services/code-index/manager"
 import { registerCommitMessageProvider } from "./services/commit-message"
@@ -160,6 +160,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// installed via Homebrew, nvm, cargo, etc. are on PATH even when VS Code
 	// was launched from macOS Dock/Finder (which inherits launchd's restricted
 	// PATH instead of the user's shell rc files).
+	setShellLogger((msg: string) => outputChannel.appendLine(msg))
 	captureShellEnvironment()
 
 	// Get default commands from configuration.

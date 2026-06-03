@@ -1,12 +1,24 @@
-import { execSync } from "child_process"
+import { execFileSync } from "child_process"
 import { getShell } from "../../utils/shell"
 
 let cachedEnv: Record<string, string> | null = null
 let capturedShell: string | null = null
 
+export type ShellLogger = (message: string) => void
+
+let logger: ShellLogger = console.log
+
+/** Sets the logger used for ShellEnvironment diagnostic messages. */
+export function setShellLogger(newLogger: ShellLogger): void {
+	logger = newLogger
+}
+
 /**
  * Captures the user's full login shell environment by running their configured
  * shell with the -l (login) flag and parsing the output of `env`.
+ *
+ * Uses execFileSync (not execSync) to pass the shell path and arguments as an
+ * array, preventing command injection via metacharacters in the shell path.
  *
  * This is necessary because VS Code extensions launched from the macOS
  * Dock/Finder inherit launchd's restricted PATH (/usr/bin:/bin) rather than
@@ -31,10 +43,11 @@ export function captureShellEnvironment(): Record<string, string> {
 	}
 
 	try {
-		// Run the user's shell as a login shell and capture environment.
-		// stderr is piped so shell startup messages (motd, etc.) don't mix
-		// with the env output on stdout.
-		const output = execSync(`${shell} -l -c 'env'`, {
+		// Run the user's shell as a login shell (-l) with the env command
+		// using execFileSync for defense against shell metacharacters in
+		// the shell path. stderr is piped so shell startup messages (motd,
+		// etc.) don't mix with the env output on stdout.
+		const output = execFileSync(shell, ["-l", "-c", "env"], {
 			encoding: "utf8",
 			timeout: 5000,
 			env: process.env as Record<string, string>,
@@ -50,19 +63,23 @@ export function captureShellEnvironment(): Record<string, string> {
 				// Prefer the login-shell value; only keep process.env value
 				// when the login shell produces an empty string for a key
 				// that already exists in process.env.
-				if (value || !(key in process.env)) {
+				if (value) {
+					env[key] = value
+				} else if (key in process.env) {
+					env[key] = process.env[key]!
+				} else {
 					env[key] = value
 				}
 			}
 		}
 
 		cachedEnv = env
-		console.log(
+		logger(
 			`[ShellEnvironment] Captured ${Object.keys(env).length} env vars from ${shell} -l (PATH=${env.PATH?.slice(0, 80)}...)`,
 		)
 		return env
 	} catch (error) {
-		console.warn(
+		logger(
 			`[ShellEnvironment] Failed to capture shell environment: ${error instanceof Error ? error.message : String(error)}`,
 		)
 		cachedEnv = { ...process.env } as Record<string, string>

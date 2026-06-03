@@ -203,9 +203,16 @@ export const CommandExecution = memo(
 			}
 		}, [status])
 
+		// Ref for the latest command value so handleSubmit never uses a stale
+		// closure-captured value when text streams in during the approval UI.
+		const commandRef = useRef(command)
+		commandRef.current = command
+
 		// Handle Submit button click based on selected option
 		const handleSubmit = useCallback(() => {
 			if (!onPrimaryButtonClick || !onSecondaryButtonClick) return
+
+			const currentCommand = commandRef.current
 
 			switch (selectedOption) {
 				case "yes":
@@ -213,8 +220,8 @@ export const CommandExecution = memo(
 					break
 				case "yes_always":
 					// Add the command pattern to allowedCommands before approving
-					if (command && command.trim()) {
-						const pattern = command.trim()
+					if (currentCommand && currentCommand.trim()) {
+						const pattern = currentCommand.trim()
 						if (!allowedCommands.includes(pattern)) {
 							const newAllowed = [...allowedCommands, pattern]
 							setAllowedCommands(newAllowed)
@@ -231,7 +238,6 @@ export const CommandExecution = memo(
 			selectedOption,
 			onPrimaryButtonClick,
 			onSecondaryButtonClick,
-			command,
 			allowedCommands,
 			setAllowedCommands,
 			feedbackText,
@@ -244,11 +250,17 @@ export const CommandExecution = memo(
 			}
 		}, [onSecondaryButtonClick])
 
-		// Keyboard navigation for approval options
+		// Keyboard navigation for approval options.
+		// Uses a mounted ref to prevent state updates on unmounted components
+		// (e.g. when the message stream clears during an open approval UI).
 		useEffect(() => {
 			if (!isApprovalMode) return
 
+			const mounted = { current: true }
+
 			const handleKeyDown = (e: KeyboardEvent) => {
+				if (!mounted.current) return
+
 				const currentIndex = APPROVAL_OPTIONS.findIndex((o) => o.key === selectedOption)
 
 				switch (e.key) {
@@ -276,7 +288,10 @@ export const CommandExecution = memo(
 			}
 
 			window.addEventListener("keydown", handleKeyDown)
-			return () => window.removeEventListener("keydown", handleKeyDown)
+			return () => {
+				mounted.current = false
+				window.removeEventListener("keydown", handleKeyDown)
+			}
 		}, [isApprovalMode, selectedOption, handleSubmit, handleSkip])
 
 		// Render approval mode UI

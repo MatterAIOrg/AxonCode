@@ -89,7 +89,7 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 		// Safety net: if the selected model is not in the fetched model list,
 		// fall back to the default. This handles stale config values that were
 		// not yet caught by ClineProvider's validation during initialization.
-		if (id && Object.keys(this.models).length > 0 && !this.models[id]) {
+		if (id && !this.models[id]) {
 			id = this.defaultModel
 		}
 
