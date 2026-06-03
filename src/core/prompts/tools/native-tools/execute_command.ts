@@ -18,8 +18,13 @@ export default {
 					type: ["string", "null"],
 					description: "Optional working directory for the command, relative or absolute",
 				},
+				message: {
+					type: "string",
+					description:
+						"A clear, concise one-line description of what the command does, shown to the user for approval (e.g. 'Install project dependencies with npm')",
+				},
 			},
-			required: ["command", "cwd"],
+			required: ["command"],
 			additionalProperties: false,
 		},
 	},
