@@ -38,7 +38,7 @@ export default {
 					maxItems: 4,
 				},
 			},
-			required: ["question", "follow_up"],
+			required: ["question"],
 			additionalProperties: false,
 		},
 	},

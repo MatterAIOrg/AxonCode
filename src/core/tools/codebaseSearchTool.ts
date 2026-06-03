@@ -27,7 +27,8 @@ export async function codebaseSearchTool(
 
 	// --- Parameter Extraction and Validation ---
 	let query: string | undefined = block.params.query
-	let directoryPrefix: string | undefined = block.params.path
+	const rawPath: string | undefined = block.params.path
+	let directoryPrefix: string | undefined = rawPath && rawPath !== "null" ? rawPath : undefined
 
 	query = removeClosingTag("query", query)
 

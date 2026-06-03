@@ -566,3 +566,212 @@ Output:
 		})
 	})
 })
+
+describe("CommandExecution - Approval Mode", () => {
+	const mockOnPrimary = vi.fn()
+	const mockOnSecondary = vi.fn()
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		mockOnPrimary.mockClear()
+		mockOnSecondary.mockClear()
+	})
+
+	const renderApprovalMode = () => {
+		render(
+			<ExtensionStateWrapper>
+				<CommandExecution
+					executionId="approval-test"
+					text={`MESSAGE:install dependencies\n---\nnpm install express`}
+					onPrimaryButtonClick={mockOnPrimary}
+					onSecondaryButtonClick={mockOnSecondary}
+					enableButtons={true}
+				/>
+			</ExtensionStateWrapper>,
+		)
+	}
+
+	it("renders approval mode UI when buttons and enableButtons are provided", () => {
+		renderApprovalMode()
+
+		expect(screen.getByText("install dependencies")).toBeInTheDocument()
+		expect(screen.getByText("npm install express")).toBeInTheDocument()
+		expect(screen.getByText("Yes")).toBeInTheDocument()
+		expect(screen.getByText("Yes, and don't ask again for this command")).toBeInTheDocument()
+		expect(screen.getByText("No, and tell Orbital the next step")).toBeInTheDocument()
+		expect(screen.getByText("Submit")).toBeInTheDocument()
+	})
+
+	it('calls onPrimaryButtonClick when "Yes" is selected and submitted', () => {
+		renderApprovalMode()
+
+		fireEvent.click(screen.getByText("Submit"))
+
+		expect(mockOnPrimary).toHaveBeenCalledTimes(1)
+		expect(mockOnSecondary).not.toHaveBeenCalled()
+	})
+
+	it('sends allowedCommands via vscode.postMessage when "Yes, always" is selected and submitted', () => {
+		renderApprovalMode()
+
+		fireEvent.click(screen.getByText("Yes, and don't ask again for this command"))
+		fireEvent.click(screen.getByText("Submit"))
+
+		expect(mockOnPrimary).toHaveBeenCalledTimes(1)
+		expect(vscode.postMessage).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "allowedCommands",
+				commands: expect.arrayContaining(["npm install express"]),
+			}),
+		)
+	})
+
+	it('shows feedback input when "No, with feedback" is selected', () => {
+		renderApprovalMode()
+
+		fireEvent.click(screen.getByText("No, and tell Orbital the next step"))
+
+		const feedbackInput = screen.getByPlaceholderText("your message...")
+		expect(feedbackInput).toBeInTheDocument()
+	})
+
+	it('calls onSecondaryButtonClick with feedback text when "No" is submitted', () => {
+		renderApprovalMode()
+
+		fireEvent.click(screen.getByText("No, and tell Orbital the next step"))
+		const feedbackInput = screen.getByPlaceholderText("your message...")
+		fireEvent.change(feedbackInput, { target: { value: "try pip instead" } })
+		fireEvent.click(screen.getByText("Submit"))
+
+		expect(mockOnSecondary).toHaveBeenCalledWith("try pip instead")
+		expect(mockOnPrimary).not.toHaveBeenCalled()
+	})
+
+	it("uses commandRef to prevent stale closure when message streams", () => {
+		const { rerender } = render(
+			<ExtensionStateWrapper>
+				<CommandExecution
+					executionId="stream-test"
+					text={`MESSAGE:run checks\n---\nnpm test`}
+					onPrimaryButtonClick={mockOnPrimary}
+					onSecondaryButtonClick={mockOnSecondary}
+					enableButtons={true}
+				/>
+			</ExtensionStateWrapper>,
+		)
+
+		rerender(
+			<ExtensionStateWrapper>
+				<CommandExecution
+					executionId="stream-test"
+					text={`MESSAGE:run checks\n---\nnpm run test:all`}
+					onPrimaryButtonClick={mockOnPrimary}
+					onSecondaryButtonClick={mockOnSecondary}
+					enableButtons={true}
+				/>
+			</ExtensionStateWrapper>,
+		)
+
+		fireEvent.click(screen.getByText("Yes, and don't ask again for this command"))
+		fireEvent.click(screen.getByText("Submit"))
+
+		expect(vscode.postMessage).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "allowedCommands",
+				commands: expect.arrayContaining(["npm run test:all"]),
+			}),
+		)
+	})
+})
+
+describe("CommandExecution - Keyboard Navigation", () => {
+	const mockOnPrimary = vi.fn()
+	const mockOnSecondary = vi.fn()
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		mockOnPrimary.mockClear()
+		mockOnSecondary.mockClear()
+	})
+
+	const renderApprovalMode = () => {
+		render(
+			<ExtensionStateWrapper>
+				<CommandExecution
+					executionId="kb-test"
+					text={`MESSAGE:run tests\n---\nnpm test`}
+					onPrimaryButtonClick={mockOnPrimary}
+					onSecondaryButtonClick={mockOnSecondary}
+					enableButtons={true}
+				/>
+			</ExtensionStateWrapper>,
+		)
+	}
+
+	it("navigates options with ArrowUp and ArrowDown", () => {
+		renderApprovalMode()
+
+		fireEvent.keyDown(window, { key: "ArrowDown" })
+		fireEvent.keyDown(window, { key: "ArrowDown" })
+		fireEvent.keyDown(window, { key: "ArrowUp" })
+
+		fireEvent.keyDown(window, { key: "Enter" })
+
+		expect(mockOnPrimary).toHaveBeenCalledTimes(1)
+		expect(vscode.postMessage).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "allowedCommands",
+				commands: expect.arrayContaining(["npm test"]),
+			}),
+		)
+	})
+
+	it("does not navigate past first option with ArrowUp", () => {
+		renderApprovalMode()
+
+		fireEvent.keyDown(window, { key: "ArrowUp" })
+		fireEvent.keyDown(window, { key: "Enter" })
+
+		expect(mockOnPrimary).toHaveBeenCalledTimes(1)
+	})
+
+	it("does not navigate past last option with ArrowDown", () => {
+		renderApprovalMode()
+
+		fireEvent.keyDown(window, { key: "ArrowDown" })
+		fireEvent.keyDown(window, { key: "ArrowDown" })
+		fireEvent.keyDown(window, { key: "ArrowDown" })
+		fireEvent.keyDown(window, { key: "Enter" })
+
+		expect(mockOnSecondary).toHaveBeenCalledWith(undefined)
+	})
+
+	it("calls handleSkip on Escape", () => {
+		renderApprovalMode()
+
+		fireEvent.keyDown(window, { key: "Escape" })
+
+		expect(mockOnSecondary).toHaveBeenCalledTimes(1)
+	})
+
+	it("removes keyboard listener when approval mode is exited", () => {
+		const { unmount } = render(
+			<ExtensionStateWrapper>
+				<CommandExecution
+					executionId="kb-test"
+					text={`MESSAGE:test\n---\nnpm test`}
+					onPrimaryButtonClick={mockOnPrimary}
+					onSecondaryButtonClick={mockOnSecondary}
+					enableButtons={true}
+				/>
+			</ExtensionStateWrapper>,
+		)
+
+		unmount()
+
+		fireEvent.keyDown(window, { key: "Enter" })
+
+		expect(mockOnPrimary).not.toHaveBeenCalled()
+		expect(mockOnSecondary).not.toHaveBeenCalled()
+	})
+})

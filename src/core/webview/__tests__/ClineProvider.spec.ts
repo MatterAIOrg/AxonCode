@@ -2016,6 +2016,74 @@ describe("ClineProvider", () => {
 		})
 	})
 
+	describe("model validation on stale kilocodeModel", () => {
+		let logSpy: any
+
+		beforeEach(async () => {
+			await provider.resolveWebviewView(mockWebviewView)
+			logSpy = vi.spyOn(provider, "log").mockImplementation(() => {})
+		})
+
+		afterEach(() => {
+			logSpy.mockRestore()
+		})
+
+		test("resets stale kilocodeModel to default when model not in KILO_CODE_MODELS", async () => {
+			const { isValidKilocodeModel } = await import("../../../api/providers/kilocode-models")
+
+			const setSettingsSpy = vi.spyOn(provider.contextProxy, "setProviderSettings").mockResolvedValue()
+			const getSettingsSpy = vi.spyOn(provider.contextProxy, "getProviderSettings").mockReturnValue({
+				apiProvider: "kilocode",
+				kilocodeModel: "non-existent-model-12345",
+				kilocodeToken: "test-token",
+			} as any)
+
+			expect(isValidKilocodeModel("non-existent-model-12345")).toBe(false)
+
+			const state = await provider.getState()
+
+			expect(state.apiConfiguration?.kilocodeModel).not.toBe("non-existent-model-12345")
+			expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("[ModelValidation] Reset stale kilocodeModel"))
+			expect(setSettingsSpy).toHaveBeenCalled()
+			getSettingsSpy.mockRestore()
+			setSettingsSpy.mockRestore()
+		})
+
+		test("preserves valid kilocodeModel when it exists in KILO_CODE_MODELS", async () => {
+			const { isValidKilocodeModel, KILO_CODE_MODELS } = await import("../../../api/providers/kilocode-models")
+
+			const validModelId = Object.keys(KILO_CODE_MODELS)[0]
+			expect(isValidKilocodeModel(validModelId)).toBe(true)
+
+			const getSettingsSpy = vi.spyOn(provider.contextProxy, "getProviderSettings").mockReturnValue({
+				apiProvider: "kilocode",
+				kilocodeModel: validModelId,
+				kilocodeToken: "test-token",
+			} as any)
+
+			const state = await provider.getState()
+
+			expect(state.apiConfiguration?.kilocodeModel).toBe(validModelId)
+			expect(logSpy).not.toHaveBeenCalledWith(
+				expect.stringContaining("[ModelValidation] Reset stale kilocodeModel"),
+			)
+			getSettingsSpy.mockRestore()
+		})
+
+		test("skips validation when apiProvider is not kilocode", async () => {
+			const getSettingsSpy = vi.spyOn(provider.contextProxy, "getProviderSettings").mockReturnValue({
+				apiProvider: "openrouter",
+				openRouterModelId: "some-openrouter-model",
+			} as any)
+
+			const state = await provider.getState()
+
+			expect(state.apiConfiguration?.apiProvider).toBe("openrouter")
+			expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("[ModelValidation]"))
+			getSettingsSpy.mockRestore()
+		})
+	})
+
 	describe("updateCustomMode", () => {
 		test("updates both file and state when updating custom mode", async () => {
 			await provider.resolveWebviewView(mockWebviewView)

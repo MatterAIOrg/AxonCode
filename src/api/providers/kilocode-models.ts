@@ -132,3 +132,11 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		},
 	},
 }
+
+/**
+ * Checks whether a given model ID is present in the static KiloCode model list.
+ * Used to detect stale model selections after extension updates remove models.
+ */
+export function isValidKilocodeModel(modelId: string): boolean {
+	return modelId in KILO_CODE_MODELS
+}

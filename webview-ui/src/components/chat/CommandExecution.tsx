@@ -1,4 +1,4 @@
-import { ChevronDown, OctagonX } from "lucide-react"
+import { ChevronDown, ChevronUp, CornerDownLeft, OctagonX } from "lucide-react"
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 
@@ -40,6 +40,20 @@ interface CommandExecutionProps {
 	secondaryButtonText?: string
 }
 
+type ApprovalOption = "yes" | "yes_always" | "no_feedback"
+
+interface ApprovalOptionDef {
+	key: ApprovalOption
+	label: string
+	shortLabel: string
+}
+
+const APPROVAL_OPTIONS: ApprovalOptionDef[] = [
+	{ key: "yes", label: "Yes", shortLabel: "Yes" },
+	{ key: "yes_always", label: "Yes, and don't ask again for this command", shortLabel: "Yes, don't ask again" },
+	{ key: "no_feedback", label: "No, and tell Orbital the next step", shortLabel: "No, with feedback" },
+]
+
 export const CommandExecution = memo(
 	({
 		executionId,
@@ -61,16 +75,23 @@ export const CommandExecution = memo(
 			setDeniedCommands,
 		} = useExtensionState()
 
-		const { command, output: parsedOutput } = useMemo(() => parseCommandAndOutput(text), [text])
+		const {
+			message: customMessage,
+			command,
+			output: parsedOutput,
+		} = useMemo(() => parseCommandAndOutput(text), [text])
 
-		// If we aren't opening the VSCode terminal for this command then we default
-		// to expanding the command execution output.
+		// Approval mode state
+		const [selectedOption, setSelectedOption] = useState<ApprovalOption>("yes")
+		const [feedbackText, setFeedbackText] = useState("")
 		const [isExpanded, setIsExpanded] = useState(terminalShellIntegrationDisabled)
 		const [streamingOutput, setStreamingOutput] = useState("")
 		const [status, setStatus] = useState<CommandExecutionStatus | null>(null)
 		const [elapsedSeconds, setElapsedSeconds] = useState<number>(0)
 		const [completedSeconds, setCompletedSeconds] = useState<number | null>(null)
 		const startTimeRef = useRef<number | null>(null)
+
+		const isApprovalMode = !!onPrimaryButtonClick && !!onSecondaryButtonClick && !!enableButtons && !status
 
 		// The command's output can either come from the text associated with the
 		// task message (this is the case for completed commands) or from the
@@ -79,20 +100,15 @@ export const CommandExecution = memo(
 
 		// Extract command patterns from the actual command that was executed
 		const commandPatterns = useMemo<CommandPattern[]>(() => {
-			// First get all individual commands (including subshell commands) using parseCommand
 			const allCommands = parseCommand(command)
-
-			// Then extract patterns from each command using the existing pattern extraction logic
 			const allPatterns = new Set<string>()
 
-			// Add all individual commands first
 			allCommands.forEach((cmd) => {
 				if (cmd.trim()) {
 					allPatterns.add(cmd.trim())
 				}
 			})
 
-			// Then add extracted patterns for each command
 			allCommands.forEach((cmd) => {
 				const patterns = extractPatternsFromCommand(cmd)
 				patterns.forEach((pattern) => allPatterns.add(pattern))
@@ -168,13 +184,11 @@ export const CommandExecution = memo(
 			if (status?.status === "started" && startTimeRef.current) {
 				const startTime = startTimeRef.current
 
-				// Update elapsed time every second
 				const interval = setInterval(() => {
 					const elapsed = Math.floor((Date.now() - startTime) / 1000)
 					setElapsedSeconds(elapsed)
 				}, 1000)
 
-				// Initial calculation
 				setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000))
 
 				return () => clearInterval(interval)
@@ -189,6 +203,193 @@ export const CommandExecution = memo(
 			}
 		}, [status])
 
+		// Ref for the latest command value so handleSubmit never uses a stale
+		// closure-captured value when text streams in during the approval UI.
+		const commandRef = useRef(command)
+		commandRef.current = command
+
+		// Handle Submit button click based on selected option
+		const handleSubmit = useCallback(() => {
+			if (!onPrimaryButtonClick || !onSecondaryButtonClick) return
+
+			const currentCommand = commandRef.current
+
+			switch (selectedOption) {
+				case "yes":
+					onPrimaryButtonClick()
+					break
+				case "yes_always":
+					// Add the command pattern to allowedCommands before approving
+					if (currentCommand && currentCommand.trim()) {
+						const pattern = currentCommand.trim()
+						if (!allowedCommands.includes(pattern)) {
+							const newAllowed = [...allowedCommands, pattern]
+							setAllowedCommands(newAllowed)
+							vscode.postMessage({ type: "allowedCommands", commands: newAllowed })
+						}
+					}
+					onPrimaryButtonClick()
+					break
+				case "no_feedback":
+					onSecondaryButtonClick(feedbackText || undefined)
+					break
+			}
+		}, [
+			selectedOption,
+			onPrimaryButtonClick,
+			onSecondaryButtonClick,
+			allowedCommands,
+			setAllowedCommands,
+			feedbackText,
+		])
+
+		// Handle Skip button click
+		const handleSkip = useCallback(() => {
+			if (onSecondaryButtonClick) {
+				onSecondaryButtonClick()
+			}
+		}, [onSecondaryButtonClick])
+
+		// Keyboard navigation for approval options.
+		// Uses a mounted ref to prevent state updates on unmounted components
+		// (e.g. when the message stream clears during an open approval UI).
+		useEffect(() => {
+			if (!isApprovalMode) return
+
+			const mounted = { current: true }
+
+			const handleKeyDown = (e: KeyboardEvent) => {
+				if (!mounted.current) return
+
+				const currentIndex = APPROVAL_OPTIONS.findIndex((o) => o.key === selectedOption)
+
+				switch (e.key) {
+					case "ArrowUp":
+						e.preventDefault()
+						if (currentIndex > 0) {
+							setSelectedOption(APPROVAL_OPTIONS[currentIndex - 1].key)
+						}
+						break
+					case "ArrowDown":
+						e.preventDefault()
+						if (currentIndex < APPROVAL_OPTIONS.length - 1) {
+							setSelectedOption(APPROVAL_OPTIONS[currentIndex + 1].key)
+						}
+						break
+					case "Enter":
+						e.preventDefault()
+						handleSubmit()
+						break
+					case "Escape":
+						e.preventDefault()
+						handleSkip()
+						break
+				}
+			}
+
+			window.addEventListener("keydown", handleKeyDown)
+			return () => {
+				mounted.current = false
+				window.removeEventListener("keydown", handleKeyDown)
+			}
+		}, [isApprovalMode, selectedOption, handleSubmit, handleSkip])
+
+		// Render approval mode UI
+		if (isApprovalMode) {
+			return (
+				<div className="bg-vscode-editor-background border border-vscode-border rounded-2xl overflow-hidden mb-1">
+					{/* Header: custom message */}
+					{customMessage && (
+						<div className="px-3">
+							<p className="text-sm font-bold text-vscode-foreground leading-relaxed">{customMessage}</p>
+						</div>
+					)}
+
+					{/* Code block with command */}
+					<div className="px-2 pb-2">
+						<div className="bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] rounded-lg overflow-hidden">
+							<div className="relative">
+								<div className="px-2 py-2 pr-10">
+									<code className="text-xs font-mono text-vscode-foreground whitespace-pre-wrap break-all">
+										{command}
+									</code>
+								</div>
+								{/* Expand button */}
+								<button
+									className="absolute bottom-1 right-1 p-1 rounded-md hover:bg-[var(--vscode-toolbar-hoverBackground)] text-vscode-foreground opacity-50 hover:opacity-100 transition-opacity"
+									onClick={() => setIsExpanded(!isExpanded)}
+									title={isExpanded ? "Collapse" : "Expand"}>
+									{isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+								</button>
+							</div>
+						</div>
+					</div>
+
+					{/* Numbered options */}
+					<div className="px-2 pb-3">
+						<div className="space-y-1">
+							{APPROVAL_OPTIONS.map((option, idx) => {
+								const isSelected = selectedOption === option.key
+								return (
+									<button
+										key={option.key}
+										className={cn(
+											"w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm transition-colors",
+											isSelected
+												? "bg-[var(--vscode-input-background)] text-[var(--vscode-list-activeSelectionForeground)]"
+												: "hover:bg-[var(--vscode-list-hoverBackground)] text-vscode-foreground",
+										)}
+										onClick={() => {
+											setSelectedOption(option.key)
+											if (option.key === "no_feedback") {
+												setFeedbackText("")
+											}
+										}}>
+										{/* Option number */}
+										<span className="shrink-0 text-xs font-medium text-[var(--vscode-descriptionForeground)]">
+											{idx + 1}.
+										</span>
+										{/* Option label */}
+										<span className="flex-1">{option.label}</span>
+									</button>
+								)
+							})}
+
+							{/* Feedback text area when "No with feedback" is selected */}
+							{selectedOption === "no_feedback" && (
+								<div className="mt-2">
+									<input
+										type="text"
+										className="w-full bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] rounded-lg px-3 py-2 text-xs text-vscode-foreground placeholder:text-vscode-descriptionForeground focus:outline-none focus:border-[var(--vscode-focusBorder)]"
+										placeholder="your message..."
+										value={feedbackText}
+										onChange={(e) => setFeedbackText(e.target.value)}
+										onClick={(e) => e.stopPropagation()}
+									/>
+								</div>
+							)}
+						</div>
+					</div>
+
+					{/* Footer: Skip + Submit */}
+					<div className="px-4 pb-3 flex items-center justify-between">
+						<button
+							className="text-xs text-[var(--vscode-descriptionForeground)] hover:text-vscode-foreground transition-colors px-2 py-1 rounded hover:bg-[var(--vscode-toolbar-hoverBackground)]"
+							onClick={handleSkip}>
+							Skip
+						</button>
+						<button
+							className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] hover:bg-[var(--vscode-button-hoverBackground)] transition-colors"
+							onClick={handleSubmit}>
+							Submit
+							<CornerDownLeft size={12} />
+						</button>
+					</div>
+				</div>
+			)
+		}
+
+		// Non-approval mode: existing running/completed UI
 		return (
 			<>
 				<div className="flex flex-row items-center justify-between gap-2 mb-1">
@@ -275,7 +476,7 @@ export const CommandExecution = memo(
 						/>
 					)}
 				</div>
-				{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && (
+				{onPrimaryButtonClick && onSecondaryButtonClick && enableButtons && !isApprovalMode && (
 					<div className="flex flex-row items-center justify-between gap-2 mt-2">
 						{onRunEverythingClick && (
 							<StandardTooltip content={t("chat:runEverything.tooltip")}>
@@ -328,17 +529,32 @@ const OutputContainer = memo(OutputContainerInternal)
 
 const parseCommandAndOutput = (text: string | undefined) => {
 	if (!text) {
-		return { command: "", output: "" }
+		return { message: "", command: "", output: "" }
 	}
 
-	const index = text.indexOf(COMMAND_OUTPUT_STRING)
+	let message = ""
+	let remaining = text
 
-	if (index === -1) {
-		return { command: text, output: "" }
+	// Check for message prefix: "MESSAGE:...\n---\ncommand"
+	const messageSeparator = "\n---\n"
+	if (remaining.startsWith("MESSAGE:")) {
+		const separatorIdx = remaining.indexOf(messageSeparator)
+		if (separatorIdx !== -1) {
+			message = remaining.slice(8, separatorIdx) // after "MESSAGE:"
+			remaining = remaining.slice(separatorIdx + messageSeparator.length)
+		}
+	}
+
+	// Parse command and output
+	const outputIdx = remaining.indexOf(COMMAND_OUTPUT_STRING)
+
+	if (outputIdx === -1) {
+		return { message, command: remaining, output: "" }
 	}
 
 	return {
-		command: text.slice(0, index),
-		output: text.slice(index + COMMAND_OUTPUT_STRING.length),
+		message,
+		command: remaining.slice(0, outputIdx),
+		output: remaining.slice(outputIdx + COMMAND_OUTPUT_STRING.length),
 	}
 }

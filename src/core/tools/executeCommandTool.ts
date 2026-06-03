@@ -29,7 +29,11 @@ export async function executeCommandTool(
 	removeClosingTag: RemoveClosingTag,
 ) {
 	let command: string | undefined = block.params.command
-	const customCwd: string | undefined = block.params.cwd
+	const rawCwd: string | undefined = block.params.cwd
+	const customCwd: string | undefined = rawCwd && rawCwd !== "null" ? rawCwd : undefined
+	const rawMessage: unknown = block.params.message
+	const customMessage: string | undefined =
+		typeof rawMessage === "string" && rawMessage !== "null" ? rawMessage : undefined
 
 	try {
 		if (block.partial) {
@@ -54,7 +58,8 @@ export async function executeCommandTool(
 			task.consecutiveMistakeCount = 0
 
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
-			const didApprove = await askApproval("command", command)
+			const askText = customMessage ? `MESSAGE:${customMessage}\n---\n${command}` : command
+			const didApprove = await askApproval("command", askText)
 
 			if (!didApprove) {
 				return
