@@ -8,9 +8,10 @@ import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import removeMd from "remove-markdown"
 import useSound from "use-sound"
 
-import { appendImages } from "@src/utils/imageUtils"
+import { appendImages, normalizeImages } from "@src/utils/imageUtils"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
 
+import { ImageAttachment } from "@src/components/common/Thumbnails"
 import type { ClineAsk, ClineMessage, McpServerUse } from "@roo-code/types"
 
 import { FollowUpData, SuggestionItem } from "@roo-code/types"
@@ -90,6 +91,10 @@ export interface ChatViewProps {
 	showAnnouncement: boolean
 	hideAnnouncement: () => void
 	isAgentManagerMode?: boolean
+	inputValue: string
+	setInputValue: React.Dispatch<React.SetStateAction<string>>
+	selectedImages: ImageAttachment[]
+	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 }
 
 export interface ChatViewRef {
@@ -102,7 +107,16 @@ export const MAX_IMAGES_PER_MESSAGE = 20 // This is the Anthropic limit.
 const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0
 
 const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewProps> = (
-	{ isHidden, showAnnouncement, hideAnnouncement, isAgentManagerMode },
+	{
+		isHidden,
+		showAnnouncement,
+		hideAnnouncement,
+		isAgentManagerMode,
+		inputValue,
+		setInputValue,
+		selectedImages,
+		setSelectedImages,
+	},
 	ref,
 ) => {
 	const isMountedRef = useRef(true)
@@ -219,11 +233,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// Has to be after api_req_finished are all reduced into api_req_started messages.
 	const apiMetrics = useMemo(() => getApiMetrics(modifiedMessages), [modifiedMessages])
 
-	const [inputValue, setInputValue] = useState("")
 	const inputValueRef = useRef(inputValue)
 	const textAreaRef = useRef<HTMLDivElement>(null)
 	const [sendingDisabled, setSendingDisabled] = useState(false)
-	const [selectedImages, setSelectedImages] = useState<string[]>([])
 
 	// we need to hold on to the ask because useEffect > lastMessage will always let us know when an ask comes in and handle it, but by the time handleMessage is called, the last message might not be the ask anymore (it could be a say that followed)
 	const [clineAsk, setClineAsk] = useState<ClineAsk | undefined>(undefined)
@@ -748,7 +760,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// setPrimaryButtonText(undefined)
 		// setSecondaryButtonText(undefined)
 		disableAutoScrollRef.current = false
-	}, [])
+	}, [setInputValue, setSelectedImages])
 
 	/**
 	 * Handles sending messages to the extension
@@ -756,12 +768,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	 * @param images - Array of image data URLs to send with the message
 	 */
 	const handleSendMessage = useCallback(
-		(text: string, images: string[]) => {
+		(text: string, images: ImageAttachment[]) => {
 			text = text.trim()
-			if (text || images.length > 0) {
+			const imageDataUrls = images.map((img) => img.dataUrl)
+			if (text || imageDataUrls.length > 0) {
 				if (sendingDisabled || isStreaming) {
 					try {
-						vscode.postMessage({ type: "queueMessage", text, images })
+						vscode.postMessage({ type: "queueMessage", text, images: imageDataUrls })
 						setInputValue("")
 						setSelectedImages([])
 					} catch (error) {
@@ -777,7 +790,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				userRespondedRef.current = true
 
 				if (messagesRef.current.length === 0) {
-					vscode.postMessage({ type: "newTask", text, images })
+					vscode.postMessage({ type: "newTask", text, images: imageDataUrls })
 				} else if (clineAskRef.current) {
 					if (clineAskRef.current === "followup") {
 						markFollowUpAsAnswered()
@@ -797,7 +810,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								type: "askResponse",
 								askResponse: "messageResponse",
 								text,
-								images,
+								images: imageDataUrls,
 							})
 							break
 						case "tool":
@@ -808,24 +821,29 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								type: "askResponse",
 								askResponse: "noButtonClicked",
 								text,
-								images,
+								images: imageDataUrls,
 							})
 							break
 						// There is no other case that a textfield should be enabled.
 					}
 				} else {
 					// This is a new message in an ongoing task.
-					vscode.postMessage({ type: "askResponse", askResponse: "messageResponse", text, images })
+					vscode.postMessage({
+						type: "askResponse",
+						askResponse: "messageResponse",
+						text,
+						images: imageDataUrls,
+					})
 				}
 
 				handleChatReset()
 			}
 		},
-		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming], // messagesRef and clineAskRef are stable
+		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming, setInputValue, setSelectedImages], // messagesRef and clineAskRef are stable
 	)
 
 	const handleSetChatBoxMessage = useCallback(
-		(text: string, images: string[]) => {
+		(text: string, images: ImageAttachment[]) => {
 			// Avoid nested template literals by breaking down the logic
 			let newValue = text
 
@@ -841,7 +859,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setInputValue(newValue)
 			setSelectedImages([...selectedImages, ...images])
 		},
-		[inputValue, selectedImages],
+		[inputValue, selectedImages, setInputValue, setSelectedImages],
 	)
 
 	const startNewTask = useCallback(() => vscode.postMessage({ type: "clearTask" }), [])
@@ -850,7 +868,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// after which buttons are shown and we then send an askResponse to the
 	// extension.
 	const handlePrimaryButtonClick = useCallback(
-		(text?: string, images?: string[]) => {
+		(text?: string, images?: ImageAttachment[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
@@ -871,7 +889,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							type: "askResponse",
 							askResponse: "yesButtonClicked",
 							text: trimmedInput,
-							images: images,
+							images: images?.map((img) => img.dataUrl),
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -902,11 +920,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, lastMessage?.text], // kilocode_change: add lastMessage?.text
+		[clineAsk, startNewTask, lastMessage?.text, setInputValue, setSelectedImages], // kilocode_change: add lastMessage?.text
 	)
 
 	const handleSecondaryButtonClick = useCallback(
-		(text?: string, images?: string[]) => {
+		(text?: string, images?: ImageAttachment[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
@@ -936,7 +954,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							type: "askResponse",
 							askResponse: "noButtonClicked",
 							text: trimmedInput,
-							images: images,
+							images: images?.map((img) => img.dataUrl),
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -966,7 +984,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, isStreaming],
+		[clineAsk, startNewTask, isStreaming, setInputValue, setSelectedImages],
 	)
 
 	// kilocode_change: handle "Run Everything" click - auto-approve all commands for current task
@@ -1061,8 +1079,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					// Only handle selectedImages if it's not for editing context
 					// When context is "edit", ChatRow will handle the images
 					if (message.context !== "edit") {
-						setSelectedImages((prevImages: string[]) =>
-							appendImages(prevImages, message.images, MAX_IMAGES_PER_MESSAGE),
+						setSelectedImages((prevImages: ImageAttachment[]) =>
+							appendImages(prevImages, normalizeImages(message.images), MAX_IMAGES_PER_MESSAGE),
 						)
 					}
 					break
@@ -1072,16 +1090,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							handleChatReset()
 							break
 						case "sendMessage":
-							handleSendMessage(message.text ?? "", message.images ?? [])
+							handleSendMessage(message.text ?? "", normalizeImages(message.images))
 							break
 						case "setChatBoxMessage":
-							handleSetChatBoxMessage(message.text ?? "", message.images ?? [])
+							handleSetChatBoxMessage(message.text ?? "", normalizeImages(message.images))
 							break
 						case "primaryButtonClick":
-							handlePrimaryButtonClick(message.text ?? "", message.images ?? [])
+							handlePrimaryButtonClick(message.text ?? "", normalizeImages(message.images))
 							break
 						case "secondaryButtonClick":
-							handleSecondaryButtonClick(message.text ?? "", message.images ?? [])
+							handleSecondaryButtonClick(message.text ?? "", normalizeImages(message.images))
 							break
 					}
 					break
@@ -1154,6 +1172,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handleSetChatBoxMessage,
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
+			setSelectedImages,
 		],
 	)
 
