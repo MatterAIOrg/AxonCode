@@ -20,6 +20,7 @@ import {
 	shouldShowContextMenu,
 } from "@src/utils/context-mentions"
 
+import { useAudioRecorder } from "@/hooks/useAudioRecorder"
 import { cn } from "@/lib/utils"
 import { renderMentionChip, renderSlashCommandChip } from "@/utils/chat-render"
 import { MessageSquareX, VolumeX } from "lucide-react"
@@ -48,7 +49,8 @@ import {
 
 interface ChatTextAreaProps {
 	inputValue: string
-	setInputValue: (value: string) => void
+	setInputValue: React.Dispatch<React.SetStateAction<string>>
+
 	sendingDisabled: boolean
 	selectApiConfigDisabled: boolean
 	selectedImages: ImageAttachment[]
@@ -107,6 +109,14 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		} = useExtensionState()
 
 		const { id: selectedModelId, provider: selectedProvider } = useSelectedModel(apiConfiguration)
+
+		// kilocode_change: audio transcription hook
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { recorderState, startRecording, stopRecording, error: recorderError } = useAudioRecorder((text: string) => {
+			// Functional update: transcript chunks arrive asynchronously while
+			// recording, so append against the latest value (not a stale closure).
+			setInputValue((prev) => (prev ? `${prev} ${text}` : text))
+		})
 
 		// Find the ID and display text for the currently selected API configuration
 		// const { currentConfigId, displayName } = useMemo(() => {
@@ -1678,6 +1688,64 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								</button>
 							</StandardTooltip>
 						)}
+						{/* kilocode_change: mic button for speech-to-text */}
+						{/* {apiConfiguration && (
+						<div className="relative inline-flex">
+							{recorderState === "recording" && (
+								<div
+									className={cn(
+										"absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-10",
+										"flex items-center gap-1.5 whitespace-nowrap",
+										"rounded px-2 py-1 text-xs shadow-md",
+										"bg-vscode-editorWidget-background border border-vscode-editorWidget-border text-vscode-foreground",
+									)}>
+									<span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+									{t("chat:recording")}
+								</div>
+							)}
+							<StandardTooltip
+								content={
+									recorderError
+										? recorderError
+										: recorderState === "recording"
+											? t("chat:stopRecording")
+											: t("chat:startRecording")
+								}>
+								<button
+									aria-label={
+										recorderState === "recording" ? t("chat:stopRecording") : t("chat:startRecording")
+									}
+									disabled={false}
+									onClick={() => {
+										if (recorderState === "recording") {
+											stopRecording()
+										} else if (recorderState === "idle") {
+											startRecording()
+										}
+									}}
+									className={cn(
+										"relative inline-flex items-center justify-center",
+										"bg-transparent border-none py-1.5",
+										"rounded-md min-w-[24px] min-h-[28px]",
+										"transition-all duration-150",
+										"focus-visible:ring-1 focus-visible:ring-white/50",
+										"active:bg-[rgba(255,255,255,0.1)]",
+										recorderError || recorderState === "recording"
+											? "text-red-400 hover:text-red-300 cursor-pointer"
+											: "opacity-80 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground cursor-pointer",
+									)}>
+									{recorderState === "recording" ? (
+										<Square
+											className={cn("w-3.5 h-3.5", { hidden: containerWidth < 235 })}
+											fill="currentColor"
+										/>
+									) : (
+										<Mic className={cn("w-4 h-4", { hidden: containerWidth < 235 })} />
+									)}
+								</button>
+							</StandardTooltip>
+						</div>
+					)} */}
 						<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
 							<button
 								aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}

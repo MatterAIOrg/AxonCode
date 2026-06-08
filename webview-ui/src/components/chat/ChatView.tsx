@@ -7,7 +7,6 @@ import { useDeepCompareEffect, useEvent, useMount } from "react-use"
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import removeMd from "remove-markdown"
 import useSound from "use-sound"
-import { ImageAttachment, normalizeImages } from "../common/Thumbnails"
 
 import { appendImages } from "@src/utils/imageUtils"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
@@ -70,7 +69,6 @@ import ExplorationGroupRow, {
 import { showSystemNotification } from "@/kilocode/helpers" // kilocode_change
 import BottomControls from "../kilocode/BottomControls" // kilocode_change
 import KiloTaskHeader from "../kilocode/KiloTaskHeader" // kilocode_change
-import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilocode_change
 import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
@@ -92,11 +90,6 @@ export interface ChatViewProps {
 	showAnnouncement: boolean
 	hideAnnouncement: () => void
 	isAgentManagerMode?: boolean
-	// Lifted state for persistence across mode switches
-	inputValue: string
-	setInputValue: React.Dispatch<React.SetStateAction<string>>
-	selectedImages: ImageAttachment[]
-	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 }
 
 export interface ChatViewRef {
@@ -109,16 +102,7 @@ export const MAX_IMAGES_PER_MESSAGE = 20 // This is the Anthropic limit.
 const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0
 
 const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewProps> = (
-	{
-		isHidden,
-		showAnnouncement,
-		hideAnnouncement,
-		isAgentManagerMode,
-		inputValue,
-		setInputValue,
-		selectedImages,
-		setSelectedImages,
-	},
+	{ isHidden, showAnnouncement, hideAnnouncement, isAgentManagerMode },
 	ref,
 ) => {
 	const isMountedRef = useRef(true)
@@ -235,9 +219,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// Has to be after api_req_finished are all reduced into api_req_started messages.
 	const apiMetrics = useMemo(() => getApiMetrics(modifiedMessages), [modifiedMessages])
 
+	const [inputValue, setInputValue] = useState("")
 	const inputValueRef = useRef(inputValue)
 	const textAreaRef = useRef<HTMLDivElement>(null)
 	const [sendingDisabled, setSendingDisabled] = useState(false)
+	const [selectedImages, setSelectedImages] = useState<string[]>([])
 
 	// we need to hold on to the ask because useEffect > lastMessage will always let us know when an ask comes in and handle it, but by the time handleMessage is called, the last message might not be the ask anymore (it could be a say that followed)
 	const [clineAsk, setClineAsk] = useState<ClineAsk | undefined>(undefined)
@@ -294,9 +280,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return w.ICONS_BASE_URI || ""
 	})
 
-	// Marketing card rotation state
-	const [activeMarketingCard, setActiveMarketingCard] = useState(0)
-
 	// kilocode_change: Profile data state for usage tracking
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
 
@@ -328,14 +311,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 		window.addEventListener("message", handleMessage)
 		return () => window.removeEventListener("message", handleMessage)
-	}, [])
-
-	// Rotate marketing cards every 10 seconds
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setActiveMarketingCard((prev) => (prev === 0 ? 1 : 0))
-		}, 10000)
-		return () => clearInterval(interval)
 	}, [])
 
 	// Check if usage is over 98% (near exhaustion warning)
@@ -773,7 +748,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// setPrimaryButtonText(undefined)
 		// setSecondaryButtonText(undefined)
 		disableAutoScrollRef.current = false
-	}, [setInputValue, setSelectedImages])
+	}, [])
 
 	/**
 	 * Handles sending messages to the extension
@@ -781,14 +756,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	 * @param images - Array of image data URLs to send with the message
 	 */
 	const handleSendMessage = useCallback(
-		(text: string, images: ImageAttachment[]) => {
+		(text: string, images: string[]) => {
 			text = text.trim()
-			// Extract dataUrls for backend compatibility
-			const imageDataUrls = images.map((img) => img.dataUrl)
-			if (text || imageDataUrls.length > 0) {
+			if (text || images.length > 0) {
 				if (sendingDisabled || isStreaming) {
 					try {
-						vscode.postMessage({ type: "queueMessage", text, images: imageDataUrls })
+						vscode.postMessage({ type: "queueMessage", text, images })
 						setInputValue("")
 						setSelectedImages([])
 					} catch (error) {
@@ -804,7 +777,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				userRespondedRef.current = true
 
 				if (messagesRef.current.length === 0) {
-					vscode.postMessage({ type: "newTask", text, images: imageDataUrls })
+					vscode.postMessage({ type: "newTask", text, images })
 				} else if (clineAskRef.current) {
 					if (clineAskRef.current === "followup") {
 						markFollowUpAsAnswered()
@@ -824,7 +797,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								type: "askResponse",
 								askResponse: "messageResponse",
 								text,
-								images: imageDataUrls,
+								images,
 							})
 							break
 						case "tool":
@@ -835,29 +808,24 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								type: "askResponse",
 								askResponse: "noButtonClicked",
 								text,
-								images: imageDataUrls,
+								images,
 							})
 							break
 						// There is no other case that a textfield should be enabled.
 					}
 				} else {
 					// This is a new message in an ongoing task.
-					vscode.postMessage({
-						type: "askResponse",
-						askResponse: "messageResponse",
-						text,
-						images: imageDataUrls,
-					})
+					vscode.postMessage({ type: "askResponse", askResponse: "messageResponse", text, images })
 				}
 
 				handleChatReset()
 			}
 		},
-		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming, setInputValue, setSelectedImages], // messagesRef and clineAskRef are stable
+		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming], // messagesRef and clineAskRef are stable
 	)
 
 	const handleSetChatBoxMessage = useCallback(
-		(text: string, images: ImageAttachment[]) => {
+		(text: string, images: string[]) => {
 			// Avoid nested template literals by breaking down the logic
 			let newValue = text
 
@@ -873,7 +841,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setInputValue(newValue)
 			setSelectedImages([...selectedImages, ...images])
 		},
-		[inputValue, selectedImages, setInputValue, setSelectedImages],
+		[inputValue, selectedImages],
 	)
 
 	const startNewTask = useCallback(() => vscode.postMessage({ type: "clearTask" }), [])
@@ -882,12 +850,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// after which buttons are shown and we then send an askResponse to the
 	// extension.
 	const handlePrimaryButtonClick = useCallback(
-		(text?: string, images?: ImageAttachment[]) => {
+		(text?: string, images?: string[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
 			const trimmedInput = text?.trim()
-			const imageDataUrls = images?.map((img) => img.dataUrl)
 
 			switch (clineAsk) {
 				case "api_req_failed":
@@ -899,12 +866,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "mistake_limit_reached":
 				case "report_bug":
 					// Only send text/images if they exist
-					if (trimmedInput || (imageDataUrls && imageDataUrls.length > 0)) {
+					if (trimmedInput || (images && images.length > 0)) {
 						vscode.postMessage({
 							type: "askResponse",
 							askResponse: "yesButtonClicked",
 							text: trimmedInput,
-							images: imageDataUrls,
+							images: images,
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -935,16 +902,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, lastMessage?.text, setInputValue, setSelectedImages], // kilocode_change: add lastMessage?.text
+		[clineAsk, startNewTask, lastMessage?.text], // kilocode_change: add lastMessage?.text
 	)
 
 	const handleSecondaryButtonClick = useCallback(
-		(text?: string, images?: ImageAttachment[]) => {
+		(text?: string, images?: string[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
 			const trimmedInput = text?.trim()
-			const imageDataUrls = images?.map((img) => img.dataUrl)
 
 			if (isStreaming) {
 				vscode.postMessage({ type: "cancelTask" })
@@ -965,12 +931,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "browser_action_launch":
 				case "use_mcp_server":
 					// Only send text/images if they exist
-					if (trimmedInput || (imageDataUrls && imageDataUrls.length > 0)) {
+					if (trimmedInput || (images && images.length > 0)) {
 						vscode.postMessage({
 							type: "askResponse",
 							askResponse: "noButtonClicked",
 							text: trimmedInput,
-							images: imageDataUrls,
+							images: images,
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -1000,7 +966,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, isStreaming, setInputValue, setSelectedImages],
+		[clineAsk, startNewTask, isStreaming],
 	)
 
 	// kilocode_change: handle "Run Everything" click - auto-approve all commands for current task
@@ -1095,8 +1061,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					// Only handle selectedImages if it's not for editing context
 					// When context is "edit", ChatRow will handle the images
 					if (message.context !== "edit") {
-						setSelectedImages((prevImages) =>
-							appendImages(prevImages, normalizeImages(message.images), MAX_IMAGES_PER_MESSAGE),
+						setSelectedImages((prevImages: string[]) =>
+							appendImages(prevImages, message.images, MAX_IMAGES_PER_MESSAGE),
 						)
 					}
 					break
@@ -1188,7 +1154,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handleSetChatBoxMessage,
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
-			setSelectedImages,
 		],
 	)
 
@@ -2128,7 +2093,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			if (event?.shiftKey) {
 				// Always append to existing text, don't overwrite
-				setInputValue((currentValue) => {
+				setInputValue((currentValue: string) => {
 					return currentValue !== "" ? `${currentValue} \n${suggestion.answer}` : suggestion.answer
 				})
 			} else {
@@ -2527,30 +2492,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									"Workspace"}
 							</span>
 						</div>
-						<ChatTextArea
-							ref={textAreaRef}
-							inputValue={inputValue}
-							setInputValue={setInputValue}
-							sendingDisabled={sendingDisabled || isProfileDisabled}
-							selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
-							selectedImages={selectedImages}
-							setSelectedImages={setSelectedImages}
-							onSend={() => handleSendMessage(inputValue, selectedImages)}
-							onSelectImages={selectImages}
-							shouldDisableImages={shouldDisableImages}
-							onHeightChange={() => {}}
-							mode={mode}
-							setMode={setMode}
-							modeShortcutText={modeShortcutText}
-							sendMessageOnEnter={sendMessageOnEnter}
-							isStreaming={isStreaming}
-							onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
-						/>
-						{/* <div className="flex items-center gap-2 mt-1 ml-4">
+						<div className="flex items-center gap-2 mt-1 ml-4">
 							<button className="text-xs px-3 py-1.5 rounded-full border border-[var(--vscode-panel-border)] hover:bg-[var(--vscode-list-hoverBackground)] cursor-pointer text-[var(--vscode-foreground)] transition-colors inline-flex items-center">
 								Open Editor Window
 							</button>
-						</div> */}
+						</div>
 					</div>
 				</div>
 			) : (
@@ -2593,86 +2539,58 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								<div className={taskHistoryFullLength === 0 ? "mt-10" : undefined}>
 									<KilocodeNotifications />
 								</div>
-								<div className="flex flex-grow flex-col justify-start gap-2">
+								<div className="flex flex-grow flex-col justify-start gap-4">
 									{!isReviewOnlyMode && (
-										<div className="relative w-full min-w-0 mt-4 mb-1 h-[98px]">
-											{/* PR Reviews Card */}
-											<div
-												className={`absolute inset-x-0 top-0 px-3 py-1 border border-[var(--vscode-activityBar-border)] rounded-2xl bg-vscode-editor-background transition-all duration-700 ease-in-out origin-top ${activeMarketingCard === 0 ? "translate-y-0 scale-100 opacity-100 z-10 h-[88px] shadow-sm" : "translate-y-[6px] scale-[0.97] opacity-60 z-0 pointer-events-none h-[88px]"}`}>
-												<div className="flex flex-col gap-1 h-full justify-center">
-													<div className="flex flex-row gap-2 items-center">
-														<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
-															Setup Agentic PR Reviews
-														</p>
-														<div className="flex items-center flex-row gap-2">
-															<img
-																src={iconsBaseUri + "/github-ic.png"}
-																alt="GitHub"
-																className="w-3.5 h-3.5"
-															/>
-															<img
-																src={iconsBaseUri + "/gitlab-ic.png"}
-																alt="GitLab"
-																className="w-3.5 h-3.5"
-															/>
-															<img
-																src={iconsBaseUri + "/bitbucket-ic.png"}
-																alt="Bitbucket"
-																className="w-3.5 h-3.5"
-															/>
-															<img
-																src={iconsBaseUri + "/azure-devops-ic.png"}
-																alt="Azure DevOps"
-																className="w-3.5 h-3.5"
-															/>
-														</div>
-													</div>
-													<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
-														Close PRs 50% faster with 80% less bugs
-													</p>
-													<div className="flex flex-row gap-2 mt-0.5">
-														<VSCodeButtonLink
-															appearance="primary"
-															href="https://app.matterai.so/get-started">
-															Get Started for free
-														</VSCodeButtonLink>
-														<VSCodeButtonLink
-															appearance="secondary"
-															href="https://docs.matterai.so/quickstart-ai-code-review-agent">
-															View Demo
-														</VSCodeButtonLink>
-													</div>
-												</div>
-											</div>
+										<div className="w-full min-w-0 mt-8 mb-1 p-3 border border-[var(--color-matterai-border)] rounded-2xl bg-vscode-editor-background/50">
+											<div className="flex flex-col gap-2">
+												{/* Top section: Title/Subtitle left, Icons right */}
+												<div className="flex justify-between gap-4 items-center min-w-0">
+													<div className="flex flex-col gap-1">
+														<div className="flex flex-row gap-2 items-start">
+															<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
+																Setup Agentic PR Reviews
+															</p>
+															<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
+																<img
+																	src={iconsBaseUri + "/github-ic.png"}
+																	alt="GitHub"
+																	className="w-4 h-4"
+																/>
+																<img
+																	src={iconsBaseUri + "/gitlab-ic.png"}
+																	alt="GitLab"
+																	className="w-4 h-4"
+																/>
 
-											{/* Axon Models Card */}
-											<div
-												className={`absolute inset-x-0 top-0 px-3 py-1 border border-[var(--vscode-activityBar-border)] rounded-2xl bg-vscode-editor-background transition-all duration-700 ease-in-out origin-top ${activeMarketingCard === 1 ? "translate-y-0 scale-100 opacity-100 z-10 h-[88px] shadow-sm" : "translate-y-[6px] scale-[0.97] opacity-60 z-0 pointer-events-none h-[88px]"}`}>
-												<div className="flex flex-col gap-1 h-full justify-center">
-													<div className="flex flex-row gap-2 items-center">
-														<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
-															Axon 2.5 Models
+																<img
+																	src={iconsBaseUri + "/bitbucket-ic.png"}
+																	alt="Bitbucket"
+																	className="w-4 h-4"
+																/>
+															</div>
+														</div>
+														<p className="text-xs p-0 m-0 font-regular text-vscode-foreground opacity-70">
+															Close PRs 50% faster with 80% less bugs
 														</p>
-														<img
-															src={iconsBaseUri + "/matterai-ic.svg"}
-															alt="MatterAI"
-															className="w-3.5 h-3.5"
-														/>
-													</div>
-													<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
-														State-of-the-art for coding, agentic tools & general purpose
-													</p>
-													<div className="flex flex-row gap-2 mt-0.5">
-														<VSCodeButtonLink
-															appearance="primary"
-															href="https://app.matterai.so/api-billing">
-															Get Started
-														</VSCodeButtonLink>
-														<VSCodeButtonLink
-															appearance="secondary"
-															href="https://app.matterai.so/axon-models">
-															Learn More
-														</VSCodeButtonLink>
+														{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
+												70% faster code reviews
+											</p> */}
+														<div className="flex flex-row gap-2">
+															<div className="self-start mt-1">
+																<VSCodeButtonLink
+																	appearance="primary"
+																	href="https://app.matterai.so/get-started">
+																	Get Started for free
+																</VSCodeButtonLink>
+															</div>
+															<div className="self-start mt-1">
+																<VSCodeButtonLink
+																	appearance="secondary"
+																	href="https://docs.matterai.so/quickstart-ai-code-review-agent">
+																	View Demo
+																</VSCodeButtonLink>
+															</div>
+														</div>
 													</div>
 												</div>
 											</div>
@@ -2681,12 +2599,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									{!isReviewOnlyMode &&
 										backgroundRunningTasks &&
 										backgroundRunningTasks.length > 0 && (
-											<div className="w-full min-w-0 mb-0 p-2 rounded-2xl bg-vscode-editor-background/50 border border-[var(--vscode-activityBar-border)] max-h-[50%] flex flex-col overflow-hidden">
-												<div className="flex flex-row items-center gap-1 mb-1 ml-1 shrink-0 opacity-70">
+											<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)] max-h-[50%] flex flex-col overflow-hidden">
+												<div className="flex flex-row items-center gap-1 mb-1 shrink-0">
 													<ListVideoIcon className="w-3 h-3 rtl:-scale-x-100" />
-													<span className="text-sm text-vscode-foreground">
+													<span className="text-sm font-semibold text-vscode-foreground">
 														Background Agents
 													</span>
+													{/* <span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
+											{backgroundRunningTasks.filter((t) => t.status === "running").length}{" "}
+											running
+										</span> */}
 												</div>
 												<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
 													{backgroundRunningTasks.map((bt) => {
@@ -2701,7 +2623,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 														return (
 															<div
 																key={bt.taskId}
-																className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-xl border border-[var(--vscode-activityBar-border)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
+																className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
 																onClick={() => {
 																	vscode.postMessage({
 																		type: "switchToBackgroundTask",
@@ -2711,7 +2633,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																<div className="flex-1 flex flex-col gap-1 min-w-0">
 																	<div className="flex items-center gap-2">
 																		<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
-																			{bt.taskLabel || "New Agent"}
+																			{bt.taskLabel || "New Task"}
 																		</span>
 																	</div>
 																	<div className="flex items-center gap-2">
@@ -2863,10 +2785,28 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 					{/* kilocode_change: Show notification when monthly limit is exhausted */}
 					{isUsageExhausted && !task && (
-						<OutOfCreditsBanner
-							className="w-full min-w-0 px-4 mb-4"
-							creditsResetDate={profileData?.creditsResetDate}
-						/>
+						<div className="w-full min-w-0 px-4 mb-4">
+							<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
+								<div className="flex flex-col gap-2">
+									<span className="text-lg font-medium text-[var(--vscode-foreground)]">
+										You are out of Orbital Credits
+									</span>
+									<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
+										To continue using Orbital, upgrade your plan or switch to Auto model.
+									</span>
+								</div>
+								<button
+									className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
+									onClick={() =>
+										vscode.postMessage({
+											type: "openExternal",
+											url: "https://app.matterai.so/orbital",
+										})
+									}>
+									Upgrade
+								</button>
+							</div>
+						</div>
 					)}
 
 					{!task && (
