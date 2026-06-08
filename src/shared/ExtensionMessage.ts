@@ -188,6 +188,7 @@ export interface ExtensionMessage {
 		| "showToast"
 		| "memories_response"
 		| "memory_deleted"
+		| "speechToTextResponse" // kilocode_change: audio transcription response
 	text?: string
 	// forked_change start
 	payload?:

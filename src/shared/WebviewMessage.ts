@@ -342,6 +342,10 @@ export interface WebviewMessage {
 		| "memories_response"
 		| "delete_memory"
 		| "memory_deleted"
+		| "speechToTextRequest" // kilocode_change: audio transcription request
+		| "speechToTextResponse" // kilocode_change: audio transcription response
+		| "startSpeechRecording" // kilocode_change: start extension-host mic capture
+		| "stopSpeechRecording" // kilocode_change: stop extension-host mic capture
 		| "maximizeSideBar"
 		| "minimizeSideBar"
 		| "openSideBar"
