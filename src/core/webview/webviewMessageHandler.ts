@@ -8,6 +8,7 @@ import * as vscode from "vscode"
 import { createPatch } from "diff"
 // forked_change start
 import axios from "axios"
+import { SpeechToTextRecorder } from "../../integrations/speech/SpeechToTextRecorder" // kilocode_change
 import { codeReviewSettingsSchema, CodeReviewSettings, getKiloUrlFromToken, isGlobalStateKey } from "@roo-code/types"
 import { getAppUrl } from "@roo-code/types"
 import {
@@ -673,6 +674,9 @@ async function getGitMetadata(
 	}
 }
 // forked_change end
+
+// kilocode_change: single in-flight extension-host speech recorder.
+let activeSpeechRecorder: SpeechToTextRecorder | undefined
 
 export const webviewMessageHandler = async (
 	provider: ClineProvider,
@@ -2868,6 +2872,22 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			break
 		// forked_change end
+		// forked_change start: command approval mode selected from the chat textarea
+		case "commandApprovalMode": {
+			const mode = message.text === "ask" || message.text === "fullAccess" ? message.text : "approveForMe"
+			await updateGlobalState("commandApprovalMode", mode)
+			// Switching away from "Full Access" should also clear the per-task
+			// "Run Everything" override so the new mode takes effect immediately.
+			if (mode !== "fullAccess") {
+				const currentTask = provider.getCurrentTask()
+				if (currentTask) {
+					currentTask.autoApproveAllCommands = false
+				}
+			}
+			await provider.postStateToWebview()
+			break
+		}
+		// forked_change end
 		// forked_change start: auto-approve all commands for current task
 		case "autoApproveAllCommands": {
 			const currentTask = provider.getCurrentTask()
@@ -3749,6 +3769,69 @@ ${comment.suggestion}
 					type: "profileDataResponse",
 					payload: { success: false, error: errorMessage },
 				})
+			}
+			break
+		case "startSpeechRecording": // kilocode_change
+			try {
+				// Stop any prior session before starting a new one.
+				if (activeSpeechRecorder) {
+					await activeSpeechRecorder.stop()
+					activeSpeechRecorder = undefined
+				}
+
+				const { apiConfiguration } = await provider.getState()
+				const kilocodeToken = apiConfiguration?.kilocodeToken
+
+				if (!kilocodeToken) {
+					provider.postMessageToWebview({
+						type: "speechToTextResponse",
+						text: "",
+						payload: { success: false, error: "KiloCode API token not configured." },
+					})
+					break
+				}
+
+				// Hardcode English: Whisper otherwise auto-detects from short/noisy
+				// chunks and returns stray Portuguese/other-language filler.
+				const language = (message as any).language ?? "en"
+
+				activeSpeechRecorder = new SpeechToTextRecorder(
+					kilocodeToken,
+					(text) =>
+						provider.postMessageToWebview({
+							type: "speechToTextResponse",
+							text,
+							payload: { success: true },
+						}),
+					(error) => {
+						provider.log(`Speech-to-text error: ${error}`)
+						provider.postMessageToWebview({
+							type: "speechToTextResponse",
+							text: "",
+							payload: { success: false, error },
+						})
+					},
+					language,
+				)
+
+				await activeSpeechRecorder.start()
+			} catch (error: any) {
+				const errorMessage = error?.message || "Failed to start recording."
+				provider.log(`Error starting speech recording: ${errorMessage}`)
+				provider.postMessageToWebview({
+					type: "speechToTextResponse",
+					text: "",
+					payload: { success: false, error: errorMessage },
+				})
+			}
+			break
+		case "stopSpeechRecording": // kilocode_change
+			try {
+				const recorder = activeSpeechRecorder
+				activeSpeechRecorder = undefined
+				await recorder?.stop()
+			} catch (error: any) {
+				provider.log(`Error stopping speech recording: ${error?.message || error}`)
 			}
 			break
 		case "fetchGitBranchRequest": // kilocode_change

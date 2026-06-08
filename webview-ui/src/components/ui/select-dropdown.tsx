@@ -7,16 +7,24 @@ import { Popover, PopoverContent, PopoverTrigger, StandardTooltip } from "@/comp
 import { cn } from "@/lib/utils"
 import { IconProps } from "@radix-ui/react-icons/dist/types" // kilocode_change
 import { useRooPortal } from "./hooks/useRooPortal"
+// forked_change: custom SVG icons used by the command approval selector
+import { HandIcon, SecurityWarningIcon, ShieldUserIcon } from "@/utils/customIcons"
+
+type DropdownIcon = LucideIcon | React.FC<React.SVGProps<SVGSVGElement>>
 
 // kilocode_change: Map icon names to Lucide icons
-const iconMap: Record<string, LucideIcon> = {
+const iconMap: Record<string, DropdownIcon> = {
 	"list-todo": ListTodo,
 	"infinity-ic": InfinityIC,
 	"messages-square": MessagesSquare,
+	// forked_change: command approval mode icons
+	hand: HandIcon,
+	"shield-user": ShieldUserIcon,
+	"security-warning": SecurityWarningIcon,
 }
 
 // kilocode_change: Helper function to get Lucide icon component from icon name
-const getIconComponent = (iconName?: string): LucideIcon | null => {
+const getIconComponent = (iconName?: string): DropdownIcon | null => {
 	if (!iconName) return null
 	// Check if it's a Lucide icon name
 	if (iconMap[iconName]) {
@@ -238,7 +246,7 @@ export const SelectDropdown = React.memo(
 						(() => {
 							const IconComponent = getIconComponent(selectedOption.codicon)
 							if (IconComponent) {
-								return <IconComponent className="opacity-80 mr size-4" />
+								return <IconComponent className="opacity-80 mr-0.5 size-3.5" />
 							}
 							return (
 								<span

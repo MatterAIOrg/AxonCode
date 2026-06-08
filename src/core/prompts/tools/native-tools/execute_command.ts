@@ -23,6 +23,11 @@ export default {
 					description:
 						"A clear, concise one-line description of what the command does, shown to the user for approval (e.g. 'Install project dependencies with npm')",
 				},
+				isDangerous: {
+					type: "boolean",
+					description:
+						"Set true when the command is potentially destructive or irreversible — e.g. deletes/overwrites files (rm, mv over existing paths), force-pushes or resets git history, drops/migrates databases, changes system/network/permission state, installs globally, or sends data to external services. Set false for safe read-only or routine commands (ls, cat, build, test, install local deps). The user's selected approval mode may auto-approve only commands marked false.",
+				},
 			},
 			required: ["command"],
 			additionalProperties: false,

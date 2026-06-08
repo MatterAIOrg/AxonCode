@@ -384,40 +384,15 @@ export async function presentAssistantMessage(cline: Task) {
 					if (state?.yoloMode) {
 						return true
 					}
-					// kilocode_change start: auto-approve all commands for current task
-					if (type === "command" && cline.autoApproveAllCommands) {
-						// Mirror the non-command auto-approve path: surface the final UI row
-						// (so the user can see what ran) and resolve the pending ask without
-						// blocking on a real user response. Without this, the partial command
-						// message is never marked complete and subsequent commands keep their
-						// Run/Cancel UI visible because the previous ask never resolved.
-						if (partialMessage) {
-							setImmediate(() => {
-								try {
-									cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
-								} catch {
-									// best-effort; never let the auto-approval poke crash the flow
-								}
-							})
-							await cline
-								.ask(type, partialMessage, false, progressStatus, isProtected || false)
-								.catch(() => {})
-						}
-						return true
-					}
-					// kilocode_change end
 					// forked_change end
 
-					// forked_change start: only `execute_command` (ask type "command") ever
-					// surfaces a Run/Cancel prompt. Every other tool — file edits, MCP, web,
-					// browser actions, etc. — must auto-approve. We still surface the tool's
-					// final UI row (so the user can see what ran), but we never block on a
-					// real user response: setImmediate posts a "yesButtonClicked" right
-					// after the ask starts waiting, and we .catch() any race-condition
-					// throw (e.g. "Current ask promise was ignored") so the tool flow can
-					// always continue. This pattern mirrors what webFetchTool / readFileTool
-					// were already doing inline; centralising it here protects every tool.
-					if (type !== "command") {
+					// forked_change start: auto-approve a tool without blocking on a real user
+					// response. We still surface the tool's final UI row (so the user can see
+					// what ran), but setImmediate posts a "yesButtonClicked" right after the ask
+					// starts waiting, and we .catch() any race-condition throw (e.g. "Current ask
+					// promise was ignored") so the tool flow can always continue. This mirrors
+					// what webFetchTool / readFileTool were already doing inline.
+					const autoApproveWithoutBlocking = async () => {
 						if (partialMessage) {
 							setImmediate(() => {
 								try {
@@ -432,6 +407,28 @@ export async function presentAssistantMessage(cline: Task) {
 								.catch(() => {})
 						}
 						return true
+					}
+
+					// Only `execute_command` (ask type "command") ever surfaces a Run/Cancel
+					// prompt. Every other tool — file edits, MCP, web, browser actions, etc. —
+					// always auto-approves.
+					if (type !== "command") {
+						return autoApproveWithoutBlocking()
+					}
+
+					// Command approval mode, selected from the chat textarea dropdown:
+					//   "fullAccess"   → auto-approve every command (also covers the per-task
+					//                    "Run Everything" toggle, autoApproveAllCommands)
+					//   "approveForMe" → auto-approve commands the model marked non-dangerous
+					//                    via the `isDangerous` param (default)
+					//   "ask"          → always prompt before running
+					const commandApprovalMode = state?.commandApprovalMode ?? "approveForMe"
+					const fullCommandAccess = commandApprovalMode === "fullAccess" || cline.autoApproveAllCommands
+					const approveBecauseSafe =
+						commandApprovalMode === "approveForMe" && !cline.pendingCommandIsDangerous
+
+					if (fullCommandAccess || approveBecauseSafe) {
+						return autoApproveWithoutBlocking()
 					}
 					// forked_change end
 

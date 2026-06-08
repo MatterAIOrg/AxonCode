@@ -11,6 +11,57 @@ import Anthropic from "@anthropic-ai/sdk" // kilocode_change
 export type McpToolChecker = (toolName: string) => { isMcpTool: boolean; serverName?: string } | undefined
 
 /**
+ * Parse a native tool-call `arguments` JSON string robustly.
+ *
+ * CRITICAL: valid JSON must be parsed VERBATIM so that escape sequences are
+ * decoded exactly once. A previous implementation always ran a "quote the
+ * unquoted value" regex BEFORE parsing. That regex also matched `"key": value`
+ * patterns *inside* string values — e.g. source code such as
+ * `"Content-Type": mimeType,` embedded in a `new_string` — which turned valid
+ * JSON into invalid JSON. The resulting `JSON.parse` failure forced a fallback
+ * to regex-based partial extraction that preserved literal "\n" instead of the
+ * intended real newline, corrupting edits (e.g. `\n\n` written into files).
+ *
+ * Strategy:
+ *   1. Only attempt parsing once the buffer looks like JSON (`{`/`[`).
+ *   2. Try strict `JSON.parse` first. This is the ONLY path valid JSON ever
+ *      takes, so well-formed arguments are never mutated.
+ *   3. Only if strict parsing throws do we attempt a conservative repair for
+ *      genuinely-malformed JSON (unquoted scalar values like
+ *      `{"file_pattern": *.js}`) and parse once more.
+ *
+ * @returns `{ parsed }` when complete & valid, or `undefined` when the buffer is
+ *   not yet valid JSON (caller should keep accumulating streaming deltas).
+ */
+export function tryParseToolArguments(rawArgs: string): { parsed: any } | undefined {
+	const trimmed = rawArgs.trim()
+	// During streaming, arguments may begin as natural-language text; wait until
+	// the buffer actually looks like a JSON object/array before parsing.
+	if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+		return undefined
+	}
+
+	try {
+		// Strict, verbatim parse — the happy path for all well-formed JSON.
+		return { parsed: JSON.parse(rawArgs) }
+	} catch {
+		// Strict parse failed. This is either (a) an incomplete buffer that is
+		// still streaming, or (b) genuinely malformed JSON. Attempt a single
+		// conservative repair (quote bare scalar values) and parse again. Because
+		// this only runs after a strict failure, it can never corrupt valid JSON.
+		try {
+			const repaired = rawArgs.replace(/("([^"]+)"\s*:\s*)([a-zA-Z0-9_.*\/\\-]+)(?=\s*[,\]}])/g, '$1"$3"')
+			if (repaired !== rawArgs) {
+				return { parsed: JSON.parse(repaired) }
+			}
+		} catch {
+			// Repair did not yield valid JSON either — fall through.
+		}
+		return undefined
+	}
+}
+
+/**
  * Parser for assistant messages. Maintains state between chunks
  * to avoid reprocessing the entire message on each update.
  */
@@ -262,34 +313,23 @@ export class AssistantMessageParser {
 				continue
 			}
 
-			// Try to parse the arguments - if successful, the tool call is complete
+			// Try to parse the arguments - if successful, the tool call is complete.
+			// tryParseToolArguments parses valid JSON VERBATIM (escapes decoded
+			// exactly once) and only repairs genuinely-malformed JSON; it never
+			// throws — it returns undefined while the buffer is still incomplete.
 			let isComplete = false
 			let parsedArgs: Record<string, any> = {}
 
-			try {
-				if (accumulatedCall.function!.arguments.trim()) {
-					// Fix common JSON formatting issues before parsing
-					let fixedArgs = accumulatedCall.function!.arguments
+			const parseResult = accumulatedCall.function!.arguments.trim()
+				? tryParseToolArguments(accumulatedCall.function!.arguments)
+				: undefined
 
-					// Fix unquoted string values in JSON (e.g., file_pattern:*.js -> file_pattern:"*.js")
-					// This regex looks for property names followed by colon and unquoted values that contain word characters, dots, asterisks, etc.
-					fixedArgs = fixedArgs.replace(/("([^"]+)"\s*:\s*)([a-zA-Z0-9_.*\/\\-]+)(?=\s*[,\]}])/g, '$1"$3"')
-
-					// Only attempt to parse if arguments look like JSON (start with { or [)
-					// During streaming, arguments may contain natural language text initially
-					const trimmedArgs = fixedArgs.trim()
-					if (trimmedArgs.startsWith("{") || trimmedArgs.startsWith("[")) {
-						parsedArgs = JSON.parse(fixedArgs)
-
-						// Fix any double-encoded parameters
-						parsedArgs = parseDoubleEncodedParams(parsedArgs)
-
-						isComplete = true
-					}
-					// If arguments don't look like JSON yet, continue accumulating (don't mark as complete)
-				}
-			} catch (error) {
-				// Arguments are not yet complete valid JSON, continue accumulating
+			if (parseResult) {
+				// Fix any double-encoded parameters
+				parsedArgs = parseDoubleEncodedParams(parseResult.parsed)
+				isComplete = true
+			} else {
+				// Arguments are not yet complete valid JSON, continue accumulating.
 				// forked_change: Update the partial tool use block with new partial params
 				if (this.emittedPartialNativeToolCalls.has(toolCallId)) {
 					// Find the partial tool use in content blocks and update its params
@@ -624,16 +664,17 @@ export class AssistantMessageParser {
 			}
 
 			// Helper: Remove any previously emitted partial block for this tool call.
-			// This is critical because finalizeContentBlocks() will mark all remaining
-			// partial blocks as partial:false, which would cause the incomplete partial
-			// to be executed as if it were complete (with missing required params like file_path).
+			// This is critical because by the time finalization runs, Task.ts has
+			// already flipped every remaining partial block to partial:false
+			// (Task.ts:2710-2711). We therefore MUST match the stale block by
+			// toolUseId only — matching on `partial === true` would silently miss
+			// it, leaving a corrupt block (built from regex-extracted partial params
+			// that preserve literal "\n") alongside the correctly-parsed block, so
+			// BOTH get executed and the edit is corrupted.
 			const removePartialBlock = () => {
 				if (this.emittedPartialNativeToolCalls.has(toolCallId)) {
 					const partialIndex = this.contentBlocks.findIndex(
-						(block) =>
-							block.type === "tool_use" &&
-							(block as ToolUse).toolUseId === toolCallId &&
-							(block as ToolUse).partial === true,
+						(block) => block.type === "tool_use" && (block as ToolUse).toolUseId === toolCallId,
 					)
 					if (partialIndex !== -1) {
 						this.contentBlocks.splice(partialIndex, 1)
@@ -642,29 +683,25 @@ export class AssistantMessageParser {
 				}
 			}
 
-			// Try to parse the arguments one final time
-			let parsedArgs: Record<string, any> = {}
-			try {
-				if (accumulatedCall.function?.arguments?.trim()) {
-					// Only attempt to parse if arguments look like JSON (start with { or [)
-					const trimmedArgs = accumulatedCall.function.arguments.trim()
-					if (trimmedArgs.startsWith("{") || trimmedArgs.startsWith("[")) {
-						parsedArgs = JSON.parse(accumulatedCall.function.arguments)
-						parsedArgs = parseDoubleEncodedParams(parsedArgs)
-					}
-					// If arguments don't look like JSON, parsedArgs remains empty object
-				}
-			} catch (error) {
+			// Try to parse the arguments one final time. Use the same raw-first
+			// helper as the streaming path so valid JSON is decoded verbatim and
+			// never mutated by the lenient repair regex.
+			const finalParse = accumulatedCall.function?.arguments?.trim()
+				? tryParseToolArguments(accumulatedCall.function.arguments)
+				: { parsed: {} }
+
+			if (!finalParse) {
 				// Arguments are still not valid JSON — remove the partial block so it
 				// doesn't get executed with incomplete params after finalizeContentBlocks
 				// marks it as partial:false
 				console.warn(
 					`[AssistantMessageParser] Failed to parse accumulated tool call at finalization: ${toolCallId}`,
-					error,
 				)
 				removePartialBlock()
 				continue
 			}
+
+			const parsedArgs: Record<string, any> = parseDoubleEncodedParams(finalParse.parsed)
 
 			// Finalize any current text content before adding tool use
 			if (this.currentTextContent) {

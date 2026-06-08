@@ -230,6 +230,7 @@ export interface WebviewMessage {
 		| "showAutoApproveMenu" // kilocode_change
 		| "reportBug" // kilocode_change
 		| "autoApproveAllCommands" // kilocode_change: auto-approve all commands for current task
+		| "commandApprovalMode" // forked_change: command approval mode selected from the chat textarea
 		| "profileButtonClicked" // kilocode_change
 		| "fetchProfileDataRequest" // kilocode_change
 		| "profileDataResponse" // kilocode_change
@@ -342,6 +343,10 @@ export interface WebviewMessage {
 		| "memories_response"
 		| "delete_memory"
 		| "memory_deleted"
+		| "speechToTextRequest" // kilocode_change: audio transcription request
+		| "speechToTextResponse" // kilocode_change: audio transcription response
+		| "startSpeechRecording" // kilocode_change: start extension-host mic capture
+		| "stopSpeechRecording" // kilocode_change: stop extension-host mic capture
 		| "maximizeSideBar"
 		| "minimizeSideBar"
 		| "openSideBar"
