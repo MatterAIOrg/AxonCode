@@ -25,10 +25,10 @@ import { cn } from "@/lib/utils"
 import { renderMentionChip, renderSlashCommandChip } from "@/utils/chat-render"
 import { MessageSquareX, VolumeX } from "lucide-react"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
-import KiloModeSelector from "../kilocode/KiloModeSelector"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
 import { useSelectedModel } from "../ui/hooks/useSelectedModel"
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
+import CommandApprovalSelector from "./CommandApprovalSelector" // forked_change
 import ContextMenu from "./ContextMenu"
 import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
 import { ImageWarningBanner } from "./ImageWarningBanner" // kilocode_change
@@ -112,7 +112,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		// kilocode_change: audio transcription hook
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const { recorderState, startRecording, stopRecording, error: recorderError } = useAudioRecorder((text: string) => {
+		const {
+			recorderState,
+			startRecording,
+			stopRecording,
+			error: recorderError,
+		} = useAudioRecorder((text: string) => {
 			// Functional update: transcript chunks arrive asynchronously while
 			// recording, so append against the latest value (not a stale closure).
 			setInputValue((prev) => (prev ? `${prev} ${text}` : text))
@@ -1621,14 +1626,14 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				{/* Bottom controls section */}
 				<div className="flex items-center justify-between px-2 pb-1.5 pt-0 shrink-0">
 					<div className="flex items-center gap-1 min-w-0">
-						<div className="shrink-0">
+						{/* <div className="shrink-0">
 							<KiloModeSelector
 								value={mode}
 								onChange={setMode}
 								modeShortcutText={modeShortcutText}
 								customModes={customModes}
 							/>
-						</div>
+						</div> */}
 						{apiConfiguration && (
 							<div className="mt-1 w-auto overflow-hidden min-w-0" data-testid="model-selector">
 								<ModelSelector
@@ -1638,6 +1643,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								/>
 							</div>
 						)}
+						{/* forked_change: command approval mode selector */}
+						<div className="shrink-0 ml-1" data-testid="command-approval-selector">
+							<CommandApprovalSelector />
+						</div>
 					</div>
 					<div className="flex items-center gap-0">
 						{!isEditMode && (

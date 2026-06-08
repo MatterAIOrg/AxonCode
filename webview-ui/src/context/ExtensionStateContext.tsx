@@ -45,6 +45,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	dismissedNotificationIds: string[] // kilocode_change
 	yoloMode?: boolean // kilocode_change
 	setYoloMode: (value: boolean) => void // kilocode_Change
+	commandApprovalMode?: "ask" | "approveForMe" | "fullAccess" // forked_change
+	setCommandApprovalMode: (value: "ask" | "approveForMe" | "fullAccess") => void // forked_change
 	diffViewMode?: "unified" | "side-by-side" // GitHub PR diff view mode
 	setDiffViewMode: (value: "unified" | "side-by-side") => void // Setter for diff view mode
 	didHydrateState: boolean
@@ -290,6 +292,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		customCondensingPrompt: "", // Default empty string for custom condensing prompt
 		hasOpenedModeSelector: false, // Default to false (not opened yet)
 		autoApprovalEnabled: true,
+		commandApprovalMode: "approveForMe", // forked_change: default to auto-approving safe commands
 		customModes: [],
 		maxOpenTabsContext: 20,
 		maxWorkspaceFiles: 200,
@@ -651,6 +654,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setHoveringTaskTimeline: (value) => setState((prevState) => ({ ...prevState, hoveringTaskTimeline: value })),
 		setShowTimestamps: (value) => setState((prevState) => ({ ...prevState, showTimestamps: value })),
 		setYoloMode: (value) => setState((prevState) => ({ ...prevState, yoloMode: value })), // kilocode_change
+		setCommandApprovalMode: (value) => setState((prevState) => ({ ...prevState, commandApprovalMode: value })), // forked_change
 		// forked_change end
 		setAutoApprovalEnabled: (value) => setState((prevState) => ({ ...prevState, autoApprovalEnabled: value })),
 		setCustomModes: (value) => setState((prevState) => ({ ...prevState, customModes: value })),

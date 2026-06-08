@@ -139,6 +139,21 @@
 		"noResults": "No results found",
 		"organizationModes": "Organization Modes"
 	},
+	"commandApproval": {
+		"title": "Command approval",
+		"ask": {
+			"label": "Ask for Approval",
+			"description": "Prompt before running every command."
+		},
+		"approveForMe": {
+			"label": "Approve for me",
+			"description": "Auto-approve safe commands; ask before dangerous ones."
+		},
+		"fullAccess": {
+			"label": "Full Access",
+			"description": "Auto-approve every command without asking."
+		}
+	},
 	"enhancePromptDescription": "The 'Enhance Prompt' button helps improve your prompt by providing additional context, clarification, or rephrasing. Try typing a prompt in here and clicking the button again to see how it works.",
 	"addImages": "Add images to message",
 	"sendMessage": "Send message",
