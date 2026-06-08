@@ -10,7 +10,7 @@ import { getReadablePath } from "../../utils/path"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { formatResponse } from "../prompts/responses"
 import { Task } from "../task/Task"
-import { calculateEditLineNumber, performReplacement, truncatePreview, unescapeString } from "./fileEditTool"
+import { calculateEditLineNumber, performReplacement, truncatePreview } from "./fileEditTool"
 
 type ReplacementResult = {
 	content: string
@@ -216,14 +216,23 @@ export async function multiFileEditTool(
 			// This ensures earlier edits don't affect line numbers of later ones
 			const editPositions: Array<{ index: number; edit: EditItem; position: number }> = []
 			for (const { index, edit } of fileEdits) {
-				// Use unescaped string for position calculation
-				const unescapedOldString = unescapeString(edit.old_string)
-				const pos = currentContent.indexOf(unescapedOldString)
+				// Best-effort position for bottom-to-top ordering only; the
+				// authoritative match happens in performReplacement below.
+				// Use the raw string verbatim — escape sequences were already
+				// decoded at the transport boundary (JSON.parse for native tool
+				// calls), so re-decoding here would corrupt literal escapes.
+				const pos = currentContent.indexOf(edit.old_string)
 				editPositions.push({ index, edit, position: pos >= 0 ? pos : Infinity })
 			}
 
 			// Sort by position descending (bottom to top)
 			editPositions.sort((a, b) => b.position - a.position)
+
+			// Tracks new_string values already written to this file so we can
+			// reject a later edit whose old_string targets text a prior edit just
+			// inserted (which would mean the edit matched freshly-added content
+			// rather than the original file). Mirrors Claude Code's guard.
+			const appliedNewStrings: string[] = []
 
 			// Apply edits in order
 			for (const { index, edit } of editPositions) {
@@ -231,17 +240,35 @@ export async function multiFileEditTool(
 					edit.replace_all === true || String(edit.replace_all) === "true" || String(edit.replace_all) === "1"
 
 				try {
-					// Unescape the old_string and new_string to handle escape sequences
-					// that may have been sent as literal text (e.g., \n, \", etc.)
-					const unescapedOldString = unescapeString(edit.old_string)
-					const unescapedNewString = unescapeString(edit.new_string)
+					// Guard: an old_string that is a substring of a previously-applied
+					// new_string almost certainly matches inserted text, not the
+					// original file. Fail this edit loudly rather than corrupt.
+					const oldStringToCheck = edit.old_string.replace(/\n+$/, "")
+					if (oldStringToCheck !== "" && appliedNewStrings.some((s) => s.includes(oldStringToCheck))) {
+						throw new Error(
+							"old_string is a substring of a new_string from a previous edit to this file. " +
+								"Edits must each target the original file content; reorder or rewrite this edit.",
+						)
+					}
+
+					// Pass old_string and new_string VERBATIM. Escape sequences were
+					// already decoded once at the transport boundary (JSON.parse for
+					// native tool calls; raw text for XML). Decoding again here would
+					// turn a literal "\n" in source code into a real newline and vice
+					// versa. performReplacement locates old_string leniently (it tries
+					// escaped/unescaped variants) and writes new_string byte-for-byte,
+					// so this matches the single-edit file_edit tool exactly.
 					const replacement = performReplacement(
 						currentContent,
-						unescapedOldString,
-						unescapedNewString,
+						edit.old_string,
+						edit.new_string,
 						replaceAll,
 					)
 					const newContent = replacement.content
+
+					// Record what we wrote so the substring guard above can vet
+					// subsequent edits against freshly-inserted text.
+					appliedNewStrings.push(edit.new_string)
 
 					if (newContent === currentContent) {
 						results.push({

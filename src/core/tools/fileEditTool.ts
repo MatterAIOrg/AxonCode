@@ -261,6 +261,69 @@ async function validateParams(
 	return true
 }
 
+type ReplacerScanResult = {
+	/** A concrete, applicable replacement (unique match found). */
+	result?: ReplacementResult
+	/** A matching candidate was located (possibly more than one). */
+	sawMatch: boolean
+	/** A match existed but was not unique (and replaceAll was false). */
+	sawAmbiguousMatch: boolean
+}
+
+/**
+ * Run a set of replacers and apply the first unique match found.
+ * Does not throw — reports what it observed so the caller can decide how to
+ * proceed (apply, fail loudly, or escalate to a different replacer set).
+ */
+function scanReplacers(
+	content: string,
+	oldString: string,
+	newString: string,
+	replaceAll: boolean,
+	replacers: Replacer[],
+): ReplacerScanResult {
+	let sawMatch = false
+	let sawAmbiguousMatch = false
+
+	for (const replacer of replacers) {
+		const candidates = Array.from(new Set(replacer(content, oldString)))
+		for (const candidate of candidates) {
+			if (!candidate) continue
+			const firstIndex = content.indexOf(candidate)
+			if (firstIndex === -1) continue
+
+			sawMatch = true
+
+			if (replaceAll) {
+				const occurrences = countOccurrences(content, candidate)
+				if (occurrences === 0) continue
+				return {
+					result: { content: content.split(candidate).join(newString), replacements: occurrences },
+					sawMatch,
+					sawAmbiguousMatch,
+				}
+			}
+
+			const lastIndex = content.lastIndexOf(candidate)
+			if (firstIndex === lastIndex) {
+				return {
+					result: {
+						content:
+							content.slice(0, firstIndex) + newString + content.slice(firstIndex + candidate.length),
+						replacements: 1,
+					},
+					sawMatch,
+					sawAmbiguousMatch,
+				}
+			}
+
+			sawAmbiguousMatch = true
+		}
+	}
+
+	return { sawMatch, sawAmbiguousMatch }
+}
+
 export function performReplacement(
 	content: string,
 	oldString: string,
@@ -271,55 +334,42 @@ export function performReplacement(
 		return { content: newString, replacements: newString === content ? 0 : 1 }
 	}
 
-	let foundMatch = false
-	let sawAmbiguousMatch = false
-
-	for (const replacer of REPLACERS) {
-		const candidates = Array.from(new Set(replacer(content, oldString)))
-		for (const candidate of candidates) {
-			if (!candidate) continue
-			const firstIndex = content.indexOf(candidate)
-			if (firstIndex === -1) continue
-
-			foundMatch = true
-
-			if (replaceAll) {
-				const occurrences = countOccurrences(content, candidate)
-				if (occurrences === 0) continue
-				return {
-					content: content.split(candidate).join(newString),
-					replacements: occurrences,
-				}
-			}
-
-			const lastIndex = content.lastIndexOf(candidate)
-			if (firstIndex === lastIndex) {
-				return {
-					content: content.slice(0, firstIndex) + newString + content.slice(firstIndex + candidate.length),
-					replacements: 1,
-				}
-			}
-
-			sawAmbiguousMatch = true
-		}
+	// Phase 1 — SAFE replacers. These locate old_string by exact match or by
+	// normalizing whitespace / indentation / line-endings / structure. None of
+	// them transform escape *sequences*, so applying their match and writing
+	// new_string verbatim cannot silently corrupt characters like "\n".
+	const safe = scanReplacers(content, oldString, newString, replaceAll, SAFE_REPLACERS)
+	if (safe.result) {
+		return safe.result
 	}
-
-	if (!foundMatch) {
-		// Provide helpful debug info
-		const preview = oldString.length > 100 ? oldString.slice(0, 100) + "..." : oldString
-		const contentPreview = content.length > 200 ? content.slice(0, 200) + "..." : content
-		throw new Error(
-			`old_string not found in file content.\n` +
-				`Searched for (${oldString.length} chars): ${JSON.stringify(preview)}\n` +
-				`File starts with: ${JSON.stringify(contentPreview)}`,
-		)
-	}
-
-	if (sawAmbiguousMatch && !replaceAll) {
+	if (safe.sawAmbiguousMatch && !replaceAll) {
 		throw new Error("old_string matched multiple locations. Provide more context or set replace_all to true.")
 	}
 
-	throw new Error("Unable to apply replacement. Provide additional context for old_string.")
+	// Phase 2 — ESCAPE-FUZZY detection. If old_string can ONLY be located by
+	// normalizing escape sequences (e.g. a literal "\n" in old_string vs a real
+	// newline in the file, or vice-versa), we deliberately do NOT apply the edit.
+	// Writing new_string verbatim against an escape-mismatched region is the
+	// classic silent-corruption vector that turns intended newlines into literal
+	// "\n" (and back). Fail loudly with an actionable message instead — Claude
+	// Code's "match exactly or fail" property.
+	const escapeFuzzy = scanReplacers(content, oldString, newString, replaceAll, ESCAPE_FUZZY_REPLACERS)
+	if (escapeFuzzy.sawMatch) {
+		throw new Error(
+			"old_string was found only after normalizing escape sequences (e.g. a literal \\n vs a real newline). " +
+				"The edit was NOT applied to avoid corrupting the file. Re-send old_string copied verbatim from the " +
+				"file — matching its actual newlines, tabs, and quote escaping — then retry.",
+		)
+	}
+
+	// Not found by any strategy.
+	const preview = oldString.length > 100 ? oldString.slice(0, 100) + "..." : oldString
+	const contentPreview = content.length > 200 ? content.slice(0, 200) + "..." : content
+	throw new Error(
+		`old_string not found in file content.\n` +
+			`Searched for (${oldString.length} chars): ${JSON.stringify(preview)}\n` +
+			`File starts with: ${JSON.stringify(contentPreview)}`,
+	)
 }
 
 function countOccurrences(haystack: string, needle: string): number {
@@ -864,16 +914,25 @@ export function calculateEditLineNumber(content: string, oldString: string): num
 const SINGLE_CANDIDATE_SIMILARITY_THRESHOLD = 0
 const MULTIPLE_CANDIDATES_SIMILARITY_THRESHOLD = 0.3
 
-const REPLACERS: Replacer[] = [
+// SAFE replacers: locate old_string without transforming escape sequences.
+// Exact match first, then whitespace/indentation/line-ending/structure-aware
+// strategies. A match from any of these can be applied (writing new_string
+// verbatim) with no risk of silently rewriting "\n"-style escapes.
+const SAFE_REPLACERS: Replacer[] = [
 	simpleReplacer,
-	sourceCodeEscapeReplacer,
 	flexibleSubstringReplacer,
 	lineTrimmedReplacer,
 	blockAnchorReplacer,
 	whitespaceNormalizedReplacer,
 	indentationFlexibleReplacer,
-	escapeNormalizedReplacer,
 	trimmedBoundaryReplacer,
 	contextAwareReplacer,
 	multiOccurrenceReplacer,
 ]
+
+// ESCAPE-FUZZY replacers: match by normalizing escape sequences (literal "\n"
+// vs real newline, escaped quotes, etc.). These are NEVER applied — a match
+// here means old_string's escaping disagrees with the file, which is exactly
+// the condition that produces silent file corruption. performReplacement uses
+// them only to detect that case and fail loudly with guidance.
+const ESCAPE_FUZZY_REPLACERS: Replacer[] = [sourceCodeEscapeReplacer, escapeNormalizedReplacer]
