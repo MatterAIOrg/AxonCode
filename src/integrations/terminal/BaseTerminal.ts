@@ -15,6 +15,12 @@ export abstract class BaseTerminal implements RooTerminal {
 	public readonly id: number
 	public readonly initialCwd: string
 
+	// Tracks the working directory as it changes across commands (e.g. `cd`).
+	// Unlike a real persistent shell, the execa provider spawns a fresh
+	// subprocess per command, so we capture the post-command cwd and feed it
+	// into the next command. See ExecaTerminalProcess.
+	protected currentCwd: string
+
 	public busy: boolean
 	public running: boolean
 	protected streamClosed: boolean
@@ -27,13 +33,18 @@ export abstract class BaseTerminal implements RooTerminal {
 		this.provider = provider
 		this.id = id
 		this.initialCwd = cwd
+		this.currentCwd = cwd
 		this.busy = false
 		this.running = false
 		this.streamClosed = false
 	}
 
 	public getCurrentWorkingDirectory(): string {
-		return this.initialCwd
+		return this.currentCwd
+	}
+
+	public setCurrentWorkingDirectory(cwd: string): void {
+		this.currentCwd = cwd
 	}
 
 	abstract isClosed(): boolean

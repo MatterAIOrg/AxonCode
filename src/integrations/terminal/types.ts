@@ -10,6 +10,7 @@ export interface RooTerminal {
 	taskId?: string
 	process?: RooTerminalProcess
 	getCurrentWorkingDirectory(): string
+	setCurrentWorkingDirectory(cwd: string): void
 	isClosed: () => boolean
 	runCommand: (command: string, callbacks: RooTerminalCallbacks) => RooTerminalProcessResultPromise
 	setActiveStream(stream: AsyncIterable<string> | undefined, pid?: number): void

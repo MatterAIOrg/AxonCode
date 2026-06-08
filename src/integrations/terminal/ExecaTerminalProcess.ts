@@ -1,6 +1,9 @@
 import { execa, ExecaError } from "execa"
 import psTree from "ps-tree"
 import process from "process"
+import os from "os"
+import path from "path"
+import { readFileSync, unlinkSync } from "fs"
 
 import type { RooTerminal } from "./types"
 import { BaseTerminalProcess } from "./BaseTerminalProcess"
@@ -12,6 +15,7 @@ export class ExecaTerminalProcess extends BaseTerminalProcess {
 	private pid?: number
 	private subprocess?: ReturnType<typeof execa>
 	private pidUpdatePromise?: Promise<void>
+	private cwdFilePath?: string
 
 	constructor(terminal: RooTerminal) {
 		super()
@@ -43,12 +47,28 @@ export class ExecaTerminalProcess extends BaseTerminalProcess {
 			// default /bin/sh so that shell syntax matches user expectations.
 			// On Windows, process.env already carries the full system PATH;
 			// using shell:true (cmd.exe) is the safest default there.
-			const shellPath = process.platform === "win32" ? true : getCapturedShell()
+			const isWindows = process.platform === "win32"
+			const shellPath = isWindows ? true : getCapturedShell()
 
 			// Use the captured login-shell environment so that CLI tools
 			// installed via Homebrew, nvm, cargo, etc. are on PATH even when
 			// VS Code was launched from the macOS Dock/Finder.
 			const shellEnv = getShellEnvironment()
+
+			// Each command runs in a fresh subprocess, so cwd changes (e.g.
+			// `cd`) would normally be lost. Append `pwd -P` after the command
+			// to record the final working directory, then persist it for the
+			// next command (see end of run()). Mirrors how Claude Code's Bash
+			// tool tracks cwd. POSIX-only — cmd.exe has no `pwd -P`/`>|`.
+			let commandToRun = command
+
+			if (!isWindows) {
+				const uid = `${Date.now()}-${Math.floor(Math.random() * 0x10000).toString(16)}`
+				this.cwdFilePath = path.join(os.tmpdir(), `mattercode-${uid}-cwd`)
+				// Preserve the user command's exit code while always recording
+				// the cwd (the `pwd` line runs regardless of the command's result).
+				commandToRun = `${command}\n__MC_EXIT=$?; pwd -P >| '${this.cwdFilePath}' 2>/dev/null; exit $__MC_EXIT`
+			}
 
 			this.subprocess = execa({
 				shell: shellPath,
@@ -57,11 +77,14 @@ export class ExecaTerminalProcess extends BaseTerminalProcess {
 				stdin: "ignore", // kilocode_change: ignore stdin to prevent blocking
 				env: {
 					...shellEnv,
+					// Never let git open an interactive editor (commit/rebase/etc.),
+					// which would hang the non-interactive subprocess forever.
+					GIT_EDITOR: "true",
 					// Ensure UTF-8 encoding for Ruby, CocoaPods, etc.
 					LANG: "en_US.UTF-8",
 					LC_ALL: "en_US.UTF-8",
 				},
-			})`${command}`
+			})`${commandToRun}`
 
 			this.pid = this.subprocess.pid
 
@@ -153,6 +176,24 @@ export class ExecaTerminalProcess extends BaseTerminalProcess {
 				this.emit("shell_execution_complete", { exitCode: 1 })
 			}
 			this.subprocess = undefined
+		}
+
+		// Persist any working-directory change (e.g. from `cd`) so the next
+		// command in this terminal starts from where this one ended.
+		if (this.cwdFilePath) {
+			try {
+				const newCwd = readFileSync(this.cwdFilePath, "utf8").trim()
+				if (newCwd) {
+					this.terminal.setCurrentWorkingDirectory(newCwd)
+				}
+			} catch {
+				// File may not exist if the command failed before `pwd` ran.
+			} finally {
+				try {
+					unlinkSync(this.cwdFilePath)
+				} catch {}
+				this.cwdFilePath = undefined
+			}
 		}
 
 		this.terminal.setActiveStream(undefined)
