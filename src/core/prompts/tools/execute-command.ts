@@ -6,10 +6,12 @@ Description: Request to execute a CLI command on the system. Use this when you n
 Parameters:
 - command: (required) The CLI command to execute. This should be valid for the current operating system. Ensure the command is properly formatted and does not contain any harmful instructions.
 - cwd: (optional) The working directory to execute the command in (default: ${args.cwd})
+- isDangerous: (optional) Set to "true" when the command is potentially destructive or irreversible (e.g. deletes/overwrites files, force-pushes or resets git history, drops/migrates databases, changes system/network/permission state, installs globally, or sends data to external services). Set to "false" for safe read-only or routine commands. The user's selected approval mode may auto-approve only commands marked "false".
 Usage:
 <execute_command>
 <command>Your command here</command>
 <cwd>Working directory path (optional)</cwd>
+<isDangerous>true or false (optional)</isDangerous>
 </execute_command>
 
 Example: Requesting to execute npm run dev
