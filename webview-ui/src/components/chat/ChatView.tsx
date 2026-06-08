@@ -1435,11 +1435,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		[mcpServers],
 	)
 
+	/**
+	 * Extracts the actual command from the ask message text.
+	 * The ask text may include:
+	 * - MESSAGE prefix: "MESSAGE:custom message\n---\ncommand"
+	 * - Output suffix: "command\nOutput:\noutput text"
+	 */
+	const extractCommandFromAskText = (text: string): string => {
+		if (!text) return ""
+		let command = text
+		if (command.startsWith("MESSAGE:")) {
+			const separatorIdx = command.indexOf("\n---\n")
+			if (separatorIdx !== -1) {
+				command = command.slice(separatorIdx + 5)
+			}
+		}
+		const outputIdx = command.lastIndexOf("\nOutput:")
+		if (outputIdx !== -1) {
+			command = command.slice(0, outputIdx)
+		}
+		return command.trim()
+	}
+
 	// Get the command decision using unified validation logic
 	const getCommandDecisionForMessage = useCallback(
 		(message: ClineMessage | undefined): CommandDecision => {
 			if (message?.type !== "ask") return "ask_user"
-			return getCommandDecision(message.text || "", allowedCommands || [], deniedCommands || [])
+			const commandText = extractCommandFromAskText(message.text || "")
+			return getCommandDecision(commandText, allowedCommands || [], deniedCommands || [])
 		},
 		[allowedCommands, deniedCommands],
 	)
@@ -1475,7 +1498,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			if (!command || !deniedCommands?.length) return null
 
 			// Parse the command into sub-commands and check each one
-			const subCommands = parseCommand(command)
+			const actualCommand = extractCommandFromAskText(command)
+			const subCommands = parseCommand(actualCommand)
 			for (const cmd of subCommands) {
 				const deniedMatch = findLongestPrefixMatch(cmd, deniedCommands)
 				if (deniedMatch) {
