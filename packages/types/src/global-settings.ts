@@ -62,6 +62,10 @@ export const globalSettingsSchema = z.object({
 
 	autoApprovalEnabled: z.boolean().optional(),
 	yoloMode: z.boolean().optional(), // kilocode_change
+	// forked_change: per-task command approval mode selected from the chat textarea.
+	// "ask" = prompt before every command, "approveForMe" = auto-approve commands the
+	// model marks as non-dangerous, "fullAccess" = auto-approve every command.
+	commandApprovalMode: z.enum(["ask", "approveForMe", "fullAccess"]).optional(),
 	alwaysAllowReadOnly: z.boolean().optional(),
 	alwaysAllowReadOnlyOutsideWorkspace: z.boolean().optional(),
 	alwaysAllowWrite: z.boolean().optional(),

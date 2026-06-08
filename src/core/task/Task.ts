@@ -235,6 +235,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	private readonly globalStoragePath: string
 	abort: boolean = false
 	autoApproveAllCommands: boolean = false // kilocode_change: auto-approve all commands for current task
+	// forked_change: danger flag for the command currently awaiting approval, set by
+	// executeCommandTool from the model's `isDangerous` param. Read by the command
+	// branch of askApproval so the "Approve for me" mode auto-approves only safe commands.
+	pendingCommandIsDangerous: boolean = false
 
 	// TaskStatus
 	idleAsk?: ClineMessage

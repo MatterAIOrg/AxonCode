@@ -2872,6 +2872,22 @@ ${comment.suggestion}
 			await provider.postStateToWebview()
 			break
 		// forked_change end
+		// forked_change start: command approval mode selected from the chat textarea
+		case "commandApprovalMode": {
+			const mode = message.text === "ask" || message.text === "fullAccess" ? message.text : "approveForMe"
+			await updateGlobalState("commandApprovalMode", mode)
+			// Switching away from "Full Access" should also clear the per-task
+			// "Run Everything" override so the new mode takes effect immediately.
+			if (mode !== "fullAccess") {
+				const currentTask = provider.getCurrentTask()
+				if (currentTask) {
+					currentTask.autoApproveAllCommands = false
+				}
+			}
+			await provider.postStateToWebview()
+			break
+		}
+		// forked_change end
 		// forked_change start: auto-approve all commands for current task
 		case "autoApproveAllCommands": {
 			const currentTask = provider.getCurrentTask()

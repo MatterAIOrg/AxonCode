@@ -230,6 +230,7 @@ export interface WebviewMessage {
 		| "showAutoApproveMenu" // kilocode_change
 		| "reportBug" // kilocode_change
 		| "autoApproveAllCommands" // kilocode_change: auto-approve all commands for current task
+		| "commandApprovalMode" // forked_change: command approval mode selected from the chat textarea
 		| "profileButtonClicked" // kilocode_change
 		| "fetchProfileDataRequest" // kilocode_change
 		| "profileDataResponse" // kilocode_change

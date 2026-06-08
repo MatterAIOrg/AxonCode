@@ -34,6 +34,10 @@ export async function executeCommandTool(
 	const rawMessage: unknown = block.params.message
 	const customMessage: string | undefined =
 		typeof rawMessage === "string" && rawMessage !== "null" ? rawMessage : undefined
+	// forked_change: the model marks potentially destructive commands as dangerous. Native
+	// (JSON) tool calls deliver a real boolean; the XML fallback delivers the string "true".
+	const rawIsDangerous: unknown = block.params.isDangerous
+	const isDangerousCommand: boolean = rawIsDangerous === true || rawIsDangerous === "true"
 
 	try {
 		if (block.partial) {
@@ -59,6 +63,10 @@ export async function executeCommandTool(
 
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
 			const askText = customMessage ? `MESSAGE:${customMessage}\n---\n${command}` : command
+			// forked_change: stash the danger flag so the command branch of askApproval can
+			// honour the user's command approval mode ("Approve for me" auto-approves only
+			// non-dangerous commands).
+			task.pendingCommandIsDangerous = isDangerousCommand
 			const didApprove = await askApproval("command", askText)
 
 			if (!didApprove) {
