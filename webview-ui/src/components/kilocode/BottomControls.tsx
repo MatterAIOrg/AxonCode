@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import { BottomApiConfig } from "./BottomApiConfig" // kilocode_change
 import { vscode } from "@/utils/vscode"
 import { StandardTooltip } from "@/components/ui"
+import { SecurityCheckIcon, PolicyIcon } from "@/utils/customIcons"
 import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 import { Sparkle } from "lucide-react"
 
@@ -56,6 +57,24 @@ const BottomControls: React.FC<BottomControlsProps> = ({ showApiConfig = false }
 				{showApiConfig && <BottomApiConfig />}
 			</div>
 			<div className="flex flex-row justify-end w-auto items-center gap-0.5">
+				<StandardTooltip content="Enterprise-grade security — MatterAI is SOC2 type 2 compliant" maxWidth={150}>
+					<button
+						className="flex items-center justify-center w-6 h-6 rounded-md text-[var(--vscode-descriptionForeground)] hover:text-[var(--vscode-foreground)] hover:bg-[var(--vscode-list-hoverBackground)] transition-all duration-200"
+						aria-label="Security"
+						onClick={() => openExternalLink("https://www.matterai.so/trust-center")}>
+						<SecurityCheckIcon className="w-4 h-4" />
+					</button>
+				</StandardTooltip>
+				<StandardTooltip
+					content="Zero data retention and training — your data is never used for training"
+					maxWidth={150}>
+					<button
+						className="flex items-center justify-center w-6 h-6 rounded-md text-[var(--vscode-descriptionForeground)] hover:text-[var(--vscode-foreground)] hover:bg-[var(--vscode-list-hoverBackground)] transition-all duration-200"
+						aria-label="Privacy Policy"
+						onClick={() => openExternalLink("https://matterai.so/terms")}>
+						<PolicyIcon className="w-4 h-4" />
+					</button>
+				</StandardTooltip>
 				{nextPlan && (
 					<StandardTooltip content={`Upgrade to ${nextPlan}`}>
 						<button
