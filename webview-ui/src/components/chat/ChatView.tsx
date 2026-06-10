@@ -292,6 +292,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return w.ICONS_BASE_URI || ""
 	})
 
+	// Marketing card rotation state
+	const [activeMarketingCard, setActiveMarketingCard] = useState(0)
+
 	// kilocode_change: Profile data state for usage tracking
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
 
@@ -323,6 +326,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 		window.addEventListener("message", handleMessage)
 		return () => window.removeEventListener("message", handleMessage)
+	}, [])
+
+	// Rotate marketing cards every 10 seconds
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setActiveMarketingCard((prev) => (prev === 0 ? 1 : 0))
+		}, 10000)
+		return () => clearInterval(interval)
 	}, [])
 
 	// Check if usage is over 98% (near exhaustion warning)
@@ -2540,6 +2551,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								Open Editor Window
 							</button>
 						</div>
+						{!isReviewOnlyMode && (
+							<>
+								<ChatTextArea
+									ref={textAreaRef}
+									inputValue={inputValue}
+									setInputValue={setInputValue}
+									sendingDisabled={sendingDisabled || isProfileDisabled}
+									selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+									selectedImages={selectedImages}
+									setSelectedImages={setSelectedImages}
+									onSend={() => handleSendMessage(inputValue, selectedImages)}
+									onSelectImages={selectImages}
+									shouldDisableImages={shouldDisableImages}
+									onHeightChange={() => {
+										if (isAtBottom) {
+											scrollToBottomAuto()
+										}
+									}}
+									mode={mode}
+									setMode={setMode}
+									modeShortcutText={modeShortcutText}
+									sendMessageOnEnter={sendMessageOnEnter}
+									isStreaming={isStreaming}
+									onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
+								/>
+								<BottomControls showApiConfig />
+							</>
+						)}
 					</div>
 				</div>
 			) : (
@@ -2584,58 +2623,114 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</div>
 								<div className="flex flex-grow flex-col justify-start gap-4">
 									{!isReviewOnlyMode && (
-										<div className="w-full min-w-0 mt-8 mb-1 p-3 border border-[var(--color-matterai-border)] rounded-2xl bg-vscode-editor-background/50">
-											<div className="flex flex-col gap-2">
-												{/* Top section: Title/Subtitle left, Icons right */}
-												<div className="flex justify-between gap-4 items-center min-w-0">
-													<div className="flex flex-col gap-1">
-														<div className="flex flex-row gap-2 items-start">
-															<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-																Setup Agentic PR Reviews
-															</p>
-															<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
-																<img
-																	src={iconsBaseUri + "/github-ic.png"}
-																	alt="GitHub"
-																	className="w-4 h-4"
-																/>
-																<img
-																	src={iconsBaseUri + "/gitlab-ic.png"}
-																	alt="GitLab"
-																	className="w-4 h-4"
-																/>
-
-																<img
-																	src={iconsBaseUri + "/bitbucket-ic.png"}
-																	alt="Bitbucket"
-																	className="w-4 h-4"
-																/>
+										<div className="w-full min-w-0 mt-4 mb-1">
+											<div className="relative overflow-hidden rounded-2xl border border-[var(--vscode-activityBar-border)] bg-vscode-editor-background h-[88px]">
+												<div
+													className="flex transition-transform duration-500 ease-in-out h-full"
+													style={{ transform: `translateX(-${activeMarketingCard * 100}%)` }}>
+													{/* PR Reviews Card */}
+													<div className="w-full flex-shrink-0 px-4 py-1 h-full">
+														<div className="flex flex-col gap-1 h-full justify-center">
+															<div className="flex flex-row gap-2 items-center">
+																<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
+																	Setup Agentic PR Reviews
+																</p>
+																<div className="flex items-center flex-row gap-2">
+																	<img
+																		src={iconsBaseUri + "/github-ic.png"}
+																		alt="GitHub"
+																		className="w-3.5 h-3.5"
+																	/>
+																	<img
+																		src={iconsBaseUri + "/gitlab-ic.png"}
+																		alt="GitLab"
+																		className="w-3.5 h-3.5"
+																	/>
+																	<img
+																		src={iconsBaseUri + "/bitbucket-ic.png"}
+																		alt="Bitbucket"
+																		className="w-3.5 h-3.5"
+																	/>
+																	<img
+																		src={iconsBaseUri + "/azure-devops-ic.png"}
+																		alt="Azure DevOps"
+																		className="w-3.5 h-3.5"
+																	/>
+																</div>
 															</div>
-														</div>
-														<p className="text-xs p-0 m-0 font-regular text-vscode-foreground opacity-70">
-															Close PRs 50% faster with 80% less bugs
-														</p>
-														{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
-												70% faster code reviews
-											</p> */}
-														<div className="flex flex-row gap-2">
-															<div className="self-start mt-1">
+															<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
+																Auto agentic reviews with context discovery on your Pull
+																Requests.
+															</p>
+															<div className="flex flex-row gap-2 mt-0.5">
 																<VSCodeButtonLink
 																	appearance="primary"
 																	href="https://app.matterai.so/get-started">
-																	Get Started for free
+																	Setup Code Reviews
 																</VSCodeButtonLink>
-															</div>
-															<div className="self-start mt-1">
 																<VSCodeButtonLink
 																	appearance="secondary"
 																	href="https://docs.matterai.so/quickstart-ai-code-review-agent">
-																	View Demo
+																	Read Docs
+																</VSCodeButtonLink>
+															</div>
+														</div>
+													</div>
+
+													{/* Axon Models Card */}
+													<div className="w-full flex-shrink-0 px-4 py-1 h-full">
+														<div className="flex flex-col gap-1 h-full justify-center">
+															<div className="flex flex-row gap-2 items-center">
+																<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
+																	Introducing Axon 2.8 Model family
+																</p>
+																<img
+																	src={iconsBaseUri + "/matterai-company-ic.svg"}
+																	alt="MatterAI"
+																	className="w-3.5 h-3.5"
+																/>
+															</div>
+															<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
+																Frontier LLMs, fraction of the cost. Save 70% inference
+																cost.
+															</p>
+															<div className="flex flex-row gap-2 mt-0.5">
+																<VSCodeButtonLink
+																	appearance="primary"
+																	href="https://app.matterai.so/api-billing">
+																	Get API key
+																</VSCodeButtonLink>
+																<VSCodeButtonLink
+																	appearance="secondary"
+																	href="https://app.matterai.so/axon-models">
+																	View Benchmarks
 																</VSCodeButtonLink>
 															</div>
 														</div>
 													</div>
 												</div>
+											</div>
+
+											{/* Dot indicators */}
+											<div className="flex justify-center gap-2 mt-2">
+												<button
+													onClick={() => setActiveMarketingCard(0)}
+													className={`rounded-full transition-all duration-300 ${
+														activeMarketingCard === 0
+															? "bg-[var(--vscode-button-background)] w-4 h-2"
+															: "bg-[var(--vscode-panel-border)] w-2 h-2 hover:bg-[var(--vscode-descriptionForeground)]"
+													}`}
+													aria-label="PR Reviews card"
+												/>
+												<button
+													onClick={() => setActiveMarketingCard(1)}
+													className={`rounded-full transition-all duration-300 ${
+														activeMarketingCard === 1
+															? "bg-[var(--vscode-button-background)] w-4 h-2"
+															: "bg-[var(--vscode-panel-border)] w-2 h-2 hover:bg-[var(--vscode-descriptionForeground)]"
+													}`}
+													aria-label="Axon Models card"
+												/>
 											</div>
 										</div>
 									)}
