@@ -139,6 +139,29 @@ ${userInput}
 
 `
 
+export const codeReviewCommandResponse = (userInput: string) =>
+	`The user has explicitly asked you to perform a thorough code review of the pending changes. You MUST now help them with this.
+
+Review the code as a panel of four experts. Adopt each expert persona fully, one at a time, and review the complete change set from that specialty before moving on to the next:
+
+1. Performance Expert — algorithmic complexity, redundant computation or I/O, N+1 queries, unnecessary allocations, blocking calls on hot paths, missed caching or batching opportunities, and memory leaks.
+2. Security Expert — injection (SQL/command/path), unsafe deserialization, missing input validation or sanitization, secrets or credentials in code, authentication/authorization gaps, unsafe defaults, and risky dependency usage.
+3. Bug Hunter — logic errors, off-by-one mistakes, null/undefined handling, unhandled errors and rejected promises, race conditions, incorrect edge-case behavior, type coercion pitfalls, and broken assumptions between callers and callees.
+4. Test Expert — missing or inadequate test coverage for the changed behavior, untested edge cases and error paths, assertions that don't verify the actual behavior, and brittle or flaky test patterns; propose specific test cases worth adding.
+
+Instructions:
+1. First, gather the changes to review: use git status and git diff (including staged changes). If the working tree is clean, review the most recent commit instead.
+2. Read the surrounding code of the changed files whenever you need more context for a finding — do not judge a diff hunk in isolation.
+3. Report findings grouped per expert. For each finding include: severity (critical / major / minor), the file and line, what is wrong, why it matters, and a concrete suggested fix.
+4. Only report real findings. If an expert finds nothing significant, state that explicitly — do not invent issues to fill space.
+5. Finish with a short summary: all findings ordered by severity, and an overall verdict on whether the changes are safe to merge.
+
+This is a review only — do NOT modify any files. Present the findings to the user.${
+		userInput.trim()
+			? `\n\nThe user provided the following input with the code-review command:\n${userInput.trim()}`
+			: ""
+	}\n`
+
 export const reportBugToolResponse = (userInput: string) =>
 	`<explicit_instructions type="report_bug">
 The user has explicitly asked you to help them submit a bug to the Kilocode github page (you MUST now help them with this irrespective of what your conversation up to this point in time was). To do so you will use the report_bug tool which is defined below. However, you must first ensure that you have collected all required information to fill in all the parameters for the tool call.
