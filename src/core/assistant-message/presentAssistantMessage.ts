@@ -269,7 +269,31 @@ export async function presentAssistantMessage(cline: Task) {
 			) => {
 				// Check for non-empty toolUseId - empty string should be treated as missing
 				if (block.toolUseId && block.toolUseId.length > 0) {
-					cline.userMessageContent.push({ type: "tool_result", tool_use_id: block.toolUseId, content: items })
+					// forked_change: a tool may push more than once for the same tool_use
+					// (e.g. handleError pushes a toolError and the tool then pushes its
+					// aggregated output, or askApproval pushes user feedback before the
+					// result). The API allows only ONE tool_result per tool_use_id —
+					// providers reject or misbehave on duplicates — so merge follow-up
+					// pushes into the existing tool_result block instead of adding a
+					// second one.
+					const existingToolResult = cline.userMessageContent.find(
+						(item): item is Anthropic.ToolResultBlockParam =>
+							item.type === "tool_result" && item.tool_use_id === block.toolUseId,
+					)
+					if (existingToolResult) {
+						if (typeof existingToolResult.content === "string") {
+							existingToolResult.content = [{ type: "text", text: existingToolResult.content }]
+						} else if (!existingToolResult.content) {
+							existingToolResult.content = []
+						}
+						existingToolResult.content.push(...items)
+					} else {
+						cline.userMessageContent.push({
+							type: "tool_result",
+							tool_use_id: block.toolUseId,
+							content: items,
+						})
+					}
 				} else {
 					cline.userMessageContent.push(...items)
 				}
