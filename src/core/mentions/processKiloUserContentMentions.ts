@@ -10,6 +10,15 @@ import { refreshWorkflowToggles } from "../context/instructions/workflows" // ki
 
 import * as vscode from "vscode" // kilocode_change
 
+/**
+ * The initial user task is wrapped in <task> tags internally so mention and
+ * slash-command parsing can identify user-authored text. The wrapper must be
+ * stripped before the content is sent to the model.
+ */
+export function stripTaskWrapperTags(text: string): string {
+	return text.replace(/^\s*<task>\n?/, "").replace(/\n?<\/task>\s*$/, "")
+}
+
 // This function is a duplicate of processUserContentMentions, but it adds a check for the newrules command
 // and processes Kilo-specific slash commands. It should be merged with processUserContentMentions in the future.
 export async function processKiloUserContentMentions({
@@ -69,7 +78,7 @@ export async function processKiloUserContentMentions({
 					if (shouldProcessMentions(block.text)) {
 						// kilocode_change begin: pull slash commands from Cline
 						const parsedText = await parseMentions(
-							block.text,
+							stripTaskWrapperTags(block.text),
 							cwd,
 							urlContentFetcher,
 							fileContextTracker,

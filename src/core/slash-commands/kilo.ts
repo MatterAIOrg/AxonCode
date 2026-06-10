@@ -50,6 +50,9 @@ export async function parseKiloSlashCommands(
 		{ tag: "feedback", regex: /<feedback>(\s*\/([a-zA-Z0-9_-]+))(\s+.+?)?\s*<\/feedback>/is },
 		{ tag: "answer", regex: /<answer>(\s*\/([a-zA-Z0-9_-]+))(\s+.+?)?\s*<\/answer>/is },
 		{ tag: "user_message", regex: /<user_message>(\s*\/([a-zA-Z0-9_-]+))(\s+.+?)?\s*<\/user_message>/is },
+		// The <task> wrapper is stripped before slash-command parsing, so also
+		// match a slash command at the start of plain (untagged) text.
+		{ tag: "text", regex: /^(\s*\/([a-zA-Z0-9_.-]+))(\s+.+?)?\s*$/is },
 	]
 
 	// if we find a valid match, we will return inside that block
