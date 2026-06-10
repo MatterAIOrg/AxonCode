@@ -84,9 +84,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			onSelectImages,
 			shouldDisableImages,
 			onHeightChange,
-			mode,
+			// _mode,
 			setMode,
-			modeShortcutText,
+			// _modeShortcutText,
 			isEditMode = false,
 			onCancel,
 			sendMessageOnEnter = true,
@@ -111,12 +111,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const { id: selectedModelId, provider: selectedProvider } = useSelectedModel(apiConfiguration)
 
 		// kilocode_change: audio transcription hook
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const {
-			recorderState,
-			startRecording,
-			stopRecording,
-			error: recorderError,
+			recorderState: _recorderState,
+			startRecording: _startRecording,
+			stopRecording: _stopRecording,
+			error: _recorderError,
 		} = useAudioRecorder((text: string) => {
 			// Functional update: transcript chunks arrive asynchronously while
 			// recording, so append against the latest value (not a stale closure).

@@ -44,8 +44,8 @@ export async function fileEditTool(
 	const rawNewString = block.params.new_string
 	const newString =
 		typeof rawNewString === "object" && rawNewString !== null ? JSON.stringify(rawNewString, null, 2) : rawNewString
-	const replaceAllFlag = block.params.replace_all
-	const replaceAll = replaceAllFlag === "true" || replaceAllFlag === "1"
+	const replaceAllFlag = block.params.replace_all as unknown
+	const replaceAll = replaceAllFlag === true || replaceAllFlag === "true" || replaceAllFlag === "1"
 
 	try {
 		if (block.partial) {
