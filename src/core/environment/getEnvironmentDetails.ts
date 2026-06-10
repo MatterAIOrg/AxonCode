@@ -41,7 +41,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 
 	// It could be useful for cline to know if the user went from one or no
 	// file to another between messages, so we always include this context.
-	details += "\n\n# VSCode Visible Files"
+	details += "\n\n## VSCode Visible Files"
 
 	const visibleFilePaths = vscode.window.visibleTextEditors
 		?.map((editor) => editor.document?.uri?.fsPath)
@@ -60,7 +60,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 		details += "\n(No visible files)"
 	}
 
-	details += "\n\n# VSCode Open Tabs"
+	details += "\n\n## VSCode Open Tabs"
 	const { maxOpenTabsContext } = state ?? {}
 	const maxTabs = maxOpenTabsContext ?? 20
 	const openTabPaths = vscode.window.tabGroups.all
@@ -114,13 +114,13 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 
 	if (busyTerminals.length > 0) {
 		// Terminals are cool, let's retrieve their output.
-		terminalDetails += "\n\n# Actively Running Terminals"
+		terminalDetails += "\n\n## Actively Running Terminals"
 
 		for (const busyTerminal of busyTerminals) {
 			const cwd = busyTerminal.getCurrentWorkingDirectory()
-			terminalDetails += `\n## Terminal ${busyTerminal.id} (Active)`
-			terminalDetails += `\n### Working Directory: \`${cwd}\``
-			terminalDetails += `\n### Original command: \`${busyTerminal.getLastCommand()}\``
+			terminalDetails += `\n### Terminal ${busyTerminal.id} (Active)`
+			terminalDetails += `\n- Working Directory: \`${cwd}\``
+			terminalDetails += `\n- Original command: \`${busyTerminal.getLastCommand()}\``
 			let newOutput = TerminalRegistry.getUnretrievedOutput(busyTerminal.id)
 
 			if (newOutput) {
@@ -129,7 +129,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 					terminalOutputLineLimit,
 					terminalOutputCharacterLimit,
 				)
-				terminalDetails += `\n### New Output\n${newOutput}`
+				terminalDetails += `\n#### New Output\n${newOutput}`
 			}
 		}
 	}
@@ -143,7 +143,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 
 	// Only add the header if there are terminals with output.
 	if (terminalsWithOutput.length > 0) {
-		terminalDetails += "\n\n# Inactive Terminals with Completed Process Output"
+		terminalDetails += "\n\n## Inactive Terminals with Completed Process Output"
 
 		// Process each terminal with output.
 		for (const inactiveTerminal of terminalsWithOutput) {
@@ -171,10 +171,10 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 			// Add this terminal's outputs to the details.
 			if (terminalOutputs.length > 0) {
 				const cwd = inactiveTerminal.getCurrentWorkingDirectory()
-				terminalDetails += `\n## Terminal ${inactiveTerminal.id} (Inactive)`
-				terminalDetails += `\n### Working Directory: \`${cwd}\``
+				terminalDetails += `\n### Terminal ${inactiveTerminal.id} (Inactive)`
+				terminalDetails += `\n- Working Directory: \`${cwd}\``
 				terminalOutputs.forEach((output) => {
-					terminalDetails += `\n### New Output\n${output}`
+					terminalDetails += `\n#### New Output\n${output}`
 				})
 			}
 		}
@@ -187,9 +187,9 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 
 	if (recentlyModifiedFiles.length > 0) {
 		details +=
-			"\n\n# Recently Modified Files\nThese files have been modified since you last accessed them (file was just edited so you may need to re-read it before editing):"
+			"\n\n## Recently Modified Files\nThese files have been modified since you last accessed them (file was just edited so you may need to re-read it before editing):"
 		for (const filePath of recentlyModifiedFiles) {
-			details += `\n${filePath}`
+			details += `\n- ${filePath}`
 		}
 	}
 
@@ -205,7 +205,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 	const timeZoneOffsetHours = Math.floor(Math.abs(timeZoneOffset))
 	const timeZoneOffsetMinutes = Math.abs(Math.round((Math.abs(timeZoneOffset) - timeZoneOffsetHours) * 60))
 	const timeZoneOffsetStr = `${timeZoneOffset >= 0 ? "+" : "-"}${timeZoneOffsetHours}:${timeZoneOffsetMinutes.toString().padStart(2, "0")}`
-	details += `\n\n# Current Time\nCurrent time in ISO 8601 UTC format: ${now.toISOString()}\nUser time zone: ${timeZone}, UTC${timeZoneOffsetStr}`
+	details += `\n\n## Current Time\nCurrent time in ISO 8601 UTC format: ${now.toISOString()}\nUser time zone: ${timeZone}, UTC${timeZoneOffsetStr}`
 
 	// Add Git repository information.
 	try {
@@ -242,22 +242,22 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 		}
 
 		if (hasGitInfo || currentBranch || defaultBranch) {
-			details += "\n\n# Git Repository Information"
+			details += "\n\n## Git Repository Information"
 
 			if (gitInfo.repositoryUrl) {
-				details += `\nRepository URL: ${gitInfo.repositoryUrl}`
+				details += `\n- Repository URL: ${gitInfo.repositoryUrl}`
 			}
 
 			if (gitInfo.repositoryName) {
-				details += `\nRepository Name: ${gitInfo.repositoryName}`
+				details += `\n- Repository Name: ${gitInfo.repositoryName}`
 			}
 
 			if (defaultBranch) {
-				details += `\nDefault Branch: ${defaultBranch}`
+				details += `\n- Default Branch: ${defaultBranch}`
 			}
 
 			if (currentBranch) {
-				details += `\nCurrent Branch: ${currentBranch}`
+				details += `\n- Current Branch: ${currentBranch}`
 			}
 		}
 	} catch {
@@ -278,7 +278,7 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 				"error",
 				t("kilocode:task.notLoggedInError", { error: e instanceof Error ? e.message : String(e) }),
 			)
-			return `<environment_details>\n${details.trim()}\n</environment_details>`
+			return `# Environment Details\n\n${details.trim()}`
 		}
 	}
 	// forked_change end
@@ -305,21 +305,21 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 
 	const currentMode = modeDetails.slug ?? mode // kilocode_change: don't try to use non-existent modes
 
-	details += `\n\n# Current Mode\n`
-	details += `<slug>${currentMode}</slug>\n`
-	details += `<name>${modeDetails.name}</name>\n`
-	details += `<model>${modelId}</model>\n`
+	details += `\n\n## Current Mode\n`
+	details += `- Slug: ${currentMode}\n`
+	details += `- Name: ${modeDetails.name}\n`
+	details += `- Model: ${modelId}\n`
 
 	if (Experiments.isEnabled(experiments ?? {}, EXPERIMENT_IDS.POWER_STEERING)) {
-		details += `<role>${modeDetails.roleDefinition}</role>\n`
+		details += `\n### Role\n${modeDetails.roleDefinition}\n`
 
 		if (modeDetails.customInstructions) {
-			details += `<custom_instructions>${modeDetails.customInstructions}</custom_instructions>\n`
+			details += `\n### Custom Instructions\n${modeDetails.customInstructions}\n`
 		}
 	}
 
 	if (includeFileDetails) {
-		details += `\n\n# Current Workspace Directory (${cline.cwd.toPosix()}) Files\n`
+		details += `\n\n## Current Workspace Directory (${cline.cwd.toPosix()}) Files\n`
 		const isDesktop = arePathsEqual(cline.cwd, path.join(os.homedir(), "Desktop"))
 
 		if (isDesktop) {
@@ -354,6 +354,6 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 	// 		? state.apiConfiguration.todoListEnabled
 	// 		: true
 	// const reminderSection = todoListEnabled ? formatReminderSection(cline.todoList) : ""
-	// return `<environment_details>\n${details.trim()}\n${reminderSection}\n</environment_details>`
-	return `<environment_details>\n${details.trim()}\n</environment_details>`
+	// return `# Environment Details\n\n${details.trim()}\n${reminderSection}`
+	return `# Environment Details\n\n${details.trim()}`
 }

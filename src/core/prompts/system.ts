@@ -256,7 +256,7 @@ The \`execute_command\` tool runs CLI commands on the user's system. It allows A
 The tool accepts these parameters:
 
 - \`command\` (required): The CLI command to execute. Must be valid for the user's operating system.
-- \`cwd\` (optional): The working directory to execute the command in. If not provided, the current working directory is used. Ensure this is always an absolute path, starting with \`/\`. If you are running the command in the root directly, skip this parameter. The command executor is defaulted to run in the root directory. You already have the Current Workspace Directory in <environment_details>.
+- \`cwd\` (optional): The working directory to execute the command in. If not provided, the current working directory is used. Ensure this is always an absolute path, starting with \`/\`. If you are running the command in the root directly, skip this parameter. The command executor is defaulted to run in the root directory. You already have the Current Workspace Directory in the Environment Details section.
 
 CRITICAL: If the command is a very long running process, prefer to let the user to that they can run it manually in thier terminal. If the user specifically requests to run a long running command, you may proceed.
 
@@ -430,7 +430,7 @@ Before submitting, verify:
 
 CRITICAL:
 1. A command never starts with \`:\`
-2. A command never uses <|tool_call_argument_begin|> OR any <> TAG
+2. A command never contains tool-call markup tokens or angle-bracket tags of any kind
 3. A command is never empty or \`:\`
 4. A command is never a single word or a single word with a space
 5. Commands are always valid for the user's operating system

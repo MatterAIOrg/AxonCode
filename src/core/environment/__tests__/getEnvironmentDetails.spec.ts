@@ -141,14 +141,13 @@ describe("getEnvironmentDetails", () => {
 	it("should return basic environment details", async () => {
 		const result = await getEnvironmentDetails(mockCline as Task)
 
-		expect(result).toContain("<environment_details>")
-		expect(result).toContain("</environment_details>")
-		expect(result).toContain("# VSCode Visible Files")
-		expect(result).toContain("# VSCode Open Tabs")
-		expect(result).toContain("# Current Time")
-		expect(result).toContain("# Current Cost")
-		expect(result).toContain("# Current Mode")
-		expect(result).toContain("<model>test-model</model>")
+		expect(result).toContain("# Environment Details")
+		expect(result).not.toContain("<environment_details>")
+		expect(result).toContain("## VSCode Visible Files")
+		expect(result).toContain("## VSCode Open Tabs")
+		expect(result).toContain("## Current Time")
+		expect(result).toContain("## Current Mode")
+		expect(result).toContain("- Model: test-model")
 
 		expect(mockProvider.getState).toHaveBeenCalled()
 
@@ -163,7 +162,7 @@ describe("getEnvironmentDetails", () => {
 
 	it("should include file details when includeFileDetails is true", async () => {
 		const result = await getEnvironmentDetails(mockCline as Task, true)
-		expect(result).toContain("# Current Workspace Directory")
+		expect(result).toContain("## Current Workspace Directory")
 		expect(result).toContain("Files")
 
 		expect(listFiles).toHaveBeenCalledWith(mockCwd, true, 50)
@@ -211,7 +210,7 @@ describe("getEnvironmentDetails", () => {
 
 		const result = await getEnvironmentDetails(mockCline as Task)
 
-		expect(result).toContain("# Recently Modified Files")
+		expect(result).toContain("## Recently Modified Files")
 		expect(result).toContain("modified1.ts")
 		expect(result).toContain("modified2.ts")
 	})
@@ -229,10 +228,10 @@ describe("getEnvironmentDetails", () => {
 
 		const result = await getEnvironmentDetails(mockCline as Task)
 
-		expect(result).toContain("# Actively Running Terminals")
-		expect(result).toContain("## Terminal terminal-1 (Active)")
-		expect(result).toContain("### Working Directory: `/test/path/src`")
-		expect(result).toContain("### Original command: `npm test`")
+		expect(result).toContain("## Actively Running Terminals")
+		expect(result).toContain("### Terminal terminal-1 (Active)")
+		expect(result).toContain("- Working Directory: `/test/path/src`")
+		expect(result).toContain("- Original command: `npm test`")
 		expect(result).toContain("Test output")
 
 		mockCline.didEditFile = true
@@ -262,9 +261,9 @@ describe("getEnvironmentDetails", () => {
 
 		const result = await getEnvironmentDetails(mockCline as Task)
 
-		expect(result).toContain("# Inactive Terminals with Completed Process Output")
-		expect(result).toContain("## Terminal terminal-2 (Inactive)")
-		expect(result).toContain("### Working Directory: `/test/path/build`")
+		expect(result).toContain("## Inactive Terminals with Completed Process Output")
+		expect(result).toContain("### Terminal terminal-2 (Inactive)")
+		expect(result).toContain("- Working Directory: `/test/path/build`")
 		expect(result).toContain("Command: `npm build`")
 		expect(result).toContain("Build output")
 
@@ -300,13 +299,13 @@ describe("getEnvironmentDetails", () => {
 		const result = await getEnvironmentDetails(mockCline as Task)
 
 		// Check active terminal working directory
-		expect(result).toContain("## Terminal terminal-1 (Active)")
-		expect(result).toContain("### Working Directory: `/some/path`")
-		expect(result).toContain("### Original command: `cd /some/path && npm start`")
+		expect(result).toContain("### Terminal terminal-1 (Active)")
+		expect(result).toContain("- Working Directory: `/some/path`")
+		expect(result).toContain("- Original command: `cd /some/path && npm start`")
 
 		// Check inactive terminal working directory
-		expect(result).toContain("## Terminal terminal-2 (Inactive)")
-		expect(result).toContain("### Working Directory: `/another/path`")
+		expect(result).toContain("### Terminal terminal-2 (Inactive)")
+		expect(result).toContain("- Working Directory: `/another/path`")
 
 		// Verify the methods were called
 		expect(mockActiveTerminal.getCurrentWorkingDirectory).toHaveBeenCalled()
@@ -319,8 +318,8 @@ describe("getEnvironmentDetails", () => {
 
 		const result = await getEnvironmentDetails(mockCline as Task)
 
-		expect(result).toContain("<role>You are a code assistant</role>")
-		expect(result).toContain("<custom_instructions>Custom instructions</custom_instructions>")
+		expect(result).toContain("### Role\nYou are a code assistant")
+		expect(result).toContain("### Custom Instructions\nCustom instructions")
 	})
 
 	it("should handle missing provider or state", async () => {
@@ -330,8 +329,8 @@ describe("getEnvironmentDetails", () => {
 		const result = await getEnvironmentDetails(mockCline as Task)
 
 		// Verify the function still returns a result.
-		expect(result).toContain("<environment_details>")
-		expect(result).toContain("</environment_details>")
+		expect(result).toContain("# Environment Details")
+		expect(result).not.toContain("<environment_details>")
 
 		// Mock provider to return null state.
 		mockCline.providerRef!.deref = vi.fn().mockReturnValue({
@@ -341,8 +340,8 @@ describe("getEnvironmentDetails", () => {
 		const result2 = await getEnvironmentDetails(mockCline as Task)
 
 		// Verify the function still returns a result.
-		expect(result2).toContain("<environment_details>")
-		expect(result2).toContain("</environment_details>")
+		expect(result2).toContain("# Environment Details")
+		expect(result2).not.toContain("<environment_details>")
 	})
 
 	it("should handle errors gracefully", async () => {
