@@ -2578,7 +2578,11 @@ ${comment.suggestion}
 			}
 			break
 		case "mode":
-			await provider.handleModeSwitch(message.text as Mode)
+			// Mode switching is disabled. Only "agent" is honored; any other
+			// value is ignored so the active mode cannot be changed.
+			if (message.text === "agent") {
+				await provider.handleModeSwitch(message.text as Mode)
+			}
 			break
 		case "updateSupportPrompt":
 			try {

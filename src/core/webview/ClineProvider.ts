@@ -1467,6 +1467,11 @@ ${prompt}
 	 * @param newMode The mode to switch to
 	 */
 	public async handleModeSwitch(newMode: Mode) {
+		// Mode switching is disabled. Only "agent" mode is allowed; any other
+		// incoming request is ignored so the runtime mode is preserved.
+		if (newMode !== "agent") {
+			return
+		}
 		const task = this.getCurrentTask()
 
 		if (task) {
@@ -3295,6 +3300,11 @@ ${prompt}
 	}
 
 	public async setMode(mode: string): Promise<void> {
+		// Mode switching is disabled. Only "agent" is accepted; anything else
+		// is ignored so the persisted/running mode is preserved.
+		if (mode !== "agent") {
+			return
+		}
 		// Validate mode - only built-in modes are allowed
 		const validatedMode = validateModeSlug(mode)
 		await this.setValues({ mode: validatedMode })

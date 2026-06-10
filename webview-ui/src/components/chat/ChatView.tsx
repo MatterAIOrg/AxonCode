@@ -31,7 +31,6 @@ import { combineCommandSequences } from "@roo/combineCommandSequences"
 import { ClineApiReqInfo, ClineSayBrowserAction, ClineSayTool } from "@roo/ExtensionMessage"
 import { getApiMetrics } from "@roo/getApiMetrics"
 import { McpServer, McpTool } from "@roo/mcp"
-import { getAllModes } from "@roo/modes"
 import { ProfileValidator } from "@roo/ProfileValidator"
 import { safeJsonParse } from "@roo/safeJsonParse"
 import { getLatestTodo } from "@roo/todo"
@@ -161,7 +160,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		alwaysAllowSubtasks,
 		alwaysAllowFollowupQuestions,
 		alwaysAllowUpdateTodoList,
-		customModes,
 		// telemetrySetting,
 		hasSystemPromptOverride,
 		historyPreviewCollapsed, // Added historyPreviewCollapsed
@@ -2113,16 +2111,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [isStreaming, messages.length, t, STREAMING_TIMEOUT_MS])
 
-	const switchToMode = useCallback(
-		(modeSlug: string): void => {
-			// Update local state and notify extension to sync mode change.
-			setMode(modeSlug)
-
-			// Send the mode switch message.
-			vscode.postMessage({ type: "mode", text: modeSlug })
-		},
-		[setMode],
-	)
+	const switchToMode = useCallback((_modeSlug: string): void => {
+		// Mode switching is disabled. "agent" is the only mode; do nothing.
+	}, [])
 
 	const handleSuggestionClickInRow = useCallback(
 		(suggestion: SuggestionItem, event?: React.MouseEvent) => {
@@ -2447,43 +2438,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		tSettings,
 	])
 
-	// Function to handle mode switching
-	const switchToNextMode = useCallback(() => {
-		const allModes = getAllModes(customModes)
-		const currentModeIndex = allModes.findIndex((m) => m.slug === mode)
-		const nextModeIndex = (currentModeIndex + 1) % allModes.length
-		// Update local state and notify extension to sync mode change
-		switchToMode(allModes[nextModeIndex].slug)
-	}, [mode, customModes, switchToMode])
-
-	// Function to handle switching to previous mode
-	const switchToPreviousMode = useCallback(() => {
-		const allModes = getAllModes(customModes)
-		const currentModeIndex = allModes.findIndex((m) => m.slug === mode)
-		const previousModeIndex = (currentModeIndex - 1 + allModes.length) % allModes.length
-		// Update local state and notify extension to sync mode change
-		switchToMode(allModes[previousModeIndex].slug)
-	}, [mode, customModes, switchToMode])
-
 	// Add keyboard event handler
-	const handleKeyDown = useCallback(
-		(event: KeyboardEvent) => {
-			// Check for Command/Ctrl + Period (with or without Shift)
-			// Using event.key to respect keyboard layouts (e.g., Dvorak)
-			if ((event.metaKey || event.ctrlKey) && event.key === ".") {
-				event.preventDefault() // Prevent default browser behavior
-
-				if (event.shiftKey) {
-					// Shift + Period = Previous mode
-					switchToPreviousMode()
-				} else {
-					// Just Period = Next mode
-					switchToNextMode()
-				}
-			}
-		},
-		[switchToNextMode, switchToPreviousMode],
-	)
+	const handleKeyDown = useCallback((event: KeyboardEvent) => {
+		// Mode switching is disabled. The Cmd/Ctrl + . and Cmd/Ctrl + Shift + .
+		// shortcuts no longer cycle modes. Consume the event so any default
+		// behavior is suppressed.
+		if ((event.metaKey || event.ctrlKey) && event.key === ".") {
+			event.preventDefault()
+		}
+	}, [])
 
 	useEffect(() => {
 		window.addEventListener("keydown", handleKeyDown)
