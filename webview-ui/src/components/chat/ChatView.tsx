@@ -34,6 +34,7 @@ import { McpServer, McpTool } from "@roo/mcp"
 import { ProfileValidator } from "@roo/ProfileValidator"
 import { safeJsonParse } from "@roo/safeJsonParse"
 import { getLatestTodo } from "@roo/todo"
+import { PinnedTodoList } from "./PinnedTodoList"
 import { AudioType, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
@@ -1278,6 +1279,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		const newVisibleMessages = modifiedMessages.filter((message) => {
 			if (shouldHideApiReqStartedMessage(message)) {
 				everVisibleMessagesTsRef.current.delete(message.ts)
+				return false
+			}
+
+			// Hide update_todo_list tool rows; the pinned todo list above the
+			// chat input renders the latest state instead.
+			if (
+				((message.type === "ask" && message.ask === "tool") ||
+					(message.type === "say" && (message.say as any) === "tool")) &&
+				message.text?.includes('"tool":"updateTodoList"') &&
+				safeJsonParse<any>(message.text)?.tool === "updateTodoList"
+			) {
 				return false
 			}
 
@@ -2840,6 +2852,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							<div className={`flex-initial min-h-0 ${!areButtonsVisible ? "mb-1" : ""}`}>
 								{showAutoApproveMenu && <AutoApproveMenu />}
 							</div>
+							{/* Pinned todo list - single static position, updates in place (not a chat row) */}
+							{latestTodos.length > 0 && (
+								<div
+									className={`px-2 mb-1 mx-2 ${isAgentManagerMode ? `ml-14 ${isAgentFileViewerOpen ? "mr-14" : "mr-64"}` : "mx-0"}`}>
+									<PinnedTodoList todos={latestTodos} />
+								</div>
+							)}
 						</>
 					)}
 
