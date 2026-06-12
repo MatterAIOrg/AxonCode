@@ -1,23 +1,8 @@
-import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
+import { cn } from "@/lib/utils"
 
-export const ProgressIndicator = () => (
-	<div
-		style={{
-			width: "16px",
-			height: "16px",
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
-		}}>
-		<div style={{ transform: "scale(0.55)", transformOrigin: "center" }}>
-			<VSCodeProgressRing />
-		</div>
-	</div>
-)
-
-export const MatterProgressIndicator = () => {
+export const MatterProgressIndicator = ({ className }: { className?: string }) => {
 	return (
-		<div className="matter-progress-terminal">
+		<div className={cn("matter-progress-terminal", className)}>
 			<div className="terminal-content">
 				{[0, 1, 2].map((index) => (
 					<div key={index} className="matter-progress-dot" style={{ animationDelay: `${index * 80}ms` }} />
@@ -26,3 +11,7 @@ export const MatterProgressIndicator = () => {
 		</div>
 	)
 }
+
+// Default loading spinner — alias of MatterProgressIndicator so every
+// consumer renders the same pulsing-dots indicator as the running task.
+export const ProgressIndicator = MatterProgressIndicator

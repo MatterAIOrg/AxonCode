@@ -10,6 +10,7 @@ import { vscode } from "@src/utils/vscode"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { Button } from "@src/components/ui"
+import { MatterProgressIndicator } from "@src/components/chat/ProgressIndicator"
 
 import { inputEventTransform } from "../transforms"
 import { ModelPicker } from "../ModelPicker"
@@ -121,7 +122,7 @@ export const LiteLLM = ({
 				className="w-full">
 				<div className="flex items-center gap-2">
 					{refreshStatus === "loading" ? (
-						<span className="codicon codicon-loading codicon-modifier-spin" />
+						<MatterProgressIndicator />
 					) : (
 						<span className="codicon codicon-refresh" />
 					)}

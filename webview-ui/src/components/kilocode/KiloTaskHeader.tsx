@@ -7,6 +7,7 @@ import { cn } from "@src/lib/utils"
 import { StandardTooltip } from "@src/components/ui"
 import { ListVideoIcon } from "@src/utils/customIcons"
 import { vscode } from "@src/utils/vscode"
+import { MatterProgressIndicator } from "@src/components/chat/ProgressIndicator"
 
 // import { TodoListDisplay } from "../chat/TodoListDisplay"
 
@@ -69,12 +70,7 @@ const KiloTaskHeader = ({
 				<div className="flex items-center gap-1">
 					<div className="px-1 py-1 flex items-center gap-1 min-w-0 outline-none">
 						<span className="text-sm truncate opacity-70">{cleanTitle || "New agent..."}</span>
-						{!cleanTitle && (
-							<span
-								className="codicon codicon-loading codicon-modifier-spin shrink-0"
-								style={{ fontSize: "8px" }}
-							/>
-						)}
+						{!cleanTitle && <MatterProgressIndicator className="shrink-0" />}
 					</div>
 					<StandardTooltip content="Move Agent to Background">
 						<button

@@ -1,9 +1,9 @@
 import { memo, type ReactNode, useMemo } from "react"
-import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
 import { type ToolProgressStatus } from "@roo-code/types"
 import { getLanguageFromPath } from "@src/utils/getLanguageFromPath"
 import { removeLeadingNonAlphanumeric } from "@src/utils/removeLeadingNonAlphanumeric"
 
+import { MatterProgressIndicator } from "../chat/ProgressIndicator"
 import { ToolUseBlock, ToolUseBlockHeader } from "./ToolUseBlock"
 import CodeBlock from "../kilocode/common/CodeBlock" // kilocode_change
 
@@ -59,7 +59,7 @@ const CodeAccordian = ({
 		<ToolUseBlock>
 			{hasHeader && (
 				<ToolUseBlockHeader onClick={onToggleExpand} className="group">
-					{isLoading && <VSCodeProgressRing className="size-3 mr-2" />}
+					{isLoading && <MatterProgressIndicator className="mr-2" />}
 					{headerContent ? (
 						headerContent
 					) : header ? (

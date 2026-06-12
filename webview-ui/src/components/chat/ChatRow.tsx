@@ -608,10 +608,7 @@ export const ChatRowContent = ({
 							onClick={handleToggleExpand}>
 							<div style={headerStyle} className="">
 								{message.partial ? (
-									<span
-										className="codicon codicon-loading codicon-modifier-spin"
-										style={{ fontSize: "12px", marginBottom: "-1.5px", marginRight: "4px" }}
-									/>
+									<MatterProgressIndicator className="mr-1" />
 								) : tool.isProtected ? (
 									<span
 										className="codicon codicon-lock"
@@ -812,10 +809,7 @@ export const ChatRowContent = ({
 							onClick={handleToggleExpand}>
 							<div style={headerStyle} className="">
 								{message.partial ? (
-									<span
-										className="codicon codicon-loading codicon-modifier-spin"
-										style={{ fontSize: "12px", marginBottom: "-1.5px", marginRight: "4px" }}
-									/>
+									<MatterProgressIndicator className="mr-1" />
 								) : tool.isProtected ? (
 									<span
 										className="codicon codicon-lock"

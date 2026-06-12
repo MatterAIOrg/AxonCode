@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { X, ChevronsUpDown } from "lucide-react"
+import { MatterProgressIndicator } from "@/components/chat/ProgressIndicator"
 import { MarketplaceItemCard } from "./components/MarketplaceItemCard"
 import { MarketplaceViewStateManager } from "./MarketplaceViewStateManager"
 import { useAppTranslation } from "@/i18n/TranslationContext"
@@ -224,8 +225,8 @@ export function MarketplaceListView({
 
 			{state.isFetching && isEmpty && (
 				<div className="flex flex-col items-center justify-center h-64 text-vscode-descriptionForeground animate-fade-in">
-					<div className="animate-spin mb-4">
-						<span className="codicon codicon-sync text-3xl"></span>
+					<div className="mb-4">
+						<MatterProgressIndicator />
 					</div>
 					<p>{t("marketplace:items.refresh.refreshing")}</p>
 					<p className="text-sm mt-2 animate-pulse">{t("marketplace:items.refresh.mayTakeMoment")}</p>

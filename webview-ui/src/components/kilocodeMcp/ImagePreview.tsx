@@ -2,6 +2,7 @@ import React from "react"
 import { vscode } from "../../utils/vscode"
 import DOMPurify from "dompurify"
 import { getSafeHostname, formatUrlForOpening, checkIfImageUrl } from "./McpRichUtil"
+import { MatterProgressIndicator } from "../chat/ProgressIndicator"
 // import ChatErrorBoundary from "../chat/ChatErrorBoundary"
 
 interface ImagePreviewProps {
@@ -170,25 +171,7 @@ class ImagePreview extends React.Component<
 						maxWidth: "512px",
 					}}>
 					<div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
-						<div
-							className="loading-spinner"
-							style={{
-								marginRight: "8px",
-								width: "16px",
-								height: "16px",
-								border: "2px solid rgba(127, 127, 127, 0.3)",
-								borderTopColor: "var(--vscode-textLink-foreground, #3794ff)",
-								borderRadius: "50%",
-								animation: "spin 1s linear infinite",
-							}}
-						/>
-						<style>
-							{`
-								@keyframes spin {
-									to { transform: rotate(360deg); }
-								}
-							`}
-						</style>
+						<MatterProgressIndicator className="mr-2" />
 						Loading image from {getSafeHostname(url)}...
 					</div>
 					{elapsedSeconds > 3 && (
