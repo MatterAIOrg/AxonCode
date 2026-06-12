@@ -2678,7 +2678,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																</VSCodeButtonLink>
 																<VSCodeButtonLink
 																	appearance="secondary"
-																	href="https://app.matterai.so/axon-models/axon-2-8-pro">
+																	href="https://app.matterai.so/axon-models/axon-eido-3-code-pro">
 																	View Benchmarks
 																</VSCodeButtonLink>
 															</div>

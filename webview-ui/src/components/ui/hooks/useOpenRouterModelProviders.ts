@@ -143,11 +143,11 @@ const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 	// 		input_cache_writes: "0",
 	// 	},
 	// },
-	"axon-code-2-8-pro": {
-		id: "axon-code-2-8-pro",
-		name: "Axon Code 2.8 Pro",
+	"axon-eido-3-code-pro": {
+		id: "axon-eido-3-code-pro",
+		name: "Axon Eido 3 Pro",
 		description:
-			"Axon Code 2.8 Pro is the next-generation of Axon Code for coding tasks, currently in experimental stage.",
+			"Axon Eido 3 Pro is the frontier Axon Code model for coding tasks, long running agents and general intelligence, fine-tuned on open source models.",
 		input_modalities: ["text", "image"],
 		context_length: 400000,
 		max_output_length: 64000,
