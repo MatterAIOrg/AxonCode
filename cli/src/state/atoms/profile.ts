@@ -19,9 +19,31 @@ export interface UserOrganization {
 	role: string
 }
 
+export interface AxonCodeWindowUsage {
+	used: number
+	limit: number
+	remaining: number
+	percentage: number
+	resetsAt: string
+	windowStart: string
+}
+
+export interface AxonCodeTieredUsage {
+	plan: string
+	monthlyLimit: number
+	fiveHour: AxonCodeWindowUsage
+	weekly: AxonCodeWindowUsage
+	monthly: AxonCodeWindowUsage
+}
+
 export interface ProfileData {
 	user?: ProfileUser
 	organizations?: UserOrganization[]
+	plan?: string
+	remainingReviews?: number
+	usagePercentage?: number
+	creditsResetDate?: string
+	tieredUsage?: AxonCodeTieredUsage
 }
 
 export interface BalanceData {

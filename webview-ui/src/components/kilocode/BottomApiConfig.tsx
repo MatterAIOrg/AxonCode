@@ -6,6 +6,23 @@ import { GaugeCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 
+function formatRelativeTime(isoStr?: string): string {
+	if (!isoStr) return "???"
+	const now = Date.now()
+	const target = new Date(isoStr).getTime()
+	if (Number.isNaN(target)) return "???"
+	const diff = target - now
+	if (diff <= 0) return "now"
+	const sec = Math.floor(diff / 1000)
+	const min = Math.floor(sec / 60)
+	const hrs = Math.floor(min / 60)
+	const days = Math.floor(hrs / 24)
+	if (days >= 1) return `in ${days} day${days > 1 ? "s" : ""}`
+	if (hrs >= 1) return `in ${hrs}h ${min % 60}m`
+	if (min >= 1) return `in ${min}m`
+	return "soon"
+}
+
 export const BottomApiConfig = () => {
 	const { apiConfiguration, clineMessages } = useExtensionState()
 	// const { id: selectedModelId, provider: selectedProvider } = useSelectedModel(apiConfiguration)
@@ -117,14 +134,20 @@ export const BottomApiConfig = () => {
 									flexShrink: 0,
 								}}
 							/>
-							{usagePercentage !== null
-								? `used ${usagePercentage.toFixed(0)}% monthly limit`
-								: "loading..."}
+							{profileData?.tieredUsage?.fiveHour
+								? (() => {
+										const fh = profileData.tieredUsage!.fiveHour
+										const pct = Math.max(0, Math.min(100, fh.percentage || 0))
+										return `${pct.toFixed(0)}% (resets ${formatRelativeTime(fh.resetsAt)})`
+									})()
+								: usagePercentage !== null
+									? `used ${usagePercentage.toFixed(0)}% monthly limit`
+									: "loading..."}
 						</span>
 						{showHoverCard &&
 							createPortal(
 								<div
-									className="fixed w-45 bg-[var(--vscode-editor-background)] border border-[var(--vscode-panel-border)] rounded-lg p-4 shadow-lg z-[9999]"
+									className="fixed w-72 bg-[var(--vscode-editor-background)] border border-[var(--vscode-panel-border)] rounded-lg p-4 shadow-lg z-[9999]"
 									style={{
 										top: `${cardPosition.top}px`,
 										left: `${cardPosition.left}px`,
@@ -132,38 +155,64 @@ export const BottomApiConfig = () => {
 									}}>
 									<div className="space-y-3">
 										<div className="space-y-1">
-											<div className="text-xs font-medium text-[var(--vscode-foreground)]">
+											<div className="text-md font-medium text-[var(--vscode-foreground)]">
 												Current Plan
 											</div>
 											<div className="text-xs text-[var(--vscode-descriptionForeground)]">
-												{profileData?.plan}
+												{profileData?.plan?.toUpperCase()}
 											</div>
 										</div>
-										{usagePercentage !== null && (
-											<div className="space-y-2">
-												<div className="flex justify-between items-center">
-													<div className="text-xs font-medium text-[var(--vscode-foreground)]">
-														Monthly Usage
+
+										<div className="text-md font-medium text-[var(--vscode-foreground)]">
+											Limits
+										</div>
+
+										{/* Tiered usage windows (5hr / weekly / monthly) */}
+										{profileData?.tieredUsage &&
+											(["fiveHour", "weekly", "monthly"] as const).map((key) => {
+												const w = profileData.tieredUsage![key]
+												const pct = Math.max(0, Math.min(100, w.percentage || 0))
+												const exhausted = (w.remaining || 0) <= 0
+												const labelMap: Record<typeof key, string> = {
+													fiveHour: "5-Hour",
+													weekly: "Weekly",
+													monthly: "Monthly",
+												}
+												const relative = formatRelativeTime(w.resetsAt)
+												return (
+													<div className="space-y-1" key={key}>
+														<div className="text-xs font-medium text-[var(--vscode-foreground)]">
+															{labelMap[key]}
+														</div>
+														<div
+															className="w-full h-1.5 rounded-full overflow-hidden"
+															style={{
+																backgroundColor:
+																	"color-mix(in srgb, var(--vscode-input-background), black 20%)",
+															}}>
+															<div
+																className="h-full transition-all duration-300"
+																style={{
+																	width: `${pct}%`,
+																	backgroundColor: exhausted
+																		? "var(--vscode-errorForeground)"
+																		: pct >= 80
+																			? "var(--vscode-editorWarning-foreground)"
+																			: "var(--vscode-button-background)",
+																}}
+															/>
+														</div>
+														<div className="flex justify-between items-center">
+															<div className="text-[10px] text-[var(--vscode-descriptionForeground)]">
+																Resets {relative}
+															</div>
+														</div>
 													</div>
-													<div className="text-xs text-[var(--vscode-descriptionForeground)]">
-														{usagePercentage.toFixed(0)}%
-													</div>
-												</div>
-												<div
-													className="w-full h-2 rounded-full overflow-hidden"
-													style={{
-														backgroundColor:
-															"color-mix(in srgb, var(--vscode-input-background), black 20%)",
-													}}>
-													<div
-														className="h-full bg-[var(--vscode-button-background)] transition-all duration-300"
-														style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-													/>
-												</div>
-											</div>
-										)}
+												)
+											})}
+
 										<div className="space-y-1">
-											<div className="text-xs font-medium text-[var(--vscode-foreground)]">
+											<div className="text-md font-medium text-[var(--vscode-foreground)]">
 												Monthly Code Reviews
 											</div>
 											<div className="text-xs text-[var(--vscode-descriptionForeground)]">
