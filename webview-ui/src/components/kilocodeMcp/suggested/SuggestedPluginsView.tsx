@@ -1,7 +1,8 @@
 import React from "react"
 import { useSuggestedPlugins } from "./useSuggestedPlugins"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { Loader2, RefreshCw } from "lucide-react"
+import { RefreshCw } from "lucide-react"
+import { MatterProgressIndicator } from "@/components/chat/ProgressIndicator"
 import { MarketplaceItemCard } from "@/components/marketplace/components/MarketplaceItemCard"
 import { Button } from "@/components/ui/button"
 
@@ -12,7 +13,7 @@ export const SuggestedPluginsView: React.FC = () => {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center p-8">
-				<Loader2 className="w-6 h-6 animate-spin text-vscode-foreground" />
+				<MatterProgressIndicator />
 				<span className="ml-2 text-vscode-foreground">Loading suggested plugins...</span>
 			</div>
 		)

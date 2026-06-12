@@ -200,7 +200,7 @@ export const ChatRowContent = ({
 	onBatchFileResponse,
 	// enableCheckpoints, // kilocode_change
 	isFollowUpAnswered,
-	editable,
+	// _editable,
 	onPrimaryButtonClick,
 	onSecondaryButtonClick,
 	onRunEverythingClick,
@@ -608,10 +608,7 @@ export const ChatRowContent = ({
 							onClick={handleToggleExpand}>
 							<div style={headerStyle} className="">
 								{message.partial ? (
-									<span
-										className="codicon codicon-loading codicon-modifier-spin"
-										style={{ fontSize: "12px", marginBottom: "-1.5px", marginRight: "4px" }}
-									/>
+									<MatterProgressIndicator className="mr-1" />
 								) : tool.isProtected ? (
 									<span
 										className="codicon codicon-lock"
@@ -769,19 +766,9 @@ export const ChatRowContent = ({
 				)
 			}
 			case "updateTodoList" as any: {
-				const todos = (tool as any).todos || []
-				return (
-					<UpdateTodoListToolBlock
-						todos={todos}
-						content={(tool as any).content}
-						onChange={(updatedTodos) => {
-							if (typeof vscode !== "undefined" && vscode?.postMessage) {
-								vscode.postMessage({ type: "updateTodoList", payload: { todos: updatedTodos } })
-							}
-						}}
-						editable={editable && isLast}
-					/>
-				)
+				// Rendered by the pinned todo list in ChatView (single static
+				// position, updated in place) instead of a new chat row per update.
+				return null
 			}
 			case "newFileCreated": {
 				// Build diff for new file (all additions)
@@ -822,10 +809,7 @@ export const ChatRowContent = ({
 							onClick={handleToggleExpand}>
 							<div style={headerStyle} className="">
 								{message.partial ? (
-									<span
-										className="codicon codicon-loading codicon-modifier-spin"
-										style={{ fontSize: "12px", marginBottom: "-1.5px", marginRight: "4px" }}
-									/>
+									<MatterProgressIndicator className="mr-1" />
 								) : tool.isProtected ? (
 									<span
 										className="codicon codicon-lock"

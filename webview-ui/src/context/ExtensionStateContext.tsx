@@ -630,7 +630,10 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setRequestDelaySeconds: (value) => setState((prevState) => ({ ...prevState, requestDelaySeconds: value })),
 		setCurrentApiConfigName: (value) => setState((prevState) => ({ ...prevState, currentApiConfigName: value })),
 		setListApiConfigMeta,
-		setMode: (value: Mode) => setState((prevState) => ({ ...prevState, mode: value })),
+		setMode: (_value: Mode) => {
+			// Mode switching is disabled. The active mode is fixed to "agent";
+			// ignore any caller attempting to change it.
+		},
 		setCustomModePrompts: (value) => setState((prevState) => ({ ...prevState, customModePrompts: value })),
 		setCustomSupportPrompts: (value) => setState((prevState) => ({ ...prevState, customSupportPrompts: value })),
 		setEnhancementApiConfigId: (value) =>

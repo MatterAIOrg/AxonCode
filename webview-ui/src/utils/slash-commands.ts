@@ -28,6 +28,10 @@ export function getSupportedSlashCommands(
 			name: "commit",
 			description: "Check pending changes and generate detailed commit messages",
 		},
+		{
+			name: "code-review",
+			description: "Expert review of pending changes: performance, security, bugs and tests",
+		},
 	]
 
 	// Add mode-switching commands dynamically

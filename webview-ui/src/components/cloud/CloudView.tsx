@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { VSCodeButton, VSCodeProgressRing, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import { type CloudUserInfo, type CloudOrganizationMembership, TelemetryEventName } from "@roo-code/types"
 
@@ -13,6 +13,7 @@ import { CircleAlert, Info, Lock, TriangleAlert } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Tab, TabContent, TabHeader } from "../common/Tab"
 import { Button } from "@/components/ui/button"
+import { MatterProgressIndicator } from "../chat/ProgressIndicator"
 import { OrganizationSwitcher } from "./OrganizationSwitcher"
 import { StandardTooltip } from "../ui"
 
@@ -291,7 +292,7 @@ export const CloudView = ({ userInfo, isAuthenticated, cloudApiUrl, onDone, orga
 								// Timeout message with "Having trouble?" link
 								<div className="flex flex-col items-start gap-1">
 									<div className="flex items-center gap-2 text-base text-vscode-descriptionForeground">
-										<VSCodeProgressRing className="size-3 text-vscode-foreground" />
+										<MatterProgressIndicator />
 										{t("cloud:authWaiting")}
 									</div>
 									{!showManualEntry && (

@@ -181,4 +181,76 @@ describe("presentAssistantMessage", () => {
 		expect(cline.currentStreamingContentIndex).toBe(4)
 		expect(cline.userMessageContentReady).toBe(true)
 	})
+
+	it("merges multiple pushes for one tool_use into a single tool_result (handleError + tool output)", async () => {
+		// Mirror the readFileTool failure path: a per-file read error calls
+		// handleError (which pushes a toolError result) and the tool then pushes
+		// its aggregated "--- path ---\n[error] ..." output. Both must land in ONE
+		// tool_result block — duplicate tool_results for the same tool_use_id make
+		// providers reject the next request.
+		vi.mocked(readFileTool).mockImplementationOnce(
+			async (_cline: any, _block: any, _ask: any, handleError: any, pushToolResult: any) => {
+				await handleError("reading file missing.js", new Error("File not found: missing.js"))
+				pushToolResult("--- missing.js ---\n[error] File not found: missing.js")
+			},
+		)
+
+		const getState = vi.fn().mockResolvedValue({ mode: "code", customModes: [] })
+		const cline = {
+			abort: false,
+			taskId: "task-1",
+			instanceId: "instance-1",
+			presentAssistantMessageLocked: false,
+			presentAssistantMessageHasPendingUpdates: false,
+			currentStreamingContentIndex: 0,
+			assistantMessageContent: [
+				{
+					type: "tool_use",
+					name: "read_file",
+					params: { file_path: "missing.js" },
+					partial: false,
+					toolUseId: "read_file:0",
+				},
+			],
+			didCompleteReadingStream: true,
+			userMessageContentReady: false,
+			userMessageContent: [],
+			didRejectTool: false,
+			didAlreadyUseTool: false,
+			currentStreamingDidCheckpoint: false,
+			diffEnabled: false,
+			autoApproveAllCommands: false,
+			consecutiveMistakeCount: 0,
+			providerRef: {
+				deref: () => ({
+					getState,
+				}),
+			},
+			browserSession: {
+				closeBrowser: vi.fn().mockResolvedValue(undefined),
+			},
+			say: vi.fn().mockResolvedValue(undefined),
+			ask: vi.fn().mockResolvedValue({ response: "yesButtonClicked" }),
+			processQueuedMessages: vi.fn(),
+			getToolCallSignature: vi.fn((name: string, params: unknown) => JSON.stringify({ name, params })),
+			checkAndRegisterToolCall: vi.fn().mockReturnValue(false),
+			recordToolUsage: vi.fn(),
+			toolRepetitionDetector: {
+				check: vi.fn().mockReturnValue({ allowExecution: true }),
+			},
+			checkpointSave: vi.fn().mockResolvedValue(undefined),
+			removeStalePartialToolAskMessage: vi.fn().mockResolvedValue(undefined),
+			checkAndCondenseContext: vi.fn().mockResolvedValue(undefined),
+		} as any
+
+		await presentAssistantMessage(cline)
+
+		const toolResults = cline.userMessageContent.filter((item: any) => item.type === "tool_result")
+		expect(toolResults).toHaveLength(1)
+		expect(toolResults[0].tool_use_id).toBe("read_file:0")
+		expect(toolResults[0].content).toHaveLength(2)
+		expect(toolResults[0].content[0].text).toContain("File not found: missing.js")
+		expect(toolResults[0].content[1].text).toBe("--- missing.js ---\n[error] File not found: missing.js")
+		expect(cline.userMessageContentReady).toBe(true)
+	})
 })

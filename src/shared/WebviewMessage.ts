@@ -489,6 +489,26 @@ export type ProfileData = {
 	remainingReviews?: number
 	usagePercentage?: number
 	creditsResetDate?: string
+	// Tiered usage windows (5hr / weekly / monthly). Each window is expressed
+	// as a fraction of the user's monthly plan limit.
+	tieredUsage?: AxonCodeTieredUsage
+}
+
+export interface AxonCodeWindowUsage {
+	used: number
+	limit: number
+	remaining: number
+	percentage: number
+	resetsAt: string
+	windowStart: string
+}
+
+export interface AxonCodeTieredUsage {
+	plan: string
+	monthlyLimit: number
+	fiveHour: AxonCodeWindowUsage
+	weekly: AxonCodeWindowUsage
+	monthly: AxonCodeWindowUsage
 }
 
 export interface ProfileDataResponsePayload {

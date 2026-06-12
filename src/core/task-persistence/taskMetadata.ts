@@ -308,7 +308,7 @@ export async function taskMetadata({
 			: tokenUsage.contextTokens > 0
 				? {
 						currentTokens: tokenUsage.contextTokens,
-						maxTokens: 262000,
+						maxTokens: 400000,
 					}
 				: undefined,
 		// Capture model information for task isolation

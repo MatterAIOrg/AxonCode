@@ -31,10 +31,10 @@ import { combineCommandSequences } from "@roo/combineCommandSequences"
 import { ClineApiReqInfo, ClineSayBrowserAction, ClineSayTool } from "@roo/ExtensionMessage"
 import { getApiMetrics } from "@roo/getApiMetrics"
 import { McpServer, McpTool } from "@roo/mcp"
-import { getAllModes } from "@roo/modes"
 import { ProfileValidator } from "@roo/ProfileValidator"
 import { safeJsonParse } from "@roo/safeJsonParse"
 import { getLatestTodo } from "@roo/todo"
+import { PinnedTodoList } from "./PinnedTodoList"
 import { AudioType, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
@@ -79,6 +79,7 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { X } from "lucide-react"
 import { useOptionalAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
+import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
 import { SourceControlPanel } from "./SourceControlPanel" // kilocode_change
@@ -160,7 +161,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		alwaysAllowSubtasks,
 		alwaysAllowFollowupQuestions,
 		alwaysAllowUpdateTodoList,
-		customModes,
 		// telemetrySetting,
 		hasSystemPromptOverride,
 		historyPreviewCollapsed, // Added historyPreviewCollapsed
@@ -292,6 +292,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return w.ICONS_BASE_URI || ""
 	})
 
+	// Marketing card rotation state
+	const [activeMarketingCard, setActiveMarketingCard] = useState(0)
+
 	// kilocode_change: Profile data state for usage tracking
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
 
@@ -323,6 +326,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 		window.addEventListener("message", handleMessage)
 		return () => window.removeEventListener("message", handleMessage)
+	}, [])
+
+	// Rotate marketing cards every 10 seconds
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setActiveMarketingCard((prev) => (prev === 0 ? 1 : 0))
+		}, 10000)
+		return () => clearInterval(interval)
 	}, [])
 
 	// Check if usage is over 98% (near exhaustion warning)
@@ -1271,6 +1282,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				return false
 			}
 
+			// Hide update_todo_list tool rows; the pinned todo list above the
+			// chat input renders the latest state instead.
+			if (
+				((message.type === "ask" && message.ask === "tool") ||
+					(message.type === "say" && (message.say as any) === "tool")) &&
+				message.text?.includes('"tool":"updateTodoList"') &&
+				safeJsonParse<any>(message.text)?.tool === "updateTodoList"
+			) {
+				return false
+			}
+
 			// Filter out checkpoint_saved messages that should be suppressed
 			if (message.say === "checkpoint_saved") {
 				// Check if this checkpoint has the suppressMessage flag set
@@ -2101,16 +2123,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [isStreaming, messages.length, t, STREAMING_TIMEOUT_MS])
 
-	const switchToMode = useCallback(
-		(modeSlug: string): void => {
-			// Update local state and notify extension to sync mode change.
-			setMode(modeSlug)
-
-			// Send the mode switch message.
-			vscode.postMessage({ type: "mode", text: modeSlug })
-		},
-		[setMode],
-	)
+	const switchToMode = useCallback((_modeSlug: string): void => {
+		// Mode switching is disabled. "agent" is the only mode; do nothing.
+	}, [])
 
 	const handleSuggestionClickInRow = useCallback(
 		(suggestion: SuggestionItem, event?: React.MouseEvent) => {
@@ -2435,43 +2450,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		tSettings,
 	])
 
-	// Function to handle mode switching
-	const switchToNextMode = useCallback(() => {
-		const allModes = getAllModes(customModes)
-		const currentModeIndex = allModes.findIndex((m) => m.slug === mode)
-		const nextModeIndex = (currentModeIndex + 1) % allModes.length
-		// Update local state and notify extension to sync mode change
-		switchToMode(allModes[nextModeIndex].slug)
-	}, [mode, customModes, switchToMode])
-
-	// Function to handle switching to previous mode
-	const switchToPreviousMode = useCallback(() => {
-		const allModes = getAllModes(customModes)
-		const currentModeIndex = allModes.findIndex((m) => m.slug === mode)
-		const previousModeIndex = (currentModeIndex - 1 + allModes.length) % allModes.length
-		// Update local state and notify extension to sync mode change
-		switchToMode(allModes[previousModeIndex].slug)
-	}, [mode, customModes, switchToMode])
-
 	// Add keyboard event handler
-	const handleKeyDown = useCallback(
-		(event: KeyboardEvent) => {
-			// Check for Command/Ctrl + Period (with or without Shift)
-			// Using event.key to respect keyboard layouts (e.g., Dvorak)
-			if ((event.metaKey || event.ctrlKey) && event.key === ".") {
-				event.preventDefault() // Prevent default browser behavior
-
-				if (event.shiftKey) {
-					// Shift + Period = Previous mode
-					switchToPreviousMode()
-				} else {
-					// Just Period = Next mode
-					switchToNextMode()
-				}
-			}
-		},
-		[switchToNextMode, switchToPreviousMode],
-	)
+	const handleKeyDown = useCallback((event: KeyboardEvent) => {
+		// Mode switching is disabled. The Cmd/Ctrl + . and Cmd/Ctrl + Shift + .
+		// shortcuts no longer cycle modes. Consume the event so any default
+		// behavior is suppressed.
+		if ((event.metaKey || event.ctrlKey) && event.key === ".") {
+			event.preventDefault()
+		}
+	}, [])
 
 	useEffect(() => {
 		window.addEventListener("keydown", handleKeyDown)
@@ -2540,6 +2527,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								Open Editor Window
 							</button>
 						</div>
+						{!isReviewOnlyMode && (
+							<>
+								<ChatTextArea
+									ref={textAreaRef}
+									inputValue={inputValue}
+									setInputValue={setInputValue}
+									sendingDisabled={sendingDisabled || isProfileDisabled}
+									selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+									selectedImages={selectedImages}
+									setSelectedImages={setSelectedImages}
+									onSend={() => handleSendMessage(inputValue, selectedImages)}
+									onSelectImages={selectImages}
+									shouldDisableImages={shouldDisableImages}
+									onHeightChange={() => {
+										if (isAtBottom) {
+											scrollToBottomAuto()
+										}
+									}}
+									mode={mode}
+									setMode={setMode}
+									modeShortcutText={modeShortcutText}
+									sendMessageOnEnter={sendMessageOnEnter}
+									isStreaming={isStreaming}
+									onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
+								/>
+								<BottomControls showApiConfig />
+							</>
+						)}
 					</div>
 				</div>
 			) : (
@@ -2584,58 +2599,114 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</div>
 								<div className="flex flex-grow flex-col justify-start gap-4">
 									{!isReviewOnlyMode && (
-										<div className="w-full min-w-0 mt-8 mb-1 p-3 border border-[var(--color-matterai-border)] rounded-2xl bg-vscode-editor-background/50">
-											<div className="flex flex-col gap-2">
-												{/* Top section: Title/Subtitle left, Icons right */}
-												<div className="flex justify-between gap-4 items-center min-w-0">
-													<div className="flex flex-col gap-1">
-														<div className="flex flex-row gap-2 items-start">
-															<p className="text-md p-0 m-0 font-semibold text-vscode-foreground">
-																Setup Agentic PR Reviews
-															</p>
-															<div className="flex items-center justify-center flex-row gap-2.5 mt-0.5">
-																<img
-																	src={iconsBaseUri + "/github-ic.png"}
-																	alt="GitHub"
-																	className="w-4 h-4"
-																/>
-																<img
-																	src={iconsBaseUri + "/gitlab-ic.png"}
-																	alt="GitLab"
-																	className="w-4 h-4"
-																/>
-
-																<img
-																	src={iconsBaseUri + "/bitbucket-ic.png"}
-																	alt="Bitbucket"
-																	className="w-4 h-4"
-																/>
+										<div className="w-full min-w-0 mt-4 mb-1">
+											<div className="relative overflow-hidden rounded-2xl border border-[var(--vscode-activityBar-border)] bg-vscode-editor-background h-[88px]">
+												<div
+													className="flex transition-transform duration-500 ease-in-out h-full"
+													style={{ transform: `translateX(-${activeMarketingCard * 100}%)` }}>
+													{/* PR Reviews Card */}
+													<div className="w-full flex-shrink-0 px-4 py-1 h-full">
+														<div className="flex flex-col gap-1 h-full justify-center">
+															<div className="flex flex-row gap-2 items-center">
+																<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
+																	Setup Agentic PR Reviews
+																</p>
+																<div className="flex items-center flex-row gap-2">
+																	<img
+																		src={iconsBaseUri + "/github-ic.png"}
+																		alt="GitHub"
+																		className="w-3.5 h-3.5"
+																	/>
+																	<img
+																		src={iconsBaseUri + "/gitlab-ic.png"}
+																		alt="GitLab"
+																		className="w-3.5 h-3.5"
+																	/>
+																	<img
+																		src={iconsBaseUri + "/bitbucket-ic.png"}
+																		alt="Bitbucket"
+																		className="w-3.5 h-3.5"
+																	/>
+																	<img
+																		src={iconsBaseUri + "/azure-devops-ic.png"}
+																		alt="Azure DevOps"
+																		className="w-3.5 h-3.5"
+																	/>
+																</div>
 															</div>
-														</div>
-														<p className="text-xs p-0 m-0 font-regular text-vscode-foreground opacity-70">
-															Close PRs 50% faster with 80% less bugs
-														</p>
-														{/* <p className="text-sm p-0 m-0 text-vscode-descriptionForeground">
-												70% faster code reviews
-											</p> */}
-														<div className="flex flex-row gap-2">
-															<div className="self-start mt-1">
+															<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
+																Auto agentic reviews with context discovery on your Pull
+																Requests.
+															</p>
+															<div className="flex flex-row gap-2 mt-0.5">
 																<VSCodeButtonLink
 																	appearance="primary"
 																	href="https://app.matterai.so/get-started">
-																	Get Started for free
+																	Setup Code Reviews
 																</VSCodeButtonLink>
-															</div>
-															<div className="self-start mt-1">
 																<VSCodeButtonLink
 																	appearance="secondary"
 																	href="https://docs.matterai.so/quickstart-ai-code-review-agent">
-																	View Demo
+																	Read Docs
+																</VSCodeButtonLink>
+															</div>
+														</div>
+													</div>
+
+													{/* Axon Models Card */}
+													<div className="w-full flex-shrink-0 px-4 py-1 h-full">
+														<div className="flex flex-col gap-1 h-full justify-center">
+															<div className="flex flex-row gap-2 items-center">
+																<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
+																	Introducing Axon Eido 3 Model family
+																</p>
+																<img
+																	src={iconsBaseUri + "/matterai-company-ic.svg"}
+																	alt="MatterAI"
+																	className="w-3.5 h-3.5"
+																/>
+															</div>
+															<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
+																Frontier LLMs, fraction of the cost. Save 70% inference
+																cost.
+															</p>
+															<div className="flex flex-row gap-2 mt-0.5">
+																<VSCodeButtonLink
+																	appearance="primary"
+																	href="https://app.matterai.so/api-billing">
+																	Get API key
+																</VSCodeButtonLink>
+																<VSCodeButtonLink
+																	appearance="secondary"
+																	href="https://app.matterai.so/axon-models/axon-eido-3-code-pro">
+																	View Benchmarks
 																</VSCodeButtonLink>
 															</div>
 														</div>
 													</div>
 												</div>
+											</div>
+
+											{/* Dot indicators */}
+											<div className="flex justify-center gap-2 mt-2">
+												<button
+													onClick={() => setActiveMarketingCard(0)}
+													className={`rounded-full transition-all duration-300 ${
+														activeMarketingCard === 0
+															? "bg-[var(--vscode-button-background)] w-4 h-2"
+															: "bg-[var(--vscode-panel-border)] w-2 h-2 hover:bg-[var(--vscode-descriptionForeground)]"
+													}`}
+													aria-label="PR Reviews card"
+												/>
+												<button
+													onClick={() => setActiveMarketingCard(1)}
+													className={`rounded-full transition-all duration-300 ${
+														activeMarketingCard === 1
+															? "bg-[var(--vscode-button-background)] w-4 h-2"
+															: "bg-[var(--vscode-panel-border)] w-2 h-2 hover:bg-[var(--vscode-descriptionForeground)]"
+													}`}
+													aria-label="Axon Models card"
+												/>
 											</div>
 										</div>
 									)}
@@ -2781,6 +2852,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							<div className={`flex-initial min-h-0 ${!areButtonsVisible ? "mb-1" : ""}`}>
 								{showAutoApproveMenu && <AutoApproveMenu />}
 							</div>
+							{/* Pinned todo list - single static position, updates in place (not a chat row) */}
+							{latestTodos.length > 0 && (
+								<div
+									className={`px-2 mb-1 mx-2 ${isAgentManagerMode ? `ml-14 ${isAgentFileViewerOpen ? "mr-14" : "mr-64"}` : "mx-0"}`}>
+									<PinnedTodoList todos={latestTodos} />
+								</div>
+							)}
 						</>
 					)}
 
@@ -2828,28 +2906,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 					{/* kilocode_change: Show notification when monthly limit is exhausted */}
 					{isUsageExhausted && !task && (
-						<div className="w-full min-w-0 px-4 mb-4">
-							<div className="flex items-center justify-between rounded-md gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
-								<div className="flex flex-col gap-2">
-									<span className="text-lg font-medium text-[var(--vscode-foreground)]">
-										You are out of Orbital Credits
-									</span>
-									<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
-										To continue using Orbital, upgrade your plan or switch to Auto model.
-									</span>
-								</div>
-								<button
-									className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] text-[var(--vscode-button-foreground)] text-md font-medium transition-all duration-200 shrink-0"
-									onClick={() =>
-										vscode.postMessage({
-											type: "openExternal",
-											url: "https://app.matterai.so/orbital",
-										})
-									}>
-									Upgrade
-								</button>
-							</div>
-						</div>
+						<OutOfCreditsBanner
+							className="w-full min-w-0 px-4 mb-4"
+							creditsResetDate={profileData?.creditsResetDate}
+						/>
 					)}
 
 					{!task && (

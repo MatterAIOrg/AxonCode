@@ -85,7 +85,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 	// 1. Updating the UI immediately when a mode is clicked
 	// 2. Not syncing with the backend mode state (which would cause flickering)
 	// 3. Still sending the mode change to the backend for persistence
-	const [visualMode, setVisualMode] = useState(mode)
+	const visualMode = mode
 
 	// Memoize modes to preserve array order
 	const modes = useMemo(() => getAllModes(customModes), [customModes])
@@ -165,29 +165,16 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 		[],
 	)
 
-	const switchMode = useCallback((slug: string) => {
-		vscode.postMessage({
-			type: "mode",
-			text: slug,
-		})
+	const switchMode = useCallback((_slug: string) => {
+		// Mode switching is disabled. The active mode is fixed to "agent";
+		// do not post any "mode" message to the extension.
 	}, [])
 
 	// Handle mode switching with explicit state initialization
-	const handleModeSwitch = useCallback(
-		(modeConfig: ModeConfig) => {
-			if (modeConfig.slug === visualMode) return // Prevent unnecessary updates
-
-			// Immediately update visual state for instant feedback
-			setVisualMode(modeConfig.slug)
-
-			// Then send the mode change message to the backend
-			switchMode(modeConfig.slug)
-
-			// Exit tools edit mode when switching modes
-			setIsToolsEditMode(false)
-		},
-		[visualMode, switchMode],
-	)
+	const handleModeSwitch = useCallback((_modeConfig: ModeConfig) => {
+		// Mode switching is disabled. The active mode is fixed to "agent";
+		// selection in this view cannot change the runtime mode.
+	}, [])
 
 	// Handler for popover open state change
 	const onOpenChange = useCallback((open: boolean) => {

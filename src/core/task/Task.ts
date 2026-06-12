@@ -120,7 +120,7 @@ import {
 	checkpointRestore,
 	checkpointDiff,
 } from "../checkpoints"
-import { processKiloUserContentMentions } from "../mentions/processKiloUserContentMentions" // kilocode_change
+import { processKiloUserContentMentions, stripTaskWrapperTags } from "../mentions/processKiloUserContentMentions" // kilocode_change
 import { refreshWorkflowToggles } from "../context/instructions/workflows" // kilocode_change
 import { parseMentions } from "../mentions" // kilocode_change
 import { parseKiloSlashCommands } from "../slash-commands/kilo" // kilocode_change
@@ -1591,6 +1591,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		await this.initiateTaskLoop([
 			{
 				type: "text",
+				// The <task> wrapper is only an internal marker for mention and
+				// slash-command parsing; it is stripped via stripTaskWrapperTags
+				// before the message is sent to the model.
 				text: `<task>\n${task}\n</task>`,
 			},
 			...imageBlocks,
@@ -2987,7 +2990,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 							block.text.includes("<user_message>")
 						) {
 							const parsedText = await parseMentions(
-								block.text,
+								stripTaskWrapperTags(block.text),
 								this.cwd,
 								this.urlContentFetcher,
 								this.fileContextTracker,

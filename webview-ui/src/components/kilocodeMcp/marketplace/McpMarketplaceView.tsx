@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import {
 	VSCodeButton,
-	VSCodeProgressRing,
 	VSCodeRadioGroup,
 	VSCodeRadio,
 	VSCodeDropdown,
@@ -11,6 +10,7 @@ import {
 import { McpMarketplaceItem } from "../../../../../src/shared/kilocode/mcp"
 import { useExtensionState } from "../../../context/ExtensionStateContext"
 import { vscode } from "../../../utils/vscode"
+import { MatterProgressIndicator } from "../../chat/ProgressIndicator"
 import McpMarketplaceCard from "./McpMarketplaceCard"
 import McpSubmitCard from "./McpSubmitCard"
 const McpMarketplaceView = () => {
@@ -104,7 +104,7 @@ const McpMarketplaceView = () => {
 					height: "100%",
 					padding: "20px",
 				}}>
-				<VSCodeProgressRing />
+				<MatterProgressIndicator />
 			</div>
 		)
 	}

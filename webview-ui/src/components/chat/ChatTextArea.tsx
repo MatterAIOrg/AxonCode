@@ -84,9 +84,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			onSelectImages,
 			shouldDisableImages,
 			onHeightChange,
-			mode,
-			setMode,
-			modeShortcutText,
+			// _mode,
+			// setMode,
+			// _modeShortcutText,
 			isEditMode = false,
 			onCancel,
 			sendMessageOnEnter = true,
@@ -111,12 +111,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const { id: selectedModelId, provider: selectedProvider } = useSelectedModel(apiConfiguration)
 
 		// kilocode_change: audio transcription hook
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const {
-			recorderState,
-			startRecording,
-			stopRecording,
-			error: recorderError,
+			recorderState: _recorderState,
+			startRecording: _startRecording,
+			stopRecording: _stopRecording,
+			error: _recorderError,
 		} = useAudioRecorder((text: string) => {
 			// Functional update: transcript chunks arrive asynchronously while
 			// recording, so append against the latest value (not a stale closure).
@@ -333,13 +332,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			(command: SlashCommand) => {
 				setShowSlashCommandsMenu(false)
 
-				// Handle mode switching commands
+				// Mode switching is disabled. Slash commands that would switch
+				// modes are ignored entirely; remaining slash commands still
+				// insert as before.
 				const modeSwitchCommands = getAllModes(customModes).map((mode) => mode.slug)
 				if (modeSwitchCommands.includes(command.name)) {
-					// Switch to the selected mode
-					setMode(command.name as Mode)
-					setInputValue("")
-					vscode.postMessage({ type: "mode", text: command.name })
 					return
 				}
 
@@ -355,7 +352,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					textAreaRef.current?.focus()
 				}, 0)
 			},
-			[inputValue, setInputValue, setMode, customModes],
+			[inputValue, setInputValue, customModes],
 		)
 		// forked_change end
 

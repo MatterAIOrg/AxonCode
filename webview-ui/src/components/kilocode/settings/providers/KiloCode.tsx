@@ -11,6 +11,23 @@ import { ModelPicker } from "../../../settings/ModelPicker"
 import { OrganizationSelector } from "../../common/OrganizationSelector"
 import { getKiloCodeBackendSignInUrl } from "../../helpers"
 
+function formatRelativeTime(isoStr?: string): string {
+	if (!isoStr) return "???"
+	const now = Date.now()
+	const target = new Date(isoStr).getTime()
+	if (Number.isNaN(target)) return "???"
+	const diff = target - now
+	if (diff <= 0) return "now"
+	const sec = Math.floor(diff / 1000)
+	const min = Math.floor(sec / 60)
+	const hrs = Math.floor(min / 60)
+	const days = Math.floor(hrs / 24)
+	if (days >= 1) return `in ${days} day${days > 1 ? "s" : ""}`
+	if (hrs >= 1) return `in ${hrs}h ${min % 60}m`
+	if (min >= 1) return `in ${min}m`
+	return "soon"
+}
+
 type KiloCodeProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
@@ -94,9 +111,6 @@ export const KiloCode = ({
 		}
 	}, [clineMessages, apiConfiguration?.kilocodeToken])
 
-	// Calculate usage percentage from profile data
-	const usagePercentage = profileData?.usagePercentage ?? null
-
 	// Always show all models including axon-code-2-pro
 	// The model will be marked as disabled if betaModelsEnabled is false
 	const models = routerModels?.["kilocode-openrouter"] ?? {}
@@ -150,27 +164,50 @@ export const KiloCode = ({
 										{profileData.plan?.toLocaleUpperCase()}
 									</div>
 								</div>
-								{usagePercentage !== null && (
-									<div className="space-y-2">
-										<div className="flex justify-between items-center">
-											<div className="text-md font-medium text-[var(--vscode-foreground)]">
-												Monthly Usage
-											</div>
-											<div className="text-md text-[var(--vscode-descriptionForeground)]">
-												{usagePercentage.toFixed(0)}% used
-											</div>
-										</div>
-										<div
-											className="w-full h-2.5 rounded-full overflow-hidden"
-											style={{
-												backgroundColor:
-													"color-mix(in srgb, var(--vscode-input-background), black 20%)",
-											}}>
-											<div
-												className="h-full bg-[var(--vscode-button-background)] transition-all duration-300"
-												style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-											/>
-										</div>
+								{/* Tiered usage windows (5hr / weekly / monthly) */}
+								{profileData.tieredUsage && (
+									<div className="space-y-3 pt-2">
+										{(["fiveHour", "weekly", "monthly"] as const).map((key) => {
+											const w = profileData.tieredUsage![key]
+											const pct = Math.max(0, Math.min(100, w.percentage || 0))
+											const exhausted = (w.remaining || 0) <= 0
+											const labelMap: Record<typeof key, string> = {
+												fiveHour: "5-Hour Window",
+												weekly: "Weekly Window",
+												monthly: "Monthly Window",
+											}
+											const relative = formatRelativeTime(w.resetsAt)
+											return (
+												<div className="space-y-1" key={key}>
+													<div className="text-md font-medium text-[var(--vscode-foreground)]">
+														{labelMap[key]}
+													</div>
+													<div
+														className="w-full h-2 rounded-full overflow-hidden"
+														style={{
+															backgroundColor:
+																"color-mix(in srgb, var(--vscode-input-background), black 20%)",
+														}}>
+														<div
+															className="h-full transition-all duration-300"
+															style={{
+																width: `${pct}%`,
+																backgroundColor: exhausted
+																	? "var(--vscode-errorForeground)"
+																	: pct >= 80
+																		? "var(--vscode-editorWarning-foreground)"
+																		: "var(--vscode-button-background)",
+															}}
+														/>
+													</div>
+													<div className="flex justify-between items-center">
+														<div className="text-xs text-[var(--vscode-descriptionForeground)]">
+															Resets {relative}
+														</div>
+													</div>
+												</div>
+											)
+										})}
 									</div>
 								)}
 								{profileData.remainingReviews !== undefined && (
