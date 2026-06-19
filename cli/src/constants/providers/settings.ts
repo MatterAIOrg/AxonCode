@@ -558,7 +558,7 @@ export const getProviderSettings = (provider: ProviderName, config: ProviderSett
 			return [
 				createFieldConfig("kilocodeToken", config),
 				createFieldConfig("kilocodeOrganizationId", config, "personal"),
-				createFieldConfig("kilocodeModel", config, "axon-code-2-5-pro"),
+				createFieldConfig("kilocodeModel", config, "axon-eido-3-code-mini"),
 			]
 
 		default:
@@ -570,7 +570,7 @@ export const getProviderSettings = (provider: ProviderName, config: ProviderSett
  * Provider-specific default models
  */
 export const PROVIDER_DEFAULT_MODELS: Record<ProviderName, string> = {
-	kilocode: "axon-code-2-5-pro",
+	kilocode: "axon-eido-3-code-mini",
 	anthropic: "claude-3-5-sonnet-20241022",
 	"openai-native": "gpt-4o",
 	openrouter: "anthropic/claude-3-5-sonnet",
