@@ -10,6 +10,7 @@ export const AXON_MODEL_TOOLTIPS: Record<string, [string, string]> = {
 	"axon-code-2-pro-high": ["Medium cost frontier model for", "small to medium tasks, extended thinking"],
 	"axon-code-2-5-pro": ["High intelligence frontier model", "for complex task, medium thinking"],
 	"axon-code-2-5-pro-high": ["High intelligence frontier model", "for complex task, extended thinking"],
+	"axon-eido-3-code-mini": ["High intelligence frontier model", "for high-effort day-to-day tasks"],
 }
 
 /**

@@ -29,7 +29,7 @@ export type KiloCodeModel = {
 export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 	"axon-code-2-5-mini": {
 		id: "axon-code-2-5-mini",
-		name: "Axon Code 2.5 Mini (free)",
+		name: "Axon 2.5 Mini (free)",
 		description:
 			"Axon Mini is an general purpose super intelligent LLM coding model for low-effort day-to-day tasks",
 		input_modalities: ["text", "image"],
@@ -64,9 +64,9 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 	},
 	"axon-code-2-5-pro": {
 		id: "axon-code-2-5-pro",
-		name: "Axon Code 2.5 Pro",
+		name: "Axon 2.5 Pro",
 		description:
-			"Axon Code 2.5 Pro is the next-generation of Axon Code for coding tasks, currently in experimental stage.",
+			"Axon 2.5 Pro is the next-generation of Axon Code for coding tasks, currently in experimental stage.",
 		input_modalities: ["text", "image"],
 		context_length: 400000,
 		max_output_length: 64000,
@@ -97,41 +97,6 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 			input_cache_writes: "0",
 		},
 	},
-	// "axon-code-2-8-mini": {
-	// 	id: "axon-code-2-8-mini",
-	// 	name: "Axon Code 2.8 Mini (free)",
-	// 	description:
-	// 		"Axon Mini is an general purpose super intelligent LLM coding model for low-effort day-to-day tasks",
-	// 	input_modalities: ["text", "image"],
-	// 	context_length: 400000,
-	// 	max_output_length: 64000,
-	// 	output_modalities: ["text"],
-	// 	supported_sampling_parameters: [
-	// 		"temperature",
-	// 		"top_p",
-	// 		"top_k",
-	// 		"repetition_penalty",
-	// 		"frequency_penalty",
-	// 		"presence_penalty",
-	// 		"seed",
-	// 		"stop",
-	// 	],
-	// 	supported_features: ["tools", "structured_outputs", "web_search"],
-	// 	openrouter: {
-	// 		slug: "matterai/axon",
-	// 	},
-	// 	datacenters: [{ country_code: "US" }],
-	// 	created: 1750426201,
-	// 	owned_by: "matterai",
-	// 	pricing: {
-	// 		prompt: "0.0",
-	// 		completion: "0.0",
-	// 		image: "0",
-	// 		request: "0",
-	// 		input_cache_reads: "0",
-	// 		input_cache_writes: "0",
-	// 	},
-	// },
 	"axon-eido-3-code-pro": {
 		id: "axon-eido-3-code-pro",
 		name: "Axon Eido 3 Pro",
@@ -159,8 +124,43 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		created: 1750426201,
 		owned_by: "matterai",
 		pricing: {
-			prompt: "0.0000012",
-			completion: "0.0000048",
+			prompt: "0.000003",
+			completion: "0.000009",
+			image: "0",
+			request: "0",
+			input_cache_reads: "0",
+			input_cache_writes: "0",
+		},
+	},
+	"axon-eido-3-code-mini": {
+		id: "axon-eido-3-code-mini",
+		name: "Axon Eido 3 Mini",
+		description:
+			"Axon Eido 3 Mini is a general purpose super intelligent LLM coding model for high-effort day-to-day tasks",
+		input_modalities: ["text", "image"],
+		context_length: 400000,
+		max_output_length: 64000,
+		output_modalities: ["text"],
+		supported_sampling_parameters: [
+			"temperature",
+			"top_p",
+			"top_k",
+			"repetition_penalty",
+			"frequency_penalty",
+			"presence_penalty",
+			"seed",
+			"stop",
+		],
+		supported_features: ["tools", "structured_outputs", "web_search"],
+		openrouter: {
+			slug: "matterai/axon",
+		},
+		datacenters: [{ country_code: "US" }],
+		created: 1750426201,
+		owned_by: "matterai",
+		pricing: {
+			prompt: "0.0000015",
+			completion: "0.0000045",
 			image: "0",
 			request: "0",
 			input_cache_reads: "0",
