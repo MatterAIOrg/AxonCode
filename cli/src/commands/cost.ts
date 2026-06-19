@@ -6,10 +6,10 @@ import type { Command } from "./core/types.js"
 import type { AxonCodeTieredUsage, AxonCodeWindowUsage } from "../state/atoms/profile.js"
 
 function formatRelativeTime(isoStr?: string): string {
-	if (!isoStr) return "???"
+	if (!isoStr) return "on session start"
 	const now = Date.now()
 	const target = new Date(isoStr).getTime()
-	if (Number.isNaN(target)) return "???"
+	if (Number.isNaN(target)) return "on session start"
 	const diff = target - now
 	if (diff <= 0) return "now"
 	const sec = Math.floor(diff / 1000)

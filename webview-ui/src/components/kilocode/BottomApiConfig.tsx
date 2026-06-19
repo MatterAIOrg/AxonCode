@@ -7,10 +7,10 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 
 function formatRelativeTime(isoStr?: string): string {
-	if (!isoStr) return "???"
+	if (!isoStr) return "on session start"
 	const now = Date.now()
 	const target = new Date(isoStr).getTime()
-	if (Number.isNaN(target)) return "???"
+	if (Number.isNaN(target)) return "on session start"
 	const diff = target - now
 	if (diff <= 0) return "now"
 	const sec = Math.floor(diff / 1000)
@@ -172,7 +172,6 @@ export const BottomApiConfig = () => {
 											(["fiveHour", "weekly", "monthly"] as const).map((key) => {
 												const w = profileData.tieredUsage![key]
 												const pct = Math.max(0, Math.min(100, w.percentage || 0))
-												const exhausted = (w.remaining || 0) <= 0
 												const labelMap: Record<typeof key, string> = {
 													fiveHour: "5-Hour",
 													weekly: "Weekly",
@@ -181,8 +180,13 @@ export const BottomApiConfig = () => {
 												const relative = formatRelativeTime(w.resetsAt)
 												return (
 													<div className="space-y-1" key={key}>
-														<div className="text-xs font-medium text-[var(--vscode-foreground)]">
-															{labelMap[key]}
+														<div className="flex justify-between items-center">
+															<div className="text-xs font-medium text-[var(--vscode-foreground)]">
+																{labelMap[key]}
+															</div>
+															<div className="text-[10px] text-[var(--vscode-descriptionForeground)]">
+																{pct.toFixed(0)}%
+															</div>
 														</div>
 														<div
 															className="w-full h-1.5 rounded-full overflow-hidden"
@@ -194,18 +198,17 @@ export const BottomApiConfig = () => {
 																className="h-full transition-all duration-300"
 																style={{
 																	width: `${pct}%`,
-																	backgroundColor: exhausted
-																		? "var(--vscode-errorForeground)"
-																		: pct >= 80
-																			? "var(--vscode-editorWarning-foreground)"
-																			: "var(--vscode-button-background)",
+																	backgroundColor:
+																		pct >= 80
+																			? "var(--vscode-errorForeground)"
+																			: pct > 50
+																				? "var(--vscode-editorWarning-foreground)"
+																				: "var(--vscode-descriptionForeground)",
 																}}
 															/>
 														</div>
-														<div className="flex justify-between items-center">
-															<div className="text-[10px] text-[var(--vscode-descriptionForeground)]">
-																Resets {relative}
-															</div>
+														<div className="text-[10px] text-[var(--vscode-descriptionForeground)]">
+															Resets {relative}
 														</div>
 													</div>
 												)
