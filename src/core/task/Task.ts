@@ -144,6 +144,41 @@ const DEFAULT_USAGE_COLLECTION_TIMEOUT_MS = 5000 // 5 seconds
 const FORCED_CONTEXT_REDUCTION_PERCENT = 75 // Keep 75% of context (remove 25%) on context window errors
 const MAX_CONTEXT_WINDOW_RETRIES = 3 // Maximum retries for context window errors
 
+// kilocode_change: Idle timeout for stream consumption. If no chunk is received
+// within this window, the stream is considered dead (network drop, socket close,
+// etc.) and a timeout error is thrown so the existing catch block can persist it
+// as a streaming failure and abort the task.
+const STREAM_IDLE_TIMEOUT_MS = 60_000 // 60 seconds
+
+/**
+ * Race an async iterator's next() against an idle timeout.
+ *
+ * When the timeout fires before a chunk arrives, a descriptive error is thrown
+ * so the caller's catch block can treat it as a stream disconnection. The
+ * pending iterator.next() promise is abandoned (the underlying connection will
+ * be cleaned up when the task aborts).
+ */
+async function nextWithIdleTimeout<T>(
+	iterator: AsyncIterator<T>,
+	timeoutMs: number = STREAM_IDLE_TIMEOUT_MS,
+): Promise<IteratorResult<T>> {
+	let timeoutHandle: ReturnType<typeof setTimeout> | undefined
+	const timeoutPromise = new Promise<never>((_, reject) => {
+		timeoutHandle = setTimeout(() => {
+			reject(
+				new Error(
+					`Stream idle timeout: no data received for ${timeoutMs}ms. The connection to the model may have been interrupted (network drop, socket closed, or server stopped responding).`,
+				),
+			)
+		}, timeoutMs)
+	})
+	try {
+		return (await Promise.race([iterator.next(), timeoutPromise])) as IteratorResult<T>
+	} finally {
+		if (timeoutHandle) clearTimeout(timeoutHandle)
+	}
+}
+
 export interface TaskOptions extends CreateTaskOptions {
 	context: vscode.ExtensionContext // kilocode_change
 	provider: ClineProvider
@@ -301,7 +336,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	private askResponseImages?: string[]
 	public isWaitingForAskResponse = false
 	public lastMessageTs?: number
-	private manualMessageQueue: Array<{ text: string; images?: string[] }> = []
+	// Pending user messages live in the visible `messageQueueService` (single
+	// source of truth) so they stay shown in the UI until they are actually sent.
+	// This flag just guards against reentrant draining of that queue.
 	private isProcessingManualMessages = false
 
 	// Tool Use
@@ -1067,6 +1104,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		} else if (isMessageQueued) {
 			console.log("Task#ask will process message queue")
 
+			// Mark that we're waiting for an ask response *before* draining the
+			// queue, so the dequeued message resolves this ask (via
+			// handleWebviewAskResponse) instead of being routed back into the
+			// queue by the !isWaitingForAskResponse guard there (which would make
+			// the message reappear and never answer the ask).
+			this.isWaitingForAskResponse = true
+
 			const message = this.messageQueueService.dequeueMessage()
 
 			if (message) {
@@ -1199,10 +1243,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			return
 		}
 
-		this.manualMessageQueue.push({
-			text: trimmedText,
-			images: hasImages ? [...(images as string[])] : undefined,
-		})
+		// Add to the visible queue (single source of truth) so the message stays
+		// shown in the UI until it is actually sent by processManualMessageQueue.
+		this.messageQueueService.addMessage(trimmedText, hasImages ? [...(images as string[])] : undefined)
 
 		try {
 			await this.processManualMessageQueue()
@@ -1216,7 +1259,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			return
 		}
 
-		if (this.manualMessageQueue.length === 0) {
+		if (this.messageQueueService.isEmpty()) {
 			return
 		}
 
@@ -1227,24 +1270,26 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.isProcessingManualMessages = true
 
 		try {
-			while (this.manualMessageQueue.length > 0) {
+			while (!this.messageQueueService.isEmpty()) {
 				if (this.isStreaming || this.isWaitingForAskResponse) {
 					break
 				}
 
-				const nextMessage = this.manualMessageQueue.shift()
+				// Only remove the message from the visible queue at the moment we
+				// send it, so it remains shown in the UI while still pending.
+				const nextMessage = this.messageQueueService.dequeueMessage()
 
 				if (!nextMessage) {
 					break
 				}
 
-				await this.handleManualUserMessage(nextMessage)
+				await this.handleManualUserMessage({ text: nextMessage.text, images: nextMessage.images })
 			}
 		} finally {
 			this.isProcessingManualMessages = false
 		}
 
-		if (!this.isStreaming && !this.isWaitingForAskResponse && this.manualMessageQueue.length > 0) {
+		if (!this.isStreaming && !this.isWaitingForAskResponse && !this.messageQueueService.isEmpty()) {
 			void this.processManualMessageQueue()
 		}
 	}
@@ -2310,10 +2355,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 				try {
 					const iterator = stream[Symbol.asyncIterator]()
-					let item = await iterator.next()
+					let item = await nextWithIdleTimeout(iterator)
 					while (!item.done) {
 						const chunk = item.value
-						item = await iterator.next()
+						item = await nextWithIdleTimeout(iterator)
 						if (!chunk) {
 							// Sometimes chunk is undefined, no idea that can cause
 							// it, but this workaround seems to fix it.
@@ -3585,7 +3630,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		try {
 			// Awaiting first chunk to see if it will throw an error.
 			this.isWaitingForFirstChunk = true
-			const firstChunk = await iterator.next()
+			const firstChunk = await nextWithIdleTimeout(iterator)
 			yield firstChunk.value
 			this.isWaitingForFirstChunk = false
 		} catch (error) {
@@ -3704,7 +3749,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// No error on first chunk, so we can continue to yield all remaining chunks.
 		// Wrap in try/catch to handle mid-stream errors and allow retry.
 		try {
-			yield* iterator
+			let result = await nextWithIdleTimeout(iterator)
+			while (!result.done) {
+				yield result.value
+				result = await nextWithIdleTimeout(iterator)
+			}
 		} catch (error) {
 			// Reset streaming state since we encountered an error
 			this.isStreaming = false
@@ -3897,14 +3946,15 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	public processQueuedMessages(): void {
 		try {
 			if (!this.messageQueueService.isEmpty()) {
-				const queued = this.messageQueueService.dequeueMessage()
-				if (queued) {
-					setTimeout(() => {
-						this.enqueueManualUserMessage(queued.text, queued.images).catch((err) =>
-							console.error(`[Task] Failed to enqueue queued message:`, err),
-						)
-					}, 0)
-				}
+				// Defer to the next tick so we don't reenter while a tool is still
+				// finishing. The message stays visible in the queue until it is
+				// actually sent: processManualMessageQueue no-ops while the stream
+				// is still active, so nothing vanishes from the UI prematurely.
+				setTimeout(() => {
+					void this.processManualMessageQueue().catch((err) =>
+						console.error(`[Task] Failed to process queued message:`, err),
+					)
+				}, 0)
 			}
 		} catch (e) {
 			console.error(`[Task] Queue processing error:`, e)

@@ -96,13 +96,23 @@ vi.mock("vscode", () => {
 				dispose: vi.fn(),
 			}),
 			visibleTextEditors: [mockTextEditor],
+			activeTextEditor: undefined,
 			onDidChangeWindowState: vi.fn(() => mockDisposable),
+			onDidChangeActiveTextEditor: vi.fn(() => mockDisposable),
+			onDidChangeVisibleTextEditors: vi.fn(() => mockDisposable),
 			tabGroups: {
 				all: [mockTabGroup],
 				close: vi.fn(),
 				onDidChangeTabs: vi.fn(() => ({ dispose: vi.fn() })),
 			},
 			showErrorMessage: vi.fn(),
+		},
+		languages: {
+			registerCodeLensProvider: vi.fn(() => mockDisposable),
+		},
+		commands: {
+			registerCommand: vi.fn(() => mockDisposable),
+			executeCommand: vi.fn(),
 		},
 		workspace: {
 			workspaceFolders: [
@@ -122,6 +132,7 @@ vi.mock("vscode", () => {
 				stat: vi.fn().mockResolvedValue({ type: 1 }), // FileType.File = 1
 			},
 			onDidSaveTextDocument: vi.fn(() => mockDisposable),
+			onDidCloseTextDocument: vi.fn(() => mockDisposable),
 			onDidChangeWorkspaceFolders: vi.fn(() => mockDisposable),
 			getConfiguration: vi.fn(() => ({ get: (key: string, defaultValue: any) => defaultValue })),
 		},
@@ -1564,7 +1575,7 @@ describe("Cline", () => {
 					type: "invoke",
 					invoke: "sendMessage",
 					text: "test message",
-					images: ["image1.png"],
+					images: [{ dataUrl: "image1.png", name: "image-0" }],
 				})
 			})
 
@@ -1605,7 +1616,7 @@ describe("Cline", () => {
 					type: "invoke",
 					invoke: "sendMessage",
 					text: "new task",
-					images: ["image1.png"],
+					images: [{ dataUrl: "image1.png", name: "image-0" }],
 				})
 
 				// Clear mock
@@ -1626,7 +1637,7 @@ describe("Cline", () => {
 					type: "invoke",
 					invoke: "sendMessage",
 					text: "follow-up message",
-					images: ["image2.png"],
+					images: [{ dataUrl: "image2.png", name: "image-0" }],
 				})
 			})
 
@@ -1865,6 +1876,75 @@ describe("Cline", () => {
 
 			// Restore console.error
 			consoleErrorSpy.mockRestore()
+		})
+	})
+
+	describe("queued user messages", () => {
+		const flush = () => new Promise((resolve) => setTimeout(resolve, 20))
+
+		const makeTask = () =>
+			new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+				context: mockExtensionContext,
+			})
+
+		it("keeps a queued message visible in the UI queue while the stream is active", async () => {
+			const task = makeTask()
+			const sendSpy = vi.spyOn(task as any, "handleManualUserMessage").mockResolvedValue(undefined)
+
+			task.isStreaming = true
+			task.messageQueueService.addMessage("hello while busy")
+
+			task.processQueuedMessages()
+			await flush()
+
+			// Message must NOT vanish from the visible queue while streaming, and
+			// must NOT be sent yet.
+			expect(task.messageQueueService.messages).toHaveLength(1)
+			expect(task.messageQueueService.messages[0].text).toBe("hello while busy")
+			expect(sendSpy).not.toHaveBeenCalled()
+		})
+
+		it("sends and removes the queued message once the stream ends", async () => {
+			const task = makeTask()
+			const sendSpy = vi.spyOn(task as any, "handleManualUserMessage").mockResolvedValue(undefined)
+
+			task.isStreaming = true
+			task.messageQueueService.addMessage("deferred message")
+			task.processQueuedMessages()
+			await flush()
+			expect(sendSpy).not.toHaveBeenCalled()
+
+			// Stream ends -> the queue should drain.
+			task.isStreaming = false
+			task.processQueuedMessages()
+			await flush()
+
+			expect(sendSpy).toHaveBeenCalledTimes(1)
+			expect(sendSpy).toHaveBeenCalledWith(expect.objectContaining({ text: "deferred message" }))
+			expect(task.messageQueueService.isEmpty()).toBe(true)
+		})
+
+		it("does not drop messages when several are queued; all are sent when free", async () => {
+			const task = makeTask()
+			const sendSpy = vi.spyOn(task as any, "handleManualUserMessage").mockResolvedValue(undefined)
+
+			task.isStreaming = true
+			task.messageQueueService.addMessage("first")
+			task.messageQueueService.addMessage("second")
+			task.processQueuedMessages()
+			await flush()
+			expect(task.messageQueueService.messages).toHaveLength(2)
+
+			task.isStreaming = false
+			task.processQueuedMessages()
+			await flush()
+
+			expect(sendSpy.mock.calls.map((c) => (c[0] as { text: string }).text)).toEqual(["first", "second"])
+			expect(task.messageQueueService.isEmpty()).toBe(true)
 		})
 	})
 })

@@ -885,7 +885,7 @@
 		"useCustomModel": "Use custom: {{modelId}}"
 	},
 	"footer": {
-		"feedback": "If you have any questions or feedback, feel free to open an issue at <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> or join <redditLink>reddit.com/r/matter_ai</redditLink> or <discordLink>discord.gg/fJU5DvanU3</discordLink>.",
+		"feedback": "If you have any questions or feedback, feel free to open an issue at <githubLink>github.com/MatterAIOrg/Orbital-Extension</githubLink> or join <redditLink>reddit.com/r/matter_ai</redditLink>",
 		"support": "For team plans, please contact Customer Support at <supportLink>https://www.matterai.so/contact</supportLink>",
 		"telemetry": {
 			"label": "Allow error and usage reporting",

@@ -177,7 +177,8 @@
 		"failed": "API Request Failed",
 		"streaming": "Generating...",
 		"cancelled": "API Request Cancelled",
-		"streamingFailed": "API Streaming Failed"
+		"streamingFailed": "API Streaming Failed",
+		"streamDisconnected": "The connection to the model was interrupted. This usually happens when your machine loses network connectivity or the stream is dropped mid-response. The error details below may help diagnose the issue."
 	},
 	"checkpoint": {
 		"regular": "Checkpoint",

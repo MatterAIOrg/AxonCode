@@ -217,7 +217,12 @@ export const ErrorRow = memo(
 				)}
 
 				{/* Retry Button - outside tooltip, below error row */}
-				{type === "api_failure" && message?.includes("Provider error:") && (
+				{((type === "api_failure" && message?.includes("Provider error:")) ||
+					(type === "streaming_failed" &&
+						(message?.includes("Provider error:") ||
+							/econnreset|socket hang up|socket closed|other side closed|fetch failed|network error|terminated|aborted|underlying socket|connection reset|connection aborted|etimedout|enotfound/i.test(
+								message || "",
+							)))) && (
 					<div className="mt-1 flex justify-end">
 						<VSCodeButton
 							appearance="secondary"
