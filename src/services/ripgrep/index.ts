@@ -51,6 +51,11 @@ rel/path/to/helper.ts
 const isWindows = process.platform.startsWith("win")
 const binName = isWindows ? "rg.exe" : "rg"
 
+// @vscode/ripgrep-universal (used by recent VS Code builds and Orbital) nests the
+// binary in a per-platform subfolder, e.g. bin/darwin-arm64/rg. Mirror its own
+// resolution: binPathFor({ os: process.platform, arch: process.arch }).
+const universalBinSubdir = `${process.platform}-${process.env.npm_config_arch || process.arch}`
+
 interface SearchFileResult {
 	file: string
 	searchResults: SearchResult[]
@@ -92,7 +97,9 @@ export async function getBinPath(vscodeAppRoot: string): Promise<string | undefi
 		(await checkPath("node_modules/@vscode/ripgrep/bin/")) ||
 		(await checkPath("node_modules/vscode-ripgrep/bin")) ||
 		(await checkPath("node_modules.asar.unpacked/vscode-ripgrep/bin/")) ||
-		(await checkPath("node_modules.asar.unpacked/@vscode/ripgrep/bin/"))
+		(await checkPath("node_modules.asar.unpacked/@vscode/ripgrep/bin/")) ||
+		(await checkPath(`node_modules/@vscode/ripgrep-universal/bin/${universalBinSubdir}/`)) ||
+		(await checkPath(`node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/${universalBinSubdir}/`))
 	)
 }
 
