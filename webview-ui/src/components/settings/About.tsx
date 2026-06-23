@@ -57,18 +57,24 @@ export const About = ({ telemetrySetting, setTelemetrySetting, className, ...pro
 						<VSCodeButton
 							appearance="secondary"
 							onClick={() => vscode.postMessage({ type: "exportSettings" })}>
-							<Upload className="w-3 pb-0.5" />
-							{t("settings:footer.settings.export")}
+							<div className="flex items-center gap-1.5">
+								<Upload className="w-3" />
+								{t("settings:footer.settings.export")}
+							</div>
 						</VSCodeButton>
 						<VSCodeButton
 							appearance="secondary"
 							onClick={() => vscode.postMessage({ type: "importSettings" })}>
-							<Download className="w-3 pb-0.5" />
-							{t("settings:footer.settings.import")}
+							<div className="flex items-center gap-1.5">
+								<Download className="w-3" />
+								{t("settings:footer.settings.import")}
+							</div>
 						</VSCodeButton>
 						<DangerButton appearance="secondary" onClick={() => vscode.postMessage({ type: "resetState" })}>
-							<TriangleAlert className="w-3 pb-0.5" />
-							{t("settings:footer.settings.reset")}
+							<div className="flex items-center gap-1.5">
+								<TriangleAlert className="w-3" />
+								{t("settings:footer.settings.reset")}
+							</div>
 						</DangerButton>
 					</div>
 				</SettingsRow>
