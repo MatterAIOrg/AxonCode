@@ -1,5 +1,25 @@
 # Changelog
 
+## [v6.4.4] - 2026-06-23
+
+### Added
+
+- **Stream idle timeout**: 60s idle window on model stream consumption. If no chunk arrives within the window (network drop, socket close, server stall), a descriptive error is thrown so the catch block can persist the failure and surface a `streaming_failed` row to the UI
+- **Stream disconnection UI surfacing**: New `streaming_failed` `ErrorRow` variant with a localized explanation of the likely cause for transport-level errors (ECONNRESET, socket hang up, fetch failed, ETIMEDOUT, ENOTFOUND, etc.), and a retry button matching the existing `Provider error:` behavior
+- **`chat:apiRequest.streamDisconnected` i18n key**
+
+### Fixed
+
+- **Ripgrep binary resolution on modern VS Code / Orbital hosts**: `@vscode/ripgrep-universal` nests the binary in a per-platform subfolder (`bin/{os}-{arch}/rg`) that the previous lookup chain did not check, causing `getBinPath` to return undefined and file searches to silently fail. Adds the universal package to the lookup chain with both `node_modules` and `node_modules.asar.unpacked` paths
+- **Unified message queue**: Replaced the local `manualMessageQueue` with the shared `messageQueueService` as the single source of truth. Queued messages now stay visible in the UI until they are actually dispatched; `isWaitingForAskResponse` is set before dequeue so a follow-up message resolves the ask rather than being re-routed into the queue
+
+### Changed
+
+- **About footer actions**: Export, import, and reset buttons now sit in a flex container with `gap-1.5` so the icon and label share a single evenly spaced row. Removed ad-hoc `pb-0.5` icon padding
+- **Footer support copy**: Removed the dead Discord link; the message now ends at the Reddit mention
+
+---
+
 ## [v6.2.3] - 2026-05-21
 
 ### Fixed
