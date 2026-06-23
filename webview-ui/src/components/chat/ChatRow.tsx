@@ -172,6 +172,31 @@ const buildFileEditDiff = (tool: ClineSayTool): string | undefined => {
 	return lines.join("\n")
 }
 
+// Detect signatures of a downstream stream disconnection (network drop, socket close, fetch failure).
+// These surface as raw SDK/transport errors rather than structured API error objects.
+const STREAM_DISCONNECT_PATTERNS: ReadonlyArray<RegExp> = [
+	/econnreset/i,
+	/socket hang up/i,
+	/socket closed/i,
+	/other side closed/i,
+	/fetch failed/i,
+	/network error/i,
+	/terminated/i,
+	/aborted/i,
+	/underlying socket/i,
+	/connection reset/i,
+	/connection aborted/i,
+	/etimedout/i,
+	/enotfound/i,
+	/read econnreset/i,
+]
+
+const isStreamDisconnectError = (message: string): boolean => {
+	if (!message) return false
+	const lower = message.toLowerCase()
+	return STREAM_DISCONNECT_PATTERNS.some((pattern) => pattern.test(lower))
+}
+
 const hasTruncatedDiffContent = (diff?: string | null) =>
 	Boolean(diff && (diff.includes("...(truncated)") || diff.includes("... (truncated)")))
 
@@ -1577,10 +1602,17 @@ export const ChatRowContent = ({
 							{(((cost === null || cost === undefined) && apiRequestFailedMessage) ||
 								apiReqStreamingFailedMessage) && (
 								<ErrorRow
-									type="api_failure"
+									type={apiReqStreamingFailedMessage ? "streaming_failed" : "api_failure"}
 									message={apiRequestFailedMessage || apiReqStreamingFailedMessage || ""}
 									additionalContent={
-										apiRequestFailedMessage?.toLowerCase().includes("powershell") ? (
+										apiReqStreamingFailedMessage &&
+										isStreamDisconnectError(apiReqStreamingFailedMessage) ? (
+											<>
+												<br />
+												<br />
+												{t("chat:apiRequest.streamDisconnected")}
+											</>
+										) : apiRequestFailedMessage?.toLowerCase().includes("powershell") ? (
 											<>
 												<br />
 												<br />
