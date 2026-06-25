@@ -2667,8 +2667,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																/>
 															</div>
 															<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
-																Frontier LLMs, fraction of the cost. Save 70% inference
-																cost.
+																Cut agent inference costs by 60% using Frontier Axon
+																models
 															</p>
 															<div className="flex flex-row gap-2 mt-0.5">
 																<VSCodeButtonLink
