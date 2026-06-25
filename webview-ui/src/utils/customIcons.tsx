@@ -862,3 +862,88 @@ export const PolicyIcon = (props: React.SVGProps<SVGSVGElement>) => (
 			strokeLinejoin="round"></path>
 	</svg>
 )
+
+export const PencilEdit02Icon = (props: React.SVGProps<SVGSVGElement>) => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		width={24}
+		height={24}
+		color={"currentColor"}
+		fill={"none"}
+		{...props}>
+		<path
+			d="M16.4249 4.60509L17.4149 3.6151C18.2351 2.79497 19.5648 2.79497 20.3849 3.6151C21.205 4.43524 21.205 5.76493 20.3849 6.58507L19.3949 7.57506M16.4249 4.60509L9.76558 11.2644C9.25807 11.772 8.89804 12.4078 8.72397 13.1041L8 16L10.8959 15.276C11.5922 15.102 12.228 14.7419 12.7356 14.2344L19.3949 7.57506M16.4249 4.60509L19.3949 7.57506"
+			stroke="currentColor"
+			strokeWidth="1"
+			strokeLinejoin="round"></path>
+		<path
+			d="M18.9999 13.5C18.9999 16.7875 18.9999 18.4312 18.092 19.5376C17.9258 19.7401 17.7401 19.9258 17.5375 20.092C16.4312 21 14.7874 21 11.4999 21H11C7.22876 21 5.34316 21 4.17159 19.8284C3.00003 18.6569 3 16.7712 3 13V12.5C3 9.21252 3 7.56879 3.90794 6.46244C4.07417 6.2599 4.2599 6.07417 4.46244 5.90794C5.56879 5 7.21252 5 10.5 5"
+			stroke="currentColor"
+			strokeWidth="1"
+			strokeLinecap="round"
+			strokeLinejoin="round"></path>
+	</svg>
+)
+
+export const ClipboardCopyIcon = (props: React.SVGProps<SVGSVGElement>) => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		width={24}
+		height={24}
+		color={"currentColor"}
+		fill={"none"}
+		{...props}>
+		<path
+			d="M11.502 13.0003L20.502 13.0003"
+			stroke="currentColor"
+			strokeWidth="1"
+			strokeLinecap="round"
+			strokeLinejoin="round"></path>
+		<path
+			d="M13.5019 10.0003C13.5019 10.0003 10.502 12.2097 10.502 13.0003C10.5019 13.7909 13.502 16.0003 13.502 16.0003"
+			stroke="currentColor"
+			strokeWidth="1"
+			strokeLinecap="round"
+			strokeLinejoin="round"></path>
+		<path
+			d="M13.998 2.00027H8.99805C8.16962 2.00027 7.49805 2.67185 7.49805 3.50027C7.49805 4.3287 8.16962 5.00027 8.99805 5.00027H13.998C14.8265 5.00027 15.498 4.3287 15.498 3.50027C15.498 2.67185 14.8265 2.00027 13.998 2.00027Z"
+			stroke="currentColor"
+			strokeWidth="1"
+			strokeLinecap="round"
+			strokeLinejoin="round"></path>
+		<path
+			d="M15.4981 3.50027C17.0515 3.54709 17.9781 3.72035 18.6194 4.36164C19.4466 5.18885 19.495 6.49068 19.4979 9.00027M7.49795 3.50027C5.94456 3.54708 5.01802 3.72034 4.37673 4.36163C3.49805 5.24031 3.49805 6.65453 3.49806 9.48296L3.49805 15.9998C3.49805 18.8282 3.49806 20.2424 4.37674 21.1211C5.25541 21.9997 6.66963 21.9997 9.49805 21.9997L13.498 21.9997C16.3265 21.9997 17.7407 21.9997 18.6194 21.1211C19.3877 20.3527 19.4842 19.175 19.4963 17.0003"
+			stroke="currentColor"
+			strokeWidth="1"
+			strokeLinecap="round"
+			strokeLinejoin="round"></path>
+	</svg>
+)
+
+export const LockKeyIcon = (props: React.SVGProps<SVGSVGElement>) => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		width={24}
+		height={24}
+		color={"currentColor"}
+		fill={"none"}
+		{...props}>
+		<path
+			d="M18 10.9971C17.6078 10.1968 16.5481 9.02153 14.3703 9.07154C14.3703 9.07154 12.6431 8.99652 10.6906 8.99652C8.73815 8.99652 7.82408 9.04224 6.25999 9.07154C5.25872 9.04653 3.35629 9.2716 2.48017 11.3472C1.90444 13.0976 1.87941 16.7736 2.22986 18.6241C2.30495 19.5744 2.80559 20.8998 4.35757 21.6C5.30878 22.1001 6.83573 21.9 7.98719 22.0001M5.98464 8.1963C5.93458 5.82065 5.83445 3.94514 8.58796 2.39472C9.51414 2.01962 10.8909 1.69453 12.5931 2.49475C14.3703 3.57004 14.5917 4.70802 14.7458 4.99543C15.1713 6.12074 14.9461 7.72117 14.9961 8.37135"
+			stroke="currentColor"
+			strokeWidth="1"
+			strokeLinecap="round"></path>
+		<path
+			d="M15.5 19.7351C15.5 20.9792 14.4911 21.9656 13.2552 21.9656C12.0194 21.9656 11 20.9792 11 19.7351C11 18.4911 12.0194 17.4915 13.2552 17.4915C14.4911 17.4915 15.5 18.4911 15.5 19.7351Z"
+			stroke="currentColor"
+			strokeWidth="1"></path>
+		<path
+			d="M22 15.8482L20.3731 14.3089C19.6 13.5692 18.95 14.2149 18.6264 14.4906L17.2156 15.8482L15.225 17.7909M17.2156 15.8482L18.825 17.3936"
+			stroke="currentColor"
+			strokeWidth="1"
+			strokeLinecap="round"></path>
+	</svg>
+)

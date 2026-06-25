@@ -59,7 +59,16 @@
 		"retryConnection": "Retry Connection",
 		"authenticate": "Authenticate",
 		"authenticating": "Opening browser...",
-		"needsAuth": "Authentication required"
+		"needsAuth": "Authentication required",
+		"needsAuthShort": "Needs auth",
+		"connected": "Connected",
+		"connecting": "Connecting",
+		"disconnected": "Disconnected",
+		"disabled": "Disabled"
+	},
+	"serversSection": {
+		"title": "Installed servers",
+		"empty": "No MCP servers installed yet. Add one from the suggestions below or edit your config."
 	},
 	"execution": {
 		"running": "Running",
