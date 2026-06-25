@@ -145,6 +145,9 @@ export interface ExtensionMessage {
 		| "toggleApiConfigPin"
 		| "mcpMarketplaceCatalog" // kilocode_change
 		| "mcpDownloadDetails" // kilocode_change
+		| "mcpMigrationEntries"
+		| "mcpMigrationResult"
+		| "mcpAuthResult"
 		| "showSystemNotification" // kilocode_change
 		| "openInBrowser" // kilocode_change
 		| "acceptInput"
@@ -264,6 +267,18 @@ export interface ExtensionMessage {
 	error?: string
 	mcpMarketplaceCatalog?: McpMarketplaceCatalog // kilocode_change
 	mcpDownloadDetails?: McpDownloadResponse // kilocode_change
+	mcpMigrationEntries?: import("../services/mcp/mcpMigrate").MigrationEntry[]
+	mcpMigrationResult?: {
+		added: { name: string; source: string; sourceLabel: string }[]
+		skipped: { name: string; source: string; sourceLabel: string; reason: string }[]
+		destinationPath: string
+	}
+	mcpAuthResult?: {
+		serverName: string
+		success: boolean
+		authUrl?: string
+		error?: string
+	}
 	notificationOptions?: {
 		title?: string
 		subtitle?: string

@@ -32,6 +32,10 @@ export function getSupportedSlashCommands(
 			name: "code-review",
 			description: "Expert review of pending changes: performance, security, bugs and tests",
 		},
+		{
+			name: "migrate",
+			description: "Import MCP servers from Cursor / Claude Code / Claude Desktop",
+		},
 	]
 
 	// Add mode-switching commands dynamically

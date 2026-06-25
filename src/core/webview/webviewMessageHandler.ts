@@ -2189,6 +2189,84 @@ ${comment.suggestion}
 			}
 			break
 		}
+		case "mcpMigrateList": {
+			try {
+				const { listMigrationEntries } = await import("../../services/mcp/mcpMigrate.js")
+				const entries = listMigrationEntries()
+				await provider.postMessageToWebview({ type: "mcpMigrationEntries", mcpMigrationEntries: entries })
+			} catch (error) {
+				provider.log(`Failed to list MCP migration entries: ${error}`)
+			}
+			break
+		}
+		case "mcpMigrateApply": {
+			if (!Array.isArray(message.keys) || message.keys.length === 0) {
+				break
+			}
+			try {
+				const { listMigrationEntries } = await import("../../services/mcp/mcpMigrate.js")
+				const all = listMigrationEntries()
+				const wanted = new Set(message.keys)
+				const selected = all.filter((e) => wanted.has(e.key))
+				const hub = provider.getMcpHub()
+				if (!hub) {
+					break
+				}
+				const result = await hub.importMcpServers(selected)
+				// Refresh the live mcpServers list (new connections start in
+				// the background; this pushes the new snapshot to the webview).
+				provider.postMessageToWebview({
+					type: "mcpMigrationResult",
+					mcpMigrationResult: {
+						added: result.added.map((e) => ({
+							name: e.name,
+							source: e.source,
+							sourceLabel: e.sourceLabel,
+						})),
+						skipped: result.skipped.map((s) => ({
+							name: s.entry.name,
+							source: s.entry.source,
+							sourceLabel: s.entry.sourceLabel,
+							reason: s.reason,
+						})),
+						destinationPath: result.destinationPath,
+					},
+				})
+			} catch (error) {
+				provider.log(`Failed to apply MCP migration: ${error}`)
+			}
+			break
+		}
+		case "authenticateMcpServer": {
+			try {
+				const hub = provider.getMcpHub()
+				if (!hub) {
+					break
+				}
+				const result = await hub.startOAuthFlow(message.serverName!, message.source as "global" | "project")
+				// Post the result back so the webview can show errors.
+				await provider.postMessageToWebview({
+					type: "mcpAuthResult",
+					mcpAuthResult: {
+						serverName: message.serverName!,
+						success: result.success,
+						authUrl: result.authUrl,
+						error: result.error,
+					},
+				})
+				// Open the authorization URL in the external browser so the
+				// user can approve. The OAuth callback is handled by the URI
+				// handler in handleUri.ts, which calls completeOAuthFlow and
+				// reconnects the server.
+				if (result.success && result.authUrl) {
+					await vscode.env.openExternal(vscode.Uri.parse(result.authUrl))
+				}
+				await provider.postStateToWebview()
+			} catch (error) {
+				provider.log(`Failed to start OAuth flow for ${message.serverName}: ${error}`)
+			}
+			break
+		}
 		case "restartMcpServer": {
 			try {
 				await provider.getMcpHub()?.restartConnection(message.text!, message.source as "global" | "project")

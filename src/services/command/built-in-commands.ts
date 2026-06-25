@@ -31,6 +31,25 @@ If the remote URL contains "github.com", use the author flag:
   git commit --author="matterai-app[bot] <matterai-app[bot]@users.noreply.github.com>"
 </task>`,
 	},
+	migrate: {
+		name: "migrate",
+		description: "Import MCP servers from Cursor / Claude Code / Claude Desktop",
+		argumentHint: "",
+		content: `<task>
+The user has explicitly asked to run the /migrate command, which imports MCP server configurations from other clients (Cursor, Claude Code, Claude Desktop) into Orbital's global MCP settings.
+
+Your job is to inform the user that the migration UI is available in the MCP settings panel, and tell them how to invoke it. The actual file I/O happens in the extension host; you do not need to read or write any files yourself.
+
+1. Tell the user: "Open the **MCP** tab in the Orbital sidebar and click **Migrate from Cursor / Claude** (cloud-download icon). A picker will appear listing every server Orbital found on your machine. Select the ones you want, then click **Apply**."
+2. Mention the sources the picker covers:
+   - **Cursor** — \`~/.cursor/mcp.json\` (global) and \`<workspace>/.cursor/mcp.json\` (project)
+   - **Claude Code** — \`~/.claude/settings.json\` (user) and \`~/.claude.json\` (user + per-project)
+   - **Claude Desktop** — platform-specific \`claude_desktop_config.json\`
+3. Note that servers whose name already exists in the destination are skipped (no overwrite).
+4. Alternative: \`mcp migrate --all\` in the CLI TUI imports every non-conflicting server without showing a picker.
+5. Do not attempt to read or modify any MCP config files directly. Do not run shell commands to copy configs. End your response after step 4.
+</task>`,
+	},
 	init: {
 		name: "init",
 		description: "Analyze codebase and create concise AGENTS.md files for AI assistants",

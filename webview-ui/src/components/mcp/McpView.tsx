@@ -6,7 +6,7 @@ import {
 	VSCodePanelTab,
 	VSCodePanelView,
 } from "@vscode/webview-ui-toolkit/react"
-import React, { useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { Trans } from "react-i18next"
 
 import { McpServer } from "@roo/mcp"
@@ -33,6 +33,8 @@ import McpToolRow from "./McpToolRow"
 import { McpErrorRow } from "./McpErrorRow"
 import { Delete01Icon, Refresh04Icon } from "@/utils/customIcons"
 import { SuggestedPluginsView } from "../kilocodeMcp/suggested"
+import McpMigrationView, { type MigrationEntryLike, type MigrationResultLike } from "./McpMigrationView"
+import type { ExtensionMessage } from "@roo/ExtensionMessage"
 
 type McpViewProps = {
 	onDone: () => void
@@ -49,6 +51,45 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 	} = useExtensionState()
 
 	const { t } = useAppTranslation()
+
+	// /migrate-equivalent UI: opens a picker that imports MCP server entries
+	// from Cursor / Claude Code / Claude Desktop. State stays local because
+	// the result is only relevant while this view is mounted.
+	const [migrationOpen, setMigrationOpen] = useState(false)
+	const [migrationEntries, setMigrationEntries] = useState<MigrationEntryLike[]>([])
+	const [migrationResult, setMigrationResult] = useState<MigrationResultLike | null>(null)
+	const [migrationLoading, setMigrationLoading] = useState(false)
+
+	const openMigration = () => {
+		setMigrationOpen(true)
+		setMigrationResult(null)
+		setMigrationLoading(true)
+		vscode.postMessage({ type: "mcpMigrateList" })
+	}
+
+	const closeMigration = () => {
+		setMigrationOpen(false)
+		setMigrationResult(null)
+	}
+
+	// Stable message handler. We intentionally subscribe with a function that
+	// doesn't read any state setters through closure, so re-renders don't
+	// re-subscribe and re-process the same message (which would loop).
+	const handleMessage = useCallback((event: MessageEvent) => {
+		const message = event.data as ExtensionMessage
+		if (!message || typeof message !== "object") return
+		if (message.type === "mcpMigrationEntries" && Array.isArray(message.mcpMigrationEntries)) {
+			setMigrationEntries(message.mcpMigrationEntries as MigrationEntryLike[])
+			setMigrationLoading(false)
+		} else if (message.type === "mcpMigrationResult" && message.mcpMigrationResult) {
+			setMigrationResult(message.mcpMigrationResult as MigrationResultLike)
+		}
+	}, [])
+
+	useEffect(() => {
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
+	}, [handleMessage])
 
 	return (
 		// kilocode_change: add relative className
@@ -159,6 +200,10 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 								<span className="codicon codicon-refresh" style={{ marginRight: "6px" }}></span>
 								{t("mcp:refreshMCP")}
 							</VSCodeButton>
+							<VSCodeButton appearance="secondary" style={{ width: "100%" }} onClick={openMigration}>
+								<span className="codicon codicon-cloud-download" style={{ marginRight: "6px" }}></span>
+								{t("mcp:migration.open")}
+							</VSCodeButton>
 							{/* kilocode_change
 							<StandardTooltip content={t("mcp:marketplace")}>
 								<Button
@@ -208,6 +253,15 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 					</>
 				)}
 			</TabContent>
+
+			<McpMigrationView
+				key={migrationOpen ? "open" : "closed"}
+				open={migrationOpen}
+				onClose={closeMigration}
+				entries={migrationEntries}
+				result={migrationResult}
+				loading={migrationLoading}
+			/>
 		</Tab>
 	)
 }
@@ -248,6 +302,8 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 				return "var(--color-matterai-yellow)"
 			case "disconnected":
 				return "var(--vscode-testing-iconFailed)"
+			case "needs-auth":
+				return "var(--color-matterai-yellow)"
 		}
 	}
 
@@ -262,6 +318,14 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 		vscode.postMessage({
 			type: "restartMcpServer",
 			text: server.name,
+			source: server.source || "global",
+		})
+	}
+
+	const handleAuthenticate = () => {
+		vscode.postMessage({
+			type: "authenticateMcpServer",
+			serverName: server.name,
 			source: server.source || "global",
 		})
 	}
@@ -527,6 +591,16 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 								borderRadius: "0 0 4px 4px",
 								width: "100%",
 							}}>
+							{server.status === "needs-auth" && (
+								<div
+									style={{
+										color: "var(--color-matterai-yellow)",
+										marginBottom: "8px",
+										padding: "0 10px",
+									}}>
+									{t("mcp:serverStatus.needsAuth")}
+								</div>
+							)}
 							<div
 								style={{
 									color: "var(--vscode-testing-iconFailed)",
@@ -543,6 +617,15 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 										</React.Fragment>
 									))}
 							</div>
+							{server.status === "needs-auth" && (
+								<VSCodeButton
+									appearance="primary"
+									onClick={handleAuthenticate}
+									style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px" }}>
+									<span className="codicon codicon-key" style={{ marginRight: "6px" }}></span>
+									{t("mcp:serverStatus.authenticate")}
+								</VSCodeButton>
+							)}
 							<VSCodeButton
 								appearance="secondary"
 								onClick={handleRestart}
