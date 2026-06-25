@@ -1300,16 +1300,16 @@ export const ChatRowContent = ({
 							style={{
 								marginTop: "4px",
 								backgroundColor: "var(--vscode-badge-background)",
-								border: "1px solid var(--vscode-badge-background)",
+								border: "none",
 								borderRadius: "4px 4px 0 0",
 								overflow: "hidden",
 								marginBottom: "2px",
 							}}>
 							<div
 								style={{
-									padding: "9px 10px 9px 14px",
+									padding: "6px 10px 6px 12px",
 									backgroundColor: "var(--vscode-badge-background)",
-									borderBottom: "1px solid var(--vscode-editorGroup-border)",
+									borderBottom: "none",
 
 									fontSize: "var(--vscode-font-size)",
 									color: "var(--vscode-badge-foreground)",
@@ -1320,7 +1320,7 @@ export const ChatRowContent = ({
 								<span className="codicon codicon-arrow-right"></span>
 								{t("chat:subtasks.newTaskContent")}
 							</div>
-							<div style={{ padding: "12px 16px", backgroundColor: "var(--vscode-editor-background)" }}>
+							<div style={{ padding: "8px 12px", backgroundColor: "var(--vscode-editor-background)" }}>
 								<MarkdownBlock markdown={tool.content} />
 							</div>
 						</div>
@@ -1337,16 +1337,16 @@ export const ChatRowContent = ({
 							style={{
 								marginTop: "4px",
 								backgroundColor: "var(--vscode-editor-background)",
-								border: "1px solid var(--vscode-badge-background)",
+								border: "none",
 								borderRadius: "4px",
 								overflow: "hidden",
 								marginBottom: "8px",
 							}}>
 							<div
 								style={{
-									padding: "9px 10px 9px 14px",
+									padding: "6px 10px 6px 12px",
 									backgroundColor: "var(--vscode-badge-background)",
-									borderBottom: "1px solid var(--vscode-editorGroup-border)",
+									borderBottom: "none",
 
 									fontSize: "var(--vscode-font-size)",
 									color: "var(--vscode-badge-foreground)",
@@ -1357,7 +1357,7 @@ export const ChatRowContent = ({
 								<span className="codicon codicon-check"></span>
 								{t("chat:subtasks.completionContent")}
 							</div>
-							<div style={{ padding: "12px 16px", backgroundColor: "var(--vscode-editor-background)" }}>
+							<div style={{ padding: "8px 12px", backgroundColor: "var(--vscode-editor-background)" }}>
 								<MarkdownBlock markdown={t("chat:subtasks.completionInstructions")} />
 							</div>
 						</div>
@@ -1378,9 +1378,9 @@ export const ChatRowContent = ({
 						<div
 							style={{
 								marginTop: "4px",
-								backgroundColor: "var(--vscode-editor-background)",
-								border: "1px solid var(--vscode-editorGroup-border)",
-								borderRadius: "4px",
+								backgroundColor: "var(--vscode-textCodeBlock-background)",
+								border: "none",
+								borderRadius: "6px",
 								overflow: "hidden",
 								cursor: "pointer",
 							}}
@@ -1391,7 +1391,7 @@ export const ChatRowContent = ({
 									display: "flex",
 									alignItems: "center",
 									justifyContent: "space-between",
-									padding: "10px 12px",
+									padding: "7px 10px",
 								}}>
 								<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
 									<span style={{ fontWeight: "500", fontSize: "var(--vscode-font-size)" }}>
@@ -1410,8 +1410,8 @@ export const ChatRowContent = ({
 							{isExpanded && (slashCommandInfo.args || slashCommandInfo.description) && (
 								<div
 									style={{
-										padding: "12px 16px",
-										borderTop: "1px solid var(--vscode-editorGroup-border)",
+										padding: "8px 12px",
+										borderTop: "none",
 										display: "flex",
 										flexDirection: "column",
 										gap: "8px",
@@ -1511,16 +1511,16 @@ export const ChatRowContent = ({
 								style={{
 									marginTop: "0px",
 									backgroundColor: "var(--vscode-badge-background)",
-									border: "1px solid var(--vscode-badge-background)",
+									border: "none",
 									borderRadius: "0 0 4px 4px",
 									overflow: "hidden",
 									marginBottom: "8px",
 								}}>
 								<div
 									style={{
-										padding: "9px 10px 9px 14px",
+										padding: "6px 10px 6px 12px",
 										backgroundColor: "var(--vscode-badge-background)",
-										borderBottom: "1px solid var(--vscode-editorGroup-border)",
+										borderBottom: "none",
 
 										fontSize: "var(--vscode-font-size)",
 										color: "var(--vscode-badge-foreground)",
@@ -1533,7 +1533,7 @@ export const ChatRowContent = ({
 								</div>
 								<div
 									style={{
-										padding: "12px 16px",
+										padding: "8px 12px",
 										backgroundColor: "var(--vscode-editor-background)",
 									}}>
 									<MarkdownBlock markdown={message.text} />
@@ -1670,8 +1670,7 @@ export const ChatRowContent = ({
 							<div
 								className={cn(
 									"rounded-lg whitespace-pre-wrap mb-1",
-									"border border-[var(--vscode-activityBar-border)]",
-									"bg-[var(--vscode-editor-background)]",
+									"bg-vscode-textCodeBlock-background",
 									isEditing ? "overflow-visible" : "overflow-hidden", // kilocode_change
 									isEditing ? "text-vscode-editor-foreground" : "cursor-text p-1",
 								)}>
@@ -1850,8 +1849,9 @@ export const ChatRowContent = ({
 										fontFamily: "monospace",
 										fontSize: "12px",
 										padding: "8px",
-										backgroundColor: "var(--vscode-editor-background)",
-										border: "1px solid var(--vscode-editorError-border)",
+										backgroundColor:
+											"color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent)",
+										border: "none",
 										borderRadius: "4px",
 										marginBottom: "8px",
 									}}>
@@ -1892,7 +1892,7 @@ export const ChatRowContent = ({
 													flexDirection: "column",
 													alignItems: "flex-start",
 													gap: "4px",
-													padding: "10px 12px",
+													padding: "7px 10px",
 												}}>
 												<div
 													style={{
@@ -2085,7 +2085,7 @@ export const ChatRowContent = ({
 								{icon}
 								{title}
 							</div>
-							<div className="w-full bg-vscode-editor-background border border-vscode-border rounded-lg px-2 py-1 mt-2">
+							<div className="w-full bg-vscode-textCodeBlock-background rounded-lg px-2 py-1 mt-2">
 								{useMcpServer.type === "access_mcp_resource" && (
 									<McpResourceRow
 										item={{
@@ -2150,7 +2150,7 @@ export const ChatRowContent = ({
 								</div>
 							)}
 							<div className="flex flex-col gap-2 mr-3">
-								<div className="bg-vscode-editor-background border border-vscode-border rounded-lg p-3">
+								<div className="bg-vscode-textCodeBlock-background rounded-lg p-3">
 									<div className="flex items-center justify-between mb-2">
 										<span className="text-sm text-vscode-descriptionForeground font-medium">
 											Question

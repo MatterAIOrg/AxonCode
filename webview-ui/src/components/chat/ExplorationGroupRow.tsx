@@ -501,14 +501,10 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 		<div className="group/exploration">
 			{/* Header - matches ReasoningBlock style */}
 			<div
-				className="flex items-center justify-start ml-4 gap-1 mt-0.5 pr-2 mb-1 cursor-pointer select-none opacity-40 hover:opacity-100"
+				className="flex items-center justify-start ml-4 gap-1.5 pr-2 mb-0.5 cursor-pointer select-none text-vscode-descriptionForeground transition-colors hover:text-vscode-foreground"
 				onClick={handleToggle}>
 				<div className="flex items-center gap-1">
-					<span
-						className={cn(
-							"text-sm text-vscode-foreground hover:text-[var(--vscode-button-background)]",
-							isExploring && "animate-shimmer",
-						)}>
+					<span className={cn("text-sm font-medium", isExploring && "animate-shimmer")}>
 						{isExploring ? exploringText : summary}
 					</span>
 				</div>
@@ -524,7 +520,11 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 
 			{/* Expandable content - renders ChatRow for each message */}
 			{expanded && (
-				<div className="flex flex-col gap-0.5">
+				<div
+					className="mt-1 flex min-w-0 flex-col py-1 ml-3 rounded-xs"
+					style={{
+						boxShadow: "inset 1px 0 0 var(--vscode-textLink-foreground)",
+					}}>
 					{messages.map((message, idx) => (
 						<ChatRow
 							key={message.ts}
