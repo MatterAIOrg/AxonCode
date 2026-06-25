@@ -292,7 +292,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onDone }) => {
 								</div>
 							</div>
 						) : (
-							<div className="flex flex-col items-center pr-3">
+							<div className="flex w-full flex-col items-center">
 								<KiloCodeAuth className="w-full" />
 								<div className="w-full absolute bottom-0 p-8">
 									<VSCodeButton

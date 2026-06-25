@@ -15,84 +15,62 @@ const KiloCodeAuth: React.FC<KiloCodeAuthProps> = ({ onManualConfigClick, classN
 
 	const { t } = useAppTranslation()
 
+	const features = [
+		{ icon: "codicon-rocket", label: t("kilocode:welcome.features.build") },
+		{ icon: "codicon-bug", label: t("kilocode:welcome.features.debug") },
+		{ icon: "codicon-shield", label: t("kilocode:welcome.features.review") },
+	]
+
 	return (
-		<div
-			className={`flex flex-col items-center justify-center ${className}`}
-			style={{
-				padding: "24px 20px",
-				width: "100%",
-			}}>
-			{/* Logo Section */}
-			<div style={{ marginBottom: "24px" }}>
-				<Logo width={64} height={64} />
+		<div className={`flex w-full flex-col items-center px-5 py-6 text-center ${className}`}>
+			{/* Eyebrow badge */}
+			<span className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-vscode-panel-border bg-vscode-textCodeBlock-background px-3 py-1 text-[10px] font-mono uppercase tracking-[0.15em] text-vscode-descriptionForeground">
+				<span
+					className="codicon codicon-sparkle text-[11px]!"
+					style={{ color: "var(--vscode-textLink-foreground)" }}
+				/>
+				{t("kilocode:welcome.badge")}
+			</span>
+
+			{/* Logo with subtle theme-colored glow */}
+			<div className="relative mb-5 flex items-center justify-center">
+				<div
+					aria-hidden
+					className="pointer-events-none absolute size-24 rounded-full opacity-25 blur-2xl"
+					style={{ background: "var(--vscode-focusBorder)" }}
+				/>
+				<Logo width={56} height={56} />
 			</div>
 
-			{/* Hero Title - matches matterai.so "ENGINEERING SUPER INTELLIGENCE" style */}
-			<h1
-				style={{
-					margin: 0,
-					padding: 0,
-					fontSize: "28px",
-					fontWeight: 700,
-					letterSpacing: "-0.02em",
-					lineHeight: 1.1,
-					color: "var(--color-matterai-heading, #ffffff)",
-					textAlign: "center",
-					marginBottom: "8px",
-				}}>
+			{/* Headline + brand */}
+			<h1 className="m-0 text-2xl font-bold leading-tight tracking-tight text-vscode-foreground">
 				{t("kilocode:welcome.greeting")}
 			</h1>
+			<p className="mb-5 mt-1.5 text-sm text-vscode-descriptionForeground">{t("kilocode:welcome.brand")}</p>
 
-			{/* Tagline - secondary heading style */}
-			<h2
-				style={{
-					margin: 0,
-					padding: 0,
-					fontSize: "16px",
-					fontWeight: 500,
-					color: "var(--color-matterai-subheading, #a3a3a3)",
-					textAlign: "center",
-					marginBottom: "20px",
-				}}>
-				{t("kilocode:welcome.tagline")}
-			</h2>
-
-			{/* Description text - muted style */}
-			<p
-				style={{
-					margin: 0,
-					fontSize: "13px",
-					lineHeight: 1.6,
-					color: "var(--color-matterai-text-secondary, #737373)",
-					textAlign: "center",
-					marginBottom: "6px",
-					maxWidth: "320px",
-				}}>
-				{t("kilocode:welcome.introText1")}
-			</p>
-			<p
-				style={{
-					margin: 0,
-					fontSize: "13px",
-					lineHeight: 1.6,
-					color: "var(--color-matterai-text-secondary, #737373)",
-					textAlign: "center",
-					marginBottom: "28px",
-					maxWidth: "320px",
-				}}>
-				{t("kilocode:welcome.introText2")}
+			{/* Intro */}
+			<p className="m-0 mb-6 max-w-[320px] text-[13px] leading-relaxed text-vscode-descriptionForeground">
+				{t("kilocode:welcome.intro")}
 			</p>
 
-			{/* CTA Buttons - styled like matterai.so buttons */}
-			<div
-				style={{
-					display: "flex",
-					flexDirection: "column",
-					gap: "12px",
-					width: "100%",
-					maxWidth: "280px",
-				}}>
-				{/* Primary CTA - matches "Download Orbital" button style */}
+			{/* Feature list */}
+			<div className="mb-6 flex w-full max-w-[300px] flex-col gap-2 text-left">
+				{features.map((feature) => (
+					<div
+						key={feature.icon}
+						className="flex items-center gap-3 rounded-lg border border-vscode-panel-border bg-vscode-editor-background px-3 py-2.5">
+						<span
+							className="flex size-7 shrink-0 items-center justify-center rounded-md bg-vscode-textCodeBlock-background"
+							style={{ color: "var(--vscode-textLink-foreground)" }}>
+							<span className={`codicon ${feature.icon} text-sm!`} />
+						</span>
+						<span className="text-[13px] text-vscode-foreground">{feature.label}</span>
+					</div>
+				))}
+			</div>
+
+			{/* CTA Buttons */}
+			<div className="flex w-full max-w-[300px] flex-col gap-2.5">
 				<VSCodeButtonLink
 					appearance="primary"
 					href={getKiloCodeBackendSignUpUrl(uriScheme, uiKind, kiloCodeWrapperProperties)}
@@ -101,22 +79,27 @@ const KiloCodeAuth: React.FC<KiloCodeAuthProps> = ({ onManualConfigClick, classN
 							onManualConfigClick()
 						}
 					}}
-					style={{
-						width: "100%",
-					}}>
+					style={{ width: "100%" }}>
 					{t("kilocode:welcome.ctaButton")}
 				</VSCodeButtonLink>
 
-				{/* Secondary CTA - matches "Setup Code Reviews" button style */}
-				<VSCodeButtonLink
-					appearance="secondary"
-					href="https://matterai.so"
-					style={{
-						width: "100%",
-					}}>
+				<VSCodeButtonLink appearance="secondary" href="https://matterai.so" style={{ width: "100%" }}>
 					{t("kilocode:welcome.exploreMatterAI")}
 				</VSCodeButtonLink>
 			</div>
+
+			{/* Credits note */}
+			<p className="mt-4 text-xs text-vscode-descriptionForeground/70">{t("kilocode:welcome.creditsNote")}</p>
+
+			{/* Manual API key option */}
+			{onManualConfigClick && (
+				<button
+					type="button"
+					onClick={onManualConfigClick}
+					className="mt-3 cursor-pointer border-none bg-transparent text-xs text-vscode-descriptionForeground underline-offset-2 transition-colors hover:text-vscode-foreground hover:underline">
+					{t("kilocode:welcome.manualModeButton")}
+				</button>
+			)}
 		</div>
 	)
 }
