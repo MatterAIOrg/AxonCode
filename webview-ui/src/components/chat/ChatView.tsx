@@ -331,7 +331,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// Rotate marketing cards every 10 seconds
 	useEffect(() => {
 		const interval = setInterval(() => {
-			setActiveMarketingCard((prev) => (prev === 0 ? 1 : 0))
+			setActiveMarketingCard((prev) => (prev + 1) % 3)
 		}, 10000)
 		return () => clearInterval(interval)
 	}, [])
@@ -2647,7 +2647,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																<VSCodeButtonLink
 																	appearance="secondary"
 																	href="https://docs.matterai.so/quickstart-ai-code-review-agent">
-																	Read Docs
+																	Docs
 																</VSCodeButtonLink>
 															</div>
 														</div>
@@ -2684,6 +2684,41 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 															</div>
 														</div>
 													</div>
+
+													{/* Orbcode CLI Card */}
+													<div className="w-full flex-shrink-0 px-4 py-1 h-full">
+														<div className="flex flex-col gap-1 h-full justify-center">
+															<div className="flex flex-row gap-2 items-center">
+																<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
+																	Introducing Orbcode CLI
+																</p>
+																<span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)]">
+																	New
+																</span>
+																<img
+																	src={iconsBaseUri + "/matterai-company-ic.svg"}
+																	alt="MatterAI"
+																	className="w-3.5 h-3.5"
+																/>
+															</div>
+															<p className="text-xs p-0 m-0 text-vscode-foreground opacity-70">
+																Agentic coding in your terminal. Streaming TUI,
+																approvals, headless mode.
+															</p>
+															<div className="flex flex-row gap-2 mt-0.5">
+																<VSCodeButtonLink
+																	appearance="primary"
+																	href="https://github.com/MatterAIOrg/OrbCode">
+																	View on GitHub
+																</VSCodeButtonLink>
+																<VSCodeButtonLink
+																	appearance="secondary"
+																	href="https://docs.matterai.so/orbcode-cli/overview">
+																	Docs
+																</VSCodeButtonLink>
+															</div>
+														</div>
+													</div>
 												</div>
 											</div>
 
@@ -2706,6 +2741,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 															: "bg-[var(--vscode-panel-border)] w-2 h-2 hover:bg-[var(--vscode-descriptionForeground)]"
 													}`}
 													aria-label="Axon Models card"
+												/>
+												<button
+													onClick={() => setActiveMarketingCard(2)}
+													className={`rounded-full transition-all duration-300 ${
+														activeMarketingCard === 2
+															? "bg-[var(--vscode-button-background)] w-4 h-2"
+															: "bg-[var(--vscode-panel-border)] w-2 h-2 hover:bg-[var(--vscode-descriptionForeground)]"
+													}`}
+													aria-label="Orbcode CLI card"
 												/>
 											</div>
 										</div>
