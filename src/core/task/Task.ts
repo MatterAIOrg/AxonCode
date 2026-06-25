@@ -148,7 +148,7 @@ const MAX_CONTEXT_WINDOW_RETRIES = 3 // Maximum retries for context window error
 // within this window, the stream is considered dead (network drop, socket close,
 // etc.) and a timeout error is thrown so the existing catch block can persist it
 // as a streaming failure and abort the task.
-const STREAM_IDLE_TIMEOUT_MS = 60_000 // 60 seconds
+const STREAM_IDLE_TIMEOUT_MS = 180000 // 180 seconds
 
 /**
  * Race an async iterator's next() against an idle timeout.
