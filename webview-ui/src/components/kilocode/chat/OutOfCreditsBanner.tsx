@@ -3,7 +3,7 @@ import { vscode } from "@src/utils/vscode"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { getModelIdKey } from "../hooks/useSelectedModel"
 import { OPENROUTER_DEFAULT_PROVIDER_NAME } from "@roo-code/types"
-import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
+import { AxonCodeTieredUsage, AxonCodeWindowUsage, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 
 const FREE_MODEL_ID = "axon-code-2-5-mini"
 
@@ -24,37 +24,89 @@ function formatResetDate(iso?: string): string | null {
 	}
 }
 
+// Parse an ISO timestamp into epoch millis, or null when missing/invalid.
+function parseResetTime(iso?: string): number | null {
+	if (!iso) return null
+	const time = new Date(iso).getTime()
+	return Number.isNaN(time) ? null : time
+}
+
+// Choose which reset time to surface on the banner. Under tiered usage a user
+// can have several limit windows (5-hour / weekly / monthly) maxed at once, and
+// can only use Pro models again once every exhausted window has reset — so we
+// surface the latest reset among the exhausted windows. When no single window
+// is maxed (near-limit warning), fall back to the soonest upcoming reset, then
+// to the legacy monthly creditsResetDate.
+function selectResetIso(creditsResetDate?: string, tieredUsage?: AxonCodeTieredUsage): string | undefined {
+	if (tieredUsage) {
+		const windows = [tieredUsage.fiveHour, tieredUsage.weekly, tieredUsage.monthly].filter(
+			(usage): usage is AxonCodeWindowUsage => Boolean(usage),
+		)
+		const isExhausted = (usage: AxonCodeWindowUsage) => usage.remaining <= 0 || usage.percentage >= 100
+
+		const exhaustedResets = windows
+			.filter(isExhausted)
+			.map((usage) => parseResetTime(usage.resetsAt))
+			.filter((time): time is number => time !== null)
+		if (exhaustedResets.length > 0) {
+			return new Date(Math.max(...exhaustedResets)).toISOString()
+		}
+
+		const now = Date.now()
+		const upcomingResets = windows
+			.map((usage) => parseResetTime(usage.resetsAt))
+			.filter((time): time is number => time !== null && time > now)
+		if (upcomingResets.length > 0) {
+			return new Date(Math.min(...upcomingResets)).toISOString()
+		}
+	}
+	return creditsResetDate
+}
+
 type OutOfCreditsBannerProps = {
 	creditsResetDate?: string
+	tieredUsage?: AxonCodeTieredUsage
 	className?: string
 }
 
-export const OutOfCreditsBanner = ({ creditsResetDate, className }: OutOfCreditsBannerProps) => {
+export const OutOfCreditsBanner = ({ creditsResetDate, tieredUsage, className }: OutOfCreditsBannerProps) => {
 	const { apiConfiguration, currentApiConfigName, currentTaskItem } = useExtensionState()
-	const [profileResetDate, setProfileResetDate] = useState<string | undefined>(undefined)
+	const [fetchedProfile, setFetchedProfile] = useState<{
+		creditsResetDate?: string
+		tieredUsage?: AxonCodeTieredUsage
+	}>({})
 
-	// If the parent didn't pass creditsResetDate, fetch it ourselves so the
-	// banner can show "Pro models limits reset at XXX" wherever it's used.
+	// If the parent didn't pass reset info, fetch it ourselves so the banner can
+	// show "Pro models limits reset at XXX" wherever it's used.
 	useEffect(() => {
-		if (creditsResetDate || !apiConfiguration?.kilocodeToken) return
+		if (creditsResetDate || tieredUsage || !apiConfiguration?.kilocodeToken) return
 
 		const handleMessage = (event: MessageEvent<WebviewMessage>) => {
 			const message = event.data
 			if (message.type === "profileDataResponse") {
 				const payload = message.payload as { success: boolean; data?: ProfileData }
-				if (payload?.success && payload.data?.creditsResetDate) {
-					setProfileResetDate(payload.data.creditsResetDate)
+				if (payload?.success && payload.data) {
+					setFetchedProfile({
+						creditsResetDate: payload.data.creditsResetDate,
+						tieredUsage: payload.data.tieredUsage,
+					})
 				}
 			}
 		}
 		window.addEventListener("message", handleMessage)
 		vscode.postMessage({ type: "fetchProfileDataRequest" })
 		return () => window.removeEventListener("message", handleMessage)
-	}, [creditsResetDate, apiConfiguration?.kilocodeToken])
+	}, [creditsResetDate, tieredUsage, apiConfiguration?.kilocodeToken])
 
 	const formattedResetDate = useMemo(
-		() => formatResetDate(creditsResetDate ?? profileResetDate),
-		[creditsResetDate, profileResetDate],
+		() =>
+			formatResetDate(
+				selectResetIso(
+					creditsResetDate ?? fetchedProfile.creditsResetDate,
+					tieredUsage ?? fetchedProfile.tieredUsage,
+				),
+			),
+		[creditsResetDate, tieredUsage, fetchedProfile],
 	)
 
 	const handleContinueWithFreeModel = () => {
@@ -101,7 +153,7 @@ export const OutOfCreditsBanner = ({ creditsResetDate, className }: OutOfCredits
 						</span>
 						{formattedResetDate && (
 							<span className="text-xs mt-0.5 font-bold text-[var(--vscode-descriptionForeground)]">
-								Pro models limits reset at {formattedResetDate}
+								Limits reset at {formattedResetDate}
 							</span>
 						)}
 					</div>

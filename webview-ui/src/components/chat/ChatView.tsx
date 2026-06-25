@@ -2909,6 +2909,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						<OutOfCreditsBanner
 							className="w-full min-w-0 px-4 mb-4"
 							creditsResetDate={profileData?.creditsResetDate}
+							tieredUsage={profileData?.tieredUsage}
 						/>
 					)}
 
