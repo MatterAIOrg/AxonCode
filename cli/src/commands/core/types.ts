@@ -5,6 +5,7 @@
 import type { RouterModels } from "../../types/messages.js"
 import type { ProviderConfig } from "../../config/types.js"
 import type { ProfileData, BalanceData } from "../../state/atoms/profile.js"
+import type { ExtensionService } from "../../services/extension.js"
 
 export interface Command {
 	name: string
@@ -42,6 +43,9 @@ export interface CommandContext {
 	exit: () => void
 	setCommittingParallelMode: (isCommitting: boolean) => void
 	isParallelMode: boolean
+	// ExtensionService instance for commands that need to subscribe to
+	// extension messages (e.g. /migrate waits for mcpMigrationEntries).
+	extensionService: ExtensionService | null
 	// Model-related context
 	routerModels: RouterModels | null
 	currentProvider: ProviderConfig | null

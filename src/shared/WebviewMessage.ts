@@ -285,6 +285,9 @@ export interface WebviewMessage {
 		| "installMarketplaceItem"
 		| "installMarketplaceItemWithParameters"
 		| "cancelMarketplaceInstall"
+		| "mcpMigrateList"
+		| "mcpMigrateApply"
+		| "authenticateMcpServer"
 		| "removeInstalledMarketplaceItem"
 		| "marketplaceInstallResult"
 		| "fetchMarketplaceData"
@@ -387,6 +390,7 @@ export interface WebviewMessage {
 	// forked_change end
 	serverName?: string
 	toolName?: string
+	keys?: string[] // mcpMigrateApply: stable entry keys the user confirmed
 	alwaysAllow?: boolean
 	isEnabled?: boolean
 	mode?: Mode
@@ -615,6 +619,28 @@ export const installMarketplaceItemWithParametersPayloadSchema = z.object({
 export type InstallMarketplaceItemWithParametersPayload = z.infer<
 	typeof installMarketplaceItemWithParametersPayloadSchema
 >
+
+/** Webview → extension: list all MCP servers that can be migrated in from
+ *  Cursor / Claude Code / Claude Desktop. */
+export interface McpMigrateListRequest {
+	type: "mcpMigrateList"
+}
+
+/** Webview → extension: apply a user-confirmed subset of migration entries
+ *  to the global MCP settings file. */
+export interface McpMigrateApplyRequest {
+	type: "mcpMigrateApply"
+	keys: string[]
+}
+
+/** Webview → extension: start the OAuth flow for a server that is in the
+ *  `needs-auth` state. The extension opens the authorization URL in the
+ *  external browser; the OAuth callback is handled by the URI handler. */
+export interface AuthenticateMcpServerRequest {
+	type: "authenticateMcpServer"
+	serverName: string
+	source?: "global" | "project"
+}
 
 // forked_change start
 export interface GetCommitChangesPayload {

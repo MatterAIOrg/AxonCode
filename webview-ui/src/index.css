@@ -62,16 +62,28 @@
 		background: var(--vscode-button-secondaryBackground) !important;
 	}
 
-	vscode-button[appearance="secondary"],
+	/* Secondary buttons are intentionally subtle: default text + a single faint
+	   border on a transparent surface, so they recede next to primary CTAs. The
+	   border lives only on the control part (not the host) to avoid a double
+	   border. Uses theme tokens so it adapts to any installed VSCode theme. */
+	vscode-button[appearance="secondary"] {
+		color: var(--vscode-foreground) !important;
+		background: transparent !important;
+	}
+
 	vscode-button[appearance="secondary"]::part(control) {
 		border-radius: 6px !important;
-		color: var(--vscode-button-secondaryForeground) !important;
-		border: 0.5px solid var(--vscode-button-border) !important;
-		background: var(--vscode-button-secondaryBackground) !important;
+		color: var(--vscode-foreground) !important;
+		/* Border drawn as an inset shadow so it doesn't add to the box height,
+		   keeping secondary buttons the same size as borderless primary buttons. */
+		border: none !important;
+		box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--vscode-foreground) 30%, transparent) !important;
+		background: transparent !important;
 	}
 
 	vscode-button[appearance="secondary"]:hover::part(control) {
-		background: var(--vscode-button-secondaryHoverBackground) !important;
+		background: var(--vscode-toolbar-hoverBackground) !important;
+		color: var(--vscode-foreground) !important;
 	}
 
 	/* Code Review Button Override */

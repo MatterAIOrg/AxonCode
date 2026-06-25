@@ -1063,11 +1063,64 @@ export class McpHub {
 				throw new Error(`Unsupported MCP server type: ${(configInjected as any).type}`)
 			}
 		} catch (error) {
-			// Update status with error
-			const connection = this.findConnection(name, source)
+			const errorMessage = error instanceof Error ? error.message : `${error}`
+
+			// Auto-detect authentication errors (401 / unauthorized / invalid token)
+			// and mark the connection as needs-auth so the UI can show an
+			// "Authenticate" button instead of a generic retry button.
+			const isAuthError = this.isAuthenticationError(error)
+
+			let connection = this.findConnection(name, source)
 			if (connection) {
-				connection.server.status = "disconnected"
-				this.appendErrorMessage(connection, error instanceof Error ? error.message : `${error}`)
+				if (isAuthError) {
+					connection.server.status = "needs-auth"
+				} else {
+					connection.server.status = "disconnected"
+				}
+				this.appendErrorMessage(connection, errorMessage)
+			} else {
+				// The inner catch already removed the failed connection — create a
+				// placeholder so the server still shows up in the UI with its
+				// error message. Without this, a server that fails to connect
+				// (e.g. missing auth) vanishes from the list entirely and the
+				// user has no way to see it, retry, or configure credentials.
+				if (isAuthError) {
+					const needsAuth: NeedsAuthMcpConnection = {
+						type: "needs-auth",
+						server: {
+							name,
+							config: JSON.stringify(config),
+							status: "needs-auth",
+							disabled: config.disabled,
+							source,
+							projectPath:
+								source === "project" ? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath : undefined,
+							errorHistory: [],
+						},
+						client: null,
+						transport: null,
+					}
+					this.connections.push(needsAuth)
+					this.appendErrorMessage(needsAuth, errorMessage)
+				} else {
+					const disconnected: DisconnectedMcpConnection = {
+						type: "disconnected",
+						server: {
+							name,
+							config: JSON.stringify(config),
+							status: "disconnected",
+							disabled: config.disabled,
+							source,
+							projectPath:
+								source === "project" ? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath : undefined,
+							errorHistory: [],
+						},
+						client: null,
+						transport: null,
+					}
+					this.connections.push(disconnected)
+					this.appendErrorMessage(disconnected, errorMessage)
+				}
 			}
 			throw error
 		}
@@ -1791,6 +1844,39 @@ export class McpHub {
 			this.showErrorMessage(`Failed to update server ${serverName} timeout settings`, error)
 			throw error
 		}
+	}
+
+	/**
+	 * Import a batch of MCP server entries into the global settings file
+	 * (skipping any that conflict with an existing name), then rebuild the
+	 * live connection list so the new servers start connecting immediately.
+	 *
+	 * Returns the per-entry result so the caller (webview message handler or
+	 * CLI) can report a summary back to the user. Designed for the
+	 * `mcpMigrateApply` flow and `kilocode mcp migrate` — both call this
+	 * after the user has confirmed a subset of the discovered entries.
+	 */
+	public async importMcpServers(
+		entries: import("./mcpMigrate").MigrationEntry[],
+	): Promise<import("./mcpMigrate").MigrationResult> {
+		const settingsPath = await this.getMcpSettingsFilePath()
+		const { applyMigration } = await import("./mcpMigrate.js")
+		const result = applyMigration(entries, settingsPath)
+
+		if (result.added.length > 0) {
+			// Re-read the file and reconcile the connection list so the new
+			// servers start connecting and the webview sees the new state.
+			try {
+				const content = await fs.readFile(settingsPath, "utf-8")
+				const config = JSON.parse(content)
+				const servers = (config && typeof config === "object" && config.mcpServers) || {}
+				await this.updateServerConnections(servers, "global", false)
+			} catch (error) {
+				console.error("[McpHub] Failed to reconnect after import:", error)
+			}
+		}
+
+		return result
 	}
 
 	public async deleteServer(serverName: string, source?: "global" | "project"): Promise<void> {

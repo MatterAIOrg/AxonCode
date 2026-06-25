@@ -56,11 +56,38 @@
 	},
 	"serverStatus": {
 		"retrying": "Retrying...",
-		"retryConnection": "Retry Connection"
+		"retryConnection": "Retry Connection",
+		"authenticate": "Authenticate",
+		"authenticating": "Opening browser...",
+		"needsAuth": "Authentication required",
+		"needsAuthShort": "Needs auth",
+		"connected": "Connected",
+		"connecting": "Connecting",
+		"disconnected": "Disconnected",
+		"disabled": "Disabled"
+	},
+	"serversSection": {
+		"title": "Installed servers",
+		"empty": "No MCP servers installed yet. Add one from the suggestions below or edit your config."
 	},
 	"execution": {
 		"running": "Running",
 		"completed": "Completed",
 		"error": "Error"
+	},
+	"migration": {
+		"open": "Migrate from Cursor / Claude",
+		"title": "Migrate MCP Servers",
+		"description": "Import MCP server entries from Cursor, Claude Code, or Claude Desktop. Imported servers are added to your global Orbital MCP settings and start connecting immediately.",
+		"scanning": "Scanning for MCP configs…",
+		"empty": "No MCP servers found in Cursor, Claude Code, or Claude Desktop. Install one of those clients, or add servers with the global MCP settings editor.",
+		"selectedCount": "{{selected}} of {{total}} selected",
+		"selectAll": "Select all",
+		"deselectAll": "Deselect all",
+		"apply": "Import {{count}}",
+		"close": "Close",
+		"added": "Added {{count}}: {{names}}",
+		"skipped": "Skipped {{count}} (name already in use)",
+		"destination": "Written to {{path}}"
 	}
 }

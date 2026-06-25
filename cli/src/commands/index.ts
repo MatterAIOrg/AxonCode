@@ -17,6 +17,7 @@ import { profileCommand } from "./profile.js"
 import { teamsCommand } from "./teams.js"
 import { configCommand } from "./config.js"
 import { costCommand } from "./cost.js"
+import { migrateCommand } from "./migrate.js"
 
 /**
  * Initialize all commands
@@ -33,4 +34,5 @@ export function initializeCommands(): void {
 	commandRegistry.register(teamsCommand)
 	commandRegistry.register(configCommand)
 	commandRegistry.register(costCommand)
+	commandRegistry.register(migrateCommand)
 }

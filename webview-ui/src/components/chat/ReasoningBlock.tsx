@@ -94,50 +94,52 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 	}
 
 	const timeLabel = formatTime(totalSeconds)
-	const label = partial ? t("chat:reasoning.thinking") : t("chat:reasoning.thought")
+	// Brief (sub-2s) reasoning keeps its standalone phrasing; otherwise show the
+	// base label ("Thinking"/"Thought") and break the duration out into a pill.
+	const isBrief = displayElapsed > 0 && totalSeconds < 2
+	const baseLabel = partial ? t("chat:reasoning.thinking") : t("chat:reasoning.thought")
 	const briefLabel = partial ? t("chat:reasoning.thinkingBriefly") : t("chat:reasoning.thoughtBriefly")
+	const labelText = isBrief ? briefLabel : baseLabel
+	const showTime = !isBrief && totalSeconds >= 1
 
 	const handleToggle = () => {
 		setIsCollapsed(!isCollapsed)
 	}
 
+	const hasContent = (content?.trim()?.length ?? 0) > 0
+
 	return (
 		<div className="group/reasoning">
+			{/* Header */}
 			<div
-				className="flex items-center justify-start gap-1 mt-0.5 pr-2 cursor-pointer select-none opacity-40 hover:opacity-100"
+				className="flex w-fit cursor-pointer select-none items-center gap-2 rounded-md pr-1.5 text-vscode-descriptionForeground transition-colors hover:text-vscode-foreground"
 				onClick={handleToggle}>
-				<div className="flex items-center gap-1">
-					{/* <Lightbulb className="w-3" /> */}
-					{displayElapsed > 0 ? (
-						<span
-							className={cn(
-								"text-sm text-vscode-foreground hover:text-[var(--vscode-button-background)]",
-								partial && "animate-shimmer",
-							)}>
-							{totalSeconds < 2 ? briefLabel : `${label} for ${timeLabel}`}
-						</span>
-					) : (
-						<span
-							className={cn(
-								"text-sm text-vscode-foreground hover:text-[var(--vscode-button-background)]",
-								partial && "animate-shimmer",
-							)}>
-							{label}
-						</span>
-					)}
-				</div>
-				<div className="flex items-center gap-1">
+				<span className={cn("text-sm font-medium", partial && "animate-shimmer")}>{labelText}</span>
+				{showTime && (
+					<span className="font-mono text-[11px] tabular-nums text-vscode-descriptionForeground/60">
+						{timeLabel}
+					</span>
+				)}
+				{hasContent && (
 					<ArrowDown01Icon
 						className={cn(
-							"size-4 transition-all -rotate-90",
-							!isCollapsed ? "opacity-100 rotate-0" : "opacity-0 group-hover/reasoning:opacity-100",
+							"size-4 shrink-0 transition-all",
+							!isCollapsed
+								? "rotate-0 opacity-100"
+								: "-rotate-90 opacity-0 group-hover/reasoning:opacity-100",
 						)}
 					/>
-				</div>
+				)}
 			</div>
-			{(content?.trim()?.length ?? 0) > 0 && !isCollapsed && (
-				<div ref={contentRef} className="text-vscode-descriptionForeground max-h-[300px] overflow-y-auto mt-2">
-					<MarkdownBlock markdown={content} />
+
+			{/* Reasoning stream */}
+			{hasContent && !isCollapsed && (
+				<div className="mt-1 rounded-lg bg-vscode-textCodeBlock-background">
+					<div
+						ref={contentRef}
+						className="scrollbar-hide max-h-[300px] overflow-y-auto px-3 py-2 text-sm text-vscode-descriptionForeground">
+						<MarkdownBlock markdown={content} />
+					</div>
 				</div>
 			)}
 		</div>

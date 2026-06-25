@@ -19,6 +19,7 @@ import { routerModelsAtom, extensionStateAtom, isParallelModeAtom } from "../ato
 import { requestRouterModelsAtom } from "../atoms/actions.js"
 import { profileDataAtom, balanceDataAtom, profileLoadingAtom, balanceLoadingAtom } from "../atoms/profile.js"
 import { useWebviewMessage } from "./useWebviewMessage.js"
+import { useExtensionService } from "./useExtensionService.js"
 import { getModelIdKey } from "../../constants/providers/models.js"
 
 /**
@@ -68,6 +69,7 @@ export function useCommandContext(): UseCommandContextReturn {
 	const setMessageCutoffTimestamp = useSetAtom(setMessageCutoffTimestampAtom)
 	const setCommittingParallelMode = useSetAtom(isCommittingParallelModeAtom)
 	const { sendMessage, clearTask } = useWebviewMessage()
+	const { service: extensionService } = useExtensionService()
 
 	// Get read-only state
 	const routerModels = useAtomValue(routerModelsAtom)
@@ -117,6 +119,7 @@ export function useCommandContext(): UseCommandContextReturn {
 					setCommittingParallelMode(isCommitting)
 				},
 				isParallelMode,
+				extensionService: extensionService ?? null,
 				// Model-related context
 				routerModels,
 				currentProvider: currentProvider || null,
@@ -164,6 +167,7 @@ export function useCommandContext(): UseCommandContextReturn {
 			balanceLoading,
 			setCommittingParallelMode,
 			isParallelMode,
+			extensionService,
 		],
 	)
 

@@ -1,14 +1,23 @@
 {
 	"welcome": {
-		"greeting": "Welcome to Orbital, By MatterAI",
-		"tagline": "The AI Engineering Agent",
-		"introText1": "Boost your engineering productivity with the complete AI Engineer to Build, Debug and Review your code.",
-		"introText2": "Create a free account with $5 credits every month!",
+		"badge": "The AI Engineering Agent",
+		"greeting": "Welcome to Orbital",
+		"brand": "by MatterAI",
+		"intro": "The complete AI engineer to build, debug, and review your code — right inside your editor.",
+		"features": {
+			"build": "Build features straight from a prompt",
+			"debug": "Find and fix bugs in seconds",
+			"review": "Review code for bugs & security"
+		},
+		"creditsNote": "Free account · $20 in credits every month",
 		"ctaButton": "Login / Sign Up",
 		"exploreMatterAI": "Explore MatterAI",
 		"manualModeButton": "Use your own API key",
 		"alreadySignedUp": "Already signed up?",
-		"loginText": "Log in here"
+		"loginText": "Log in here",
+		"tagline": "The AI Engineering Agent",
+		"introText1": "Boost your engineering productivity with the complete AI Engineer to Build, Debug and Review your code.",
+		"introText2": "Create a free account with $5 credits every month!"
 	},
 	"lowCreditWarning": {
 		"addCredit": "Upgrade Plan",

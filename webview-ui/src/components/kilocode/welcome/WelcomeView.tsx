@@ -9,7 +9,6 @@ import { ButtonLink } from "../common/ButtonLink"
 import ApiOptions from "../../settings/ApiOptions"
 import KiloCodeAuth from "../common/KiloCodeAuth"
 import { getKiloCodeBackendSignInUrl } from "../helpers"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 
 const WelcomeView = () => {
 	const {
@@ -64,15 +63,15 @@ const WelcomeView = () => {
 						)}
 					</>
 				) : (
-					<div className="flex flex-col items-center pr-3">
+					<div className="flex w-full flex-col items-center">
 						<KiloCodeAuth onManualConfigClick={() => setManualConfig(true)} />
 					</div>
 				)}
 
-				{/* Always show the Configure Enterprise Settings button */}
-				<div className="w-full mt-auto">
-					<VSCodeButton
-						appearance="secondary"
+				{/* Always show the Configure Enterprise Settings chip, centered at the bottom */}
+				<div className="mt-auto flex justify-center pt-2">
+					<button
+						type="button"
 						onClick={(e) => {
 							e.preventDefault()
 							window.postMessage(
@@ -84,10 +83,10 @@ const WelcomeView = () => {
 								"*",
 							)
 						}}
-						className="w-full">
-						<span className="codicon codicon-settings-gear mr-2 text-sm"></span>
+						className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-vscode-panel-border bg-vscode-textCodeBlock-background px-3 py-1 text-xs text-vscode-descriptionForeground transition-colors hover:border-vscode-focusBorder hover:text-vscode-foreground">
+						<span className="codicon codicon-settings-gear text-[12px]!"></span>
 						Configure Enterprise Settings
-					</VSCodeButton>
+					</button>
 				</div>
 			</TabContent>
 		</Tab>

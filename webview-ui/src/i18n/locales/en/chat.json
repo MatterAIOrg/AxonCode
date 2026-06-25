@@ -316,7 +316,7 @@
 	"diffError": {
 		"title": "Edit Unsuccessful"
 	},
-	"troubleMessage": "Axon Code is having trouble...",
+	"troubleMessage": "Orbital is having trouble...",
 	"powershell": {
 		"issues": "It seems like you're having Windows PowerShell issues, please see this"
 	},
