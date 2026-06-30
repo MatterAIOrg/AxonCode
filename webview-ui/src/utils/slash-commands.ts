@@ -36,6 +36,14 @@ export function getSupportedSlashCommands(
 			name: "migrate",
 			description: "Import MCP servers from Cursor / Claude Code / Claude Desktop",
 		},
+		{
+			name: "init",
+			description: "Analyze the codebase and create a concise AGENTS.md to reduce cold-start",
+		},
+		{
+			name: "link",
+			description: "Link other repos so changes here are checked against them",
+		},
 	]
 
 	// Add mode-switching commands dynamically

@@ -17,6 +17,7 @@ import { formatLanguage } from "../../shared/language"
 import { defaultModeSlug, getFullModeDetails } from "../../shared/modes"
 import { getGitRepositoryInfo } from "../../utils/git"
 import { arePathsEqual } from "../../utils/path"
+import { renderLinkedReposSection } from "../../services/links"
 import { formatResponse } from "../prompts/responses"
 
 import { Task } from "../task/Task"
@@ -347,6 +348,15 @@ export async function getEnvironmentDetails(cline: Task, includeFileDetails: boo
 				details += result
 			}
 		}
+
+		// forked_change start: linked repositories (.orb/links.json). Shared with
+		// the OrbCode CLI; gated behind includeFileDetails so it only rides along
+		// with the heavy first-message context, not every turn.
+		const linkedRepos = await renderLinkedReposSection(cline.cwd)
+		if (linkedRepos) {
+			details += `\n\n${linkedRepos}`
+		}
+		// forked_change end
 	}
 
 	// const todoListEnabled =
