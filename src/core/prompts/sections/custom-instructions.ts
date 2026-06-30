@@ -286,8 +286,9 @@ async function loadAgentRulesFromDir(dir: string, displayPrefix: string): Promis
 }
 
 /**
- * Load AGENTS.md / AGENT.md content from the project root and from `.orbital/`.
- * Both locations are merged; project root content is listed first.
+ * Load AGENTS.md / AGENT.md content from the project root, from `.orb/` (the
+ * tool-neutral folder shared with the OrbCode CLI), and from the legacy
+ * `.orbital/` directory. All locations are merged; project root content first.
  */
 async function loadAgentRulesFile(cwd: string): Promise<string> {
 	const sections: string[] = []
@@ -295,6 +296,11 @@ async function loadAgentRulesFile(cwd: string): Promise<string> {
 	const rootContent = await loadAgentRulesFromDir(cwd, "")
 	if (rootContent) {
 		sections.push(rootContent)
+	}
+
+	const orbContent = await loadAgentRulesFromDir(path.join(cwd, ".orb"), ".orb/")
+	if (orbContent) {
+		sections.push(orbContent)
 	}
 
 	const orbitalContent = await loadAgentRulesFromDir(path.join(cwd, ".orbital"), ".orbital/")

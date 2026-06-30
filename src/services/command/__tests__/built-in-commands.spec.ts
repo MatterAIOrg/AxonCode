@@ -1,12 +1,14 @@
 import { getBuiltInCommands, getBuiltInCommand, getBuiltInCommandNames } from "../built-in-commands"
 
+const EXPECTED_COMMANDS = ["commit", "migrate", "init", "link"]
+
 describe("Built-in Commands", () => {
 	describe("getBuiltInCommands", () => {
 		it("should return all built-in commands", async () => {
 			const commands = await getBuiltInCommands()
 
-			expect(commands).toHaveLength(2)
-			expect(commands.map((cmd) => cmd.name)).toEqual(expect.arrayContaining(["init", "commit"]))
+			expect(commands).toHaveLength(EXPECTED_COMMANDS.length)
+			expect(commands.map((cmd) => cmd.name)).toEqual(expect.arrayContaining(EXPECTED_COMMANDS))
 
 			// Verify all commands have required properties
 			commands.forEach((command) => {
@@ -27,10 +29,16 @@ describe("Built-in Commands", () => {
 			const initCommand = commands.find((cmd) => cmd.name === "init")
 			expect(initCommand).toBeDefined()
 			expect(initCommand!.content).toContain("AGENTS.md")
-			expect(initCommand!.content).toContain(".roo/rules-")
+			expect(initCommand!.content).toContain(".orb/AGENTS.md")
 			expect(initCommand!.description).toBe(
-				"Analyze codebase and create concise AGENTS.md files for AI assistants",
+				"Analyze the codebase and create a concise AGENTS.md to reduce cold-start",
 			)
+
+			const linkCommand = commands.find((cmd) => cmd.name === "link")
+			expect(linkCommand).toBeDefined()
+			expect(linkCommand!.content).toContain(".orb/links.json")
+			expect(linkCommand!.content).toContain("Linked Repositories")
+			expect(linkCommand!.description).toBe("Link other repos so changes here are checked against them")
 
 			const commitCommand = commands.find((cmd) => cmd.name === "commit")
 			expect(commitCommand).toBeDefined()
@@ -51,7 +59,7 @@ describe("Built-in Commands", () => {
 			expect(initCommand!.filePath).toBe("<built-in:init>")
 			expect(initCommand!.content).toContain("AGENTS.md")
 			expect(initCommand!.description).toBe(
-				"Analyze codebase and create concise AGENTS.md files for AI assistants",
+				"Analyze the codebase and create a concise AGENTS.md to reduce cold-start",
 			)
 		})
 
@@ -70,10 +78,9 @@ describe("Built-in Commands", () => {
 		it("should return all built-in command names", async () => {
 			const names = await getBuiltInCommandNames()
 
-			expect(names).toHaveLength(2)
-			expect(names).toEqual(expect.arrayContaining(["init", "commit"]))
-			// Order doesn't matter since it's based on filesystem order
-			expect(names.sort()).toEqual(["commit", "init"])
+			expect(names).toHaveLength(EXPECTED_COMMANDS.length)
+			expect(names).toEqual(expect.arrayContaining(EXPECTED_COMMANDS))
+			expect(names.sort()).toEqual([...EXPECTED_COMMANDS].sort())
 		})
 
 		it("should return array of strings", async () => {
@@ -87,24 +94,24 @@ describe("Built-in Commands", () => {
 	})
 
 	describe("Command Content Validation", () => {
-		it("init command should have comprehensive content", async () => {
+		it("init command targets a concise, cold-start AGENTS.md in .orb/", async () => {
 			const command = await getBuiltInCommand("init")
 			const content = command!.content
 
-			// Should contain key sections
-			expect(content).toContain("Please analyze this codebase")
-			expect(content).toContain("Build/lint/test commands")
-			expect(content).toContain("Code style guidelines")
-			expect(content).toContain("non-obvious")
-			expect(content).toContain("discovered by reading files")
+			expect(content).toContain("Analyze this codebase")
+			expect(content).toContain(".orb/AGENTS.md")
+			expect(content).toContain("cold-start")
+			expect(content).toContain("Architecture")
+			expect(content).toContain("Business-logic")
+		})
 
-			// Should mention important concepts
-			expect(content).toContain("AGENTS.md")
-			expect(content).toContain(".roo/rules-")
-			expect(content).toContain("rules-code")
-			expect(content).toContain("rules-debug")
-			expect(content).toContain("rules-ask")
-			expect(content).toContain("rules-architect")
+		it("link command manages the shared .orb/links.json file", async () => {
+			const command = await getBuiltInCommand("link")
+			const content = command!.content
+
+			expect(content).toContain(".orb/links.json")
+			expect(content).toContain("ask_followup_question")
+			expect(content).toContain("folder path")
 		})
 	})
 })
