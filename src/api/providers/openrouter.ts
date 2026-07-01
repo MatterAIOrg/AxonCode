@@ -238,6 +238,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			let fullContent = ""
 
 			let isThinking = false
+			// let lastChunkTime = Date.now()
 
 			for await (const chunk of stream) {
 				// OpenRouter returns an error object instead of the OpenAI SDK throwing an error.
@@ -263,13 +264,34 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 				// Get delta from choices, but handle case where choices might be empty
 				const delta = chunk.choices[0]?.delta
 
+				// const now = Date.now()
+				// const msSinceLast = now - lastChunkTime
+				// lastChunkTime = now
+				// console.log(`[${new Date(now).toISOString()}] [+${msSinceLast}ms]`, delta)
+
 				// Add defensive check for delta being undefined (e.g., final chunk with only usage data)
 				if (!delta) {
+					// forked_change: a delta-less heartbeat still proves the socket is alive, so
+					// emit a keepalive to keep the stream idle timeout from firing. Skip it for a
+					// final usage-only chunk — that's the end of the stream, not a quiet period.
+					if (!chunk.usage) {
+						yield { type: "keepalive" }
+					}
 					// Skip delta processing but continue to allow usage processing at the end of the loop
 					continue
 				}
 
 				verifyFinishReason(chunk.choices[0]) // kilocode_change
+
+				// forked_change: does this delta carry any user-visible payload? A heartbeat
+				// delta (no content/reasoning/tool call) still keeps the socket alive, so we
+				// emit a keepalive for it below to reset the stream idle timeout.
+				const hasStreamPayload =
+					Boolean(delta.content) ||
+					("reasoning" in delta && Boolean((delta as { reasoning?: unknown }).reasoning)) ||
+					("reasoning_content" in delta &&
+						Boolean((delta as { reasoning_content?: unknown }).reasoning_content)) ||
+					Boolean((delta as { tool_calls?: unknown }).tool_calls)
 
 				// if (
 				// 	delta /* kilocode_change */ &&
@@ -332,6 +354,13 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 				// Handle native tool calls when toolStyle is "json"
 				yield* processNativeToolCallsFromDelta(delta, getActiveToolUseStyle(this.options))
 				// forked_change end
+
+				// forked_change: heartbeat/empty delta carried no payload — emit a keepalive so
+				// the stream idle timeout treats the quiet-but-live connection as alive. A usage
+				// chunk is the end of the stream, not a quiet period, so skip it.
+				if (!hasStreamPayload && !chunk.usage) {
+					yield { type: "keepalive" }
+				}
 
 				// if (delta?.content) {
 				// 	yield { type: "text", text: delta.content }
