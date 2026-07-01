@@ -91,18 +91,24 @@ const BaseConfigSchema = z.object({
 	disabledTools: z.array(z.string()).default([]),
 })
 
+// Canonical URL-based transport types accepted in server configs.
+// "http" is a common alias used by other MCP clients (Figma, Cursor, Claude) and is
+// treated identically to "streamable-http". The schema normalizes it on read.
+const URL_TRANSPORT_TYPES = ["sse", "streamable-http", "http"] as const
+type UrlTransportType = (typeof URL_TRANSPORT_TYPES)[number]
+
 // Custom error messages for better user feedback
-const typeErrorMessage = "Server type must be 'stdio', 'sse', or 'streamable-http'"
+const typeErrorMessage = "Server type must be 'stdio', 'sse', 'streamable-http', or 'http'"
 const stdioFieldsErrorMessage =
 	"For 'stdio' type servers, you must provide a 'command' field and can optionally include 'args' and 'env'"
 const sseFieldsErrorMessage =
 	"For 'sse' type servers, you must provide a 'url' field and can optionally include 'headers'"
 const streamableHttpFieldsErrorMessage =
-	"For 'streamable-http' type servers, you must provide a 'url' field and can optionally include 'headers'"
+	"For 'streamable-http' or 'http' type servers, you must provide a 'url' field and can optionally include 'headers'"
 const mixedFieldsErrorMessage =
-	"Cannot mix 'stdio' and ('sse' or 'streamable-http') fields. For 'stdio' use 'command', 'args', and 'env'. For 'sse'/'streamable-http' use 'url' and 'headers'"
+	"Cannot mix 'stdio' and ('sse', 'streamable-http', or 'http') fields. For 'stdio' use 'command', 'args', and 'env'. For 'sse'/'streamable-http'/'http' use 'url' and 'headers'"
 const missingFieldsErrorMessage =
-	"Server configuration must include either 'command' (for stdio) or 'url' (for sse/streamable-http) and a corresponding 'type' if 'url' is used."
+	"Server configuration must include either 'command' (for stdio) or 'url' (for sse/streamable-http/http) and a corresponding 'type' if 'url' is used."
 
 // Helper function to create a refined schema with better error messages
 const createServerTypeSchema = () => {
@@ -124,9 +130,9 @@ const createServerTypeSchema = () => {
 				type: "stdio" as const,
 			}))
 			.refine((data) => data.type === undefined || data.type === "stdio", { message: typeErrorMessage }),
-		// URL-based config (sse or streamable-http) - defaults to streamable-http if type not specified
+		// URL-based config (sse, streamable-http, or http) - defaults to streamable-http if type not specified
 		BaseConfigSchema.extend({
-			type: z.enum(["sse", "streamable-http"]).optional(),
+			type: z.enum(URL_TRANSPORT_TYPES).optional(),
 			url: z.string().url("URL must be a valid URL format"),
 			headers: z.record(z.string()).optional(),
 			oauth: OAuthConfigSchema,
@@ -134,11 +140,17 @@ const createServerTypeSchema = () => {
 			command: z.undefined().optional(),
 			args: z.undefined().optional(),
 			env: z.undefined().optional(),
-		}).transform((data) => ({
-			...data,
-			// Default to streamable-http if type not specified - connection code will auto-detect
-			type: (data.type || "streamable-http") as "sse" | "streamable-http",
-		})),
+		}).transform((data) => {
+			// Preserve the user's literal type. "http" is accepted as an alias
+			// for "streamable-http" (Figma, Cursor, Claude use it) and is mapped
+			// to the SDK transport at connection time. Keeping the original
+			// alias means error logs and the UI reflect what the user actually
+			// wrote instead of an internal canonical name.
+			return {
+				...data,
+				type: (data.type ?? "streamable-http") as "sse" | "streamable-http" | "http",
+			}
+		}),
 	])
 }
 
@@ -222,8 +234,9 @@ export class McpHub {
 			config.type = "streamable-http" // Default, will be auto-detected in connectToServer
 		}
 
-		// Validate type if provided
-		if (config.type && !["stdio", "sse", "streamable-http"].includes(config.type)) {
+		// Validate type if provided. "http" is accepted as a streamable-http alias
+		// (Figma, Cursor, and other MCP clients use it) and is normalized downstream.
+		if (config.type && !["stdio", "sse", "streamable-http", "http"].includes(config.type)) {
 			throw new Error(typeErrorMessage)
 		}
 
@@ -234,7 +247,7 @@ export class McpHub {
 		if (config.type === "sse" && !hasUrlFields) {
 			throw new Error(sseFieldsErrorMessage)
 		}
-		if (config.type === "streamable-http" && !hasUrlFields) {
+		if ((config.type === "streamable-http" || config.type === "http") && !hasUrlFields) {
 			throw new Error(streamableHttpFieldsErrorMessage)
 		}
 
@@ -664,8 +677,14 @@ export class McpHub {
 				workspaceFolder: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "",
 			})) as typeof config
 
-			// For URL-based servers, check for stored OAuth tokens and inject them
-			if (configInjected.type === "streamable-http" || configInjected.type === "sse") {
+			// For URL-based servers, check for stored OAuth tokens and inject them.
+			// The schema normalizes "http" -> "streamable-http", but accept both for
+			// defense in depth in case a config reaches here without normalization.
+			if (
+				configInjected.type === "streamable-http" ||
+				configInjected.type === "sse" ||
+				configInjected.type === "http"
+			) {
 				const oauthProvider = this.getOAuthProvider()
 				if (oauthProvider) {
 					try {
@@ -886,20 +905,29 @@ export class McpHub {
 				connection.server.tools = await this.fetchToolsList(name, source)
 				connection.server.resources = await this.fetchResourcesList(name, source)
 				connection.server.resourceTemplates = await this.fetchResourceTemplatesList(name, source)
-			} else if (configInjected.type === "streamable-http" || configInjected.type === "sse") {
-				// URL-based connection (streamable-http or sse)
-				// Auto-detect the correct transport type if not explicitly set by user
-				let actualType = configInjected.type
+			} else if (
+				configInjected.type === "streamable-http" ||
+				configInjected.type === "sse" ||
+				configInjected.type === "http"
+			) {
+				// URL-based connection (streamable-http, http, or sse).
+				// "http" is an alias for "streamable-http" (used by Figma, Cursor,
+				// Claude); the SDK transport we construct below is identical.
+				const userType = configInjected.type
+				let actualType = userType
 
 				// Try the configured/detected type first, then fallback to the other
-				const typesToTry: Array<"streamable-http" | "sse"> = [actualType as "streamable-http" | "sse"]
-				if (actualType === "streamable-http") {
+				const typesToTry: Array<"streamable-http" | "sse"> = [
+					actualType === "http" ? "streamable-http" : (actualType as "streamable-http" | "sse"),
+				]
+				if (typesToTry[0] === "streamable-http") {
 					typesToTry.push("sse")
 				} else {
 					typesToTry.push("streamable-http")
 				}
 
 				let lastError: Error | null = null
+				let authFailure: Error | null = null
 
 				for (const typeToTry of typesToTry) {
 					// Create a fresh client for each attempt
@@ -1036,13 +1064,27 @@ export class McpHub {
 						// Success - exit the method
 						return
 					} catch (error) {
-						lastError = error instanceof Error ? error : new Error(`${error}`)
-						console.log(`Failed to connect to "${name}" with ${typeToTry}:`, error)
+						const err = error instanceof Error ? error : new Error(`${error}`)
+						lastError = err
+						// Log using the user-supplied type so messages like
+						// "Failed to connect to \"figma\" with http: …" match what
+						// the user actually wrote, not the internal transport name.
+						console.log(`Failed to connect to "${name}" with ${userType}:`, error)
 
 						// Clean up failed connection
 						const failedConnection = this.findConnection(name, source)
 						if (failedConnection) {
 							this.connections = this.connections.filter((c) => c !== failedConnection)
+						}
+
+						// Short-circuit on authentication errors. Falling back from
+						// streamable-http → sse on a 401 just produces a second
+						// identical failure (both transports hit the same endpoint
+						// with the same headers) and floods the log. Bail out and
+						// let the outer handler mark the server as needs-auth.
+						if (this.isAuthenticationError(err)) {
+							authFailure = err
+							throw err
 						}
 
 						// If this was the last type to try, throw the error
@@ -2290,8 +2332,8 @@ export class McpHub {
 
 		try {
 			const config = JSON.parse(connection.server.config)
-			// Check if it's a URL-based server (sse or streamable-http)
-			if (config.type !== "sse" && config.type !== "streamable-http") {
+			// Check if it's a URL-based server (sse, streamable-http, or the "http" alias)
+			if (config.type !== "sse" && config.type !== "streamable-http" && config.type !== "http") {
 				return false
 			}
 			// Has OAuth configuration
@@ -2366,10 +2408,15 @@ export class McpHub {
 		const remoteUrl = mcpRemoteCheck.remoteUrl
 
 		// URL-based servers and mcp-remote wrappers support OAuth
-		if (serverConfig.type !== "sse" && serverConfig.type !== "streamable-http" && !isMcpRemote) {
+		if (
+			serverConfig.type !== "sse" &&
+			serverConfig.type !== "streamable-http" &&
+			serverConfig.type !== "http" &&
+			!isMcpRemote
+		) {
 			return {
 				success: false,
-				error: "OAuth is only supported for SSE, streamable-http, and mcp-remote wrapped MCP servers",
+				error: "OAuth is only supported for SSE, streamable-http, http, and mcp-remote wrapped MCP servers",
 			}
 		}
 
