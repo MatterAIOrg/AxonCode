@@ -40,6 +40,7 @@ export const ErrorRow = memo(
 		const [isExpanded, setIsExpanded] = useState(defaultExpanded)
 		const [showCopySuccess, setShowCopySuccess] = useState(false)
 		const [showTooltip, setShowTooltip] = useState(false)
+		const [isRetrying, setIsRetrying] = useState(false)
 		const tooltipRef = useRef<HTMLDivElement>(null)
 		const infoIconRef = useRef<HTMLDivElement>(null)
 		const { copyWithFeedback } = useCopyToClipboard()
@@ -116,6 +117,23 @@ export const ErrorRow = memo(
 			return msg.substring(0, maxLength) + "..."
 		}
 
+		// Determine if retry should be shown
+		const showRetry =
+			(type === "api_failure" && message?.includes("Provider error:")) ||
+			(type === "streaming_failed" &&
+				(message?.includes("Provider error:") ||
+					/econnreset|socket hang up|socket closed|other side closed|fetch failed|network error|terminated|aborted|underlying socket|connection reset|connection aborted|etimedout|enotfound/i.test(
+						message || "",
+					)))
+
+		const handleRetry = useCallback(() => {
+			setIsRetrying(true)
+			vscode.postMessage({
+				type: "askResponse",
+				askResponse: "yesButtonClicked",
+			})
+		}, [])
+
 		// For diff_error type with expandable content
 		if (type === "diff_error" && expandable) {
 			return (
@@ -149,16 +167,28 @@ export const ErrorRow = memo(
 			)
 		}
 
-		// Compact single-line error display with info icon tooltip
+		// Hide the row entirely after retry is clicked (with fade-out)
+		if (isRetrying) {
+			return null
+		}
+
+		// Compact error display with improved styling
 		return (
-			<div className="relative my-1">
+			<div
+				className="relative my-1"
+				style={{
+					animation: isRetrying ? "errorFadeOut 0.3s ease-out forwards" : "errorSlideIn 0.2s ease-out",
+				}}>
 				<div
 					className={
-						headerClassName || "flex items-center gap-2 py-2 px-2 rounded-md bg-vscode-editor-background"
+						headerClassName ||
+						"flex items-center gap-2 py-2 px-3 rounded-lg border border-vscode-errorForeground/30"
 					}>
 					{/* Error Title */}
 					{errorTitle && (
-						<span className="text-vscode-editor-foreground font-medium text-sm whitespace-nowrap">
+						<span
+							className="font-medium text-sm whitespace-nowrap"
+							style={{ color: "var(--vscode-errorForeground)" }}>
 							{errorTitle}
 						</span>
 					)}
@@ -184,6 +214,17 @@ export const ErrorRow = memo(
 						onClick={() => setShowTooltip(!showTooltip)}>
 						<Info className="w-4 h-4 text-vscode-descriptionForeground" />
 					</div>
+
+					{/* Retry Button - inline, compact */}
+					{showRetry && (
+						<VSCodeButton
+							appearance="secondary"
+							className="flex-shrink-0 ml-1"
+							style={{ fontSize: "12px", padding: "2px 8px" }}
+							onClick={handleRetry}>
+							{t("chat:retry.title")}
+						</VSCodeButton>
+					)}
 				</div>
 
 				{/* Tooltip Popover */}
@@ -216,30 +257,6 @@ export const ErrorRow = memo(
 					</div>
 				)}
 
-				{/* Retry Button - outside tooltip, below error row */}
-				{((type === "api_failure" && message?.includes("Provider error:")) ||
-					(type === "streaming_failed" &&
-						(message?.includes("Provider error:") ||
-							/econnreset|socket hang up|socket closed|other side closed|fetch failed|network error|terminated|aborted|underlying socket|connection reset|connection aborted|etimedout|enotfound/i.test(
-								message || "",
-							)))) && (
-					<div className="mt-1 flex justify-end">
-						<VSCodeButton
-							appearance="secondary"
-							className="p-0"
-							onClick={() => {
-								// This will be handled by the parent component
-								vscode.postMessage({
-									type: "askResponse",
-									askResponse: "yesButtonClicked",
-								})
-							}}>
-							<span className="codicon codicon-refresh mr-1" />
-							{t("chat:retry.title")}
-						</VSCodeButton>
-					</div>
-				)}
-
 				<style>{`
 					@keyframes fadeIn {
 						from {
@@ -249,6 +266,26 @@ export const ErrorRow = memo(
 						to {
 							opacity: 1;
 							transform: translateY(0);
+						}
+					}
+					@keyframes errorSlideIn {
+						from {
+							opacity: 0;
+							transform: translateY(-6px);
+						}
+						to {
+							opacity: 1;
+							transform: translateY(0);
+						}
+					}
+					@keyframes errorFadeOut {
+						from {
+							opacity: 1;
+							transform: translateY(0);
+						}
+						to {
+							opacity: 0;
+							transform: translateY(-6px);
 						}
 					}
 				`}</style>

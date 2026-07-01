@@ -1,5 +1,5 @@
 import { VSCodeBadge, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { OctagonAlert, Undo2 } from "lucide-react"
+import { Undo2 } from "lucide-react"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useSize } from "react-use"
@@ -522,9 +522,7 @@ export const ChatRowContent = ({
 						)
 					) : cost !== null && cost !== undefined ? (
 						getIconSpan("arrow-swap", normalColor)
-					) : apiRequestFailedMessage ? (
-						<OctagonAlert className="size-4 mt-0.5" aria-label="Alert icon" style={{ color: errorColor }} />
-					) : (
+					) : apiRequestFailedMessage ? null : (
 						<MatterProgressIndicator />
 					),
 					apiReqCancelReason !== null && apiReqCancelReason !== undefined ? (
@@ -539,11 +537,7 @@ export const ChatRowContent = ({
 							<span style={{ color: normalColor }}>{t("chat:apiRequest.title")}</span>
 						</StandardTooltip>
 					) : // forked_change end
-					apiRequestFailedMessage ? (
-						<span style={{ color: errorColor, marginTop: "3px", marginLeft: "-4px" }}>
-							{t("chat:apiRequest.failed")}
-						</span>
-					) : (
+					apiRequestFailedMessage ? null : (
 						<span className="animate-shimmer">{streamingWords[currentWordIndex]}...</span>
 					),
 				]
