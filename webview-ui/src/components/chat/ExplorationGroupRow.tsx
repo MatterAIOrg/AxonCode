@@ -520,11 +520,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 
 			{/* Expandable content - renders ChatRow for each message */}
 			{expanded && (
-				<div
-					className="mt-1 flex min-w-0 flex-col py-1 ml-5 rounded-xs"
-					style={{
-						boxShadow: "inset 1px 0 0 var(--vscode-textLink-foreground)",
-					}}>
+				<div className="mt-1 flex min-w-0 flex-col py-1 ml-0.5 rounded-xs">
 					{messages.map((message, idx) => (
 						<ChatRow
 							key={message.ts}

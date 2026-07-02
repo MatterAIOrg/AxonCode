@@ -75,7 +75,6 @@ import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 // import ProfileViolationWarning from "./ProfileViolationWarning" kilocode_change: unused
 import { ListVideoIcon } from "@/utils/customIcons"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { X } from "lucide-react"
 import { useOptionalAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
@@ -2600,7 +2599,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								<div className="flex flex-grow flex-col justify-start gap-4">
 									{!isReviewOnlyMode && (
 										<div className="w-full min-w-0 mt-4 mb-1">
-											<div className="relative overflow-hidden rounded-2xl border border-[var(--vscode-activityBar-border)] bg-vscode-editor-background h-[88px]">
+											<div className="relative overflow-hidden rounded-2xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-vscode-editor-background h-[88px]">
 												<div
 													className="flex transition-transform duration-500 ease-in-out h-full"
 													style={{ transform: `translateX(-${activeMarketingCard * 100}%)` }}>
@@ -2957,7 +2956,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						/>
 					)}
 
-					{!task && (
+					{/* {!task && (
 						<div className={`w-full min-w-0 px-4 ${isReviewOnlyMode ? "mb-4" : "mb-1.5"}`}>
 							<VSCodeButton
 								appearance="secondary"
@@ -2987,7 +2986,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								)}
 							</VSCodeButton>
 						</div>
-					)}
+					)} */}
 					{/* Chat input area - Hidden in review only mode */}
 					{!isReviewOnlyMode && (
 						<div
