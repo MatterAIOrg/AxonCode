@@ -1526,10 +1526,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					"overflow-hidden",
 					"rounded-2xl",
 					isFocused
-						? "border border-[var(--vscode-activityBar-border)]"
+						? "border border-[var(--vscode-commandCenter-inactiveBorder)]"
 						: isDraggingOver
-							? "border-1 border-dashed border-[var(--vscode-activityBar-border)]"
-							: "border border-[var(--vscode-activityBar-border)]",
+							? "border-1 border-dashed border-[var(--vscode-commandCenter-inactiveBorder)]"
+							: "border border-[var(--vscode-commandCenter-inactiveBorder)]",
 					isDraggingOver
 						? "bg-[color-mix(in_srgb,var(--vscode-input-background)_95%,white)]"
 						: "bg-vscode-input-background",
