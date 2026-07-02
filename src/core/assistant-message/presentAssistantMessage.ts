@@ -351,7 +351,7 @@ export async function presentAssistantMessage(cline: Task) {
 						// and the next request would fail with a tool_use_id mismatch.
 						pushToolResult_withToolUseId_kilocode({
 							type: "text",
-							text: `Duplicate tool call detected for ${toolDescription()}. The same tool call was already executed in this turn — its previous result still applies. Please move on or try a different approach.`,
+							text: `Duplicate tool call detected for ${toolDescription()}. The same tool call was already executed in this turn — its previous result still applies. If that result was not what you expected, the parameters were wrong: change the parameters (e.g. add a missing offset) instead of repeating the identical call.`,
 						})
 						break
 					}
