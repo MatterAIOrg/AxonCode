@@ -143,7 +143,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		const baseURL = this.options.openRouterBaseUrl || "https://api2.matterai.so/v1/web"
 		const apiKey = this.options.openRouterApiKey ?? "not-provided"
 
-		this.client = new OpenAI({ baseURL, apiKey, defaultHeaders: DEFAULT_HEADERS })
+		this.client = new OpenAI({ baseURL: "http://localhost:4064/v1/web", apiKey, defaultHeaders: DEFAULT_HEADERS })
 	}
 
 	// forked_change start
@@ -210,7 +210,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		const requestOptions: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
 			model: modelId,
-			temperature: 0.2,
+			temperature: 0.1,
 			messages: convertedMessages,
 			stream: true,
 			stream_options: { include_usage: true },
@@ -421,7 +421,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			modelId: id,
 			model: info,
 			settings: this.options,
-			defaultTemperature: 0.2,
+			defaultTemperature: 0.1,
 		})
 
 		return { id, info, topP: 0.95, ...params }
