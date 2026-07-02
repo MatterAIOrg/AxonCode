@@ -259,60 +259,7 @@ export const ChatRowContent = ({
 	const [editMode, setEditMode] = useState<Mode>(mode || "code")
 	const [editImages, setEditImages] = useState<ImageAttachment[]>([])
 
-	const streamingWords = useMemo(
-		() => [
-			"Compiling",
-			"Debugging",
-			"Refactoring",
-			"Parsing",
-			"Tokenizing",
-			"Linting",
-			"Building",
-			"Linking",
-			"Optimizing",
-			"Minifying",
-			"Bundling",
-			"Transpiling",
-			"Type-checking",
-			"Analyzing",
-			"Inferencing",
-			"Embedding",
-			"Vectorizing",
-			"Indexing",
-			"Caching",
-			"Serializing",
-			"Deserializing",
-			"Instantiating",
-			"Initializing",
-			"Allocating",
-			"Deallocating",
-			"Garbage-collecting",
-			"Threading",
-			"Parallelizing",
-			"Synchronizing",
-			"Asyncing",
-			"Awaiting",
-			"Resolving",
-			"Binding",
-			"Injecting",
-			"Decorating",
-			"Memoizing",
-			"Currying",
-			"Hydrating",
-			"Rendering",
-			"Diffing",
-			"Reconciling",
-			"Committing",
-			"Branching",
-			"Merging",
-			"Rebasing",
-			"Cherry-picking",
-			"Bisecting",
-			"Blaming",
-			"Stashing",
-		],
-		[],
-	)
+	const streamingWords = useMemo(() => ["Working"], [])
 	const [currentWordIndex, setCurrentWordIndex] = useState(() => Math.floor(Math.random() * streamingWords.length))
 
 	const isStreamingWords = useMemo(() => {
@@ -538,7 +485,7 @@ export const ChatRowContent = ({
 						</StandardTooltip>
 					) : // forked_change end
 					apiRequestFailedMessage ? null : (
-						<span className="animate-shimmer">{streamingWords[currentWordIndex]}...</span>
+						<span style={{ color: normalColor }}>{streamingWords[currentWordIndex]}</span>
 					),
 				]
 			case "followup":
