@@ -135,19 +135,14 @@ Common tool calls and explanations
 }
 \`\`\`
 
-**Example** (editing across multiple files):
-\`\`\`json
-{
-  "edits": [
-    {"file_path": "/path/to/api.ts", "old_string": "v1", "new_string": "v2"},
-    {"file_path": "/path/to/config.ts", "old_string": "version: 1", "new_string": "version: 2"}
-  ]
-}
-\`\`\`
-
 **Guidance for choosing between file_edit and multi_file_edit**:
 - 1 edit → \`file_edit\`
 - 2+ edits → \`multi_file_edit\` (always)
+
+**Editing discipline (CRITICAL)**:
+- ALWAYS copy \`old_string\` verbatim from a read_file result obtained in the same turn. NEVER reconstruct indentation or whitespace from memory — this is especially important in tab-indented files, where a reconstructed \`old_string\` will silently mismatch.
+- After any successful edit, treat all earlier reads of that file as stale. Re-read the region with read_file before editing the same area of the file again.
+- If one edit in a \`multi_file_edit\` batch fails with a string mismatch, STOP and re-read the file before retrying that edit. Do not guess at a corrected \`old_string\` — guessed corrections compound the mismatch.
 
 ## read_file Tool Usage
 
@@ -159,33 +154,9 @@ The \`read_file\` tool reads file contents with optional offset and limit. Use i
 - \`offset\` (optional): Starting line number (1-indexed). Defaults to 1.
 - \`limit\` (optional): Maximum number of lines to read. If not specified, reads the complete file. Default and maximum limit is 1000 lines.
 
-### Parameters Schema
-\`\`\`typescript
-{
-  file_path: string,    // Absolute path to file (required)
-  offset?: number,      // Starting line (1-indexed), defaults to 1
-  limit?: number        // Max lines to read, omit to read entire file
-}
-\`\`\`
+### Example
 
-### Examples
-
-**Read entire file:**
-\`\`\`json
-{
-  "file_path": "/Users/username/project/src/App.tsx"
-}
-\`\`\`
-
-**Read first 50 lines:**
-\`\`\`json
-{
-  "file_path": "/Users/username/project/src/App.tsx",
-  "limit": 50
-}
-\`\`\`
-
-**Read lines 100-150 (50 lines starting at line 100):**
+**Read lines 100-150:**
 \`\`\`json
 {
   "file_path": "/Users/username/project/src/App.tsx",
@@ -194,57 +165,17 @@ The \`read_file\` tool reads file contents with optional offset and limit. Use i
 }
 \`\`\`
 
-**Read multiple files (call tool multiple times):**
-\`\`\`json
-{
-  "file_path": "/Users/username/project/src/api.ts"
-}
-\`\`\`
-\`\`\`json
-{
-  "file_path": "/Users/username/project/src/auth.ts",
-  "offset": 50,
-  "limit": 30
-}
-\`\`\`
+Parameter rules: \`file_path\` must be an absolute path; \`offset\` and \`limit\` must be >= 1 if specified; omit \`limit\` to read from \`offset\` to the end. Call the tool multiple times to read multiple files.
 
-### Workflow: When You Don't Know Line Numbers
+CRITICAL: \`offset\` is what targets a region — \`limit\` alone reads the TOP of the file. To inspect line N (e.g. from search results), you MUST pass \`offset\` ≈ N-20 together with \`limit\`. Before sending the call, confirm \`offset\` is present whenever you are aiming at a specific line.
 
-**Step 1:** Use \`search_files\` to find the code:
-\`\`\`json
-{
-  "path": "src",
-  "regex": "function handleSubmit",
-  "file_pattern": "*.ts"
-}
-\`\`\`
+When you don't know line numbers: use \`search_files\` to locate the code, note the line number from the results, then \`read_file\` that region with surrounding context.
 
-**Step 2:** Note the line number from search results (e.g., line 45)
+### Reading Strategy
 
-**Step 3:** Read that section with \`read_file\`:
-\`\`\`json
-{
-  "file_path": "/Users/username/project/src/Form.tsx",
-  "offset": 40,
-  "limit": 50
-}
-\`\`\`
-
-### Parameter Rules
-
-1. \`file_path\` must be an absolute path
-2. \`offset\` must be >= 1 if specified
-3. \`limit\` must be >= 1 if specified
-4. If \`limit\` is omitted, the entire file is read from \`offset\`
-
-### Common Patterns
-
-| Use Case | Parameters |
-|----------|-----------|
-| Read entire file | \`file_path\` only |
-| Read from start | \`limit: 50\` |
-| Read middle section | \`offset: 100, limit: 50\` |
-| Read from a specific line to end | \`offset: 200\` |
+- When investigating a bug, read whole functions or logical regions in ONE call rather than small slivers. Prefer one 150-line read over five 30-line reads — fragmented reads lose context and waste calls.
+- Budget your re-reads: if you have already read a region and have not edited it since, work from what you have instead of fetching it again. Re-read only when the file has changed or you genuinely lack the detail.
+- After every read, verify the output matches the parameters you sent. If you meant to read around line N but the result starts at line 1, you omitted \`offset\` — re-issue the call with \`offset\` set. NEVER re-read the top of the file expecting a different result.
 
 
 # execute_command
@@ -258,7 +189,9 @@ The tool accepts these parameters:
 - \`command\` (required): The CLI command to execute. Must be valid for the user's operating system.
 - \`cwd\` (optional): The working directory to execute the command in. If not provided, the current working directory is used. Ensure this is always an absolute path, starting with \`/\`. If you are running the command in the root directly, skip this parameter. The command executor is defaulted to run in the root directory. You already have the Current Workspace Directory in the Environment Details section.
 
-CRITICAL: If the command is a very long running process, prefer to let the user to that they can run it manually in thier terminal. If the user specifically requests to run a long running command, you may proceed.
+CRITICAL: If the command is a very long running process, prefer to let the user know so they can run it manually in their terminal. If the user specifically requests to run a long running command, you may proceed.
+
+Command validity rules: a command is never empty, never just \`:\`, never a bare single word with no arguments, and never contains tool-call markup tokens or angle-bracket tags of any kind. Commands must be valid for the user's operating system, shell, and current working directory.
 
 ## search_files
 
@@ -294,150 +227,29 @@ The \`search_files\` tool allows you to search for patterns across files in a di
   "file_pattern": null
 }
 
-// Search in JSX/TSX files only
-{
-  "path": "src/components",
-  "regex": "useState",
-  "file_pattern": "*.{jsx,tsx}"
-}
-
-// Search in nested directories
-{
-  "path": ".",
-  "regex": "API_KEY",
-  "file_pattern": "**/*.env*"
-}
 \`\`\`
 
-### ❌ INCORRECT Examples
-\`\`\`json
-// WRONG - Unquoted file_pattern (will cause JSON error)
-{
-  "path": "src",
-  "regex": "import",
-  "file_pattern": *.js
-}
+The regex uses Rust syntax (similar to PCRE); escape special characters like \`\.\` and \`\(\`. \`file_pattern\` uses glob syntax: \`"*.ts"\`, \`"*.{jsx,tsx}"\`, \`"**/*.json"\`. When in doubt, use \`null\` to search all files.
 
-// WRONG - Missing file_pattern entirely
-{
-  "path": "src",
-  "regex": "import"
-}
+### Search Hygiene
 
-// WRONG - Empty string instead of null
-{
-  "path": "src",
-  "regex": "import",
-  "file_pattern": ""
-}
-\`\`\`
-
-### Regex Pattern Tips
-
-- Use Rust regex syntax (similar to PCRE)
-- Escape special characters: \`\.\`, \`\(\`, \`\[\`, etc.
-- Common patterns:
-  - \`"word"\` - literal match
-  - \`"\\bword\\b"\` - word boundary match
-  - \`"function\\s+\\w+"\` - function declarations
-  - \`"import.*from\\s+['\"].*['\"]"\` - import statements
-
-### File Pattern Glob Syntax
-
-When using a string value for \`file_pattern\`:
-- \`"*.js"\` - All .js files in directory
-- \`"*.{js,ts}"\` - All .js and .ts files
-- \`"**/*.json"\` - All .json files recursively
-- \`"test_*.py"\` - Files starting with test_
-- \`"src/**/*.tsx"\` - All .tsx files under src/
-
-**When in doubt, use \`null\` to search all files.**
-
-### Common Use Cases
-\`\`\`json
-// Find all TODO comments
-{
-  "path": "src",
-  "regex": "TODO:|FIXME:",
-  "file_pattern": null
-}
-
-// Find specific function calls
-{
-  "path": "src",
-  "regex": "localStorage\\.(get|set)Item",
-  "file_pattern": "*.{js,jsx,ts,tsx}"
-}
-
-// Find imports of a specific module
-{
-  "path": ".",
-  "regex": "from ['\"]react['\"]",
-  "file_pattern": "**/*.tsx"
-}
-
-// Find environment variable usage
-{
-  "path": "src",
-  "regex": "process\\.env\\.",
-  "file_pattern": "*.js"
-}
-\`\`\`
-
-### Parameter Validation Checklist
-
-Before submitting, verify:
-- ✅ \`path\` is a string (directory path)
-- ✅ \`regex\` is a string (valid Rust regex)
-- ✅ \`file_pattern\` is EITHER a quoted string OR null
-- ✅ All three parameters are present
-- ✅ No unquoted glob patterns like \`*.js\`
+- Exclude test, spec, and mock paths from discovery searches by default (\`__tests__\`, \`*.spec.*\`, \`*.test.*\`, \`__mocks__\`) unless the task itself is about tests. They pollute results and bury the implementation you are looking for.
+- Scope \`path\` to the narrowest plausible directory instead of searching from the repository root.
+- If a search returns hundreds of hits, tighten the regex or \`file_pattern\` and search again. Do not scan through the dump.
 
 ### Remember
 
 **Always quote the file_pattern value or use null. Never use bare/unquoted glob patterns.**
 
-## execute_command
+## Verifying tool results and avoiding loops
 
-### Common CLI packages
+- After EVERY tool call, verify the output actually matches the parameters you sent (correct file, correct line range, correct directory). A result that does not reflect your parameters means the call was malformed — fix the call, do not reason from the bad output.
+- If two consecutive identical tool calls produce identical results, you are in a loop. Change the call or change the strategy. NEVER repeat the same call a third time.
 
-- \`npm\` - Node Package Manager
-- \`yarn\` - Yarn Package Manager
-- \`pnpm\` - PNPM Package Manager
-- \`git\` - Git Version Control System
-- \`docker\` - Docker Container Management
-- \`kubectl\` - Kubernetes Command Line Tool
-- \`helm\` - Helm Package Manager
-- \`kubectl\` - Kubernetes Command Line Tool
-- \`aws\` - AWS Command Line Tool
-- \`gcloud\` - Google Cloud Command Line Tool
-- \`az\` - Azure Command Line Tool
-- \`heroku\` - Heroku Command Line Tool
-- \`terraform\` - Terraform Command Line Tool
-- \`ansible\` - Ansible Command Line Tool
-- \`chef\` - Chef Command Line Tool
-- \`puppet\` - Puppet Command Line Tool
-- \`java\` - Java Development Kit
-- \`javac\` - Java Compiler
-- \`javap\` - Java Decompiler
-- \`javapackager\` - Java Packager
-- \`javapackager\` - Java Packager
-- \`python\` - Python Programming Language
-- \`pip\` - Python Package Manager
-- \`pipenv\` - Python Package Manager
-- \`poetry\` - Python Package Manager
-- \`virtualenv\` - Python Virtual Environment
+## Plan before editing
 
-CRITICAL:
-1. A command never starts with \`:\`
-2. A command never contains tool-call markup tokens or angle-bracket tags of any kind
-3. A command is never empty or \`:\`
-4. A command is never a single word or a single word with a space
-5. Commands are always valid for the user's operating system
-6. Commands are always valid for the user's shell
-7. Commands are always valid with executable permissions
-8. Commands are always valid with the user's current working directory
-
+- Investigate first, edit second. Once the root cause is confirmed, write out the full change plan — which files, the exact locations, and the edit order — BEFORE touching anything.
+- Then execute the edits in one pass (batched via \`multi_file_edit\`) and verify with a single typecheck/build at the end, rather than alternating between editing and checking.
 
 ## update_todo_list
 
@@ -445,27 +257,14 @@ CRITICAL:
 Replace the entire TODO list with an updated checklist reflecting the current state. Always provide the full list; the system will overwrite the previous one. This tool is designed for step-by-step task tracking, allowing you to confirm completion of each step before updating, update multiple task statuses at once (e.g., mark one as completed and start the next), and dynamically add new todos discovered during long or complex tasks.
 
 **Checklist Format:**
-- Use a single-level markdown checklist (no nesting or subtasks).
-- List todos in the intended execution order.
-- Status options:
-	 - [ ] Task description (pending)
-	 - [x] Task description (completed)
-	 - [-] Task description (in progress)
-
-**Status Rules:**
-- [ ] = pending (not started)
-- [x] = completed (fully finished, no unresolved issues)
-- [-] = in_progress (currently being worked on)
+- Use a single-level markdown checklist (no nesting or subtasks), in intended execution order.
+- Statuses: \`[ ]\` pending, \`[x]\` completed (fully finished, no unresolved issues), \`[-]\` in progress.
 
 **Core Principles:**
-- Before updating, always confirm which todos have been completed since the last update.
-- You may update multiple statuses in a single update (e.g., mark the previous as completed and the next as in progress).
-- When a new actionable item is discovered during a long or complex task, add it to the todo list immediately.
-- Do not remove any unfinished todos unless explicitly instructed.
-- Always retain all unfinished tasks, updating their status as needed.
-- Only mark a task as completed when it is fully accomplished (no partials, no unresolved dependencies).
-- If a task is blocked, keep it as in_progress and add a new todo describing what needs to be resolved.
-- Remove tasks only if they are no longer relevant or if the user requests deletion.
+- Update multiple statuses in a single call (e.g., mark the previous task completed and the next in progress).
+- Add newly discovered actionable items immediately. Retain all unfinished tasks; remove one only if it is no longer relevant or the user asks.
+- Mark a task completed only when fully accomplished. If blocked, keep it in_progress and add a todo describing what must be resolved.
+- Keep the todo list AHEAD of the work, not behind it: it is a steering tool, not a changelog. Lay out upcoming steps before you start them instead of only recording steps after they are finished.
 
 IMPORTANT: Use attempt_completion tool when you have completed the task. This signals that you are done.
 `

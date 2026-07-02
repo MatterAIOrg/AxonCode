@@ -6,7 +6,7 @@ import * as path from "path"
 import * as vscode from "vscode"
 import { Anthropic } from "@anthropic-ai/sdk"
 
-import type { GlobalState, ProviderSettings, ModelInfo } from "@roo-code/types"
+import type { GlobalState, ProviderSettings, ModelInfo, ClineMessage } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
 
 import { Task } from "../Task"
@@ -1774,6 +1774,49 @@ describe("Cline", () => {
 			await iterator.next()
 
 			expect(saySpy).toHaveBeenCalledWith("reasoning", "Working through the answer.", undefined, true)
+		})
+
+		it("should finalize all partial reasoning messages, not just the last one", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+				context: mockExtensionContext,
+			})
+
+			mockProvider.getState = vi.fn().mockResolvedValue({
+				apiConfiguration: mockApiConfig,
+			})
+
+			// Simulate multiple reasoning phases where some messages are still partial
+			// (e.g. reasoning → text → reasoning → text → reasoning, stream aborted)
+			const baseTs = Date.now()
+			task.clineMessages = [
+				{ ts: baseTs, type: "say", say: "reasoning", text: "First reasoning phase", partial: false },
+				{ ts: baseTs + 100, type: "say", say: "text", text: "Some text", partial: false },
+				{ ts: baseTs + 200, type: "say", say: "reasoning", text: "Second reasoning phase", partial: true },
+				{ ts: baseTs + 300, type: "say", say: "text", text: "More text", partial: true },
+				{ ts: baseTs + 400, type: "say", say: "reasoning", text: "Third reasoning phase", partial: true },
+			] as ClineMessage[]
+
+			await (task as any).finalizeReasoningMessage()
+
+			// All reasoning messages should be finalized (partial = false)
+			const reasoningMessages = task.clineMessages.filter((m) => m.say === "reasoning")
+			expect(reasoningMessages).toHaveLength(3)
+			expect(reasoningMessages.every((m) => m.partial === false)).toBe(true)
+
+			// Previously-partial reasoning messages should have reasoningDuration metadata
+			expect(reasoningMessages[1].metadata?.kiloCode?.reasoningDuration).toBeDefined()
+			expect(reasoningMessages[2].metadata?.kiloCode?.reasoningDuration).toBeDefined()
+
+			// Already-finalized reasoning message should not have been modified
+			expect(reasoningMessages[0].metadata?.kiloCode?.reasoningDuration).toBeUndefined()
+
+			// Non-reasoning partial messages should NOT be finalized by finalizeReasoningMessage
+			const textMessages = task.clineMessages.filter((m) => m.say === "text")
+			expect(textMessages[1].partial).toBe(true)
 		})
 	})
 	describe("abortTask", () => {

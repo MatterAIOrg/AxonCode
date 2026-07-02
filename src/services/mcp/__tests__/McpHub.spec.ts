@@ -1272,6 +1272,49 @@ describe("McpHub", () => {
 				})
 			})
 
+			describe("transport type aliases", () => {
+				it("accepts 'http' as an alias for 'streamable-http' (Figma, Cursor, Claude)", () => {
+					const figmaConfig = {
+						type: "http",
+						url: "https://mcp.figma.com/mcp",
+					}
+					const parsed = ServerConfigSchema.parse(figmaConfig)
+					expect(parsed.type).toBe("streamable-http")
+					expect(parsed.url).toBe("https://mcp.figma.com/mcp")
+				})
+
+				it("accepts URL-based configs with optional headers when type is 'http'", () => {
+					const figmaConfig = {
+						type: "http",
+						url: "https://mcp.figma.com/mcp",
+						headers: { "X-Figma-Token": "abc" },
+					}
+					expect(() => ServerConfigSchema.parse(figmaConfig)).not.toThrow()
+				})
+
+				it("still rejects 'http' type without a url field", () => {
+					const invalidConfig = {
+						type: "http",
+						command: "node",
+					}
+					expect(() => ServerConfigSchema.parse(invalidConfig)).toThrow()
+				})
+
+				it("still rejects unknown transport types", () => {
+					const invalidConfig = {
+						type: "websocket",
+						url: "wss://example.com",
+					}
+					expect(() => ServerConfigSchema.parse(invalidConfig)).toThrow()
+				})
+
+				it("preserves sse as a distinct type from http/streamable-http", () => {
+					const sseConfig = { type: "sse", url: "https://example.com/sse" }
+					const parsed = ServerConfigSchema.parse(sseConfig)
+					expect(parsed.type).toBe("sse")
+				})
+			})
+
 			it("should use default timeout of 60 seconds if not specified", async () => {
 				const mockConnection: ConnectedMcpConnection = {
 					type: "connected",

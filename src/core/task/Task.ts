@@ -150,6 +150,11 @@ const MAX_CONTEXT_WINDOW_RETRIES = 3 // Maximum retries for context window error
 // as a streaming failure and abort the task.
 const STREAM_IDLE_TIMEOUT_MS = 180000 // 180 seconds
 
+// forked_change: how many times to auto-retry a transient provider connection
+// failure (socket closed by the network, idle timeout, DNS/TLS drop) before
+// falling back to the manual retry prompt. Applies regardless of auto-approve.
+const MAX_CONNECTION_RETRIES = 3
+
 /**
  * Race an async iterator's next() against an idle timeout.
  *
@@ -177,6 +182,71 @@ async function nextWithIdleTimeout<T>(
 	} finally {
 		if (timeoutHandle) clearTimeout(timeoutHandle)
 	}
+}
+
+// forked_change: distinguish a dropped/closed connection (typically the user's own
+// machine — Wi-Fi drop, sleep/wake, VPN flip — or an in-transit socket reset) from a
+// server-side HTTP error that carries a status code. Server errors have their own retry
+// handling; connection closures should surface the retry button with a message that
+// makes the local cause clear.
+function isConnectionClosedError(error: any): boolean {
+	if (!error) {
+		return false
+	}
+
+	// A real HTTP response (>=400) means the server answered — not a socket closure.
+	const status = Number(error.status ?? error.statusCode)
+	if (Number.isFinite(status) && status >= 400) {
+		return false
+	}
+
+	const connectionCodes = [
+		"ECONNRESET",
+		"ECONNREFUSED",
+		"ECONNABORTED",
+		"ETIMEDOUT",
+		"EPIPE",
+		"ENOTFOUND",
+		"EAI_AGAIN",
+		"ENETUNREACH",
+		"ENETDOWN",
+		"EHOSTUNREACH",
+		"UND_ERR_SOCKET",
+	]
+	// The code can live on `code`/`cause.code`, or — because the OpenRouter provider
+	// rethrows with `err.status = error.code` — on `status`/`statusCode` as a string.
+	const codeCandidates = [error.code, error.cause?.code, error.status, error.statusCode].map((c) =>
+		String(c ?? "").toUpperCase(),
+	)
+	if (codeCandidates.some((c) => connectionCodes.includes(c))) {
+		return true
+	}
+
+	const message = `${error.message ?? ""} ${error.cause?.message ?? ""}`.toLowerCase()
+	return (
+		message.includes("socket hang up") ||
+		message.includes("stream idle timeout") ||
+		message.includes("terminated") ||
+		message.includes("fetch failed") ||
+		message.includes("network error") ||
+		message.includes("connection closed") ||
+		message.includes("econnreset")
+	)
+}
+
+// forked_change: build the message shown on the api_req_failed retry prompt, calling out
+// connection drops so the user understands the retry is safe (no server-side work was
+// lost) and that the cause is most likely local.
+function describeStreamFailure(error: any): string {
+	const detail = error?.message ?? JSON.stringify(serializeError(error), null, 2)
+	if (isConnectionClosedError(error)) {
+		return (
+			"Lost the connection to the model before the response finished. This usually means the " +
+			"network on your machine dropped (Wi-Fi, VPN, or sleep/wake) rather than a server problem — " +
+			`you can safely retry.\n\n${detail}`
+		)
+	}
+	return detail
 }
 
 export interface TaskOptions extends CreateTaskOptions {
@@ -269,6 +339,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	providerRef: WeakRef<ClineProvider>
 	private readonly globalStoragePath: string
 	abort: boolean = false
+	// AbortController for the active API stream. Aborted in dispose() so that
+	// raceStreamNext() unblocks the streaming loop instantly when the user
+	// presses stop, instead of waiting for the next chunk from the provider.
+	private streamAbortController?: AbortController
 	autoApproveAllCommands: boolean = false // kilocode_change: auto-approve all commands for current task
 	// forked_change: danger flag for the command currently awaiting approval, set by
 	// executeCommandTool from the model's `isDangerous` param. Read by the command
@@ -381,6 +455,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	didCompleteReadingStream = false
 	// Track executed tool calls by their signature (name + args hash) to detect duplicates
 	private executedToolCallSignatures: Set<string> = new Set()
+	// forked_change: task-lifetime map of file regions already read (path|offset|limit → file
+	// mtimeMs at read time). Unlike executedToolCallSignatures this survives across turns, so
+	// readFileTool can short-circuit repeated reads of an unchanged region with a hint instead
+	// of re-emitting identical content (a common model failure is re-reading the file head
+	// after omitting `offset`).
+	readonly readRegionHistory: Map<string, number> = new Map()
 	assistantMessageParser: AssistantMessageParser
 	private lastUsedInstructions?: string
 	private skipPrevResponseIdOnce: boolean = false
@@ -1906,6 +1986,31 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 	}
 
+	/**
+	 * Races `iterator.next()` against the stream AbortController so that when
+	 * the user presses stop, dispose() aborts the controller and this method
+	 * resolves immediately with `{ done: true }` instead of blocking until the
+	 * provider sends the next chunk. This makes the stop button feel instant.
+	 */
+	private async raceStreamNext<T>(iterator: AsyncIterator<T>): Promise<IteratorResult<T>> {
+		const controller = this.streamAbortController
+		if (!controller) {
+			return iterator.next()
+		}
+		const signal = controller.signal
+		if (signal.aborted) {
+			return { done: true, value: undefined as unknown as T }
+		}
+		return Promise.race([
+			iterator.next(),
+			new Promise<IteratorResult<T>>((resolve) => {
+				signal.addEventListener("abort", () => resolve({ done: true, value: undefined as unknown as T }), {
+					once: true,
+				})
+			}),
+		])
+	}
+
 	public dispose(): void {
 		console.log(`[Task#dispose] disposing task ${this.taskId}.${this.instanceId}`)
 
@@ -1953,6 +2058,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			TerminalRegistry.releaseTerminalsForTask(this.taskId)
 		} catch (error) {
 			console.error("Error releasing terminals:", error)
+		}
+
+		// Abort the active stream so raceStreamNext() unblocks immediately.
+		try {
+			this.streamAbortController?.abort()
+			this.streamAbortController = undefined
+		} catch (error) {
+			console.error("Error aborting stream controller:", error)
 		}
 
 		try {
@@ -2314,6 +2427,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						console.log("updating partial message", lastMessage)
 					}
 
+					// forked_change: finalize any partial reasoning messages so the
+					// "Thinking..." indicator doesn't stay stuck after cancellation.
+					await this.finalizeReasoningMessage()
+
 					// Update `api_req_started` to have cancelled and cost, so that
 					// we can display the cost of the partial stream and the cancellation reason
 					updateApiReqMsg(cancelReason, streamingFailedMessage)
@@ -2338,6 +2455,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				this.presentAssistantMessageHasPendingUpdates = false
 				this.assistantMessageParser.reset()
 
+				// Fresh AbortController for this stream so dispose() can unblock
+				// raceStreamNext() instantly when the user presses stop.
+				this.streamAbortController = new AbortController()
+
 				await this.diffViewProvider.reset()
 
 				// Yields only if the first chunk is successful, otherwise will
@@ -2347,21 +2468,45 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				let assistantMessage = ""
 				let assistantToolUses = new Array<Anthropic.Messages.ToolUseBlockParam>() // kilocode_change
 				let reasoningMessage = ""
+				// forked_change: tracks the current reasoning phase's text for UI
+				// display, separate from the accumulated reasoningMessage used for
+				// API history. Reset whenever a new reasoning phase begins.
+				let currentReasoningText = ""
+				// forked_change: finalize the streaming reasoning block exactly once,
+				// as soon as visible assistant content (text or a tool call) begins.
+				let reasoningFinalized = false
 				let pendingGroundingSources: GroundingSource[] = []
 				this.isStreaming = true
 
 				// kilocode_change: Track if we've started fetching the title
 				let hasStartedTitleFetch = false
 
+				// forked_change: boundary in clineMessages just before this request streams
+				// any output. On a "stream_restart" (auto-retry of a transient connection
+				// failure), we truncate back to here to discard the failed attempt's partial
+				// reasoning/text so the retried stream replaces it instead of appending.
+				const streamOutputStart = this.clineMessages.length
+
 				try {
 					const iterator = stream[Symbol.asyncIterator]()
-					let item = await nextWithIdleTimeout(iterator)
+					// forked_change: handle each chunk as soon as it arrives, then advance.
+					// The previous read-ahead pattern (fetch chunk N+1 before handling chunk
+					// N) held the last chunk of a phase hostage until the next chunk arrived —
+					// for reasoning the final "Thinking" text wasn't rendered until the model
+					// began answering, often seconds later.
+					//
+					// We iterate with a plain next() here on purpose: the stream idle timeout
+					// lives at the provider boundary in attemptApiRequest(), whose catch offers
+					// the user a retry. Wrapping this loop in its own idle timeout too raced
+					// that one and (usually winning) routed idle/socket-close to a hard abort
+					// with no retry button.
+					let item = await this.raceStreamNext(iterator)
 					while (!item.done) {
 						const chunk = item.value
-						item = await nextWithIdleTimeout(iterator)
 						if (!chunk) {
 							// Sometimes chunk is undefined, no idea that can cause
 							// it, but this workaround seems to fix it.
+							item = await this.raceStreamNext(iterator)
 							continue
 						}
 
@@ -2389,11 +2534,55 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						}
 
 						switch (chunk.type) {
+							case "keepalive":
+								// forked_change: liveness-only signal (see provider keepalive). It
+								// exists to keep the stream idle timeout from firing during quiet
+								// periods; there is nothing to render.
+								break
+							case "stream_restart": {
+								// forked_change: attemptApiRequest is auto-retrying a transient
+								// connection failure. Discard everything streamed this attempt so
+								// the fresh stream replaces it instead of appending — reset the
+								// per-request accumulators and instance streaming state exactly
+								// like a brand-new request, and roll back the partial UI output.
+								assistantMessage = ""
+								reasoningMessage = ""
+								currentReasoningText = ""
+								reasoningFinalized = false
+								assistantToolUses = []
+								pendingGroundingSources = []
+								this.currentStreamingContentIndex = 0
+								this.assistantMessageContent = []
+								this.userMessageContent = []
+								this.userMessageContentReady = false
+								this.didRejectTool = false
+								this.didAlreadyUseTool = false
+								this.executedToolCallSignatures.clear()
+								this.presentAssistantMessageLocked = false
+								this.presentAssistantMessageHasPendingUpdates = false
+								this.assistantMessageParser.reset()
+								if (this.clineMessages.length > streamOutputStart) {
+									this.clineMessages.splice(streamOutputStart)
+									await this.saveClineMessages()
+									await this.providerRef.deref()?.postStateToWebview()
+								}
+								break
+							}
 							case "reasoning": {
+								// forked_change: if a new reasoning phase begins after a previous
+								// one was finalized (e.g. reasoning → text → reasoning), reset
+								// the flag so the new phase gets finalized when the next
+								// text/tool chunk arrives. Also reset currentReasoningText so
+								// the new reasoning message only contains this phase's text.
+								if (reasoningFinalized) {
+									reasoningFinalized = false
+									currentReasoningText = ""
+								}
 								reasoningMessage += chunk.text
-								let formattedReasoning = reasoningMessage
-								if (reasoningMessage.includes("**")) {
-									formattedReasoning = reasoningMessage.replace(
+								currentReasoningText += chunk.text
+								let formattedReasoning = currentReasoningText
+								if (currentReasoningText.includes("**")) {
+									formattedReasoning = currentReasoningText.replace(
 										/([.!?])\*\*([^*\n]+)\*\*/g,
 										"$1\n\n**$2**",
 									)
@@ -2436,6 +2625,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								break
 							//forked_change start
 							case "native_tool_calls": {
+								// forked_change: a tool call also ends the reasoning phase.
+								if (reasoningMessage && !reasoningFinalized) {
+									reasoningFinalized = true
+									await this.finalizeReasoningMessage()
+								}
 								// Handle native OpenAI-format tool calls
 								// Process native tool calls through the parser
 								let yieldedCount = 0
@@ -2465,6 +2659,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 							}
 							//forked_change end
 							case "text": {
+								// forked_change: the reasoning phase is over once visible
+								// assistant content starts — finalize the reasoning block so
+								// it reads "Thought for Ns" instead of a stuck "Thinking...".
+								if (reasoningMessage && !reasoningFinalized) {
+									reasoningFinalized = true
+									await this.finalizeReasoningMessage()
+								}
 								assistantMessage += chunk.text
 
 								// Parse raw assistant message chunk into content blocks.
@@ -2513,6 +2714,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						// 		"\n\n[Response interrupted by a tool use result. Only one tool may be used at a time and should be placed at the end of the message.]"
 						// 	break
 						// }
+
+						// forked_change: advance to the next chunk only AFTER handling the
+						// current one, so streaming content (including the final reasoning
+						// chunk) renders immediately instead of waiting for the chunk that
+						// follows it. The break paths above skip this, leaving `item` on the
+						// last handled chunk for the background usage drain to resume from.
+						item = await this.raceStreamNext(iterator)
 					}
 
 					// Create a copy of current token values to avoid race conditions
@@ -2823,29 +3031,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				// to ensure usage data is captured even when the stream is interrupted. The background task
 				// uses local variables to accumulate usage data before atomically updating the shared state.
 
-				// Complete the reasoning message if it exists
-				// We can't use say() here because the reasoning message may not be the last message
-				// (other messages like text blocks or tool uses may have been added after it during streaming)
+				// Complete the reasoning message if it wasn't already finalized when
+				// assistant content began (e.g. reasoning-only turns, or providers
+				// that emit reasoning without any following text/tool content).
 				if (reasoningMessage) {
-					const lastReasoningIndex = findLastIndex(
-						this.clineMessages,
-						(m) => m.type === "say" && m.say === "reasoning",
-					)
-
-					if (lastReasoningIndex !== -1 && this.clineMessages[lastReasoningIndex].partial) {
-						const reasoningMsg = this.clineMessages[lastReasoningIndex]
-						reasoningMsg.partial = false
-						// Calculate and store reasoning duration in metadata
-						const reasoningDuration = Date.now() - reasoningMsg.ts
-						reasoningMsg.metadata = {
-							...reasoningMsg.metadata,
-							kiloCode: {
-								...reasoningMsg.metadata?.kiloCode,
-								reasoningDuration,
-							},
-						}
-						await this.updateClineMessage(reasoningMsg)
-					}
+					await this.finalizeReasoningMessage()
 				}
 
 				await this.persistGpt5Metadata(reasoningMessage)
@@ -3670,6 +3860,17 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// forked_change end
 			// note that this api_req_failed ask is unique in that we only present this option if the api hasn't streamed any content yet (ie it fails on the first chunk due), as it would allow them to hit a retry button. However if the api failed mid-stream, it could be in any arbitrary state where some tools may have executed, so that error is handled differently and requires cancelling the task entirely.
 
+			// forked_change: transient provider connection failures (socket closed by the
+			// network, idle timeout, DNS/TLS drop) are almost always recoverable, so
+			// auto-retry them a few times before falling back to the manual retry prompt —
+			// regardless of the auto-approve setting. This is the first-chunk path, so
+			// nothing has streamed yet and the retry is clean.
+			if (isConnectionClosedError(error) && retryAttempt < MAX_CONNECTION_RETRIES) {
+				await this.backoffBeforeConnectionRetry(error, retryAttempt)
+				yield* this.attemptApiRequest(retryAttempt + 1)
+				return
+			}
+
 			// Check if this is a 5xx error - always show retry dialog for server errors
 			const isServerError = error.status && error.status >= 500 && error.status < 600
 
@@ -3727,10 +3928,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 				return
 			} else {
-				const { response } = await this.ask(
-					"api_req_failed",
-					error.message ?? JSON.stringify(serializeError(error), null, 2),
-				)
+				const { response } = await this.ask("api_req_failed", describeStreamFailure(error))
 
 				if (response !== "yesButtonClicked") {
 					// This will never happen since if noButtonClicked, we will
@@ -3757,6 +3955,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		} catch (error) {
 			// Reset streaming state since we encountered an error
 			this.isStreaming = false
+
+			// forked_change: track connection closures (often the user's own network
+			// dropping) so mid-stream socket failures are visible and routed to retry.
+			if (isConnectionClosedError(error)) {
+				console.warn(
+					`[Task#${this.taskId}.${this.instanceId}] stream connection closed mid-response (retryAttempt=${retryAttempt}); offering retry`,
+				)
+			}
 
 			// forked_change start
 			if (apiConfiguration?.apiProvider === "kilocode" && isAnyRecognizedKiloCodeError(error)) {
@@ -3791,15 +3997,31 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 			// forked_change end
 
+			// forked_change: auto-retry transient connection failures mid-stream too (idle
+			// timeout, socket closed, "streaming failed"). By this point chunks have been
+			// streamed and appended, so a plain restart would duplicate them — instead we
+			// emit a "stream_restart" chunk that tells the consumer to discard the partial
+			// output before we re-request. Only safe while nothing irreversible has run: no
+			// tool has executed and no file edit is open. Otherwise fall back to the prompt.
+			const canRestartCleanly = this.executedToolCallSignatures.size === 0 && !this.diffViewProvider.isEditing
+			if (
+				isConnectionClosedError(error) &&
+				retryAttempt < MAX_CONNECTION_RETRIES &&
+				canRestartCleanly &&
+				!this.abort
+			) {
+				yield { type: "stream_restart" }
+				await this.backoffBeforeConnectionRetry(error, retryAttempt)
+				yield* this.attemptApiRequest(retryAttempt + 1)
+				return
+			}
+
 			// Check if this is a 5xx error - always show retry dialog for server errors
 			const isServerError = error.status && Number(error.status) >= 500 && Number(error.status) < 600
 
 			// For mid-stream failures, show the retry dialog to allow user to retry
 			// Always show retry dialog for 5xx server errors
-			const { response } = await this.ask(
-				"api_req_failed",
-				error.message ?? JSON.stringify(serializeError(error), null, 2),
-			)
+			const { response } = await this.ask("api_req_failed", describeStreamFailure(error))
 
 			if (response !== "yesButtonClicked") {
 				// This will never happen since if noButtonClicked, we will
@@ -3858,6 +4080,60 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this.emit(RooCodeEventName.TaskToolFailed, this.taskId, toolName, error)
 		}
 		TelemetryService.instance.captureEvent(TelemetryEventName.TOOL_ERROR, { toolName, error }) // kilocode_change
+	}
+
+	/**
+	 * forked_change: countdown + delay before an automatic connection retry.
+	 * Surfaces api_req_retry_delayed (exponential backoff, capped) so the user
+	 * sees why the turn paused. Stops counting early if the task is aborted.
+	 */
+	private async backoffBeforeConnectionRetry(error: unknown, retryAttempt: number): Promise<void> {
+		const message = describeStreamFailure(error)
+		const seconds = Math.min(2 ** retryAttempt, MAX_EXPONENTIAL_BACKOFF_SECONDS)
+		for (let i = seconds; i > 0 && !this.abort; i--) {
+			await this.say(
+				"api_req_retry_delayed",
+				`${message}\n\nConnection retry ${retryAttempt + 1}/${MAX_CONNECTION_RETRIES} in ${i}s...`,
+				undefined,
+			)
+			await delay(1000)
+		}
+		await this.say(
+			"api_req_retry_delayed",
+			`${message}\n\nConnection retry ${retryAttempt + 1}/${MAX_CONNECTION_RETRIES} now...`,
+			undefined,
+		)
+	}
+
+	/**
+	 * Finalize all streaming reasoning messages: flip each partial one to
+	 * non-partial and record how long it took. Safe to call repeatedly — it
+	 * no-ops on blocks that are already finalized. We can't use say() here
+	 * because a reasoning message may not be the last message (text blocks or
+	 * tool uses may have been appended after it during streaming).
+	 *
+	 * forked_change: a single stream may contain multiple reasoning phases
+	 * (e.g. reasoning → text → reasoning → text), each creating a separate
+	 * reasoning message. We finalize every one that is still partial so the
+	 * "Thinking..." indicator doesn't stay stuck.
+	 */
+	private async finalizeReasoningMessage(): Promise<void> {
+		for (let i = 0; i < this.clineMessages.length; i++) {
+			const msg = this.clineMessages[i]
+			if (msg.type === "say" && msg.say === "reasoning" && msg.partial) {
+				msg.partial = false
+				// Calculate and store reasoning duration in metadata
+				const reasoningDuration = Date.now() - msg.ts
+				msg.metadata = {
+					...msg.metadata,
+					kiloCode: {
+						...msg.metadata?.kiloCode,
+						reasoningDuration,
+					},
+				}
+				await this.updateClineMessage(msg)
+			}
+		}
 	}
 
 	/**

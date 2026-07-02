@@ -49,7 +49,7 @@ export const ContextCondenseRow = ({ prevContextTokens, newContextTokens, summar
 			</div>
 
 			{isExpanded && (
-				<div className="my-1 px-2 bg-vscode-editor-background rounded-md text-vscode-foreground text-sm border border-[var(--vscode-activityBar-border)]">
+				<div className="my-1 px-2 bg-vscode-editor-background rounded-md text-vscode-foreground text-sm border border-[var(--vscode-commandCenter-inactiveBorder)]">
 					<Markdown markdown={summary} />
 				</div>
 			)}

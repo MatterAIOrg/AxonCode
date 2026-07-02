@@ -1,5 +1,5 @@
 import { VSCodeBadge, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { OctagonAlert, Undo2 } from "lucide-react"
+import { Undo2 } from "lucide-react"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { useSize } from "react-use"
@@ -259,60 +259,7 @@ export const ChatRowContent = ({
 	const [editMode, setEditMode] = useState<Mode>(mode || "code")
 	const [editImages, setEditImages] = useState<ImageAttachment[]>([])
 
-	const streamingWords = useMemo(
-		() => [
-			"Compiling",
-			"Debugging",
-			"Refactoring",
-			"Parsing",
-			"Tokenizing",
-			"Linting",
-			"Building",
-			"Linking",
-			"Optimizing",
-			"Minifying",
-			"Bundling",
-			"Transpiling",
-			"Type-checking",
-			"Analyzing",
-			"Inferencing",
-			"Embedding",
-			"Vectorizing",
-			"Indexing",
-			"Caching",
-			"Serializing",
-			"Deserializing",
-			"Instantiating",
-			"Initializing",
-			"Allocating",
-			"Deallocating",
-			"Garbage-collecting",
-			"Threading",
-			"Parallelizing",
-			"Synchronizing",
-			"Asyncing",
-			"Awaiting",
-			"Resolving",
-			"Binding",
-			"Injecting",
-			"Decorating",
-			"Memoizing",
-			"Currying",
-			"Hydrating",
-			"Rendering",
-			"Diffing",
-			"Reconciling",
-			"Committing",
-			"Branching",
-			"Merging",
-			"Rebasing",
-			"Cherry-picking",
-			"Bisecting",
-			"Blaming",
-			"Stashing",
-		],
-		[],
-	)
+	const streamingWords = useMemo(() => ["Working"], [])
 	const [currentWordIndex, setCurrentWordIndex] = useState(() => Math.floor(Math.random() * streamingWords.length))
 
 	const isStreamingWords = useMemo(() => {
@@ -522,9 +469,7 @@ export const ChatRowContent = ({
 						)
 					) : cost !== null && cost !== undefined ? (
 						getIconSpan("arrow-swap", normalColor)
-					) : apiRequestFailedMessage ? (
-						<OctagonAlert className="size-4 mt-0.5" aria-label="Alert icon" style={{ color: errorColor }} />
-					) : (
+					) : apiRequestFailedMessage ? null : (
 						<MatterProgressIndicator />
 					),
 					apiReqCancelReason !== null && apiReqCancelReason !== undefined ? (
@@ -539,12 +484,8 @@ export const ChatRowContent = ({
 							<span style={{ color: normalColor }}>{t("chat:apiRequest.title")}</span>
 						</StandardTooltip>
 					) : // forked_change end
-					apiRequestFailedMessage ? (
-						<span style={{ color: errorColor, marginTop: "3px", marginLeft: "-4px" }}>
-							{t("chat:apiRequest.failed")}
-						</span>
-					) : (
-						<span className="animate-shimmer">{streamingWords[currentWordIndex]}...</span>
+					apiRequestFailedMessage ? null : (
+						<span style={{ color: normalColor }}>{streamingWords[currentWordIndex]}</span>
 					),
 				]
 			case "followup":

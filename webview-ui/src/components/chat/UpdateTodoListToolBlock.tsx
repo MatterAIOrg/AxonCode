@@ -188,7 +188,7 @@ const UpdateTodoListToolBlock: React.FC<UpdateTodoListToolBlockProps> = ({
 	return (
 		<>
 			<ToolUseBlock>
-				<div className="rounded-lg whitespace-pre-wrap mb-1 border border-[var(--vscode-activityBar-border)] bg-[var(--vscode-editor-background)] overflow-hidden cursor-text px-2 py-1">
+				<div className="rounded-lg whitespace-pre-wrap mb-1 border border-[var(--vscode-commandCenter-inactiveBorder)] bg-[var(--vscode-editor-background)] overflow-hidden cursor-text px-2 py-1">
 					<ToolUseBlockHeader>
 						<div className="flex items-center w-full" style={{ width: "100%" }}>
 							<CheckListIcon className="w-4 h-4 mt-0.5 mr-1" />

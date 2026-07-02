@@ -1,5 +1,44 @@
 # Changelog
 
+## [v6.4.7] - 2026-06-30
+
+### Added
+
+- **Shared `.orb/` convention with OrbCode CLI.** `AGENTS.md` is now loaded from the repo-level `.orb/` directory (alongside the project root and legacy `.orbital/`), so the Orbital IDE extension and the OrbCode CLI read the same project memory. Machine and settings locations are unchanged.
+- **Linked-repositories service.** A new `src/services/links` module is the single source of truth for the linked-repo feature, sharing `.orb/links.json` and the produced environment context between the IDE extension and the CLI.
+- **`/link` built-in command.** A new slash command for managing Linked Repositories: reads the current list, drives add/remove via `ask_followup_question`, and writes `.orb/links.json` with verbatim user input. Resolution and validation of the folder path happens at read time so links written by either tool stay portable.
+
+### Changed
+
+- **`/init` reworked for cold-start.** Replaces the verbose `.roo/rules-*` per-mode layout with a single, concise `.orb/AGENTS.md` (project structure, architecture, business-logic mapping, code patterns/conventions) capped at ~150 lines so it stays cheap to include in every future prompt. Existing AI assistant rules (CLAUDE.md, Cursor, Copilot) are still folded in. Refines an existing `AGENTS.md` rather than overwriting it.
+- **Built-in commands spec.** The expected command list is now `commit`, `migrate`, `init`, `link`; `init` is asserted to target `.orb/AGENTS.md` with the new concise structure, and `link` is asserted to manage `.orb/links.json` via `ask_followup_question`.
+
+---
+
+## [v6.4.6] - 2026-06-25
+
+### Added
+
+- **Tiered usage support in `OutOfCreditsBanner`.** New `selectResetIso()` helper picks the correct reset time: when a tier is exhausted it surfaces the latest reset among exhausted windows; otherwise it falls back to the soonest upcoming reset, then to the legacy `creditsResetDate`. Banner label shortened from "Pro models limits reset at" to "Limits reset at".
+- **OrbCode CLI marketing card.** A third rotating marketing card in the welcome view pointing users at the CLI, joining the existing two on the 10-second rotation (`(prev + 1) % 3`).
+- **New custom icons in `utils/customIcons.tsx`.** `Folder01Icon`, `Folder02Icon`, `ArrowDown01Icon`, `AddCircleHalfDotIcon` and others added to support the refreshed MCP and history views.
+
+### Changed
+
+- **Axon Code → Orbital rebrand in copy.** `troubleMessage` string in `chat.json` and the consecutive-mistake-limit description in `settings.json` now read "Orbital" where they previously read "Axon Code".
+- **Axon marketing copy.** Welcome-view subtitle changed from "Frontier LLMs, fraction of the cost. Save 70% inference cost." to "Cut agent inference costs by 60% using Frontier Axon models".
+- **History UI refresh (`TaskItem`).** Visual and layout rework of the history list (90 insertions / 52 deletions).
+- **MCP UI refresh (`McpView`).** Major rework of the MCP view with a new icon set and updated i18n strings (283 insertions / 228 deletions across `McpView.tsx`, `mcp.json`, and `customIcons.tsx`).
+- **Login UI refresh (`KiloCodeAuth`, `ProfileView`, `WelcomeView`).** Consolidated the auth and welcome flows with refreshed i18n strings.
+- **Chat agent UI refresh.** Visual updates to `ChatRow`, `ExplorationGroupRow`, and `ReasoningBlock` (63 insertions / 61 deletions).
+- **Button UI refresh.** Updated button styles in `index.css` for consistency across surfaces (17 insertions / 5 deletions).
+
+### Fixed
+
+- **Stream idle timeout bumped to 180s.** `STREAM_IDLE_TIMEOUT_MS` raised from 60s to 180s to reduce false-positive timeouts during long-running streaming responses, especially with slower or more verbose model outputs.
+
+---
+
 ## [v6.4.4] - 2026-06-23
 
 ### Added
