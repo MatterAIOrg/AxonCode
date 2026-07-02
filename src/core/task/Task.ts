@@ -1666,7 +1666,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	async sayAndCreateMissingParamError(toolName: ToolName, paramName: string, relPath?: string) {
 		await this.say(
 			"error",
-			`Axon Code tried to use ${toolName}${relPath ? ` for '${relPath.toPosix()}'` : ""
+			`Axon Code tried to use ${toolName}${
+				relPath ? ` for '${relPath.toPosix()}'` : ""
 			} without value for required parameter '${paramName}'. Retrying...`,
 		)
 		return formatResponse.toolError(
@@ -2003,11 +2004,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		return Promise.race([
 			iterator.next(),
 			new Promise<IteratorResult<T>>((resolve) => {
-				signal.addEventListener(
-					"abort",
-					() => resolve({ done: true, value: undefined as unknown as T }),
-					{ once: true },
-				)
+				signal.addEventListener("abort", () => resolve({ done: true, value: undefined as unknown as T }), {
+					once: true,
+				})
 			}),
 		])
 	}
@@ -2428,6 +2427,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						console.log("updating partial message", lastMessage)
 					}
 
+					// forked_change: finalize any partial reasoning messages so the
+					// "Thinking..." indicator doesn't stay stuck after cancellation.
+					await this.finalizeReasoningMessage()
+
 					// Update `api_req_started` to have cancelled and cost, so that
 					// we can display the cost of the partial stream and the cancellation reason
 					updateApiReqMsg(cancelReason, streamingFailedMessage)
@@ -2465,6 +2468,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				let assistantMessage = ""
 				let assistantToolUses = new Array<Anthropic.Messages.ToolUseBlockParam>() // kilocode_change
 				let reasoningMessage = ""
+				// forked_change: tracks the current reasoning phase's text for UI
+				// display, separate from the accumulated reasoningMessage used for
+				// API history. Reset whenever a new reasoning phase begins.
+				let currentReasoningText = ""
 				// forked_change: finalize the streaming reasoning block exactly once,
 				// as soon as visible assistant content (text or a tool call) begins.
 				let reasoningFinalized = false
@@ -2515,7 +2522,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 										if (title && this.clineMessages.length > 0) {
 											// Update the first message with the title
 											const firstMessage = this.clineMessages[0]
-												; (firstMessage as any).title = title
+											;(firstMessage as any).title = title
 											await this.saveClineMessages()
 										}
 									})
@@ -2540,6 +2547,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								// like a brand-new request, and roll back the partial UI output.
 								assistantMessage = ""
 								reasoningMessage = ""
+								currentReasoningText = ""
 								reasoningFinalized = false
 								assistantToolUses = []
 								pendingGroundingSources = []
@@ -2561,10 +2569,20 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 								break
 							}
 							case "reasoning": {
+								// forked_change: if a new reasoning phase begins after a previous
+								// one was finalized (e.g. reasoning → text → reasoning), reset
+								// the flag so the new phase gets finalized when the next
+								// text/tool chunk arrives. Also reset currentReasoningText so
+								// the new reasoning message only contains this phase's text.
+								if (reasoningFinalized) {
+									reasoningFinalized = false
+									currentReasoningText = ""
+								}
 								reasoningMessage += chunk.text
-								let formattedReasoning = reasoningMessage
-								if (reasoningMessage.includes("**")) {
-									formattedReasoning = reasoningMessage.replace(
+								currentReasoningText += chunk.text
+								let formattedReasoning = currentReasoningText
+								if (currentReasoningText.includes("**")) {
+									formattedReasoning = currentReasoningText.replace(
 										/([.!?])\*\*([^*\n]+)\*\*/g,
 										"$1\n\n**$2**",
 									)
@@ -3373,8 +3391,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// Log the context window error for debugging
 		console.warn(
 			`[Task#${this.taskId}] Context window exceeded for model ${this.api.getModel().id}. ` +
-			`Current tokens: ${contextTokens}, Context window: ${contextWindow}. ` +
-			`Forcing truncation to ${FORCED_CONTEXT_REDUCTION_PERCENT}% of current context.`,
+				`Current tokens: ${contextTokens}, Context window: ${contextWindow}. ` +
+				`Forcing truncation to ${FORCED_CONTEXT_REDUCTION_PERCENT}% of current context.`,
 		)
 
 		// Force aggressive truncation by keeping only 75% of the conversation history
@@ -3459,7 +3477,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		console.log(
 			`[Task#${this.taskId}] Pre-tool context check: ${contextTokens} tokens (${contextPercent.toFixed(1)}%) ` +
-			`exceeds threshold ${effectiveThreshold}%. Triggering condensation.`,
+				`exceeds threshold ${effectiveThreshold}%. Triggering condensation.`,
 		)
 
 		// Determine API handler to use for condensing
@@ -3811,24 +3829,24 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			if (apiConfiguration?.apiProvider === "kilocode" && isAnyRecognizedKiloCodeError(error)) {
 				const { response } = await (isPaymentRequiredError(error)
 					? this.ask(
-						"payment_required_prompt",
-						JSON.stringify({
-							title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
-							message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
-							balance: error.error?.balance ?? "0.00",
-							buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
-						}),
-					)
+							"payment_required_prompt",
+							JSON.stringify({
+								title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
+								message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
+								balance: error.error?.balance ?? "0.00",
+								buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
+							}),
+						)
 					: this.ask(
-						"invalid_model",
-						JSON.stringify({
-							modelId: apiConfiguration.kilocodeModel,
-							error: {
-								status: error.status,
-								message: error.message,
-							},
-						}),
-					))
+							"invalid_model",
+							JSON.stringify({
+								modelId: apiConfiguration.kilocodeModel,
+								error: {
+									status: error.status,
+									message: error.message,
+								},
+							}),
+						))
 
 				if (response === "retry_clicked") {
 					yield* this.attemptApiRequest(retryAttempt + 1)
@@ -3950,24 +3968,24 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			if (apiConfiguration?.apiProvider === "kilocode" && isAnyRecognizedKiloCodeError(error)) {
 				const { response } = await (isPaymentRequiredError(error)
 					? this.ask(
-						"payment_required_prompt",
-						JSON.stringify({
-							title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
-							message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
-							balance: error.error?.balance ?? "0.00",
-							buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
-						}),
-					)
+							"payment_required_prompt",
+							JSON.stringify({
+								title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
+								message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
+								balance: error.error?.balance ?? "0.00",
+								buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
+							}),
+						)
 					: this.ask(
-						"invalid_model",
-						JSON.stringify({
-							modelId: apiConfiguration.kilocodeModel,
-							error: {
-								status: error.status,
-								message: error.message,
-							},
-						}),
-					))
+							"invalid_model",
+							JSON.stringify({
+								modelId: apiConfiguration.kilocodeModel,
+								error: {
+									status: error.status,
+									message: error.message,
+								},
+							}),
+						))
 
 				if (response === "retry_clicked") {
 					yield* this.attemptApiRequest(retryAttempt + 1)
@@ -4088,31 +4106,34 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	}
 
 	/**
-	 * Finalize the most recent streaming reasoning message: flip it to
+	 * Finalize all streaming reasoning messages: flip each partial one to
 	 * non-partial and record how long it took. Safe to call repeatedly — it
-	 * no-ops once the block is already finalized. We can't use say() here
-	 * because the reasoning message may not be the last message (text blocks or
+	 * no-ops on blocks that are already finalized. We can't use say() here
+	 * because a reasoning message may not be the last message (text blocks or
 	 * tool uses may have been appended after it during streaming).
+	 *
+	 * forked_change: a single stream may contain multiple reasoning phases
+	 * (e.g. reasoning → text → reasoning → text), each creating a separate
+	 * reasoning message. We finalize every one that is still partial so the
+	 * "Thinking..." indicator doesn't stay stuck.
 	 */
 	private async finalizeReasoningMessage(): Promise<void> {
-		const lastReasoningIndex = findLastIndex(this.clineMessages, (m) => m.type === "say" && m.say === "reasoning")
-
-		if (lastReasoningIndex === -1 || !this.clineMessages[lastReasoningIndex].partial) {
-			return
+		for (let i = 0; i < this.clineMessages.length; i++) {
+			const msg = this.clineMessages[i]
+			if (msg.type === "say" && msg.say === "reasoning" && msg.partial) {
+				msg.partial = false
+				// Calculate and store reasoning duration in metadata
+				const reasoningDuration = Date.now() - msg.ts
+				msg.metadata = {
+					...msg.metadata,
+					kiloCode: {
+						...msg.metadata?.kiloCode,
+						reasoningDuration,
+					},
+				}
+				await this.updateClineMessage(msg)
+			}
 		}
-
-		const reasoningMsg = this.clineMessages[lastReasoningIndex]
-		reasoningMsg.partial = false
-		// Calculate and store reasoning duration in metadata
-		const reasoningDuration = Date.now() - reasoningMsg.ts
-		reasoningMsg.metadata = {
-			...reasoningMsg.metadata,
-			kiloCode: {
-				...reasoningMsg.metadata?.kiloCode,
-				reasoningDuration,
-			},
-		}
-		await this.updateClineMessage(reasoningMsg)
 	}
 
 	/**
@@ -4283,8 +4304,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			thirdPartySelectedModel,
 		} as ProviderSettings
 
-			// Update the task's configuration (this is task-local, not global)
-			; (this as any).apiConfiguration = updatedConfig
+		// Update the task's configuration (this is task-local, not global)
+		;(this as any).apiConfiguration = updatedConfig
 
 		// Rebuild the API handler with the new configuration
 		this.api = buildApiHandler(updatedConfig)
