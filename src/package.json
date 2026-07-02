@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "6.4.8",
+	"version": "6.4.9-dev3",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
