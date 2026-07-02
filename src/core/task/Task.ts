@@ -339,6 +339,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	providerRef: WeakRef<ClineProvider>
 	private readonly globalStoragePath: string
 	abort: boolean = false
+	// AbortController for the active API stream. Aborted in dispose() so that
+	// raceStreamNext() unblocks the streaming loop instantly when the user
+	// presses stop, instead of waiting for the next chunk from the provider.
+	private streamAbortController?: AbortController
 	autoApproveAllCommands: boolean = false // kilocode_change: auto-approve all commands for current task
 	// forked_change: danger flag for the command currently awaiting approval, set by
 	// executeCommandTool from the model's `isDangerous` param. Read by the command
@@ -451,6 +455,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	didCompleteReadingStream = false
 	// Track executed tool calls by their signature (name + args hash) to detect duplicates
 	private executedToolCallSignatures: Set<string> = new Set()
+	// forked_change: task-lifetime map of file regions already read (path|offset|limit → file
+	// mtimeMs at read time). Unlike executedToolCallSignatures this survives across turns, so
+	// readFileTool can short-circuit repeated reads of an unchanged region with a hint instead
+	// of re-emitting identical content (a common model failure is re-reading the file head
+	// after omitting `offset`).
+	readonly readRegionHistory: Map<string, number> = new Map()
 	assistantMessageParser: AssistantMessageParser
 	private lastUsedInstructions?: string
 	private skipPrevResponseIdOnce: boolean = false
@@ -1656,8 +1666,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	async sayAndCreateMissingParamError(toolName: ToolName, paramName: string, relPath?: string) {
 		await this.say(
 			"error",
-			`Axon Code tried to use ${toolName}${
-				relPath ? ` for '${relPath.toPosix()}'` : ""
+			`Axon Code tried to use ${toolName}${relPath ? ` for '${relPath.toPosix()}'` : ""
 			} without value for required parameter '${paramName}'. Retrying...`,
 		)
 		return formatResponse.toolError(
@@ -1976,6 +1985,33 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 	}
 
+	/**
+	 * Races `iterator.next()` against the stream AbortController so that when
+	 * the user presses stop, dispose() aborts the controller and this method
+	 * resolves immediately with `{ done: true }` instead of blocking until the
+	 * provider sends the next chunk. This makes the stop button feel instant.
+	 */
+	private async raceStreamNext<T>(iterator: AsyncIterator<T>): Promise<IteratorResult<T>> {
+		const controller = this.streamAbortController
+		if (!controller) {
+			return iterator.next()
+		}
+		const signal = controller.signal
+		if (signal.aborted) {
+			return { done: true, value: undefined as unknown as T }
+		}
+		return Promise.race([
+			iterator.next(),
+			new Promise<IteratorResult<T>>((resolve) => {
+				signal.addEventListener(
+					"abort",
+					() => resolve({ done: true, value: undefined as unknown as T }),
+					{ once: true },
+				)
+			}),
+		])
+	}
+
 	public dispose(): void {
 		console.log(`[Task#dispose] disposing task ${this.taskId}.${this.instanceId}`)
 
@@ -2023,6 +2059,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			TerminalRegistry.releaseTerminalsForTask(this.taskId)
 		} catch (error) {
 			console.error("Error releasing terminals:", error)
+		}
+
+		// Abort the active stream so raceStreamNext() unblocks immediately.
+		try {
+			this.streamAbortController?.abort()
+			this.streamAbortController = undefined
+		} catch (error) {
+			console.error("Error aborting stream controller:", error)
 		}
 
 		try {
@@ -2408,6 +2452,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				this.presentAssistantMessageHasPendingUpdates = false
 				this.assistantMessageParser.reset()
 
+				// Fresh AbortController for this stream so dispose() can unblock
+				// raceStreamNext() instantly when the user presses stop.
+				this.streamAbortController = new AbortController()
+
 				await this.diffViewProvider.reset()
 
 				// Yields only if the first chunk is successful, otherwise will
@@ -2445,13 +2493,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					// the user a retry. Wrapping this loop in its own idle timeout too raced
 					// that one and (usually winning) routed idle/socket-close to a hard abort
 					// with no retry button.
-					let item = await iterator.next()
+					let item = await this.raceStreamNext(iterator)
 					while (!item.done) {
 						const chunk = item.value
 						if (!chunk) {
 							// Sometimes chunk is undefined, no idea that can cause
 							// it, but this workaround seems to fix it.
-							item = await iterator.next()
+							item = await this.raceStreamNext(iterator)
 							continue
 						}
 
@@ -2467,7 +2515,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 										if (title && this.clineMessages.length > 0) {
 											// Update the first message with the title
 											const firstMessage = this.clineMessages[0]
-											;(firstMessage as any).title = title
+												; (firstMessage as any).title = title
 											await this.saveClineMessages()
 										}
 									})
@@ -2654,7 +2702,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						// chunk) renders immediately instead of waiting for the chunk that
 						// follows it. The break paths above skip this, leaving `item` on the
 						// last handled chunk for the background usage drain to resume from.
-						item = await iterator.next()
+						item = await this.raceStreamNext(iterator)
 					}
 
 					// Create a copy of current token values to avoid race conditions
@@ -3325,8 +3373,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// Log the context window error for debugging
 		console.warn(
 			`[Task#${this.taskId}] Context window exceeded for model ${this.api.getModel().id}. ` +
-				`Current tokens: ${contextTokens}, Context window: ${contextWindow}. ` +
-				`Forcing truncation to ${FORCED_CONTEXT_REDUCTION_PERCENT}% of current context.`,
+			`Current tokens: ${contextTokens}, Context window: ${contextWindow}. ` +
+			`Forcing truncation to ${FORCED_CONTEXT_REDUCTION_PERCENT}% of current context.`,
 		)
 
 		// Force aggressive truncation by keeping only 75% of the conversation history
@@ -3411,7 +3459,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		console.log(
 			`[Task#${this.taskId}] Pre-tool context check: ${contextTokens} tokens (${contextPercent.toFixed(1)}%) ` +
-				`exceeds threshold ${effectiveThreshold}%. Triggering condensation.`,
+			`exceeds threshold ${effectiveThreshold}%. Triggering condensation.`,
 		)
 
 		// Determine API handler to use for condensing
@@ -3763,24 +3811,24 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			if (apiConfiguration?.apiProvider === "kilocode" && isAnyRecognizedKiloCodeError(error)) {
 				const { response } = await (isPaymentRequiredError(error)
 					? this.ask(
-							"payment_required_prompt",
-							JSON.stringify({
-								title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
-								message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
-								balance: error.error?.balance ?? "0.00",
-								buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
-							}),
-						)
+						"payment_required_prompt",
+						JSON.stringify({
+							title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
+							message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
+							balance: error.error?.balance ?? "0.00",
+							buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
+						}),
+					)
 					: this.ask(
-							"invalid_model",
-							JSON.stringify({
-								modelId: apiConfiguration.kilocodeModel,
-								error: {
-									status: error.status,
-									message: error.message,
-								},
-							}),
-						))
+						"invalid_model",
+						JSON.stringify({
+							modelId: apiConfiguration.kilocodeModel,
+							error: {
+								status: error.status,
+								message: error.message,
+							},
+						}),
+					))
 
 				if (response === "retry_clicked") {
 					yield* this.attemptApiRequest(retryAttempt + 1)
@@ -3902,24 +3950,24 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			if (apiConfiguration?.apiProvider === "kilocode" && isAnyRecognizedKiloCodeError(error)) {
 				const { response } = await (isPaymentRequiredError(error)
 					? this.ask(
-							"payment_required_prompt",
-							JSON.stringify({
-								title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
-								message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
-								balance: error.error?.balance ?? "0.00",
-								buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
-							}),
-						)
+						"payment_required_prompt",
+						JSON.stringify({
+							title: error.error?.title ?? t("kilocode:lowCreditWarning.title"),
+							message: error.error?.message ?? t("kilocode:lowCreditWarning.message"),
+							balance: error.error?.balance ?? "0.00",
+							buyCreditsUrl: error.error?.buyCreditsUrl ?? getAppUrl("/profile"),
+						}),
+					)
 					: this.ask(
-							"invalid_model",
-							JSON.stringify({
-								modelId: apiConfiguration.kilocodeModel,
-								error: {
-									status: error.status,
-									message: error.message,
-								},
-							}),
-						))
+						"invalid_model",
+						JSON.stringify({
+							modelId: apiConfiguration.kilocodeModel,
+							error: {
+								status: error.status,
+								message: error.message,
+							},
+						}),
+					))
 
 				if (response === "retry_clicked") {
 					yield* this.attemptApiRequest(retryAttempt + 1)
@@ -4235,8 +4283,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			thirdPartySelectedModel,
 		} as ProviderSettings
 
-		// Update the task's configuration (this is task-local, not global)
-		;(this as any).apiConfiguration = updatedConfig
+			// Update the task's configuration (this is task-local, not global)
+			; (this as any).apiConfiguration = updatedConfig
 
 		// Rebuild the API handler with the new configuration
 		this.api = buildApiHandler(updatedConfig)

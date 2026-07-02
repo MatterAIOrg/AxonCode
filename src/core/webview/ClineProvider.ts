@@ -3229,7 +3229,8 @@ ${prompt}
 				// etc).
 				this.getCurrentTask()!.isWaitingForFirstChunk,
 			{
-				timeout: 3_000,
+				timeout: 300,
+				interval: 20,
 			},
 		).catch(() => {
 			console.error("Failed to abort task")

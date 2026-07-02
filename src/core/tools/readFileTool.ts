@@ -1,3 +1,4 @@
+import fs from "fs"
 import path from "path"
 import { isBinaryFile } from "isbinaryfile"
 
@@ -83,6 +84,12 @@ interface FileResult {
 	imageDataUrl?: string // Image data URL for image files
 	feedbackText?: string // User feedback text from approval/denial
 	feedbackImages?: any[] // User feedback images from approval/denial
+	mtimeMs?: number // forked_change: file mtime at read time, for repeated-read detection
+}
+
+// forked_change: key for Task.readRegionHistory — identifies one exact read request.
+function readRegionKey(fullPath: string, offset?: number, limit?: number): string {
+	return `${fullPath}|${offset ?? 1}|${limit ?? "all"}`
 }
 
 export async function readFileTool(
@@ -402,6 +409,33 @@ export async function readFileTool(
 			const relPath = fileResult.path
 			const fullPath = path.isAbsolute(relPath) ? relPath : path.resolve(cline.cwd, relPath)
 
+			// forked_change start: short-circuit repeated reads of an unchanged region.
+			// A common model failure is intending "read around line N" but omitting
+			// `offset`, then re-reading the file head turn after turn. If this exact
+			// region of this exact file version was already served in this task,
+			// return a corrective hint instead of the same content again.
+			try {
+				const { mtimeMs } = await fs.promises.stat(fullPath)
+				fileResult.mtimeMs = mtimeMs
+				const regionKey = readRegionKey(fullPath, fileResult.offset, fileResult.limit)
+				if (cline.readRegionHistory.get(regionKey) === mtimeMs) {
+					const startLine = fileResult.offset ?? 1
+					const endLabel = fileResult.limit !== undefined ? String(startLine + fileResult.limit - 1) : "end"
+					const offsetHint =
+						startLine === 1
+							? " If you meant to inspect a specific line number (e.g. from search results), you MUST pass `offset` — to look around line N, use offset ≈ N-20. Calling read_file without `offset` always returns the top of the file."
+							: ""
+					updateFileResult(relPath, {
+						xmlContent: `--- ${relPath} ---\n[notice] You already read lines ${startLine}-${endLabel} of this file earlier in this task and it has not changed since. Use that earlier result instead of re-reading.${offsetHint}`,
+					})
+					continue
+				}
+			} catch {
+				// stat failed — fall through to the normal read path, which surfaces
+				// the proper error (e.g. file not found).
+			}
+			// forked_change end
+
 			// Process approved files
 			try {
 				const [totalLines, isBinary] = await Promise.all([countFileLines(fullPath), isBinaryFile(fullPath)])
@@ -571,6 +605,17 @@ export async function readFileTool(
 				await handleError(`reading file ${relPath}`, error instanceof Error ? error : new Error(errorMsg))
 			}
 		}
+
+		// forked_change start: record regions that were actually served so repeated
+		// reads of the same unchanged region can be short-circuited next time.
+		// Only successful reads count — denials and errors must stay retryable.
+		for (const result of fileResults) {
+			if (result.status === "approved" && result.xmlContent && !result.error && result.mtimeMs !== undefined) {
+				const fullPath = path.isAbsolute(result.path) ? result.path : path.resolve(cline.cwd, result.path)
+				cline.readRegionHistory.set(readRegionKey(fullPath, result.offset, result.limit), result.mtimeMs)
+			}
+		}
+		// forked_change end
 
 		// Generate final result from all file results
 		const fileContents = fileResults.filter((result) => result.xmlContent).map((result) => result.xmlContent)
