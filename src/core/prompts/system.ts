@@ -26,6 +26,17 @@ import { type ClineProviderState } from "../webview/ClineProvider" // kilocode_c
 import { addCustomInstructions, getMcpServersSection, getSystemInfoSection } from "./sections"
 import { getToolDescriptionsForMode } from "./tools"
 import { discoverSkills } from "../tools/skills"
+import type { ContextBreakdownParts } from "../sliding-window/contextBreakdown"
+
+/**
+ * Result of generating a system prompt: the full markdown string (`text`) and
+ * the per-category text fragments (`parts`) that the UI uses to build the
+ * context-window usage breakdown.
+ */
+export interface SystemPromptParts {
+	text: string
+	parts: ContextBreakdownParts
+}
 
 // Helper function to get prompt component, filtering out empty objects
 export function getPromptComponent(
@@ -269,7 +280,7 @@ Replace the entire TODO list with an updated checklist reflecting the current st
 IMPORTANT: Use attempt_completion tool when you have completed the task. This signals that you are done.
 `
 
-async function generatePrompt(
+async function generatePromptParts(
 	context: vscode.ExtensionContext,
 	cwd: string,
 	supportsComputerUse: boolean,
@@ -292,7 +303,7 @@ async function generatePrompt(
 	toolUseStyle?: ToolUseStyle, // kilocode_change
 	clineProviderState?: ClineProviderState, // kilocode_change
 	taskHistory?: HistoryItem[], // kilocode_change: Chat memories
-): Promise<string> {
+): Promise<SystemPromptParts> {
 	if (!context) {
 		throw new Error("Extension context is required for generating system prompt")
 	}
@@ -321,28 +332,47 @@ async function generatePrompt(
 
 	const previousChatTitlesSection = getPreviousChatTitlesSection(taskHistory)
 
+	const toolDescriptions =
+		toolUseStyle !== "json" // kilocode_change
+			? await getToolDescriptionsForMode(
+					mode,
+					cwd,
+					supportsComputerUse,
+					codeIndexManager,
+					effectiveDiffStrategy,
+					browserViewportSize,
+					shouldIncludeMcp ? mcpHub : undefined,
+					customModeConfigs,
+					experiments,
+					partialReadsEnabled,
+					settings,
+					enableMcpServerCreation,
+					modelId,
+					clineProviderState, // kilocode_change
+				)
+			: ""
+
+	// Split the tool descriptions string into "tool definitions" (everything that's
+	// a tool schema/usage block) and the static system prompt (role definition,
+	// apply diff, previous chat titles, system info). The split is a heuristic:
+	// tool descriptions begin with `## ` headers introducing a tool name.
+	const toolDefinitionSections = toolDescriptions.split(/\n(?=##\s)/).filter((section) => section.trim().length > 0)
+	const toolDefinitionsText = toolDefinitionSections.join("\n")
+
+	// Anything not part of the tool definitions stays in the system prompt
+	// (role definition, applyDiffToolDescription, system info, etc.).
+	const systemPromptText = [
+		roleDefinition,
+		applyDiffToolDescription,
+		previousChatTitlesSection,
+		getSystemInfoSection(cwd),
+	]
+		.filter((part) => part && part.trim().length > 0)
+		.join("\n\n")
+
 	const basePrompt = `${roleDefinition}
 
-${
-	toolUseStyle !== "json" // kilocode_change
-		? getToolDescriptionsForMode(
-				mode,
-				cwd,
-				supportsComputerUse,
-				codeIndexManager,
-				effectiveDiffStrategy,
-				browserViewportSize,
-				shouldIncludeMcp ? mcpHub : undefined,
-				customModeConfigs,
-				experiments,
-				partialReadsEnabled,
-				settings,
-				enableMcpServerCreation,
-				modelId,
-				clineProviderState, // kilocode_change
-			)
-		: ""
-}
+${toolDescriptions}
 
 ${applyDiffToolDescription}
 
@@ -355,7 +385,17 @@ ${previousChatTitlesSection}
 ${getSystemInfoSection(cwd)}
 `
 
-	return basePrompt
+	return {
+		text: basePrompt,
+		parts: {
+			systemPrompt: systemPromptText,
+			toolDefinitions: toolDefinitionsText,
+			rules: "",
+			skills: skillsSection,
+			mcp: mcpServersSection,
+			subagentDefinitions: "",
+		},
+	}
 }
 
 export const SYSTEM_PROMPT = async (
@@ -436,7 +476,7 @@ ${customInstructions}`
 	// If diff is disabled, don't pass the diffStrategy
 	const effectiveDiffStrategy = diffEnabled ? diffStrategy : undefined
 
-	return generatePrompt(
+	return generatePromptParts(
 		context,
 		cwd,
 		supportsComputerUse,
@@ -459,5 +499,123 @@ ${customInstructions}`
 		toolUseStyle, // kilocode_change
 		clineProviderState, // kilocode_change
 		taskHistory, // kilocode_change: Chat memories
+	).then((result) => result.text)
+}
+
+/**
+ * Build the system prompt and return both the rendered text and the
+ * per-category text fragments used to build a context-window breakdown.
+ *
+ * The returned `parts` is intentionally raw text — token counts are computed
+ * at the call site using `countStringTokens` so the UI can refresh on demand.
+ */
+export const getSystemPromptParts = async (
+	context: vscode.ExtensionContext,
+	cwd: string,
+	supportsComputerUse: boolean,
+	mcpHub?: McpHub,
+	diffStrategy?: DiffStrategy,
+	browserViewportSize?: string,
+	inputMode: Mode = defaultModeSlug,
+	customModePrompts?: CustomModePrompts,
+	customModes?: ModeConfig[],
+	globalCustomInstructions?: string,
+	diffEnabled?: boolean,
+	experiments?: Experiments,
+	enableMcpServerCreation?: boolean,
+	language?: string,
+	rooIgnoreInstructions?: string,
+	partialReadsEnabled?: boolean,
+	settings?: SystemPromptSettings,
+	todoList?: TodoItem[],
+	modelId?: string,
+	toolUseStyle?: ToolUseStyle,
+	clineProviderState?: ClineProviderState,
+	taskHistory?: HistoryItem[],
+): Promise<SystemPromptParts> => {
+	if (!context) {
+		throw new Error("Extension context is required for generating system prompt")
+	}
+
+	const mode =
+		getModeBySlug(inputMode, customModes)?.slug || modes.find((m) => m.slug === inputMode)?.slug || defaultModeSlug
+
+	const variablesForPrompt: PromptVariables = {
+		workspace: cwd,
+		mode,
+		language: language ?? formatLanguage(vscode.env.language),
+		shell: vscode.env.shell,
+		operatingSystem: os.type(),
+	}
+	const fileCustomSystemPrompt = await loadSystemPromptFile(cwd, mode, variablesForPrompt)
+	const promptComponent = getPromptComponent(customModePrompts, mode)
+	const currentMode = getModeBySlug(mode, customModes) || modes.find((m) => m.slug === mode) || modes[0]
+
+	if (fileCustomSystemPrompt) {
+		const { roleDefinition, baseInstructions: baseInstructionsForFile } = getModeSelection(
+			mode,
+			promptComponent,
+			customModes,
+		)
+
+		const customInstructions = await addCustomInstructions(
+			baseInstructionsForFile,
+			globalCustomInstructions || "",
+			cwd,
+			mode,
+			{
+				language: language ?? formatLanguage(vscode.env.language),
+				rooIgnoreInstructions,
+				settings,
+			},
+		)
+
+		const text = `${roleDefinition}
+
+${fileCustomSystemPrompt}
+
+${customInstructions}`
+
+		// File-based custom prompts don't expose the section breakdown — bucket
+		// the entire prompt under "System prompt" so the user still sees the
+		// full token usage even without a per-section split.
+		return {
+			text,
+			parts: {
+				systemPrompt: text,
+				toolDefinitions: "",
+				rules: "",
+				skills: "",
+				mcp: "",
+				subagentDefinitions: "",
+			},
+		}
+	}
+
+	const effectiveDiffStrategy = diffEnabled ? diffStrategy : undefined
+
+	return generatePromptParts(
+		context,
+		cwd,
+		supportsComputerUse,
+		currentMode.slug,
+		mcpHub,
+		effectiveDiffStrategy,
+		browserViewportSize,
+		promptComponent,
+		customModes,
+		globalCustomInstructions,
+		diffEnabled,
+		experiments,
+		enableMcpServerCreation,
+		language,
+		rooIgnoreInstructions,
+		partialReadsEnabled,
+		settings,
+		todoList,
+		modelId,
+		toolUseStyle,
+		clineProviderState,
+		taskHistory,
 	)
 }

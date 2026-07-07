@@ -205,6 +205,16 @@ export interface ExtensionStateContextType extends ExtensionState {
 	contextWindowUsage?: {
 		currentTokens: number
 		maxTokens: number
+		breakdown?: {
+			systemPrompt: number
+			toolDefinitions: number
+			rules: number
+			skills: number
+			mcp: number
+			subagentDefinitions: number
+			cacheReads: number
+			conversation: number
+		}
 	} // kilocode_change: Track context window usage
 	betaModelsEnabled?: boolean // kilocode_change: Beta models availability
 	backgroundRunningTasks?: Array<{

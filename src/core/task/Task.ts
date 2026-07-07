@@ -80,7 +80,13 @@ import { getGitRepositoryInfo } from "../../utils/git"
 
 // prompts
 import { formatResponse } from "../prompts/responses"
-import { SYSTEM_PROMPT } from "../prompts/system"
+import { getSystemPromptParts, SYSTEM_PROMPT, type SystemPromptParts } from "../prompts/system"
+import {
+	buildContextBreakdown,
+	emptyContextBreakdown,
+	type ContextBreakdown,
+	type ContextBreakdownParts,
+} from "../sliding-window/contextBreakdown"
 import { getAllowedJSONToolsForMode } from "../prompts/tools/native-tools/getAllowedJSONToolsForMode" // kilocode_change
 import type OpenAI from "openai" // forked_change: needed for MCP tool schema types
 
@@ -402,7 +408,15 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	contextWindowUsage?: {
 		currentTokens: number
 		maxTokens: number
+		breakdown?: ContextBreakdown
 	}
+
+	/**
+	 * Cached per-category text fragments from the most recent system-prompt
+	 * build, used to recompute `contextWindowUsage.breakdown` after each API
+	 * call without re-running the (expensive) prompt builder.
+	 */
+	private lastSystemPromptParts?: ContextBreakdownParts
 
 	// Ask
 	private askResponse?: ClineAskResponse
@@ -2791,6 +2805,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 									currentTokens,
 									maxTokens,
 								}
+								this.updateContextWindowBreakdown(currentTokens, tokens.cacheRead)
 
 								// Update the API request message with the latest usage data
 								updateApiReqMsg()
@@ -3363,6 +3378,126 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		})()
 	}
 
+	/**
+	 * Build the system prompt and return the per-category text fragments used
+	 * to power the context-window usage breakdown in the UI.
+	 *
+	 * Side effect: caches the returned parts on `this.lastSystemPromptParts` so
+	 * later `updateContextWindowBreakdown()` calls can rebuild the breakdown
+	 * cheaply after each API response.
+	 */
+	async getSystemPromptParts(): Promise<SystemPromptParts> {
+		const { mcpEnabled } = (await this.providerRef.deref()?.getState()) ?? {}
+		let mcpHub: McpHub | undefined
+		if (mcpEnabled ?? true) {
+			const provider = this.providerRef.deref()
+			if (!provider) {
+				throw new Error("Provider reference lost during view transition")
+			}
+			mcpHub = await McpServerManager.getInstance(provider.context, provider)
+			if (!mcpHub) {
+				throw new Error("Failed to get MCP hub from server manager")
+			}
+			await pWaitFor(() => !mcpHub!.isConnecting, { timeout: 10_000 }).catch(() => {
+				console.error("MCP servers failed to connect in time")
+			})
+		}
+
+		const rooIgnoreInstructions = this.rooIgnoreController?.getInstructions()
+		const state = await this.providerRef.deref()?.getState()
+		const {
+			browserViewportSize,
+			mode,
+			customModes,
+			customModePrompts,
+			customInstructions,
+			experiments,
+			enableMcpServerCreation,
+			browserToolEnabled,
+			language,
+			maxConcurrentFileReads,
+			maxReadFileLine,
+			apiConfiguration,
+		} = state ?? {}
+
+		const provider = this.providerRef.deref()
+		if (!provider) {
+			throw new Error("Provider not available")
+		}
+
+		const result = await getSystemPromptParts(
+			provider.context,
+			this.cwd,
+			(this.api.getModel().info.supportsImages ?? false) && (browserToolEnabled ?? true),
+			mcpHub,
+			this.diffStrategy,
+			browserViewportSize,
+			mode,
+			customModePrompts,
+			customModes,
+			customInstructions,
+			this.diffEnabled,
+			experiments,
+			enableMcpServerCreation,
+			language,
+			rooIgnoreInstructions,
+			maxReadFileLine !== -1,
+			{
+				maxConcurrentFileReads: maxConcurrentFileReads ?? 5,
+				todoListEnabled: apiConfiguration?.todoListEnabled ?? true,
+				useAgentRules: vscode.workspace.getConfiguration("kilo-code").get<boolean>("useAgentRules") ?? true,
+				newTaskRequireTodos: vscode.workspace
+					.getConfiguration("kilo-code")
+					.get<boolean>("newTaskRequireTodos", false),
+			},
+			undefined,
+			this.api.getModel().id,
+			getActiveToolUseStyle(apiConfiguration),
+			state,
+			undefined,
+		)
+
+		this.lastSystemPromptParts = result.parts
+		return result
+	}
+
+	/**
+	 * Rebuild the per-category token breakdown using the latest reported
+	 * `currentTokens`. Cheap (no I/O) when `lastSystemPromptParts` is cached.
+	 *
+	 * `cacheReadTokens` should be the value reported by the LLM (e.g. from
+	 * `prompt_tokens_details.cached_tokens`); it's shown as its own slice in
+	 * the UI rather than folded into `conversation`.
+	 */
+	updateContextWindowBreakdown(currentTokens: number, cacheReadTokens?: number): void {
+		const parts = this.lastSystemPromptParts
+		if (!parts) {
+			// No cached parts yet — store an empty breakdown so the UI can still
+			// render the total. The next `getSystemPromptParts` call will fill
+			// in the per-category numbers.
+			if (this.contextWindowUsage) {
+				this.contextWindowUsage = {
+					...this.contextWindowUsage,
+					breakdown: emptyContextBreakdown(),
+				}
+			}
+			return
+		}
+
+		const breakdown = buildContextBreakdown({
+			categoryText: parts,
+			currentTokens,
+			cacheReads: cacheReadTokens,
+		})
+
+		if (this.contextWindowUsage) {
+			this.contextWindowUsage = {
+				...this.contextWindowUsage,
+				breakdown,
+			}
+		}
+	}
+
 	private getCurrentProfileId(state: any): string {
 		return (
 			state?.listApiConfigMeta?.find((profile: any) => profile.name === state?.currentApiConfigName)?.id ??
@@ -3613,7 +3748,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// requests — even from new subtasks — will honour the provider's rate-limit.
 		Task.lastGlobalApiRequestTime = performance.now() // kilocode_change
 
-		const systemPrompt = await this.getSystemPrompt()
+		const { text: systemPrompt } = await this.getSystemPromptParts()
 		this.lastUsedInstructions = systemPrompt
 		const { contextTokens } = this.getTokenUsage()
 
