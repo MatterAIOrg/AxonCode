@@ -5,7 +5,7 @@ import { getModelIdKey } from "../hooks/useSelectedModel"
 import { OPENROUTER_DEFAULT_PROVIDER_NAME } from "@roo-code/types"
 import { AxonCodeTieredUsage, AxonCodeWindowUsage, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 
-const FREE_MODEL_ID = "axon-code-2-5-mini"
+const FREE_MODEL_ID = "axon-eido-3-flash"
 
 function formatResetDate(iso?: string): string | null {
 	if (!iso) return null
