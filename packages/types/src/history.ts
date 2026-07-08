@@ -26,6 +26,18 @@ export const historyItemSchema = z.object({
 		.object({
 			currentTokens: z.number(),
 			maxTokens: z.number(),
+			breakdown: z
+				.object({
+					systemPrompt: z.number(),
+					toolDefinitions: z.number(),
+					rules: z.number(),
+					skills: z.number(),
+					mcp: z.number(),
+					subagentDefinitions: z.number(),
+					cacheReads: z.number(),
+					conversation: z.number(),
+				})
+				.optional(),
 		})
 		.optional(),
 	apiProvider: z.string().optional(), // Task-specific API provider

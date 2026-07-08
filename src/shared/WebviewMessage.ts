@@ -177,6 +177,7 @@ export interface WebviewMessage {
 		| "updateSupportPrompt"
 		| "getSystemPrompt"
 		| "copySystemPrompt"
+		| "refreshContextBreakdown"
 		| "systemPrompt"
 		| "enhancementApiConfigId"
 		| "commitMessageApiConfigId" // kilocode_change

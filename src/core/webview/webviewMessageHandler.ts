@@ -3054,6 +3054,29 @@ ${comment.suggestion}
 				vscode.window.showErrorMessage(t("common:errors.get_system_prompt"))
 			}
 			break
+		case "refreshContextBreakdown": {
+			try {
+				const task = provider.getCurrentTask()
+				if (!task) {
+					break
+				}
+				// Rebuild the cached system-prompt parts and refresh the breakdown
+				// using the latest reported `currentTokens` (if any).
+				await task.getSystemPromptParts()
+				const { contextTokens } = task.getTokenUsage()
+				if (contextTokens > 0) {
+					task.updateContextWindowBreakdown(contextTokens)
+				} else {
+					task.updateContextWindowBreakdown(task.contextWindowUsage?.currentTokens ?? 0)
+				}
+				await provider.postStateToWebview()
+			} catch (error) {
+				provider.log(
+					`Error refreshing context breakdown: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+				)
+			}
+			break
+		}
 		case "searchCommits": {
 			const cwd = getCurrentCwd()
 			if (cwd) {

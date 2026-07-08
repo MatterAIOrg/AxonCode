@@ -12,6 +12,7 @@ import { findLastIndex } from "../../shared/array"
 import { getTaskDirectoryPath } from "../../utils/storage"
 import { t } from "../../i18n"
 import { getKiloUrlFromToken } from "@roo-code/types" // kilocode_change
+import type { ContextBreakdown } from "../sliding-window/contextBreakdown"
 
 const taskSizeCache = new NodeCache({ stdTTL: 30, checkperiod: 5 * 60 })
 
@@ -217,6 +218,7 @@ export type TaskMetadataOptions = {
 	contextWindowUsage?: {
 		currentTokens: number
 		maxTokens: number
+		breakdown?: ContextBreakdown
 	}
 	apiConfiguration?: ProviderSettings
 }

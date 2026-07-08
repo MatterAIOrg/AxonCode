@@ -6,6 +6,7 @@ vi.mock("@roo-code/telemetry", () => ({
 	TelemetryService: {
 		instance: {
 			captureToolUsage: vi.fn(),
+			captureConsecutiveMistakeError: vi.fn(),
 		},
 	},
 }))
@@ -60,8 +61,13 @@ vi.mock("../../task/Task", () => ({
 import { presentAssistantMessage } from "../presentAssistantMessage"
 import { readFileTool } from "../../tools/readFileTool"
 import { searchFilesTool } from "../../tools/searchFilesTool"
+import { TelemetryService } from "@roo-code/telemetry"
 
 describe("presentAssistantMessage", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
 	it("executes every complete tool_use block in a native multi-tool response", async () => {
 		const getState = vi.fn().mockResolvedValue({ mode: "code", customModes: [] })
 		const cline = {
@@ -252,5 +258,85 @@ describe("presentAssistantMessage", () => {
 		expect(toolResults[0].content[0].text).toContain("File not found: missing.js")
 		expect(toolResults[0].content[1].text).toBe("--- missing.js ---\n[error] File not found: missing.js")
 		expect(cline.userMessageContentReady).toBe(true)
+	})
+
+	it("sets toolRepetitionAutoRetry flag and does not call ask() on tool repetition", async () => {
+		const getState = vi.fn().mockResolvedValue({ mode: "code", customModes: [] })
+		const cline = {
+			abort: false,
+			taskId: "task-1",
+			instanceId: "instance-1",
+			presentAssistantMessageLocked: false,
+			presentAssistantMessageHasPendingUpdates: false,
+			currentStreamingContentIndex: 0,
+			assistantMessageContent: [
+				{
+					type: "tool_use",
+					name: "read_file",
+					params: { path: "test.txt" },
+					partial: false,
+					toolUseId: "read_file:0",
+				},
+			],
+			didCompleteReadingStream: true,
+			userMessageContentReady: false,
+			userMessageContent: [],
+			didRejectTool: false,
+			didAlreadyUseTool: false,
+			currentStreamingDidCheckpoint: false,
+			diffEnabled: false,
+			autoApproveAllCommands: false,
+			consecutiveMistakeCount: 0,
+			toolRepetitionAutoRetry: false,
+			providerRef: {
+				deref: () => ({
+					getState,
+				}),
+			},
+			browserSession: {
+				closeBrowser: vi.fn().mockResolvedValue(undefined),
+			},
+			say: vi.fn().mockResolvedValue(undefined),
+			ask: vi.fn().mockResolvedValue({ response: "yesButtonClicked" }),
+			processQueuedMessages: vi.fn(),
+			getToolCallSignature: vi.fn((name: string, params: unknown) => JSON.stringify({ name, params })),
+			checkAndRegisterToolCall: vi.fn().mockReturnValue(false),
+			recordToolUsage: vi.fn(),
+			toolRepetitionDetector: {
+				check: vi.fn().mockReturnValue({
+					allowExecution: false,
+					askUser: {
+						messageKey: "mistake_limit_reached",
+						messageDetail: "Model stuck in a loop with {toolName}",
+					},
+				}),
+			},
+			checkpointSave: vi.fn().mockResolvedValue(undefined),
+			removeStalePartialToolAskMessage: vi.fn().mockResolvedValue(undefined),
+			checkAndCondenseContext: vi.fn().mockResolvedValue(undefined),
+		} as any
+
+		await presentAssistantMessage(cline)
+
+		// cline.ask should NOT be called — we auto-retry instead
+		expect(cline.ask).not.toHaveBeenCalled()
+
+		// cline.say should be called with "error" to show the message in UI
+		expect(cline.say).toHaveBeenCalledWith("error", "Model stuck in a loop with read_file")
+
+		// The auto-retry flag should be set
+		expect(cline.toolRepetitionAutoRetry).toBe(true)
+
+		// Telemetry should be captured
+		expect(TelemetryService.instance.captureConsecutiveMistakeError).toHaveBeenCalledWith("task-1")
+
+		// A tool error result should be pushed for the tool_use
+		const toolResults = cline.userMessageContent.filter((item: any) => item.type === "tool_result")
+		expect(toolResults).toHaveLength(1)
+		expect(toolResults[0].tool_use_id).toBe("read_file:0")
+		expect(toolResults[0].content[0].text).toContain("Tool call repetition limit reached")
+
+		// The tool should NOT have been executed
+		expect(readFileTool).not.toHaveBeenCalled()
 	})
 })

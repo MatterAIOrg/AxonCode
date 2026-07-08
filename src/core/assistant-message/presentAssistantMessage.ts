@@ -563,32 +563,26 @@ export async function presentAssistantMessage(cline: Task) {
 					// block directly.
 					const repetitionCheck = cline.toolRepetitionDetector.check(block)
 
-					// If execution is not allowed, notify user and break.
+					// If execution is not allowed, auto-retry instead of asking the user.
+					// forked_change: instead of stopping and waiting for user input,
+					// we show an error in the UI, set a flag for the task loop to
+					// handle the history rewrite + retry, and break.
 					if (!repetitionCheck.allowExecution && repetitionCheck.askUser) {
-						// Handle repetition similar to mistake_limit_reached pattern.
-						const { response, text, images } = await cline.ask(
-							repetitionCheck.askUser.messageKey as ClineAsk,
+						// Show the repetition error in the UI so the user knows what happened.
+						await cline.say(
+							"error",
 							repetitionCheck.askUser.messageDetail.replace("{toolName}", block.name),
 						)
 
-						if (response === "messageResponse") {
-							// Add user feedback to userContent.
-							pushToolResult_withToolUseId_kilocode(
-								{
-									type: "text" as const,
-									text: `Tool repetition limit reached. User feedback: ${text}`,
-								},
-								...formatResponse.imageBlocks(images),
-							)
+						// Track tool repetition in telemetry.
+						TelemetryService.instance.captureConsecutiveMistakeError(cline.taskId)
 
-							// Add user feedback to chat.
-							await cline.say("user_feedback", text, images)
+						// Signal the task loop to auto-retry: remove the looping
+						// assistant message from history and inject "try again".
+						cline.toolRepetitionAutoRetry = true
 
-							// Track tool repetition in telemetry.
-							TelemetryService.instance.captureConsecutiveMistakeError(cline.taskId)
-						}
-
-						// Return tool result message about the repetition
+						// Push a tool error result to maintain tool_use/tool_result
+						// pairing for the current response.
 						pushToolResult(
 							formatResponse.toolError(
 								`Tool call repetition limit reached for ${block.name}. Please try a different approach.`,
