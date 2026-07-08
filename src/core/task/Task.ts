@@ -467,6 +467,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	didRejectTool = false
 	didAlreadyUseTool = false
 	didCompleteReadingStream = false
+	toolRepetitionAutoRetry = false
 	// Track executed tool calls by their signature (name + args hash) to detect duplicates
 	private executedToolCallSignatures: Set<string> = new Set()
 	// forked_change: task-lifetime map of file regions already read (path|offset|limit → file
@@ -3156,6 +3157,44 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					// 	})
 					// 	this.consecutiveMistakeCount++
 					// }
+
+					// forked_change start: auto-retry on tool repetition detection.
+					// When the model gets stuck in a loop, instead of stopping and
+					// asking the user, we remove the last assistant tool call from
+					// conversation history, inject a "try again" user message, and
+					// continue the agent loop automatically.
+					//
+					// At this point in the flow, the apiConversationHistory contains:
+					//   ... → [user: current request] → [assistant: looping tool call]
+					// The tool results (userMessageContent) have NOT been committed
+					// to history yet — they would become the next iteration's user
+					// message. So we only need to pop the assistant message.
+					if (this.toolRepetitionAutoRetry) {
+						this.toolRepetitionAutoRetry = false
+
+						// Remove the last entry from API history: the assistant
+						// message containing the looping tool call.
+						if (this.apiConversationHistory.length >= 1) {
+							this.apiConversationHistory.pop() // assistant tool_call
+							await this.saveApiConversationHistory()
+						}
+
+						// Inject "try again" as the next user message to nudge
+						// the model out of the loop.
+						stack.push({
+							userContent: [
+								{
+									type: "text",
+									text: "You were stuck in a loop, repeating the same tool call. The last tool call and response have been deleted. Try again with a different approach.",
+								},
+							],
+							includeFileDetails: false,
+						})
+
+						await new Promise((resolve) => setImmediate(resolve))
+						continue
+					}
+					// forked_change end
 
 					if (this.userMessageContent.length > 0) {
 						stack.push({
