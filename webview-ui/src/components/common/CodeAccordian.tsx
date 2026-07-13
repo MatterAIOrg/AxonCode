@@ -102,10 +102,6 @@ const CodeAccordian = ({
 							aria-label={`Open file: ${path}${firstLineNumber ? `:${firstLineNumber}` : ""}`}
 						/>
 					)}
-					{!onJumpToFile && (
-						<span
-							className={`ml-1 opacity-50 group-hover:opacity-100 codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
-					)}
 				</ToolUseBlockHeader>
 			)}
 			{(!hasHeader || isExpanded) && (
