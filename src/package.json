@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "6.5.1",
+	"version": "6.5.2",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -169,7 +169,11 @@
 			{
 				"command": "axon-code.openInNewTab",
 				"title": "%command.openInNewTab.title%",
-				"category": "%configuration.title%"
+				"category": "%configuration.title%",
+				"icon": {
+					"light": "assets/icons/orbital-extension.png",
+					"dark": "assets/icons/orbital-extension.png"
+				}
 			},
 			{
 				"command": "axon-code.explainCode",
@@ -345,6 +349,11 @@
 				}
 			],
 			"editor/title": [
+				{
+					"command": "axon-code.openInNewTab",
+					"group": "navigation@1",
+					"when": "!axon:isOrbital"
+				},
 				{
 					"command": "axon-code.plusButtonClicked",
 					"group": "navigation@1",

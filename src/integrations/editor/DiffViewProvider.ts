@@ -168,18 +168,19 @@ export class DiffViewProvider {
 			// Preserve empty last line if original content had one.
 			const hasEmptyLastLine = this.originalContent?.endsWith("\n")
 
-			if (hasEmptyLastLine && !accumulatedContent.endsWith("\n")) {
-				accumulatedContent += "\n"
+			let finalContent = accumulatedContent
+
+			if (hasEmptyLastLine && !finalContent.endsWith("\n")) {
+				finalContent += "\n"
 			}
+
+			finalContent = this.stripAllBOMs(finalContent)
+			this.newContent = finalContent
 
 			// Apply the final content.
 			const finalEdit = new vscode.WorkspaceEdit()
 
-			finalEdit.replace(
-				document.uri,
-				new vscode.Range(0, 0, document.lineCount, 0),
-				this.stripAllBOMs(accumulatedContent),
-			)
+			finalEdit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), finalContent)
 
 			await vscode.workspace.applyEdit(finalEdit)
 
@@ -275,7 +276,10 @@ export class DiffViewProvider {
 		// Just in case the new content has a mix of varying EOL characters.
 		const normalizedNewContent = this.newContent.replace(/\r\n|\n/g, newContentEOL)
 
-		if (normalizedEditedContent !== normalizedNewContent) {
+		if (
+			normalizedEditedContent !== normalizedNewContent &&
+			!this.isWhitespaceOnlyChange(normalizedNewContent, normalizedEditedContent)
+		) {
 			// User made changes before approving edit.
 			const userEdits = formatResponse.createPrettyPatch(
 				this.relPath.toPosix(),
@@ -647,6 +651,10 @@ export class DiffViewProvider {
 		} while (result !== previous)
 
 		return result
+	}
+
+	private isWhitespaceOnlyChange(before: string, after: string): boolean {
+		return before.replace(/\s/g, "") === after.replace(/\s/g, "")
 	}
 
 	async reset(): Promise<void> {

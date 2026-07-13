@@ -134,7 +134,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 
 			{/* Reasoning stream */}
 			{hasContent && !isCollapsed && (
-				<div className="mt-1 rounded-lg bg-vscode-textCodeBlock-background">
+				<div className="mt-1 rounded-lg bg-vscode-input-background">
 					<div
 						ref={contentRef}
 						className="scrollbar-hide max-h-[300px] overflow-y-auto px-3 py-2 text-sm text-vscode-descriptionForeground">

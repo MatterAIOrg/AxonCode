@@ -161,6 +161,7 @@ describe("DiffViewProvider", () => {
 				expect.anything(),
 				"New content\n",
 			)
+			expect((diffViewProvider as any).newContent).toBe("New content\n")
 		})
 
 		it("should not add extra newline when accumulated content already ends with one", async () => {
@@ -515,6 +516,30 @@ describe("DiffViewProvider", () => {
 			// Verify custom delay was used
 			expect(mockDelay).toHaveBeenCalledWith(5000)
 			expect(vscode.languages.getDiagnostics).toHaveBeenCalled()
+		})
+
+		it("should not report whitespace-only formatting as user edits", async () => {
+			;(diffViewProvider as any).newContent = "const value = 1\n"
+			;(diffViewProvider as any).activeDiffEditor.document.getText = vi.fn().mockReturnValue("const   value=1\n")
+			;(diffViewProvider as any).closeAllDiffViews = vi.fn().mockResolvedValue(undefined)
+
+			const result = await diffViewProvider.saveChanges(false, 0)
+
+			expect(result.userEdits).toBeUndefined()
+			expect(result.finalContent).toBe("const   value=1\n")
+			expect((diffViewProvider as any).userEdits).toBeUndefined()
+		})
+
+		it("should not report provider-preserved trailing newline as user edits", async () => {
+			;(diffViewProvider as any).originalContent = "Original content\n"
+			await diffViewProvider.update("New content", true)
+			;(diffViewProvider as any).activeDiffEditor.document.getText = vi.fn().mockReturnValue("New content\n")
+			;(diffViewProvider as any).closeAllDiffViews = vi.fn().mockResolvedValue(undefined)
+
+			const result = await diffViewProvider.saveChanges(false, 0)
+
+			expect(result.userEdits).toBeUndefined()
+			expect(result.finalContent).toBe("New content\n")
 		})
 	})
 })

@@ -250,8 +250,8 @@
 		"didViewDefinitionsOutsideWorkspace": "viewed source code definition names used in this directory(outside workspace)",
 		"wantsToSearch": "Search <code>{{regex}}</code>",
 		"didSearch": "Search <code>{{regex}}</code>",
-		"wantsToSearchOutsideWorkspace": "search this directory(outside workspace) for <code>{{regex}}</code>",
-		"didSearchOutsideWorkspace": "searched this directory(outside workspace) for <code>{{regex}}</code>"
+		"wantsToSearchOutsideWorkspace": "Search (outside workspace) <code>{{regex}}</code>",
+		"didSearchOutsideWorkspace": "Searched (outside workspace) <code>{{regex}}</code>"
 	},
 	"codebaseSearch": {
 		"wantsToSearch": "Exploring <code>{{query}}</code>",

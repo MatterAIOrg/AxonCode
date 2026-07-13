@@ -27,8 +27,9 @@ export class FileContextTracker {
 	// File tracking and watching
 	private fileWatchers = new Map<string, vscode.FileSystemWatcher>()
 	private recentlyModifiedFiles = new Set<string>()
-	private recentlyEditedByRoo = new Set<string>()
+	private recentlyEditedByRoo = new Map<string, number>()
 	private checkpointPossibleFiles = new Set<string>()
+	private static readonly ROO_EDIT_SUPPRESSION_WINDOW_MS = 3_000
 
 	constructor(provider: ClineProvider, taskId: string) {
 		this.providerRef = new WeakRef(provider)
@@ -64,12 +65,12 @@ export class FileContextTracker {
 
 		// Track file changes
 		watcher.onDidChange(() => {
-			if (this.recentlyEditedByRoo.has(filePath)) {
-				this.recentlyEditedByRoo.delete(filePath) // This was an edit by Roo, no need to inform Roo
-			} else {
-				this.recentlyModifiedFiles.add(filePath) // This was a user edit, we will inform Roo
-				this.trackFileContext(filePath, "user_edited") // Update the task metadata with file tracking
+			if (this.wasRecentlyEditedByRoo(filePath)) {
+				return
 			}
+
+			this.recentlyModifiedFiles.add(filePath) // This was a user edit, we will inform Roo
+			this.trackFileContext(filePath, "user_edited") // Update the task metadata with file tracking
 		})
 
 		// Store the watcher so we can dispose it later
@@ -181,6 +182,7 @@ export class FileContextTracker {
 				case "roo_edited":
 					newEntry.roo_read_date = now
 					newEntry.roo_edit_date = now
+					this.recentlyModifiedFiles.delete(filePath)
 					this.checkpointPossibleFiles.add(filePath)
 					this.markFileAsEditedByRoo(filePath)
 					break
@@ -214,7 +216,22 @@ export class FileContextTracker {
 
 	// Marks a file as edited by Roo to prevent false positives in file watchers
 	markFileAsEditedByRoo(filePath: string): void {
-		this.recentlyEditedByRoo.add(filePath)
+		this.recentlyEditedByRoo.set(filePath, Date.now() + FileContextTracker.ROO_EDIT_SUPPRESSION_WINDOW_MS)
+	}
+
+	private wasRecentlyEditedByRoo(filePath: string): boolean {
+		const suppressionExpiresAt = this.recentlyEditedByRoo.get(filePath)
+
+		if (!suppressionExpiresAt) {
+			return false
+		}
+
+		if (Date.now() > suppressionExpiresAt) {
+			this.recentlyEditedByRoo.delete(filePath)
+			return false
+		}
+
+		return true
 	}
 
 	// Disposes all file watchers

@@ -41,16 +41,22 @@ export function getSupportedSlashCommands(
 			description: "Analyze the codebase and create a concise AGENTS.md to reduce cold-start",
 		},
 		{
+			name: "resume",
+			description: "Lists previous chats and allows you to select one to load",
+		},
+		{
 			name: "link",
 			description: "Link other repos so changes here are checked against them",
 		},
 	]
 
 	// Add mode-switching commands dynamically
-	const modeCommands = getAllModes(customModes).map((mode) => ({
-		name: mode.slug,
-		description: `Switch to ${mode.name.replace(/^[💻🏗️❓🪲🪃]+ /, "")} mode`,
-	}))
+	const modeCommands = getAllModes(customModes)
+		.filter((mode) => mode.slug !== "plan" && mode.slug !== "agent" && mode.slug !== "ask")
+		.map((mode) => ({
+			name: mode.slug,
+			description: `Switch to ${mode.name.replace(/^[💻🏗️❓🪲🪃]+ /, "")} mode`,
+		}))
 
 	// add workflow commands
 	const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)

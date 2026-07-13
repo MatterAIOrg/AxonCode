@@ -151,12 +151,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			onMouseDown={onMouseDown}>
 			<div
 				ref={menuRef}
+				className="scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
 				style={{
-					backgroundColor: "var(--vscode-dropdown-background)",
+					backgroundColor: "var(--vscode-editor-background)",
 					borderRadius: "12px",
-					border: "1px solid var(--vscode-editorGroup-border)",
+					border: "1px solid var(--vscode-commandCenter-inactiveBorder)",
 					outline: "none",
-					boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
+					boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
 					zIndex: 1000,
 					display: "flex",
 					padding: "4px",
@@ -171,13 +172,15 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							key={`${option.type}-${option.value || index}`}
 							onClick={() => isOptionSelectable(option) && onSelect(option.type, option.value)}
 							style={{
-								padding: "4px 8px",
+								padding: "6px 12px",
 								cursor: isOptionSelectable(option) ? "pointer" : "default",
-								color: "var(--vscode-dropdown-foreground)",
+								color: "var(--vscode-foreground)",
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "space-between",
 								position: "relative",
+								borderRadius: "8px",
+								margin: "2px 4px",
 								...(index === selectedIndex && isOptionSelectable(option)
 									? {
 											backgroundColor: "var(--vscode-list-activeSelectionBackground)",

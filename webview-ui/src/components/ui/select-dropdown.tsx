@@ -268,7 +268,10 @@ export const SelectDropdown = React.memo(
 						align={align}
 						sideOffset={sideOffset}
 						container={portalContainer}
-						className={cn("p-0 overflow-hidden", contentClassName)}>
+						className={cn(
+							"p-0 overflow-hidden rounded-xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-[var(--vscode-editor-background)] shadow-lg",
+							contentClassName,
+						)}>
 						<div className="flex flex-col w-min-content">
 							{/* Search input */}
 							{!disableSearch && (
@@ -303,7 +306,7 @@ export const SelectDropdown = React.memo(
 
 							{/* Dropdown items - Use windowing for large lists */}
 							{/* kilocode_change: different max height: max-h-82 */}
-							<div className="max-h-82 overflow-y-auto">
+							<div className="max-h-82 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 								{groupedOptions.length === 0 && searchValue ? (
 									<div className="py-2 px-3 text-sm text-vscode-foreground/70">No results found</div>
 								) : (
@@ -320,78 +323,66 @@ export const SelectDropdown = React.memo(
 												)
 											}
 
-											// if (
-											// 	option.type === DropdownOptionType.SHORTCUT ||
-											// 	(option.disabled && shortcutText && option.label.includes(shortcutText))
-											// ) {
-											// 	return (
-											// 		<div
-											// 			key={`label-${index}`}
-											// 			className="px-3 py-1.5 text-sm opacity-50">
-											// 			{option.label}
-											// 		</div>
-											// 	)
-											// }
-
 											// Use stable keys for better reconciliation
 											const itemKey = `item-${option.value || option.label || index}`
+											const isSelected = option.value === value
 
 											return (
 												<div
 													key={itemKey}
 													onClick={() => !option.disabled && handleSelect(option.value)}
-													className={cn(
-														"text-sm cursor-pointer flex items-center", // kilocode_change
-														option.disabled
-															? "opacity-50 cursor-not-allowed"
-															: "hover:bg-vscode-list-hoverBackground",
-														option.value === value
-															? "bg-[var(--vscode-menu-background)] text-vscode-list-activeSelectionForeground"
-															: "opacity-80",
-														itemClassName,
-													)}
+													className={cn("px-1.5 py-0.5", itemClassName)}
 													data-testid="dropdown-item">
 													{renderItem ? (
 														renderItem(option)
 													) : (
-														<>
-															{/* forked_change start */}
-															<div className="flex items-center flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
-																{option.codicon &&
-																	(() => {
-																		const IconComponent = getIconComponent(
-																			option.codicon,
-																		)
-																		if (IconComponent) {
-																			return (
-																				<IconComponent className="opacity-80 mr-2 size-4" />
-																			)
-																		}
+														<div
+															className={cn(
+																"flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors duration-150 rounded-lg",
+																option.disabled
+																	? "opacity-50 cursor-not-allowed"
+																	: isSelected
+																		? "bg-[var(--vscode-list-activeSelectionBackground)] text-[var(--vscode-list-activeSelectionForeground)]"
+																		: "hover:bg-[var(--vscode-list-hoverBackground)] text-[var(--vscode-foreground)] opacity-80",
+															)}>
+															{option.codicon &&
+																(() => {
+																	const IconComponent = getIconComponent(
+																		option.codicon,
+																	)
+																	if (IconComponent) {
 																		return (
-																			<span
-																				slot="start"
-																				style={{ fontSize: "14px" }}
-																				className={cn(
-																					"codicon opacity-80 mr-2",
-																					option.codicon,
-																				)}
-																			/>
+																			<IconComponent className="opacity-80 mr-2 size-4 shrink-0" />
 																		)
-																	})()}
-																<div className="flex-1">
-																	<div>{option.label}</div>
-																	{option.description && (
-																		<div className="text-[11px] opacity-50 mt-0.5">
-																			{option.description}
-																		</div>
-																	)}
+																	}
+																	return (
+																		<span
+																			slot="start"
+																			style={{ fontSize: "14px" }}
+																			className={cn(
+																				"codicon opacity-80 mr-2 shrink-0",
+																				option.codicon,
+																			)}
+																		/>
+																	)
+																})()}
+															<div className="flex-1 min-w-0 flex items-baseline gap-2">
+																<div className="font-bold text-sm shrink-0">
+																	{option.label}
 																</div>
-																{/* forked_change end */}
-																{/* {option.value === value && (
-																	<Check className="ml-1 size-4 p-0.5" />
-																)} */}
+																{option.description && (
+																	<div
+																		className={cn(
+																			"text-xs truncate",
+																			isSelected
+																				? "text-[var(--vscode-list-activeSelectionForeground)] opacity-70"
+																				: "text-[var(--vscode-descriptionForeground)]",
+																		)}>
+																		{option.description}
+																	</div>
+																)}
 															</div>
-														</>
+														</div>
 													)}
 												</div>
 											)

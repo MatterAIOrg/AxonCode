@@ -40,7 +40,7 @@ import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
-import { ArrowDown01Icon, Globe02Icon, PlayIcon } from "@/utils/customIcons"
+import { Globe02Icon, PlayIcon } from "@/utils/customIcons"
 import { appendImages, normalizeImages } from "@src/utils/imageUtils"
 import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // kilocode_change
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
@@ -626,9 +626,6 @@ export const ChatRowContent = ({
 										<span style={{ color: "#fc6b83" }}>-{diffStats.removed}</span>
 									</span>
 								) : null}
-								<ArrowDown01Icon
-									className={`opacity-50 group-hover:opacity-100 size-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-								/>
 							</div>
 						</div>
 						{isExpanded && (
@@ -827,9 +824,6 @@ export const ChatRowContent = ({
 										<span style={{ color: "#fc6b83" }}>-{newFileDiffStats.removed}</span>
 									</span>
 								) : null}
-								<ArrowDown01Icon
-									className={`opacity-50 group-hover:opacity-100 size-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-								/>
 							</div>
 						</div>
 						{isExpanded && (
@@ -1344,9 +1338,6 @@ export const ChatRowContent = ({
 										</VSCodeBadge>
 									)}
 								</div>
-								<ArrowDown01Icon
-									className={`size-4 opacity-0 group-hover:opacity-100 transition-all duration-200 ${isExpanded ? "rotate-180" : ""}`}
-								/>
 							</ToolUseBlockHeader>
 							{isExpanded && (slashCommandInfo.args || slashCommandInfo.description) && (
 								<div
