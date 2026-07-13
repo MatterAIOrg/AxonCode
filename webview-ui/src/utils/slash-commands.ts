@@ -47,10 +47,12 @@ export function getSupportedSlashCommands(
 	]
 
 	// Add mode-switching commands dynamically
-	const modeCommands = getAllModes(customModes).map((mode) => ({
-		name: mode.slug,
-		description: `Switch to ${mode.name.replace(/^[💻🏗️❓🪲🪃]+ /, "")} mode`,
-	}))
+	const modeCommands = getAllModes(customModes)
+		.filter((mode) => mode.slug !== "plan" && mode.slug !== "agent" && mode.slug !== "ask")
+		.map((mode) => ({
+			name: mode.slug,
+			description: `Switch to ${mode.name.replace(/^[💻🏗️❓🪲🪃]+ /, "")} mode`,
+		}))
 
 	// add workflow commands
 	const workflowCommands = getWorkflowCommands(localWorkflowToggles, globalWorkflowToggles)
