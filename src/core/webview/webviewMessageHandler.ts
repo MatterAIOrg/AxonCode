@@ -61,6 +61,7 @@ import { Terminal } from "../../integrations/terminal/Terminal"
 import { openFile } from "../../integrations/misc/open-file"
 import { openImage, saveImage } from "../../integrations/misc/image-handler"
 import { selectImages } from "../../integrations/misc/process-images"
+import { selectAttachments } from "../../integrations/misc/process-attachments"
 import { getTheme } from "../../integrations/theme/getTheme"
 import { discoverChromeHostUrl, tryChromeHostUrl } from "../../services/browser/browserDiscovery"
 import { searchWorkspaceFiles } from "../../services/search/file-search"
@@ -1613,6 +1614,21 @@ ${comment.suggestion}
 				messageTs: message.messageTs,
 			})
 			break
+		case "selectAttachments": {
+			const attachments = await selectAttachments()
+			if (attachments.errors.length > 0) {
+				void vscode.window.showWarningMessage(
+					`Some attachments could not be added: ${attachments.errors.join("; ")}`,
+				)
+			}
+			await provider.postMessageToWebview({
+				type: "selectedAttachments",
+				images: attachments.images,
+				documents: attachments.documents,
+				attachmentErrors: attachments.errors,
+			})
+			break
+		}
 		case "exportCurrentTask":
 			const currentTaskId = provider.getCurrentTask()?.taskId
 			if (currentTaskId) {
@@ -5172,6 +5188,16 @@ ${comment.suggestion}
 		case "showMdmAuthRequiredNotification": {
 			// Show notification that organization requires authentication
 			vscode.window.showWarningMessage(t("common:mdm.info.organization_requires_auth"))
+			break
+		}
+		case "showToast": {
+			if (message.toastType && message.toastMessage) {
+				await provider.postMessageToWebview({
+					type: "showToast",
+					toastType: message.toastType,
+					toastMessage: message.toastMessage,
+				})
+			}
 			break
 		}
 

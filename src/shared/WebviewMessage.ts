@@ -78,6 +78,7 @@ export interface WebviewMessage {
 		| "clearTask"
 		| "didShowAnnouncement"
 		| "selectImages"
+		| "selectAttachments"
 		| "exportCurrentTask"
 		| "shareCurrentTask"
 		| "showTaskWithId"

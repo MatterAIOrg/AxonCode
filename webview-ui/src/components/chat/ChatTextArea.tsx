@@ -1,7 +1,7 @@
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 
-import { ExtensionMessage } from "@roo/ExtensionMessage"
+import { DocumentAttachment, ExtensionMessage } from "@roo/ExtensionMessage"
 import { WebviewMessage } from "@roo/WebviewMessage"
 import { mentionRegex, mentionRegexGlobal, unescapeSpaces } from "@roo/context-mentions"
 import { Mode, getAllModes } from "@roo/modes"
@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { renderMentionChip, renderSlashCommandChip } from "@/utils/chat-render"
 import { MessageSquareX, VolumeX } from "lucide-react"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
+import DocumentAttachments from "../common/DocumentAttachments"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
 import { useSelectedModel } from "../ui/hooks/useSelectedModel"
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
@@ -37,7 +38,7 @@ import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
 
 // forked_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
-import { ArrowRight02Icon, ImageAdd02Icon } from "@/utils/customIcons"
+import { ArrowRight02Icon, FileAddIcon } from "@/utils/customIcons"
 import {
 	SlashCommand,
 	getMatchingSlashCommands,
@@ -55,6 +56,8 @@ interface ChatTextAreaProps {
 	selectApiConfigDisabled: boolean
 	selectedImages: ImageAttachment[]
 	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
+	selectedDocuments?: DocumentAttachment[]
+	setSelectedDocuments?: React.Dispatch<React.SetStateAction<DocumentAttachment[]>>
 	onSend: () => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
@@ -80,6 +83,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			// selectApiConfigDisabled,
 			selectedImages,
 			setSelectedImages,
+			selectedDocuments = [],
+			setSelectedDocuments,
 			onSend,
 			onSelectImages,
 			shouldDisableImages,
@@ -236,6 +241,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		// const [isUserInput, setIsUserInput] = useState(false)
 		const isUserInputRef = useRef(false) // Use ref to avoid re-renders
 		const intendedCursorPositionRef = useRef<number | null>(null) // Track intended cursor position for synchronous restoration
+		const lastSelectionRef = useRef<{ start: number; end: number } | null>(null)
 
 		// get the icons base uri on mount
 		useEffect(() => {
@@ -382,6 +388,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			}
 
 			setIsFocused(false)
+			lastSelectionRef.current = null
 		}, [isMouseDownOnMenu])
 
 		const toPlainText = useCallback((node: Node, isLastSibling: boolean): string => {
@@ -448,17 +455,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			return 0
 		}, [])
 
-		const getCaretPosition = useCallback(() => {
-			if (!textAreaRef.current) return 0
-			const selection = window.getSelection()
-			if (!selection || selection.rangeCount === 0) return 0
-
-			const { anchorNode, anchorOffset } = selection
-			if (!anchorNode || !textAreaRef.current.contains(anchorNode)) {
-				return 0
-			}
-
-			const computeOffset = (root: Node, target: Node, offset: number): number => {
+		const computeTextOffset = useCallback(
+			(root: Node, target: Node, offset: number): number => {
 				if (root === target) {
 					// For text nodes, offset is a character offset — return directly.
 					// For element nodes (e.g. the contenteditable div itself, or a <div>/<br>
@@ -479,21 +477,61 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				let total = 0
 				for (const child of Array.from(root.childNodes)) {
 					if (child === target) {
-						return total + computeOffset(child, target, offset)
+						return total + computeTextOffset(child, target, offset)
 					}
 
 					if (child.contains(target)) {
-						return total + computeOffset(child, target, offset)
+						return total + computeTextOffset(child, target, offset)
 					}
 
 					total += getNodeTextLength(child)
 				}
 
 				return total
+			},
+			[getNodeTextLength],
+		)
+
+		const getSelectionOffsets = useCallback((): { start: number; end: number } | null => {
+			if (!textAreaRef.current) return null
+			const selection = window.getSelection()
+			if (!selection || selection.rangeCount === 0) return null
+
+			const { anchorNode, anchorOffset, focusNode, focusOffset } = selection
+			if (
+				!anchorNode ||
+				!focusNode ||
+				!textAreaRef.current.contains(anchorNode) ||
+				!textAreaRef.current.contains(focusNode)
+			) {
+				return null
 			}
 
-			return computeOffset(textAreaRef.current, anchorNode, anchorOffset)
-		}, [getNodeTextLength])
+			const anchor = computeTextOffset(textAreaRef.current, anchorNode, anchorOffset)
+			const focus = computeTextOffset(textAreaRef.current, focusNode, focusOffset)
+
+			return { start: Math.min(anchor, focus), end: Math.max(anchor, focus) }
+		}, [computeTextOffset])
+
+		useEffect(() => {
+			const rememberSelection = () => {
+				const selection = getSelectionOffsets()
+				if (selection) {
+					lastSelectionRef.current = selection
+				}
+			}
+
+			document.addEventListener("selectionchange", rememberSelection)
+			return () => document.removeEventListener("selectionchange", rememberSelection)
+		}, [getSelectionOffsets])
+
+		const getCaretPosition = useCallback(() => {
+			if (!textAreaRef.current) return 0
+			const selection = window.getSelection()
+			if (!selection || !selection.focusNode || !textAreaRef.current.contains(selection.focusNode)) return 0
+
+			return computeTextOffset(textAreaRef.current, selection.focusNode, selection.focusOffset)
+		}, [computeTextOffset])
 
 		const getCurrentInputSnapshot = useCallback(() => {
 			return {
@@ -584,7 +622,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				// Use actual DOM caret position and text content (React state may be stale
 				// after Shift+Enter inserts a newline — inputValue won't re-render until next
 				// cycle, but the DOM is already updated)
-				const actualCursorPosition = getCaretPosition()
+				const selection = getSelectionOffsets()
+				const selectionStart = selection?.start ?? getCaretPosition()
+				const selectionEnd = selection?.end ?? selectionStart
 				const currentValue = getPlainTextFromInput()
 
 				// Check if the pasted content is a URL, add space after so user
@@ -594,12 +634,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					e.preventDefault()
 					const trimmedUrl = pastedText.trim()
 					const newValue =
-						currentValue.slice(0, actualCursorPosition) +
-						trimmedUrl +
-						" " +
-						currentValue.slice(actualCursorPosition)
+						currentValue.slice(0, selectionStart) + trimmedUrl + " " + currentValue.slice(selectionEnd)
 					setInputValue(newValue)
-					const newCursorPosition = actualCursorPosition + trimmedUrl.length + 1
+					const newCursorPosition = selectionStart + trimmedUrl.length + 1
 					setCursorPosition(newCursorPosition)
 					intendedCursorPositionRef.current = newCursorPosition
 					setShowContextMenu(false)
@@ -615,10 +652,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					const plainText = pastedText
 
 					const newValue =
-						currentValue.slice(0, actualCursorPosition) +
-						plainText +
-						currentValue.slice(actualCursorPosition)
-					const newCursorPosition = actualCursorPosition + plainText.length
+						currentValue.slice(0, selectionStart) + plainText + currentValue.slice(selectionEnd)
+					const newCursorPosition = selectionStart + plainText.length
 
 					setInputValue(newValue)
 					setCursorPosition(newCursorPosition)
@@ -698,6 +733,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				selectedImages.length, // kilocode_change - added selectedImages.length
 				showImageWarning, // kilocode_change - added showImageWarning
 				getCaretPosition,
+				getSelectionOffsets,
 				getPlainTextFromInput,
 			],
 		)
@@ -763,92 +799,64 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			[customModes, renderMentionChipLocal, localWorkflows, globalWorkflows, materialIconsBaseUri],
 		)
 
-		const setCaretPosition = useCallback(
-			(position: number) => {
-				const el = textAreaRef.current
-				if (!el) return
+		const setSelectionOffsets = useCallback((start: number, end: number = start) => {
+			const el = textAreaRef.current
+			if (!el) return
 
-				let remaining = position
+			const locatePoint = (position: number): { node: Node; offset: number } => {
+				let remaining = Math.max(0, position)
 
-				const createRangeAt = (node: Node, offset: number): Range => {
-					const range = document.createRange()
-					range.setStart(node, offset)
-					range.collapse(true)
-					return range
-				}
-
-				const walk = (node: Node): Range | null => {
+				const walk = (node: Node): { node: Node; offset: number } | null => {
 					if (node.nodeType === Node.TEXT_NODE) {
-						const textLength = node.textContent?.length || 0
-						const pos = Math.min(remaining, textLength)
-						remaining -= pos
-						return createRangeAt(node, pos)
+						const length = node.textContent?.length || 0
+						if (remaining <= length) return { node, offset: remaining }
+						remaining -= length
+						return null
 					}
 
-					if (node.nodeType === Node.ELEMENT_NODE) {
-						const elNode = node as HTMLElement
+					if (node.nodeType !== Node.ELEMENT_NODE) return null
+					const element = node as HTMLElement
+					const atomicLength = element.dataset?.mentionValue?.length ?? element.dataset?.commandValue?.length
 
-						if (elNode.dataset?.mentionValue) {
-							const parent = elNode.parentNode
-							if (!parent) return null
-							const siblings = Array.from(parent.childNodes)
-							const index = siblings.indexOf(elNode)
-							const targetIndex = remaining === 0 ? index : index + 1
-							remaining = Math.max(remaining - elNode.dataset.mentionValue.length, 0)
-							return createRangeAt(parent, targetIndex)
+					if (atomicLength !== undefined || element.tagName === "BR") {
+						const length = atomicLength ?? 1
+						const parent = element.parentNode
+						if (!parent) return null
+						const index = Array.from(parent.childNodes).indexOf(element)
+						if (remaining === 0) return { node: parent, offset: index }
+						if (remaining <= length) {
+							remaining = 0
+							return { node: parent, offset: index + 1 }
 						}
+						remaining -= length
+						return null
+					}
 
-						if (elNode.dataset?.commandValue) {
-							const parent = elNode.parentNode
-							if (!parent) return null
-							const siblings = Array.from(parent.childNodes)
-							const index = siblings.indexOf(elNode)
-							const targetIndex = remaining === 0 ? index : index + 1
-							remaining = Math.max(remaining - elNode.dataset.commandValue.length, 0)
-							return createRangeAt(parent, targetIndex)
-						}
-
-						if (elNode.tagName === "BR") {
-							const parent = elNode.parentNode
-							if (!parent) return null
-							const siblings = Array.from(parent.childNodes)
-							const index = siblings.indexOf(elNode)
-
-							if (remaining === 0) {
-								return createRangeAt(parent, index)
-							} else if (remaining === 1) {
-								return createRangeAt(parent, index + 1)
-							} else {
-								remaining -= 1
-								return null // Continue to next sibling
-							}
-						}
-
-						for (const child of Array.from(elNode.childNodes)) {
-							const childLength = getNodeTextLength(child)
-							if (remaining <= childLength) {
-								const result = walk(child)
-								if (result) return result
-								// If walk returns null, continue to next child
-							} else {
-								remaining -= childLength
-							}
-						}
+					for (const child of Array.from(element.childNodes)) {
+						const point = walk(child)
+						if (point) return point
 					}
 
 					return null
 				}
 
-				const range = walk(el)
-				if (!range) return
+				return walk(el) ?? { node: el, offset: el.childNodes.length }
+			}
 
-				const selection = window.getSelection()
-				if (!selection) return
-				selection.removeAllRanges()
-				selection.addRange(range)
-			},
-			[getNodeTextLength],
-		)
+			const startPoint = locatePoint(start)
+			const endPoint = locatePoint(end)
+			const range = document.createRange()
+			range.setStart(startPoint.node, startPoint.offset)
+			range.setEnd(endPoint.node, endPoint.offset)
+
+			const selection = window.getSelection()
+			if (!selection) return
+			selection.removeAllRanges()
+			selection.addRange(range)
+			lastSelectionRef.current = { start, end }
+		}, [])
+
+		const setCaretPosition = useCallback((position: number) => setSelectionOffsets(position), [setSelectionOffsets])
 
 		useLayoutEffect(() => {
 			if (!textAreaRef.current) return
@@ -858,23 +866,59 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			if (isUserInputRef.current) {
 				// Reset the flag after checking it
 				isUserInputRef.current = false
+				// The browser already owns the correct selection for native input. Do not
+				// leave this position queued for an unrelated future DOM rebuild.
+				intendedCursorPositionRef.current = null
 				return // Skip innerHTML update to preserve selection
 			}
+
+			const previousSelection = lastSelectionRef.current
+			const liveSelection = getSelectionOffsets()
+			if (liveSelection && liveSelection.start !== liveSelection.end) {
+				// A live range is authoritative while the user is dragging or extending a
+				// selection. Never replace it with an older caret snapshot.
+				lastSelectionRef.current = liveSelection
+			}
+			const intendedCursorPosition = intendedCursorPositionRef.current
+			intendedCursorPositionRef.current = null
 
 			const html = valueToHtml(inputValue)
 			if (textAreaRef.current.innerHTML !== html) {
 				textAreaRef.current.innerHTML = html
-				// Restore cursor position synchronously after innerHTML update
-				if (intendedCursorPositionRef.current !== null) {
-					setCaretPosition(intendedCursorPositionRef.current)
-					intendedCursorPositionRef.current = null
+			}
+
+			// A parent render can reset a contenteditable selection even when its HTML
+			// did not change. Restore after every commit, using the last browser
+			// selectionchange snapshot rather than reading the already-reset selection.
+			const targetSelection =
+				intendedCursorPosition !== null
+					? { start: intendedCursorPosition, end: intendedCursorPosition }
+					: liveSelection && liveSelection.start !== liveSelection.end
+						? liveSelection
+						: previousSelection
+			if (targetSelection) {
+				const currentSelection = getSelectionOffsets()
+				if (
+					!currentSelection ||
+					currentSelection.start !== targetSelection.start ||
+					currentSelection.end !== targetSelection.end
+				) {
+					setSelectionOffsets(targetSelection.start, targetSelection.end)
 				}
 			}
-		}, [inputValue, valueToHtml, setCaretPosition])
+		})
 
 		const updateCursorPosition = useCallback(() => {
-			setCursorPosition(getCaretPosition())
-		}, [getCaretPosition])
+			const selection = getSelectionOffsets()
+			if (selection) {
+				lastSelectionRef.current = selection
+				// Updating React state while a drag/Shift selection is in progress causes
+				// another editor commit, which can collapse the native range.
+				if (selection.start === selection.end) {
+					setCursorPosition(selection.end)
+				}
+			}
+		}, [getSelectionOffsets])
 
 		const handleKeyUp = useCallback(
 			(e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -1102,6 +1146,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			const newCursorPosition = getCaretPosition()
 			setCursorPosition(newCursorPosition)
 			intendedCursorPositionRef.current = newCursorPosition
+			lastSelectionRef.current = { start: newCursorPosition, end: newCursorPosition }
 
 			let showMenu = shouldShowContextMenu(newValue, newCursorPosition)
 			const slashMenuVisible = shouldShowSlashCommandsMenu(newValue, newCursorPosition)
@@ -1396,6 +1441,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		})
 
 		const placeholderBottomText = `${t("chat:addContext")}${shouldDisableImages ? `, ${t("chat:dragFiles")}` : `, ${t("chat:dragFilesImages")}`}`
+		const attachmentButtonLabel = isEditMode ? t("chat:addImages") : t("chat:addAttachments")
+		const shouldDisableAttachmentButton = isEditMode && shouldDisableImages
 
 		// Common mode selector handler
 		// const handleModeChange = useCallback(
@@ -1663,12 +1710,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
 							</div>
 						)}
-						<StandardTooltip content={t("chat:addImages")}>
+						<StandardTooltip content={attachmentButtonLabel}>
 							<button
-								aria-label={t("chat:addImages")}
-								disabled={shouldDisableImages}
+								aria-label={attachmentButtonLabel}
+								disabled={shouldDisableAttachmentButton}
 								onClick={() => {
-									if (shouldDisableImages) return
+									if (shouldDisableAttachmentButton) return
 									onSelectImages()
 								}}
 								className={cn(
@@ -1679,11 +1726,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"transition-all duration-150",
 									"focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
-									!shouldDisableImages && "cursor-pointer",
-									shouldDisableImages &&
-										"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
+									!shouldDisableAttachmentButton && "cursor-pointer",
+									shouldDisableAttachmentButton && "opacity-40 cursor-not-allowed",
 								)}>
-								<ImageAdd02Icon className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
+								<FileAddIcon className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
 							</button>
 						</StandardTooltip>
 						{isEditMode && (
@@ -1922,6 +1968,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						}}
 					/>
 				)}
+				<DocumentAttachments documents={selectedDocuments} setDocuments={setSelectedDocuments} />
 			</div>
 		)
 	},

@@ -28,7 +28,7 @@ interface CodeReviewComment {
 import { findLast } from "@roo/array"
 import { combineApiRequests } from "@roo/combineApiRequests"
 import { combineCommandSequences } from "@roo/combineCommandSequences"
-import { ClineApiReqInfo, ClineSayBrowserAction, ClineSayTool } from "@roo/ExtensionMessage"
+import { ClineApiReqInfo, ClineSayBrowserAction, ClineSayTool, DocumentAttachment } from "@roo/ExtensionMessage"
 import { getApiMetrics } from "@roo/getApiMetrics"
 import { McpServer, McpTool } from "@roo/mcp"
 import { ProfileValidator } from "@roo/ProfileValidator"
@@ -61,6 +61,7 @@ import Announcement from "./Announcement"
 import BrowserSessionRow from "./BrowserSessionRow"
 import ChatRow from "./ChatRow"
 import { ChatTextArea } from "./ChatTextArea"
+import { formatMessageWithDocuments } from "../common/DocumentAttachments"
 import ExplorationGroupRow, {
 	ExplorationGroup,
 	isExplorationRelatedMessage,
@@ -120,6 +121,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	ref,
 ) => {
 	const isMountedRef = useRef(true)
+	const [selectedDocuments, setSelectedDocuments] = useState<DocumentAttachment[]>([])
 
 	const [audioBaseUri] = useState(() => {
 		const w = window as any
@@ -764,6 +766,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		setInputValue("")
 		setSendingDisabled(true)
 		setSelectedImages([])
+		setSelectedDocuments([])
 		setClineAsk(undefined)
 		setEnableButtons(false)
 		// Do not reset mode here as it should persist.
@@ -779,7 +782,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	 */
 	const handleSendMessage = useCallback(
 		(text: string, images: ImageAttachment[]) => {
-			text = text.trim()
+			text = formatMessageWithDocuments(text, selectedDocuments)
 			const imageDataUrls = images.map((img) => img.dataUrl)
 			if (text || imageDataUrls.length > 0) {
 				if (sendingDisabled || isStreaming) {
@@ -787,6 +790,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						vscode.postMessage({ type: "queueMessage", text, images: imageDataUrls })
 						setInputValue("")
 						setSelectedImages([])
+						setSelectedDocuments([])
 					} catch (error) {
 						console.error(
 							`Failed to queue message: ${error instanceof Error ? error.message : String(error)}`,
@@ -849,7 +853,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				handleChatReset()
 			}
 		},
-		[handleChatReset, markFollowUpAsAnswered, sendingDisabled, isStreaming, setInputValue, setSelectedImages], // messagesRef and clineAskRef are stable
+		[
+			handleChatReset,
+			markFollowUpAsAnswered,
+			sendingDisabled,
+			isStreaming,
+			setInputValue,
+			setSelectedImages,
+			selectedDocuments,
+		], // messagesRef and clineAskRef are stable
 	)
 
 	const handleSetChatBoxMessage = useCallback(
@@ -882,7 +894,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			// Mark that user has responded
 			userRespondedRef.current = true
 
-			const trimmedInput = text?.trim()
+			const trimmedInput = formatMessageWithDocuments(text ?? "", selectedDocuments)
 
 			switch (clineAsk) {
 				case "api_req_failed":
@@ -904,6 +916,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						// Clear input state after sending
 						setInputValue("")
 						setSelectedImages([])
+						setSelectedDocuments([])
 					} else {
 						vscode.postMessage({ type: "askResponse", askResponse: "yesButtonClicked" })
 					}
@@ -930,7 +943,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, lastMessage?.text, setInputValue, setSelectedImages], // kilocode_change: add lastMessage?.text
+		[clineAsk, startNewTask, lastMessage?.text, setInputValue, setSelectedImages, selectedDocuments], // kilocode_change: add lastMessage?.text
 	)
 
 	const handleSecondaryButtonClick = useCallback(
@@ -938,7 +951,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			// Mark that user has responded
 			userRespondedRef.current = true
 
-			const trimmedInput = text?.trim()
+			const trimmedInput = formatMessageWithDocuments(text ?? "", selectedDocuments)
 
 			if (isStreaming) {
 				vscode.postMessage({ type: "cancelTask" })
@@ -969,6 +982,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						// Clear input state after sending
 						setInputValue("")
 						setSelectedImages([])
+						setSelectedDocuments([])
 					} else {
 						// Responds to the API with a "This operation failed" and lets it try again
 						vscode.postMessage({ type: "askResponse", askResponse: "noButtonClicked" })
@@ -994,7 +1008,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, isStreaming, setInputValue, setSelectedImages],
+		[clineAsk, startNewTask, isStreaming, setInputValue, setSelectedImages, selectedDocuments],
 	)
 
 	// kilocode_change: handle "Run Everything" click - auto-approve all commands for current task
@@ -1009,7 +1023,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const { info: model } = useSelectedModel(apiConfiguration)
 
-	const selectImages = useCallback(() => vscode.postMessage({ type: "selectImages" }), [])
+	const selectAttachments = useCallback(() => vscode.postMessage({ type: "selectAttachments" }), [])
 
 	const shouldDisableImages = !model?.supportsImages || selectedImages.length >= MAX_IMAGES_PER_MESSAGE
 
@@ -1093,6 +1107,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							appendImages(prevImages, normalizeImages(message.images), MAX_IMAGES_PER_MESSAGE),
 						)
 					}
+					break
+				case "selectedAttachments":
+					if (model?.supportsImages) {
+						setSelectedImages((prevImages: ImageAttachment[]) =>
+							appendImages(prevImages, normalizeImages(message.images), MAX_IMAGES_PER_MESSAGE),
+						)
+					} else if (message.images?.length) {
+						vscode.postMessage({
+							type: "showToast",
+							toastType: "warning",
+							toastMessage: t("kilocode:imageWarnings.modelNoImageSupport"),
+						})
+					}
+					setSelectedDocuments((currentDocuments) => {
+						const nextDocuments = [...currentDocuments]
+						let characterCount = currentDocuments.reduce(
+							(total, document) => total + document.text.length,
+							0,
+						)
+						for (const document of (message.documents ?? []) as DocumentAttachment[]) {
+							if (nextDocuments.length >= 10 || characterCount + document.text.length > 500_000) {
+								break
+							}
+							nextDocuments.push(document)
+							characterCount += document.text.length
+						}
+						return nextDocuments
+					})
 					break
 				case "invoke":
 					switch (message.invoke!) {
@@ -1183,6 +1225,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
 			setSelectedImages,
+			model?.supportsImages,
+			t,
 		],
 	)
 
@@ -2472,7 +2516,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		acceptInput: () => {
 			if (enableButtons && primaryButtonText) {
 				handlePrimaryButtonClick(inputValue, selectedImages)
-			} else if (!sendingDisabled && !isProfileDisabled && (inputValue.trim() || selectedImages.length > 0)) {
+			} else if (
+				!sendingDisabled &&
+				!isProfileDisabled &&
+				(inputValue.trim() || selectedImages.length > 0 || selectedDocuments.length > 0)
+			) {
 				handleSendMessage(inputValue, selectedImages)
 			}
 		},
@@ -2536,8 +2584,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
 									selectedImages={selectedImages}
 									setSelectedImages={setSelectedImages}
+									selectedDocuments={selectedDocuments}
+									setSelectedDocuments={setSelectedDocuments}
 									onSend={() => handleSendMessage(inputValue, selectedImages)}
-									onSelectImages={selectImages}
+									onSelectImages={selectAttachments}
 									shouldDisableImages={shouldDisableImages}
 									onHeightChange={() => {
 										if (isAtBottom) {
@@ -2999,8 +3049,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
 								selectedImages={selectedImages}
 								setSelectedImages={setSelectedImages}
+								selectedDocuments={selectedDocuments}
+								setSelectedDocuments={setSelectedDocuments}
 								onSend={() => handleSendMessage(inputValue, selectedImages)}
-								onSelectImages={selectImages}
+								onSelectImages={selectAttachments}
 								shouldDisableImages={shouldDisableImages}
 								onHeightChange={() => {
 									if (isAtBottom) {

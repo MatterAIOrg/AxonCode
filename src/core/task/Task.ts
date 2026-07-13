@@ -372,6 +372,15 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	readonly apiConfiguration: ProviderSettings
 	api: ApiHandler
 	private static lastGlobalApiRequestTime?: number
+	// Serializes the complete lifetime of provider streams for this task. A task can
+	// be entered through more than one async path, so `isStreaming` alone is not an
+	// atomic concurrency guard.
+	private apiRequestLock: Promise<void> = Promise.resolve()
+	// Covers the full agent turn, including context preparation, tool execution,
+	// and every provider request it produces. This prevents queue draining in the
+	// brief `isStreaming === false` gaps between requests in the same turn.
+	private taskRequestLock: Promise<void> = Promise.resolve()
+	private taskRequestCount = 0
 	private autoApprovalHandler: AutoApprovalHandler
 
 	/**
@@ -1358,7 +1367,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			return
 		}
 
-		if (this.isStreaming || this.isWaitingForAskResponse) {
+		if (this.taskRequestCount > 0 || this.isStreaming || this.isWaitingForAskResponse) {
 			return
 		}
 
@@ -1366,7 +1375,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		try {
 			while (!this.messageQueueService.isEmpty()) {
-				if (this.isStreaming || this.isWaitingForAskResponse) {
+				if (this.taskRequestCount > 0 || this.isStreaming || this.isWaitingForAskResponse) {
 					break
 				}
 
@@ -1384,7 +1393,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this.isProcessingManualMessages = false
 		}
 
-		if (!this.isStreaming && !this.isWaitingForAskResponse && !this.messageQueueService.isEmpty()) {
+		if (
+			this.taskRequestCount === 0 &&
+			!this.isStreaming &&
+			!this.isWaitingForAskResponse &&
+			!this.messageQueueService.isEmpty()
+		) {
 			void this.processManualMessageQueue()
 		}
 	}
@@ -2241,7 +2255,37 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 	}
 
+	private async acquireTaskRequestLock(): Promise<() => void> {
+		const previousRequest = this.taskRequestLock
+		let releaseLock!: () => void
+
+		this.taskRequestLock = new Promise<void>((resolve) => {
+			releaseLock = resolve
+		})
+
+		await previousRequest
+		return releaseLock
+	}
+
 	public async recursivelyMakeClineRequests(
+		userContent: Anthropic.Messages.ContentBlockParam[],
+		includeFileDetails: boolean = false,
+	): Promise<boolean> {
+		this.taskRequestCount++
+		const releaseLock = await this.acquireTaskRequestLock()
+
+		try {
+			return await this.makeClineRequestsUnlocked(userContent, includeFileDetails)
+		} finally {
+			this.taskRequestCount--
+			releaseLock()
+			if (this.taskRequestCount === 0 && !this.messageQueueService.isEmpty()) {
+				void this.processManualMessageQueue()
+			}
+		}
+	}
+
+	private async makeClineRequestsUnlocked(
 		userContent: Anthropic.Messages.ContentBlockParam[],
 		includeFileDetails: boolean = false,
 	): Promise<boolean> {
@@ -3715,7 +3759,29 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		return false
 	}
 
+	private async acquireApiRequestLock(): Promise<() => void> {
+		const previousRequest = this.apiRequestLock
+		let releaseLock!: () => void
+
+		this.apiRequestLock = new Promise<void>((resolve) => {
+			releaseLock = resolve
+		})
+
+		await previousRequest
+		return releaseLock
+	}
+
 	public async *attemptApiRequest(retryAttempt: number = 0): ApiStream {
+		const releaseLock = await this.acquireApiRequestLock()
+
+		try {
+			yield* this.attemptApiRequestUnlocked(retryAttempt)
+		} finally {
+			releaseLock()
+		}
+	}
+
+	private async *attemptApiRequestUnlocked(retryAttempt: number = 0): ApiStream {
 		const state = await this.providerRef.deref()?.getState()
 
 		const {
@@ -4023,7 +4089,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						))
 
 				if (response === "retry_clicked") {
-					yield* this.attemptApiRequest(retryAttempt + 1)
+					yield* this.attemptApiRequestUnlocked(retryAttempt + 1)
 				} else {
 					// Handle other responses or cancellations if necessary
 					// If the user cancels the dialog, we should probably abort.
@@ -4041,7 +4107,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// nothing has streamed yet and the retry is clean.
 			if (isConnectionClosedError(error) && retryAttempt < MAX_CONNECTION_RETRIES) {
 				await this.backoffBeforeConnectionRetry(error, retryAttempt)
-				yield* this.attemptApiRequest(retryAttempt + 1)
+				yield* this.attemptApiRequestUnlocked(retryAttempt + 1)
 				return
 			}
 
@@ -4098,7 +4164,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 				// Delegate generator output from the recursive call with
 				// incremented retry count.
-				yield* this.attemptApiRequest(retryAttempt + 1)
+				yield* this.attemptApiRequestUnlocked(retryAttempt + 1)
 
 				return
 			} else {
@@ -4113,7 +4179,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				await this.say("api_req_retried")
 
 				// Delegate generator output from the recursive call.
-				yield* this.attemptApiRequest()
+				yield* this.attemptApiRequestUnlocked()
 				return
 			}
 		}
@@ -4162,7 +4228,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						))
 
 				if (response === "retry_clicked") {
-					yield* this.attemptApiRequest(retryAttempt + 1)
+					yield* this.attemptApiRequestUnlocked(retryAttempt + 1)
 				} else {
 					// Handle other responses or cancellations if necessary
 					throw error // Rethrow to signal failure upwards
@@ -4186,7 +4252,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			) {
 				yield { type: "stream_restart" }
 				await this.backoffBeforeConnectionRetry(error, retryAttempt)
-				yield* this.attemptApiRequest(retryAttempt + 1)
+				yield* this.attemptApiRequestUnlocked(retryAttempt + 1)
 				return
 			}
 
@@ -4206,7 +4272,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			await this.say("api_req_retried")
 
 			// Delegate generator output from the recursive call.
-			yield* this.attemptApiRequest()
+			yield* this.attemptApiRequestUnlocked()
 			return
 		}
 	}

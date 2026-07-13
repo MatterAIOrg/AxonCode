@@ -42,6 +42,13 @@ export interface ImageAttachment {
 	name: string
 }
 
+// Text extracted from a user-selected document in the extension host.
+export interface DocumentAttachment {
+	name: string
+	text: string
+	truncated?: boolean
+}
+
 // Helper to extract dataUrls from ImageAttachment array or string array
 export function extractDataUrls(images: ImageAttachment[] | string[] | undefined): string[] {
 	if (!images) return []
@@ -104,6 +111,7 @@ export interface ExtensionMessage {
 		| "action"
 		| "state"
 		| "selectedImages"
+		| "selectedAttachments"
 		| "theme"
 		| "workspaceUpdated"
 		| "invoke"
@@ -223,6 +231,8 @@ export interface ExtensionMessage {
 	invoke?: "newChat" | "sendMessage" | "primaryButtonClick" | "secondaryButtonClick" | "setChatBoxMessage"
 	state?: ExtensionState
 	images?: ImageAttachment[]
+	documents?: DocumentAttachment[]
+	attachmentErrors?: string[]
 	filePaths?: string[]
 	openedTabs?: Array<{
 		label: string
