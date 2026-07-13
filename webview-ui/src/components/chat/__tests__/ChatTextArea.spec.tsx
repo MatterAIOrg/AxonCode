@@ -244,6 +244,73 @@ describe("ChatTextArea", () => {
 		})
 	})
 
+	describe("contenteditable selection", () => {
+		it("preserves the caret when an unrelated render rebuilds the editor DOM", () => {
+			const { rerender } = render(<ChatTextArea {...defaultProps} inputValue="hello world" />)
+			const input = screen.getByTestId("chat-input")
+
+			// Simulate browser-normalized markup that is textually equivalent but does
+			// not match valueToHtml's serialization, forcing the layout effect to sync it.
+			input.innerHTML = "<span>hello world</span>"
+			input.focus()
+			const textNode = input.querySelector("span")!.firstChild!
+			const range = document.createRange()
+			range.setStart(textNode, 5)
+			range.collapse(true)
+			window.getSelection()?.removeAllRanges()
+			window.getSelection()?.addRange(range)
+			document.dispatchEvent(new Event("selectionchange"))
+			;(useExtensionState as ReturnType<typeof vi.fn>).mockReturnValue({
+				filePaths: [],
+				apiConfiguration: { apiProvider: "anthropic" },
+				customModes: [],
+				localWorkflows: [],
+				globalWorkflows: [],
+				clineMessages: [{ type: "say", say: "text", text: "stream update", ts: Date.now() }],
+				cwd: "/test/workspace",
+			})
+			rerender(<ChatTextArea {...defaultProps} inputValue="hello world" />)
+
+			const selection = window.getSelection()!
+			expect(selection.focusNode?.textContent).toBe("hello world")
+			expect(selection.focusOffset).toBe(5)
+		})
+
+		it("replaces selected text when pasting", () => {
+			const setInputValue = vi.fn()
+			const { rerender } = render(
+				<ChatTextArea {...defaultProps} inputValue="hello world" setInputValue={setInputValue} />,
+			)
+			const input = screen.getByTestId("chat-input")
+			const textNode = input.firstChild!
+			const range = document.createRange()
+			range.setStart(textNode, 6)
+			range.collapse(true)
+			window.getSelection()?.removeAllRanges()
+			window.getSelection()?.addRange(range)
+			document.dispatchEvent(new Event("selectionchange"))
+
+			// The browser can paint the expanded range before selectionchange updates
+			// React-side snapshots. A streaming render must respect the live range.
+			range.setEnd(textNode, 11)
+			window.getSelection()?.removeAllRanges()
+			window.getSelection()?.addRange(range)
+
+			// Streaming/task updates can rerender the composer between selecting and pasting.
+			rerender(<ChatTextArea {...defaultProps} inputValue="hello world" setInputValue={setInputValue} />)
+			expect(window.getSelection()?.toString()).toBe("world")
+
+			fireEvent.paste(input, {
+				clipboardData: {
+					items: [],
+					getData: (type: string) => (type === "text" ? "there" : ""),
+				},
+			})
+
+			expect(setInputValue).toHaveBeenCalledWith("hello there")
+		})
+	})
+
 	describe("enhanced prompt response", () => {
 		it("should update input value using native browser methods when receiving enhanced prompt", () => {
 			const setInputValue = vi.fn()
