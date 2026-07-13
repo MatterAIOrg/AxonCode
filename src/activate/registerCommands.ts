@@ -130,7 +130,14 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 
 		visibleProvider.postMessageToWebview({ type: "action", action: "promptsButtonClicked" })
 	},
-	openInNewTab: () => openClineInNewTab({ context, outputChannel }),
+	openInNewTab: async () => {
+		try {
+			await vscode.commands.executeCommand("workbench.action.toggleAuxiliaryBar")
+			await vscode.commands.executeCommand("axon-code.SidebarProvider.focus")
+		} catch (error) {
+			outputChannel.appendLine(`Error opening Orbital sidebar: ${error}`)
+		}
+	},
 	settingsButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
 
