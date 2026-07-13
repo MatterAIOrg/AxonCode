@@ -1,7 +1,7 @@
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 
-import { ExtensionMessage } from "@roo/ExtensionMessage"
+import { DocumentAttachment, ExtensionMessage } from "@roo/ExtensionMessage"
 import { WebviewMessage } from "@roo/WebviewMessage"
 import { mentionRegex, mentionRegexGlobal, unescapeSpaces } from "@roo/context-mentions"
 import { Mode, getAllModes } from "@roo/modes"
@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { renderMentionChip, renderSlashCommandChip } from "@/utils/chat-render"
 import { MessageSquareX, VolumeX } from "lucide-react"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
+import DocumentAttachments from "../common/DocumentAttachments"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
 import { useSelectedModel } from "../ui/hooks/useSelectedModel"
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
@@ -37,7 +38,7 @@ import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
 
 // forked_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
-import { ArrowRight02Icon, ImageAdd02Icon } from "@/utils/customIcons"
+import { ArrowRight02Icon, FileAddIcon } from "@/utils/customIcons"
 import {
 	SlashCommand,
 	getMatchingSlashCommands,
@@ -55,6 +56,8 @@ interface ChatTextAreaProps {
 	selectApiConfigDisabled: boolean
 	selectedImages: ImageAttachment[]
 	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
+	selectedDocuments?: DocumentAttachment[]
+	setSelectedDocuments?: React.Dispatch<React.SetStateAction<DocumentAttachment[]>>
 	onSend: () => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
@@ -80,6 +83,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			// selectApiConfigDisabled,
 			selectedImages,
 			setSelectedImages,
+			selectedDocuments = [],
+			setSelectedDocuments,
 			onSend,
 			onSelectImages,
 			shouldDisableImages,
@@ -1436,6 +1441,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		})
 
 		const placeholderBottomText = `${t("chat:addContext")}${shouldDisableImages ? `, ${t("chat:dragFiles")}` : `, ${t("chat:dragFilesImages")}`}`
+		const attachmentButtonLabel = isEditMode ? t("chat:addImages") : t("chat:addAttachments")
+		const shouldDisableAttachmentButton = isEditMode && shouldDisableImages
 
 		// Common mode selector handler
 		// const handleModeChange = useCallback(
@@ -1703,12 +1710,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
 							</div>
 						)}
-						<StandardTooltip content={t("chat:addImages")}>
+						<StandardTooltip content={attachmentButtonLabel}>
 							<button
-								aria-label={t("chat:addImages")}
-								disabled={shouldDisableImages}
+								aria-label={attachmentButtonLabel}
+								disabled={shouldDisableAttachmentButton}
 								onClick={() => {
-									if (shouldDisableImages) return
+									if (shouldDisableAttachmentButton) return
 									onSelectImages()
 								}}
 								className={cn(
@@ -1719,11 +1726,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									"transition-all duration-150",
 									"focus-visible:ring-1 focus-visible:ring-white/50",
 									"active:bg-[rgba(255,255,255,0.1)]",
-									!shouldDisableImages && "cursor-pointer",
-									shouldDisableImages &&
-										"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
+									!shouldDisableAttachmentButton && "cursor-pointer",
+									shouldDisableAttachmentButton && "opacity-40 cursor-not-allowed",
 								)}>
-								<ImageAdd02Icon className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
+								<FileAddIcon className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
 							</button>
 						</StandardTooltip>
 						{isEditMode && (
@@ -1962,6 +1968,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						}}
 					/>
 				)}
+				<DocumentAttachments documents={selectedDocuments} setDocuments={setSelectedDocuments} />
 			</div>
 		)
 	},
