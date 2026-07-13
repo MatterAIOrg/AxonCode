@@ -1300,6 +1300,39 @@ describe("Cline", () => {
 				expect(mockDelay).not.toHaveBeenCalled()
 			})
 
+			it("serializes concurrent API streams for the same task", async () => {
+				mockApiConfig.rateLimitSeconds = 0
+				const task = new Task({
+					provider: mockProvider,
+					apiConfiguration: mockApiConfig,
+					task: "test task",
+					startTask: false,
+					context: mockExtensionContext,
+				})
+
+				const createMessageSpy = vi.spyOn(task.api, "createMessage").mockImplementation(() => {
+					return (async function* () {
+						yield { type: "text", text: "response" } as ApiStreamChunk
+					})()
+				})
+
+				const firstIterator = task.attemptApiRequest(0)
+				await firstIterator.next()
+
+				const secondIterator = task.attemptApiRequest(0)
+				const secondNext = secondIterator.next()
+				await Promise.resolve()
+				await Promise.resolve()
+
+				// The first generator still owns its stream, so the second request must wait.
+				expect(createMessageSpy).toHaveBeenCalledTimes(1)
+
+				await firstIterator.next()
+				await secondNext
+				expect(createMessageSpy).toHaveBeenCalledTimes(2)
+				await secondIterator.next()
+			})
+
 			it("should update global timestamp even when no rate limiting is needed", async () => {
 				// Create task
 				const task = new Task({
@@ -1949,6 +1982,29 @@ describe("Cline", () => {
 			expect(task.messageQueueService.messages).toHaveLength(1)
 			expect(task.messageQueueService.messages[0].text).toBe("hello while busy")
 			expect(sendSpy).not.toHaveBeenCalled()
+		})
+
+		it("does not drain the queue between API calls in the same agent turn", async () => {
+			const task = makeTask()
+			const sendSpy = vi.spyOn(task as any, "handleManualUserMessage").mockResolvedValue(undefined)
+
+			// A provider stream has ended, but the surrounding agent turn is still
+			// processing tool results and may start its next request.
+			task.isStreaming = false
+			;(task as any).taskRequestCount = 1
+			task.messageQueueService.addMessage("wait for the turn")
+
+			task.processQueuedMessages()
+			await flush()
+
+			expect(task.messageQueueService.messages).toHaveLength(1)
+			expect(sendSpy).not.toHaveBeenCalled()
+			;(task as any).taskRequestCount = 0
+			task.processQueuedMessages()
+			await flush()
+
+			expect(sendSpy).toHaveBeenCalledTimes(1)
+			expect(task.messageQueueService.isEmpty()).toBe(true)
 		})
 
 		it("sends and removes the queued message once the stream ends", async () => {
