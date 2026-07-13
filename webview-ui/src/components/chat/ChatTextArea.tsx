@@ -159,6 +159,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		// Wrapper for onSend that expands mentions first
 		const handleSend = useCallback(() => {
+			if (inputValue.trim().startsWith("/resume")) {
+				vscode.postMessage({ type: "switchTab", tab: "history" })
+				setInputValue("")
+				return
+			}
+
 			const expandedValue = expandMentions(inputValue)
 			if (expandedValue !== inputValue) {
 				setInputValue(expandedValue)
@@ -337,6 +343,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				// insert as before.
 				const modeSwitchCommands = getAllModes(customModes).map((mode) => mode.slug)
 				if (modeSwitchCommands.includes(command.name)) {
+					return
+				}
+
+				if (command.name === "resume") {
+					vscode.postMessage({ type: "switchTab", tab: "history" })
+					setInputValue("")
 					return
 				}
 

@@ -41,6 +41,10 @@ export function getSupportedSlashCommands(
 			description: "Analyze the codebase and create a concise AGENTS.md to reduce cold-start",
 		},
 		{
+			name: "resume",
+			description: "Lists previous chats and allows you to select one to load",
+		},
+		{
 			name: "link",
 			description: "Link other repos so changes here are checked against them",
 		},
