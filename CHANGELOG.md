@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Official plugins marketplace.** The former Skills Marketplace now installs each `claude-plugins-official` entry as a complete bundle under `.orb/plugins/<plugin>/`. Installed plugin skills and slash commands use `plugin:capability` names, bundled MCP servers are registered with namespaced IDs, and the UI reports the bundle inventory after installation.
 - **Shared `.orb/` convention with OrbCode CLI.** `AGENTS.md` is now loaded from the repo-level `.orb/` directory (alongside the project root and legacy `.orbital/`), so the Orbital IDE extension and the OrbCode CLI read the same project memory. Machine and settings locations are unchanged.
 - **Linked-repositories service.** A new `src/services/links` module is the single source of truth for the linked-repo feature, sharing `.orb/links.json` and the produced environment context between the IDE extension and the CLI.
 - **`/link` built-in command.** A new slash command for managing Linked Repositories: reads the current list, drives add/remove via `ask_followup_question`, and writes `.orb/links.json` with verbatim user input. Resolution and validation of the folder path happens at read time so links written by either tool stay portable.

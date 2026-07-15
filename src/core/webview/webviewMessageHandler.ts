@@ -4755,6 +4755,12 @@ ${comment.suggestion}
 			break
 		}
 
+		// kilocode_change: Skills marketplace
+		case "fetchSkillsMarketplaceData": {
+			await provider.fetchSkillsMarketplaceData()
+			break
+		}
+
 		case "installMarketplaceItem": {
 			if (marketplaceManager && message.mpItem && message.mpInstallOptions) {
 				try {
@@ -5040,7 +5046,9 @@ ${comment.suggestion}
 					const { getCommand } = await import("../../services/command/commands")
 					const command = await getCommand(getCurrentCwd(), message.text)
 
-					if (command && command.filePath) {
+					if (command?.source === "plugin") {
+						vscode.window.showErrorMessage("Plugin commands are managed by their installed plugin.")
+					} else if (command && command.filePath) {
 						// Delete the command file
 						await fs.unlink(command.filePath)
 						provider.log(`Deleted command file: ${command.filePath}`)

@@ -2,12 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { useSkillTool } from "../useSkillTool"
 import { Task } from "../../task/Task"
 import { formatResponse } from "../../prompts/responses"
+import { getSkillByName } from "../skills"
 
 // Mock dependencies
 vi.mock("../../prompts/responses", () => ({
 	formatResponse: {
 		toolError: vi.fn((msg) => `<error>${msg}</error>`),
 	},
+}))
+
+vi.mock("../skills", () => ({
+	getSkillByName: vi.fn(),
 }))
 
 describe("useSkillTool", () => {
@@ -18,6 +23,8 @@ describe("useSkillTool", () => {
 	beforeEach(() => {
 		mockPushToolResult = vi.fn()
 		mockHandleError = vi.fn()
+		vi.mocked(getSkillByName).mockReset()
+		vi.mocked(getSkillByName).mockResolvedValue(null)
 
 		mockCline = {
 			workspacePath: "/workspace",
@@ -72,7 +79,7 @@ describe("useSkillTool", () => {
 
 		expect(mockCline.say).toHaveBeenCalled()
 		expect(mockPushToolResult).toHaveBeenCalledWith(
-			'<error>Skill "non-existent-skill" not found. Make sure the skill exists in .agent/skills/<skill-name>/SKILL.md</error>',
+			'<error>Skill "non-existent-skill" not found. Check .orb/skills/ or use the plugin:skill name from .orb/plugins/.</error>',
 		)
 	})
 
@@ -84,19 +91,12 @@ describe("useSkillTool", () => {
 			partial: false,
 		} as const
 
-		// Mock the skill discovery to return a skill
-		vi.doMock(
-			"../skills",
-			() =>
-				({
-					getSkillByName: vi.fn().mockResolvedValue({
-						metadata: { name: "test-skill", description: "Test skill" },
-						content: "# Test Skill\n\nThis is the skill content.",
-						folderName: "test",
-						path: "/workspace/.agent/skills/test/SKILL.md",
-					} as const),
-				}) as const,
-		)
+		vi.mocked(getSkillByName).mockResolvedValue({
+			metadata: { name: "test-skill", description: "Test skill" },
+			content: "# Test Skill\n\nThis is the skill content.",
+			folderName: "test",
+			path: "/workspace/.orb/skills/test/SKILL.md",
+		})
 
 		await useSkillTool(mockCline, block, mockHandleError, mockPushToolResult)
 
@@ -114,14 +114,7 @@ describe("useSkillTool", () => {
 			partial: false,
 		} as const
 
-		// Mock an error in skill discovery
-		vi.doMock(
-			"../skills",
-			() =>
-				({
-					getSkillByName: vi.fn().mockRejectedValue(new Error("Discovery error")),
-				}) as const,
-		)
+		vi.mocked(getSkillByName).mockRejectedValue(new Error("Discovery error"))
 
 		await useSkillTool(mockCline, block, mockHandleError, mockPushToolResult)
 

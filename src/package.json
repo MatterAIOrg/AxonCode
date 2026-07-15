@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "6.5.3",
+	"version": "6.5.4",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -146,6 +146,11 @@
 				"command": "axon-code.marketplaceButtonClicked",
 				"title": "%command.marketplace.title%",
 				"icon": "$(extensions)"
+			},
+			{
+				"command": "axon-code.skillsMarketplaceButtonClicked",
+				"title": "%command.skillsMarketplace.title%",
+				"icon": "$(library)"
 			},
 			{
 				"command": "axon-code.memoriesButtonClicked",
@@ -323,6 +328,11 @@
 					"when": "view == axon-code.SidebarProvider"
 				},
 				{
+					"command": "axon-code.skillsMarketplaceButtonClicked",
+					"group": "navigation@3",
+					"when": "view == axon-code.SidebarProvider"
+				},
+				{
 					"command": "axon-code.historyButtonClicked",
 					"group": "navigation@4",
 					"when": "view == axon-code.SidebarProvider"
@@ -365,13 +375,18 @@
 					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
 				},
 				{
-					"command": "axon-code.historyButtonClicked",
+					"command": "axon-code.skillsMarketplaceButtonClicked",
 					"group": "navigation@3",
 					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
 				},
 				{
-					"command": "axon-code.memoriesButtonClicked",
+					"command": "axon-code.historyButtonClicked",
 					"group": "navigation@4",
+					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
+				},
+				{
+					"command": "axon-code.memoriesButtonClicked",
+					"group": "navigation@5",
 					"when": "activeWebviewPanelId == axon-code.TabPanelProvider"
 				},
 				{

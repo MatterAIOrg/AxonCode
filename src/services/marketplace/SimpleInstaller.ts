@@ -2,10 +2,16 @@ import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
 import * as yaml from "yaml"
-import type { MarketplaceItem, MarketplaceItemType, InstallMarketplaceItemOptions, McpParameter } from "@roo-code/types"
+import type {
+	MarketplaceItem,
+	InstallMarketplaceItemOptions,
+	McpParameter,
+	PluginMarketplaceItem,
+} from "@roo-code/types"
 import { GlobalFileNames } from "../../shared/globalFileNames"
 import { ensureSettingsDirectoryExists } from "../../utils/globalContext"
 import type { CustomModesManager } from "../../core/config/CustomModesManager"
+import { installPlugin, uninstallPlugin } from "./PluginInstaller"
 
 export interface InstallOptions extends InstallMarketplaceItemOptions {
 	target: "project" | "global"
@@ -26,13 +32,17 @@ export class SimpleInstaller {
 				return await this.installMode(item, target)
 			case "mcp":
 				return await this.installMcp(item, target, options)
+			case "skill":
+				return await this.installSkill(item, target)
+			case "plugin":
+				return await this.installPlugin(item, target)
 			default:
 				throw new Error(`Unsupported item type: ${(item as any).type}`)
 		}
 	}
 
 	private async installMode(
-		item: MarketplaceItem,
+		item: Extract<MarketplaceItem, { type: "mode" }>,
 		target: "project" | "global",
 	): Promise<{ filePath: string; line?: number }> {
 		if (!item.content) {
@@ -155,7 +165,7 @@ export class SimpleInstaller {
 	}
 
 	private async installMcp(
-		item: MarketplaceItem,
+		item: Extract<MarketplaceItem, { type: "mcp" }>,
 		target: "project" | "global",
 		options?: InstallOptions,
 	): Promise<{ filePath: string; line?: number }> {
@@ -310,12 +320,21 @@ export class SimpleInstaller {
 			case "mcp":
 				await this.removeMcp(item, target)
 				break
+			case "skill":
+				await this.removeSkill(item, target)
+				break
+			case "plugin":
+				await this.removePlugin(item, target)
+				break
 			default:
 				throw new Error(`Unsupported item type: ${(item as any).type}`)
 		}
 	}
 
-	private async removeMode(item: MarketplaceItem, target: "project" | "global"): Promise<void> {
+	private async removeMode(
+		item: Extract<MarketplaceItem, { type: "mode" }>,
+		target: "project" | "global",
+	): Promise<void> {
 		if (!this.customModesManager) {
 			throw new Error("CustomModesManager is not available")
 		}
@@ -350,7 +369,10 @@ export class SimpleInstaller {
 		await this.customModesManager.deleteCustomMode(modeSlug, true)
 	}
 
-	private async removeMcp(item: MarketplaceItem, target: "project" | "global"): Promise<void> {
+	private async removeMcp(
+		item: Extract<MarketplaceItem, { type: "mcp" }>,
+		target: "project" | "global",
+	): Promise<void> {
 		const filePath = await this.getMcpFilePath(target)
 
 		try {
@@ -364,7 +386,7 @@ export class SimpleInstaller {
 					// Array of McpInstallationMethod objects - use first method
 					content = item.content[0].content
 				} else {
-					content = item.content
+					content = item.content || ""
 				}
 
 				const serverName = item.id
@@ -402,5 +424,118 @@ export class SimpleInstaller {
 			const globalSettingsPath = await ensureSettingsDirectoryExists(this.context)
 			return path.join(globalSettingsPath, GlobalFileNames.mcpSettings)
 		}
+	}
+
+	/**
+	 * Install a skill marketplace item by writing its SKILL.md content to
+	 * `.orb/skills/<name>/SKILL.md` in the workspace (or the global
+	 * settings directory).
+	 */
+	async installSkill(
+		item: MarketplaceItem,
+		target: "project" | "global",
+	): Promise<{ filePath: string; line?: number }> {
+		if (item.type !== "skill") {
+			throw new Error(`Cannot install non-skill item as skill: ${(item as { type: string }).type}`)
+		}
+
+		const content = typeof item.content === "string" ? item.content : ""
+		if (!content.trim()) {
+			throw new Error("Skill item missing content")
+		}
+
+		const skillName = this.extractSkillFolderName(item, content)
+		const filePath = await this.getSkillFilePath(target, skillName)
+
+		await fs.mkdir(path.dirname(filePath), { recursive: true })
+		await fs.writeFile(filePath, content, "utf-8")
+
+		return { filePath }
+	}
+
+	async removeSkill(item: MarketplaceItem, target: "project" | "global"): Promise<void> {
+		if (item.type !== "skill") {
+			throw new Error(`Cannot remove non-skill item as skill: ${(item as { type: string }).type}`)
+		}
+
+		const content = typeof item.content === "string" ? item.content : ""
+		const skillName = this.extractSkillFolderName(item, content)
+		const filePath = await this.getSkillFilePath(target, skillName)
+
+		try {
+			await fs.unlink(filePath)
+		} catch (error: any) {
+			if (error?.code !== "ENOENT") {
+				throw error
+			}
+		}
+
+		// Best-effort cleanup of the parent directory if it's now empty.
+		try {
+			const dir = path.dirname(filePath)
+			const entries = await fs.readdir(dir)
+			if (entries.length === 0) {
+				await fs.rmdir(dir)
+			}
+		} catch {
+			// Ignore — directory may not exist or may not be empty.
+		}
+	}
+
+	private extractSkillFolderName(item: MarketplaceItem, content: string): string {
+		// Prefer the frontmatter `name:` field; fall back to the item id.
+		const match = content.match(/^---\s*\n([\s\S]*?)\n---/)
+		if (match) {
+			const nameLine = match[1].split("\n").find((line) => line.trim().startsWith("name:"))
+			if (nameLine) {
+				const value = nameLine
+					.split(":")
+					.slice(1)
+					.join(":")
+					.trim()
+					.replace(/^["']|["']$/g, "")
+				if (value) return this.sanitizeFolderName(value)
+			}
+		}
+		return this.sanitizeFolderName(item.id)
+	}
+
+	private sanitizeFolderName(name: string): string {
+		// Skills live in directories; keep names filesystem-safe.
+		return name.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "skill"
+	}
+
+	private async getSkillFilePath(target: "project" | "global", skillName: string): Promise<string> {
+		if (target === "project") {
+			const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+			if (!workspaceFolder) {
+				throw new Error("No workspace folder found")
+			}
+			return path.join(workspaceFolder.uri.fsPath, ".orb", "skills", skillName, "SKILL.md")
+		}
+		const globalSettingsPath = await ensureSettingsDirectoryExists(this.context)
+		return path.join(globalSettingsPath, "skills", skillName, "SKILL.md")
+	}
+
+	private async installPlugin(
+		item: PluginMarketplaceItem,
+		target: "project" | "global",
+	): Promise<{ filePath: string }> {
+		if (target !== "project") {
+			throw new Error("Plugins can currently be installed only into an open workspace.")
+		}
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+		if (!workspaceFolder) throw new Error("No workspace folder found")
+		const pluginDir = await installPlugin(item, workspaceFolder.uri.fsPath)
+		return { filePath: path.join(pluginDir, ".orb-plugin.json") }
+	}
+
+	private async removePlugin(item: PluginMarketplaceItem, target: "project" | "global"): Promise<void> {
+		if (target !== "project") {
+			throw new Error("Plugins can currently be removed only from an open workspace.")
+		}
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+		if (!workspaceFolder) throw new Error("No workspace folder found")
+		uninstallPlugin(item.id, workspaceFolder.uri.fsPath)
 	}
 }

@@ -200,6 +200,12 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 		if (!visibleProvider) return
 		visibleProvider.postMessageToWebview({ type: "action", action: "marketplaceButtonClicked" })
 	},
+	// kilocode_change: Skills marketplace (claude-plugins-official)
+	skillsMarketplaceButtonClicked: () => {
+		const visibleProvider = getVisibleProviderOrLog(outputChannel)
+		if (!visibleProvider) return
+		visibleProvider.postMessageToWebview({ type: "action", action: "skillsMarketplaceButtonClicked" })
+	},
 	showHumanRelayDialog: (params: { requestId: string; promptText: string }) => {
 		const panel = getPanel()
 

@@ -284,6 +284,8 @@ export interface WebviewMessage {
 		| "filterMarketplaceItems"
 		| "mcpButtonClicked"
 		| "marketplaceButtonClicked"
+		| "skillsMarketplaceButtonClicked" // kilocode_change: Skills marketplace
+		| "fetchSkillsMarketplaceData" // kilocode_change: Skills marketplace
 		| "installMarketplaceItem"
 		| "installMarketplaceItemWithParameters"
 		| "cancelMarketplaceInstall"
@@ -359,7 +361,7 @@ export interface WebviewMessage {
 	// forked_change end
 	text?: string
 	editedMessageContent?: string
-	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "cloud"
+	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "skillsMarketplace" | "cloud"
 	disabled?: boolean
 	context?: string
 	dataUri?: string

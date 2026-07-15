@@ -69,7 +69,7 @@ export function stringsToImageAttachments(images: string[] | undefined): ImageAt
 // Command interface for frontend/backend communication
 export interface Command {
 	name: string
-	source: "global" | "project" | "built-in"
+	source: "global" | "project" | "built-in" | "plugin"
 	filePath?: string
 	description?: string
 	argumentHint?: string
@@ -77,8 +77,16 @@ export interface Command {
 
 // Type for marketplace installed metadata
 export interface MarketplaceInstalledMetadata {
-	project: Record<string, { type: string }>
-	global: Record<string, { type: string }>
+	project: Record<string, { type: string; inventory?: MarketplacePluginInventory }>
+	global: Record<string, { type: string; inventory?: MarketplacePluginInventory }>
+}
+
+export interface MarketplacePluginInventory {
+	skills: number
+	commands: number
+	agents: number
+	mcpServers: number
+	hooks: number
 }
 
 // Indexing status types
@@ -179,6 +187,7 @@ export interface ExtensionMessage {
 		| "marketplaceInstallResult"
 		| "marketplaceRemoveResult"
 		| "marketplaceData"
+		| "skillsMarketplaceData" // kilocode_change: Skills marketplace data
 		| "mermaidFixResponse" // kilocode_change
 		| "tasksByIdResponse" // kilocode_change
 		| "taskHistoryResponse" // kilocode_change
@@ -220,6 +229,7 @@ export interface ExtensionMessage {
 		| "historyButtonClicked"
 		| "profileButtonClicked" // kilocode_change
 		| "marketplaceButtonClicked"
+		| "skillsMarketplaceButtonClicked" // kilocode_change: Skills marketplace
 		| "memoriesButtonClicked"
 		| "cloudButtonClicked"
 		| "didBecomeVisible"

@@ -152,5 +152,33 @@
 	},
 	"footer": {
 		"issueText": "Found a problem with a marketplace item or have suggestions for new ones? <0>Open a GitHub issue</0> to let us know!"
+	},
+	"skillsMarketplace": {
+		"title": "Plugins Marketplace",
+		"description": "Install complete bundles from the official Claude plugins directory. Each plugin is stored in <0>.orb/plugins/</0> with its skills, commands, agents, hooks, and MCP configuration.",
+		"empty": "No plugins available right now.",
+		"emptyHint": "Check your network connection or try again later.",
+		"loading": "Loading plugins from claude-plugins-official...",
+		"errorTitle": "Failed to load plugins marketplace",
+		"errorBody": "Could not reach the Claude plugins directory. Already installed workspace plugins remain available.",
+		"source": "Source",
+		"viewSource": "View on GitHub",
+		"installed": "Installed",
+		"install": "Install",
+		"remove": "Remove",
+		"working": "Working...",
+		"installing": "Installing plugin...",
+		"removing": "Removing plugin...",
+		"installSuccess": "Plugin \"{{name}}\" installed",
+		"installError": "Failed to install plugin: {{error}}",
+		"removeSuccess": "Plugin \"{{name}}\" removed",
+		"removeError": "Failed to remove plugin: {{error}}",
+		"noWorkspace": "Open a workspace folder to install plugins.",
+		"refresh": "Refresh",
+		"poweredBy": "Powered by anthropics/claude-plugins-official",
+		"category": "Category",
+		"author": "Author",
+		"itemsCount_one": "{{count}} plugin",
+		"itemsCount_other": "{{count}} plugins"
 	}
 }

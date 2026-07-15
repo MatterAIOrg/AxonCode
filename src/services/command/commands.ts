@@ -7,7 +7,7 @@ import { getBuiltInCommands, getBuiltInCommand } from "./built-in-commands"
 export interface Command {
 	name: string
 	content: string
-	source: "global" | "project" | "built-in"
+	source: "global" | "project" | "built-in" | "plugin"
 	filePath: string
 	description?: string
 	argumentHint?: string
@@ -25,6 +25,9 @@ export async function getCommands(cwd: string): Promise<Command[]> {
 	for (const command of builtInCommands) {
 		commands.set(command.name, command)
 	}
+
+	// Plugin commands are always namespaced as plugin:command.
+	await scanPluginCommands(cwd, commands)
 
 	// Scan global commands (override built-in)
 	const globalDir = path.join(getGlobalRooDirectory(), "commands")
@@ -52,6 +55,9 @@ export async function getCommand(cwd: string, name: string): Promise<Command | u
 		return projectCommand
 	}
 
+	const pluginCommand = await tryLoadPluginCommand(cwd, name)
+	if (pluginCommand) return pluginCommand
+
 	// Check global directory if not found in project
 	const globalCommand = await tryLoadCommand(globalDir, name, "global")
 	if (globalCommand) {
@@ -68,7 +74,8 @@ export async function getCommand(cwd: string, name: string): Promise<Command | u
 async function tryLoadCommand(
 	dirPath: string,
 	name: string,
-	source: "global" | "project",
+	source: "global" | "project" | "plugin",
+	displayName = name,
 ): Promise<Command | undefined> {
 	try {
 		const stats = await fs.stat(dirPath)
@@ -108,7 +115,7 @@ async function tryLoadCommand(
 			}
 
 			return {
-				name,
+				name: displayName,
 				content: commandContent,
 				source,
 				filePath,
@@ -138,8 +145,9 @@ export async function getCommandNames(cwd: string): Promise<string[]> {
  */
 async function scanCommandDirectory(
 	dirPath: string,
-	source: "global" | "project",
+	source: "global" | "project" | "plugin",
 	commands: Map<string, Command>,
+	namespace?: string,
 ): Promise<void> {
 	try {
 		const stats = await fs.stat(dirPath)
@@ -152,7 +160,8 @@ async function scanCommandDirectory(
 		for (const entry of entries) {
 			if (entry.isFile() && isMarkdownFile(entry.name)) {
 				const filePath = path.join(dirPath, entry.name)
-				const commandName = getCommandNameFromFile(entry.name)
+				const baseName = getCommandNameFromFile(entry.name)
+				const commandName = namespace ? `${namespace}:${baseName}` : baseName
 
 				try {
 					const content = await fs.readFile(filePath, "utf-8")
@@ -181,7 +190,7 @@ async function scanCommandDirectory(
 						commandContent = content.trim()
 					}
 
-					// Project commands override global ones
+					// Project commands override global and built-in commands.
 					if (source === "project" || !commands.has(commandName)) {
 						commands.set(commandName, {
 							name: commandName,
@@ -200,6 +209,33 @@ async function scanCommandDirectory(
 	} catch (error) {
 		// Directory doesn't exist or can't be read - this is fine
 	}
+}
+
+async function scanPluginCommands(cwd: string, commands: Map<string, Command>): Promise<void> {
+	const pluginsDir = path.join(cwd, ".orb", "plugins")
+	let entries
+	try {
+		entries = await fs.readdir(pluginsDir, { withFileTypes: true })
+	} catch {
+		return
+	}
+	for (const entry of entries) {
+		if (typeof entry.isDirectory !== "function" || typeof entry.isSymbolicLink !== "function") continue
+		if ((!entry.isDirectory() && !entry.isSymbolicLink()) || entry.name.startsWith(".")) continue
+		await scanCommandDirectory(path.join(pluginsDir, entry.name, "commands"), "plugin", commands, entry.name)
+	}
+}
+
+async function tryLoadPluginCommand(cwd: string, name: string): Promise<Command | undefined> {
+	const separator = name.indexOf(":")
+	if (separator <= 0) return undefined
+	const pluginName = name.slice(0, separator)
+	const commandName = name.slice(separator + 1)
+	if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(pluginName) || !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(commandName)) {
+		return undefined
+	}
+	const commandsDir = path.join(cwd, ".orb", "plugins", pluginName, "commands")
+	return tryLoadCommand(commandsDir, commandName, "plugin", name)
 }
 
 /**

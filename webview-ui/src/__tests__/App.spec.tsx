@@ -86,6 +86,24 @@ vi.mock("@src/components/marketplace/MarketplaceView", () => ({
 	},
 }))
 
+vi.mock("@src/components/skills/SkillsMarketplaceView", () => ({
+	__esModule: true,
+	SkillsMarketplaceView: function SkillsMarketplaceView({ onDone }: { onDone: () => void }) {
+		return (
+			<div data-testid="skills-marketplace-view" onClick={onDone}>
+				Skills Marketplace View
+			</div>
+		)
+	},
+	default: function SkillsMarketplaceView({ onDone }: { onDone: () => void }) {
+		return (
+			<div data-testid="skills-marketplace-view" onClick={onDone}>
+				Skills Marketplace View
+			</div>
+		)
+	},
+}))
+
 vi.mock("@src/components/cloud/CloudView", () => ({
 	CloudView: function CloudView({ onDone }: { onDone: () => void }) {
 		return (

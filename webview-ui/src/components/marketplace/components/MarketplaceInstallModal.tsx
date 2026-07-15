@@ -46,12 +46,12 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 
 	// Check if item has multiple installation methods
 	const hasMultipleMethods = useMemo(() => {
-		return item && Array.isArray(item.content) && item.content.length > 1
+		return item?.type === "mcp" && Array.isArray(item.content) && item.content.length > 1
 	}, [item])
 
 	// Get installation method names (for display in dropdown)
 	const methodNames = useMemo(() => {
-		if (!item || !Array.isArray(item.content)) return []
+		if (item?.type !== "mcp" || !Array.isArray(item.content)) return []
 
 		// Content is an array of McpInstallationMethod objects
 		return (item.content as Array<{ name: string; content: string }>).map((method) => method.name)
@@ -65,7 +65,7 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 		let methodParams: McpParameter[] = []
 
 		// Get method-specific parameters if content is an array
-		if (Array.isArray(item.content)) {
+		if (item.type === "mcp" && Array.isArray(item.content)) {
 			const selectedMethod = item.content[selectedMethodIndex] as McpInstallationMethod
 			methodParams = selectedMethod?.parameters || []
 		}
@@ -86,7 +86,7 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 		let methodPrereqs: string[] = []
 
 		// Get method-specific prerequisites if content is an array
-		if (Array.isArray(item.content)) {
+		if (item.type === "mcp" && Array.isArray(item.content)) {
 			const selectedMethod = item.content[selectedMethodIndex] as McpInstallationMethod
 			methodPrereqs = selectedMethod?.prerequisites || []
 		}
@@ -103,7 +103,7 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 			const globalParams = item.type === "mcp" ? item.parameters || [] : []
 			let methodParams: McpParameter[] = []
 
-			if (Array.isArray(item.content)) {
+			if (item.type === "mcp" && Array.isArray(item.content)) {
 				const selectedMethod = item.content[selectedMethodIndex] as McpInstallationMethod
 				methodParams = selectedMethod?.parameters || []
 			}
