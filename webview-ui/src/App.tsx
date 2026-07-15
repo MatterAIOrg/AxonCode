@@ -27,6 +27,7 @@ import BottomControls from "./components/kilocode/BottomControls" // kilocode_ch
 import ModesView from "./components/modes/ModesView"
 import { AgentManagerView } from "./components/agent/AgentManagerView"
 import { MemoryService } from "./services/MemoryService" // kilocode_change
+import { SkillsMarketplaceView } from "./components/skills/SkillsMarketplaceView" // kilocode_change: Skills marketplace
 // import { AccountView } from "./components/account/AccountView" // kilocode_change: we have our own profile view
 // import { CloudView } from "./components/cloud/CloudView" // kilocode_change: not rendering this
 import { useAddNonInteractiveClickListener } from "./components/ui/hooks/useNonInteractiveClick"
@@ -36,7 +37,17 @@ import { TooltipProvider } from "./components/ui/tooltip"
 import { MemoryWarningBanner } from "./kilocode/MemoryWarningBanner"
 import { useKiloIdentity } from "./utils/kilocode/useKiloIdentity"
 
-type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "account" | "profile" | "memories" | "marketplace"
+type Tab =
+	| "settings"
+	| "history"
+	| "mcp"
+	| "modes"
+	| "chat"
+	| "account"
+	| "profile"
+	| "memories"
+	| "marketplace"
+	| "skillsMarketplace"
 
 interface HumanRelayDialogState {
 	isOpen: boolean
@@ -77,6 +88,7 @@ const tabsByMessageAction: Partial<Record<NonNullable<ExtensionMessage["action"]
 	memoriesButtonClicked: "memories",
 	settingsFocus: "settings",
 	// marketplaceButtonClicked: "marketplace",
+	skillsMarketplaceButtonClicked: "skillsMarketplace", // kilocode_change: Skills marketplace
 	// cloudButtonClicked: "cloud", // kilocode_change: no cloud
 }
 
@@ -368,6 +380,7 @@ const App = () => {
 			{tab === "mcp" && <McpView onDone={() => switchTab("chat")} />}
 			{tab === "history" && <HistoryView onDone={() => switchTab("chat")} />}
 			{tab === "memories" && <MemoriesView onDone={() => switchTab("chat")} />}
+			{tab === "skillsMarketplace" && <SkillsMarketplaceView onDone={() => switchTab("chat")} />}
 			{tab === "settings" && (
 				<SettingsView ref={settingsRef} onDone={() => switchTab("chat")} targetSection={currentSection} /> // kilocode_change
 			)}
@@ -513,7 +526,7 @@ const App = () => {
 			)}
 			{/* kilocode_change */}
 			{/* Chat, modes and history view contain their own bottom controls */}
-			{!["chat", "modes", "history"].includes(tab) && (
+			{!["chat", "modes", "history", "skillsMarketplace"].includes(tab) && (
 				<div className="fixed inset-0 top-auto">
 					<BottomControls />
 				</div>

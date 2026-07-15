@@ -65,5 +65,32 @@
 		"removing": "Removing item: \"{{itemName}}\"",
 		"removeSuccess": "\"{{itemName}}\" removed successfully",
 		"removeError": "Failed to remove \"{{itemName}}\": {{errorMessage}}"
+	},
+	"skillsMarketplace": {
+		"title": "Skills Marketplace",
+		"description": "Browse and install skills from the official Claude Code plugins directory. Skills are installed into your workspace's <0>.agent/skills/</0> directory and become available to the agent via the <1>use_skill</1> tool.",
+		"empty": "No skills available right now.",
+		"emptyHint": "Check your network connection or try again later.",
+		"loading": "Loading skills from claude-plugins-official...",
+		"errorTitle": "Failed to load skills marketplace",
+		"errorBody": "Could not reach the Claude Code plugins directory. The agent will still work with any skills already installed in your workspace.",
+		"source": "Source",
+		"viewSource": "View on GitHub",
+		"installed": "Installed",
+		"install": "Install",
+		"remove": "Remove",
+		"installing": "Installing skill...",
+		"removing": "Removing skill...",
+		"installSuccess": "Skill \"{{name}}\" installed to .agent/skills/{{folder}}/SKILL.md",
+		"installError": "Failed to install skill: {{error}}",
+		"removeSuccess": "Skill \"{{name}}\" removed",
+		"removeError": "Failed to remove skill: {{error}}",
+		"noWorkspace": "Open a workspace folder to install skills.",
+		"refresh": "Refresh",
+		"poweredBy": "Powered by anthropics/claude-plugins-official",
+		"category": "Category",
+		"author": "Author",
+		"itemsCount_one": "{{count}} skill",
+		"itemsCount_other": "{{count}} skills"
 	}
 }

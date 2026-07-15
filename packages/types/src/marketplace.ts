@@ -27,7 +27,7 @@ export type McpInstallationMethod = z.infer<typeof mcpInstallationMethodSchema>
 /**
  * Component type validation
  */
-export const marketplaceItemTypeSchema = z.enum(["mode", "mcp"] as const)
+export const marketplaceItemTypeSchema = z.enum(["mode", "mcp", "skill"] as const)
 
 export type MarketplaceItemType = z.infer<typeof marketplaceItemTypeSchema>
 
@@ -63,6 +63,21 @@ export const mcpMarketplaceItemSchema = baseMarketplaceItemSchema.extend({
 export type McpMarketplaceItem = z.infer<typeof mcpMarketplaceItemSchema>
 
 /**
+ * Skill marketplace item — a SKILL.md file that gets installed into
+ * `.agent/skills/<name>/SKILL.md` in the user's workspace.
+ */
+export const skillMarketplaceItemSchema = baseMarketplaceItemSchema.extend({
+	// The full SKILL.md content (frontmatter + body). The `name` field in the
+	// frontmatter is what the agent uses to invoke the skill via the
+	// `use_skill` tool.
+	content: z.string().min(1),
+	// Optional source URL (e.g. GitHub raw URL) for traceability.
+	sourceUrl: z.string().url().optional(),
+})
+
+export type SkillMarketplaceItem = z.infer<typeof skillMarketplaceItemSchema>
+
+/**
  * Unified marketplace item schema using discriminated union
  */
 export const marketplaceItemSchema = z.discriminatedUnion("type", [
@@ -73,6 +88,10 @@ export const marketplaceItemSchema = z.discriminatedUnion("type", [
 	// MCP marketplace item
 	mcpMarketplaceItemSchema.extend({
 		type: z.literal("mcp"),
+	}),
+	// Skill marketplace item
+	skillMarketplaceItemSchema.extend({
+		type: z.literal("skill"),
 	}),
 ])
 

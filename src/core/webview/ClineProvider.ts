@@ -65,7 +65,7 @@ import WorkspaceTracker from "../../integrations/workspace/WorkspaceTracker"
 
 import { McpHub } from "../../services/mcp/McpHub"
 import { McpServerManager } from "../../services/mcp/McpServerManager"
-import { MarketplaceManager } from "../../services/marketplace"
+import { MarketplaceManager, SkillsMarketplaceManager } from "../../services/marketplace"
 import { ShadowCheckpointService } from "../../services/checkpoints/ShadowCheckpointService"
 import { CodeIndexManager } from "../../services/code-index/manager"
 import type { IndexProgressUpdate } from "../../services/code-index/interfaces/manager"
@@ -152,6 +152,7 @@ export class ClineProvider
 	private _workspaceTracker?: WorkspaceTracker // workSpaceTracker read-only for access outside this class
 	protected mcpHub?: McpHub // Change from private to protected
 	private marketplaceManager: MarketplaceManager
+	private skillsMarketplaceManager: SkillsMarketplaceManager // kilocode_change: Skills marketplace
 	private mdmService?: MdmService
 	private taskCreationCallback: (task: Task) => void
 	private taskEventListeners: WeakMap<Task, Array<() => void>> = new WeakMap()
@@ -209,6 +210,7 @@ export class ClineProvider
 			})
 
 		this.marketplaceManager = new MarketplaceManager(this.context, this.customModesManager)
+		this.skillsMarketplaceManager = new SkillsMarketplaceManager(this.context) // kilocode_change: Skills marketplace
 
 		// Forward <most> task events to the provider.
 		// We do something fairly similar for the IPC-based API.
@@ -791,6 +793,7 @@ export class ClineProvider
 		await this.mcpHub?.unregisterClient()
 		this.mcpHub = undefined
 		this.marketplaceManager?.cleanup()
+		this.skillsMarketplaceManager?.clearCache() // kilocode_change: Skills marketplace
 		this.customModesManager?.dispose()
 		this.contextProxy?.dispose()
 		this.log("Disposed all disposables")
@@ -2046,6 +2049,41 @@ ${prompt}
 					"Marketplace data could not be loaded due to network restrictions. Core functionality remains available.",
 				)
 			}
+		}
+	}
+
+	/**
+	 * Fetches skills marketplace data on demand. Backed by the official
+	 * Anthropic Claude Code plugins directory
+	 * (https://github.com/anthropics/claude-plugins-official).
+	 */
+	async fetchSkillsMarketplaceData() {
+		try {
+			const [skillsResult, skillsInstalledMetadata] = await Promise.all([
+				this.skillsMarketplaceManager.getItems().catch((error) => {
+					console.error("Failed to fetch skills marketplace items:", error)
+					return { items: [], errors: [error instanceof Error ? error.message : String(error)] }
+				}),
+				this.skillsMarketplaceManager.getInstallationMetadata().catch((error) => {
+					console.error("Failed to fetch skills installation metadata:", error)
+					return { project: {}, global: {} } as MarketplaceInstalledMetadata
+				}),
+			])
+
+			this.postMessageToWebview({
+				type: "skillsMarketplaceData",
+				marketplaceItems: skillsResult.items || [],
+				marketplaceInstalledMetadata: skillsInstalledMetadata || { project: {}, global: {} },
+				errors: skillsResult.errors,
+			})
+		} catch (error) {
+			console.error("Failed to fetch skills marketplace data:", error)
+			this.postMessageToWebview({
+				type: "skillsMarketplaceData",
+				marketplaceItems: [],
+				marketplaceInstalledMetadata: { project: {}, global: {} },
+				errors: [error instanceof Error ? error.message : String(error)],
+			})
 		}
 	}
 

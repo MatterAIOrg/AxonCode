@@ -72,6 +72,7 @@ export const commandIds = [
 	"handleExternalUri", // kilocode_change - for JetBrains plugin URL forwarding
 	"focusPanel",
 	"toggleAutoApprove",
+	"skillsMarketplaceButtonClicked", // kilocode_change: Skills marketplace (claude-plugins-official)
 ] as const
 
 export type CommandId = (typeof commandIds)[number]

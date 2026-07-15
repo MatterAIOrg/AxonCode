@@ -4755,6 +4755,12 @@ ${comment.suggestion}
 			break
 		}
 
+		// kilocode_change: Skills marketplace
+		case "fetchSkillsMarketplaceData": {
+			await provider.fetchSkillsMarketplaceData()
+			break
+		}
+
 		case "installMarketplaceItem": {
 			if (marketplaceManager && message.mpItem && message.mpInstallOptions) {
 				try {
