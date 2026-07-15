@@ -2,10 +2,16 @@ import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
 import * as yaml from "yaml"
-import type { MarketplaceItem, MarketplaceItemType, InstallMarketplaceItemOptions, McpParameter } from "@roo-code/types"
+import type {
+	MarketplaceItem,
+	InstallMarketplaceItemOptions,
+	McpParameter,
+	PluginMarketplaceItem,
+} from "@roo-code/types"
 import { GlobalFileNames } from "../../shared/globalFileNames"
 import { ensureSettingsDirectoryExists } from "../../utils/globalContext"
 import type { CustomModesManager } from "../../core/config/CustomModesManager"
+import { installPlugin, uninstallPlugin } from "./PluginInstaller"
 
 export interface InstallOptions extends InstallMarketplaceItemOptions {
 	target: "project" | "global"
@@ -28,13 +34,15 @@ export class SimpleInstaller {
 				return await this.installMcp(item, target, options)
 			case "skill":
 				return await this.installSkill(item, target)
+			case "plugin":
+				return await this.installPlugin(item, target)
 			default:
 				throw new Error(`Unsupported item type: ${(item as any).type}`)
 		}
 	}
 
 	private async installMode(
-		item: MarketplaceItem,
+		item: Extract<MarketplaceItem, { type: "mode" }>,
 		target: "project" | "global",
 	): Promise<{ filePath: string; line?: number }> {
 		if (!item.content) {
@@ -157,7 +165,7 @@ export class SimpleInstaller {
 	}
 
 	private async installMcp(
-		item: MarketplaceItem,
+		item: Extract<MarketplaceItem, { type: "mcp" }>,
 		target: "project" | "global",
 		options?: InstallOptions,
 	): Promise<{ filePath: string; line?: number }> {
@@ -315,12 +323,18 @@ export class SimpleInstaller {
 			case "skill":
 				await this.removeSkill(item, target)
 				break
+			case "plugin":
+				await this.removePlugin(item, target)
+				break
 			default:
 				throw new Error(`Unsupported item type: ${(item as any).type}`)
 		}
 	}
 
-	private async removeMode(item: MarketplaceItem, target: "project" | "global"): Promise<void> {
+	private async removeMode(
+		item: Extract<MarketplaceItem, { type: "mode" }>,
+		target: "project" | "global",
+	): Promise<void> {
 		if (!this.customModesManager) {
 			throw new Error("CustomModesManager is not available")
 		}
@@ -355,7 +369,10 @@ export class SimpleInstaller {
 		await this.customModesManager.deleteCustomMode(modeSlug, true)
 	}
 
-	private async removeMcp(item: MarketplaceItem, target: "project" | "global"): Promise<void> {
+	private async removeMcp(
+		item: Extract<MarketplaceItem, { type: "mcp" }>,
+		target: "project" | "global",
+	): Promise<void> {
 		const filePath = await this.getMcpFilePath(target)
 
 		try {
@@ -369,7 +386,7 @@ export class SimpleInstaller {
 					// Array of McpInstallationMethod objects - use first method
 					content = item.content[0].content
 				} else {
-					content = item.content
+					content = item.content || ""
 				}
 
 				const serverName = item.id
@@ -411,7 +428,7 @@ export class SimpleInstaller {
 
 	/**
 	 * Install a skill marketplace item by writing its SKILL.md content to
-	 * `.agent/skills/<name>/SKILL.md` in the workspace (or the global
+	 * `.orb/skills/<name>/SKILL.md` in the workspace (or the global
 	 * settings directory).
 	 */
 	async installSkill(
@@ -494,9 +511,31 @@ export class SimpleInstaller {
 			if (!workspaceFolder) {
 				throw new Error("No workspace folder found")
 			}
-			return path.join(workspaceFolder.uri.fsPath, ".agent", "skills", skillName, "SKILL.md")
+			return path.join(workspaceFolder.uri.fsPath, ".orb", "skills", skillName, "SKILL.md")
 		}
 		const globalSettingsPath = await ensureSettingsDirectoryExists(this.context)
 		return path.join(globalSettingsPath, "skills", skillName, "SKILL.md")
+	}
+
+	private async installPlugin(
+		item: PluginMarketplaceItem,
+		target: "project" | "global",
+	): Promise<{ filePath: string }> {
+		if (target !== "project") {
+			throw new Error("Plugins can currently be installed only into an open workspace.")
+		}
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+		if (!workspaceFolder) throw new Error("No workspace folder found")
+		const pluginDir = await installPlugin(item, workspaceFolder.uri.fsPath)
+		return { filePath: path.join(pluginDir, ".orb-plugin.json") }
+	}
+
+	private async removePlugin(item: PluginMarketplaceItem, target: "project" | "global"): Promise<void> {
+		if (target !== "project") {
+			throw new Error("Plugins can currently be removed only from an open workspace.")
+		}
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+		if (!workspaceFolder) throw new Error("No workspace folder found")
+		uninstallPlugin(item.id, workspaceFolder.uri.fsPath)
 	}
 }

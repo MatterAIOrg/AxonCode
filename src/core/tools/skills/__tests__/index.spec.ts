@@ -1,159 +1,62 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import * as fs from "fs/promises"
+import * as os from "os"
+import * as path from "path"
+import { afterEach, beforeEach, describe, expect, it } from "vitest"
+
 import { discoverSkills, getSkillByName } from "../index"
 
-// Mock fs module
-vi.mock("fs/promises", () => ({
-	access: vi.fn(),
-	readdir: vi.fn(),
-	readFile: vi.fn(),
-}))
+function skillFile(name: string, description = `${name} description`): string {
+	return `---\nname: ${name}\ndescription: ${description}\n---\n\n# ${name}\n\nInstructions.`
+}
 
-describe("discoverSkills", () => {
-	beforeEach(() => {
-		vi.clearAllMocks()
+describe("skill discovery", () => {
+	let workspacePath: string
+
+	beforeEach(async () => {
+		workspacePath = await fs.mkdtemp(path.join(os.tmpdir(), "orbital-skills-test-"))
 	})
 
-	it("should return empty array when skills directory does not exist", async () => {
-		vi.mocked(fs.access).mockRejectedValue(new Error("Directory not found"))
-
-		const result = await discoverSkills({ workspacePath: "/workspace" })
-
-		expect(result).toEqual([])
-		expect(fs.access).toHaveBeenCalledWith("/workspace/.agent/skills")
+	afterEach(async () => {
+		await fs.rm(workspacePath, { recursive: true, force: true })
 	})
 
-	it("should discover skills from valid directory structure", async () => {
-		vi.mocked(fs.access).mockResolvedValue(undefined)
-		vi.mocked(fs.readdir).mockResolvedValue([
-			{ name: "skill1", isDirectory: () => true },
-			{ name: "skill2", isDirectory: () => true },
-		] as any)
-		vi.mocked(fs.readFile).mockResolvedValueOnce(`---
-name: skill-one
-description: First skill
----
-
-Content of skill one`).mockResolvedValueOnce(`---
-name: skill-two
-description: Second skill
----
-
-Content of skill two`)
-
-		const result = await discoverSkills({ workspacePath: "/workspace" })
-
-		expect(result).toHaveLength(2)
-		expect(result[0].metadata.name).toBe("skill-one")
-		expect(result[1].metadata.name).toBe("skill-two")
+	it("returns an empty array when no skill directories exist", async () => {
+		expect(await discoverSkills({ workspacePath })).toEqual([])
 	})
 
-	it("should skip folders without SKILL.md", async () => {
-		vi.mocked(fs.access).mockResolvedValue(undefined)
-		vi.mocked(fs.readdir).mockResolvedValue([
-			{ name: "valid-skill", isDirectory: () => true },
-			{ name: "invalid-skill", isDirectory: () => true },
-		] as any)
-		vi.mocked(fs.readFile)
-			.mockResolvedValueOnce(
-				`---
-name: valid-skill
-description: Valid skill
----
+	it("discovers personal skills from .orb/skills", async () => {
+		const skillDir = path.join(workspacePath, ".orb", "skills", "review")
+		await fs.mkdir(skillDir, { recursive: true })
+		await fs.writeFile(path.join(skillDir, "SKILL.md"), skillFile("review"))
 
-Valid content`,
-			)
-			.mockRejectedValueOnce(new Error("File not found"))
-
-		const result = await discoverSkills({ workspacePath: "/workspace" })
-
-		expect(result).toHaveLength(1)
-		expect(result[0].metadata.name).toBe("valid-skill")
+		const skills = await discoverSkills({ workspacePath })
+		expect(skills.map((skill) => skill.metadata.name)).toEqual(["review"])
 	})
 
-	it("should skip invalid SKILL.md files", async () => {
-		vi.mocked(fs.access).mockResolvedValue(undefined)
-		vi.mocked(fs.readdir).mockResolvedValue([
-			{ name: "valid-skill", isDirectory: () => true },
-			{ name: "invalid-skill", isDirectory: () => true },
-		] as any)
-		vi.mocked(fs.readFile).mockResolvedValueOnce(`---
-name: valid-skill
-description: Valid skill
----
+	it("discovers and namespaces every skill in an installed plugin", async () => {
+		const pluginDir = path.join(workspacePath, ".orb", "plugins", "clickhouse", "skills")
+		await fs.mkdir(path.join(pluginDir, "clickhouse-best-practices"), { recursive: true })
+		await fs.mkdir(path.join(pluginDir, "setup"), { recursive: true })
+		await fs.writeFile(
+			path.join(pluginDir, "clickhouse-best-practices", "SKILL.md"),
+			skillFile("clickhouse-best-practices"),
+		)
+		await fs.writeFile(path.join(pluginDir, "setup", "SKILL.md"), skillFile("setup"))
 
-Valid content`).mockResolvedValueOnce(`---
-description: Missing name
----
-
-Invalid content`)
-
-		const result = await discoverSkills({ workspacePath: "/workspace" })
-
-		expect(result).toHaveLength(1)
-		expect(result[0].metadata.name).toBe("valid-skill")
+		const skills = await discoverSkills({ workspacePath })
+		expect(skills.map((skill) => skill.metadata.name).sort()).toEqual([
+			"clickhouse:clickhouse-best-practices",
+			"clickhouse:setup",
+		])
+		expect(await getSkillByName("clickhouse:setup", { workspacePath })).not.toBeNull()
 	})
 
-	it("should handle empty skills directory", async () => {
-		vi.mocked(fs.access).mockResolvedValue(undefined)
-		vi.mocked(fs.readdir).mockResolvedValue([])
+	it("skips invalid and missing SKILL.md files", async () => {
+		const skillsDir = path.join(workspacePath, ".orb", "skills")
+		await fs.mkdir(path.join(skillsDir, "missing"), { recursive: true })
+		await fs.mkdir(path.join(skillsDir, "invalid"), { recursive: true })
+		await fs.writeFile(path.join(skillsDir, "invalid", "SKILL.md"), "# Missing frontmatter")
 
-		const result = await discoverSkills({ workspacePath: "/workspace" })
-
-		expect(result).toEqual([])
-	})
-
-	it("should handle readdir errors gracefully", async () => {
-		vi.mocked(fs.access).mockResolvedValue(undefined)
-		vi.mocked(fs.readdir).mockRejectedValue(new Error("Permission denied"))
-
-		const result = await discoverSkills({ workspacePath: "/workspace" })
-
-		expect(result).toEqual([])
-	})
-})
-
-describe("getSkillByName", () => {
-	beforeEach(() => {
-		vi.clearAllMocks()
-	})
-
-	it("should return skill when found", async () => {
-		vi.mocked(fs.access).mockResolvedValue(undefined)
-		vi.mocked(fs.readdir).mockResolvedValue([{ name: "skill1", isDirectory: () => true }] as any)
-		vi.mocked(fs.readFile).mockResolvedValue(`---
-name: target-skill
-description: Target skill
----
-
-Target content`)
-
-		const result = await getSkillByName("target-skill", { workspacePath: "/workspace" })
-
-		expect(result).not.toBeNull()
-		expect(result?.metadata.name).toBe("target-skill")
-	})
-
-	it("should return null when skill not found", async () => {
-		vi.mocked(fs.access).mockResolvedValue(undefined)
-		vi.mocked(fs.readdir).mockResolvedValue([{ name: "skill1", isDirectory: () => true }] as any)
-		vi.mocked(fs.readFile).mockResolvedValue(`---
-name: other-skill
-description: Other skill
----
-
-Other content`)
-
-		const result = await getSkillByName("target-skill", { workspacePath: "/workspace" })
-
-		expect(result).toBeNull()
-	})
-
-	it("should return null when skills directory does not exist", async () => {
-		vi.mocked(fs.access).mockRejectedValue(new Error("Directory not found"))
-
-		const result = await getSkillByName("any-skill", { workspacePath: "/workspace" })
-
-		expect(result).toBeNull()
+		expect(await discoverSkills({ workspacePath })).toEqual([])
 	})
 })

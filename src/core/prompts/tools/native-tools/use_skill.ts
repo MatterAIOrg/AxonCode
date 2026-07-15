@@ -5,7 +5,7 @@ export default {
 	function: {
 		name: "use_skill",
 		description:
-			"Use a specific skill to guide the task execution. This tool allows you to apply predefined skills stored in the workspace's .agent/skills directory. Each skill contains specialized instructions for performing specific tasks or following particular patterns.",
+			"Use a specific skill to guide the task execution. This tool allows you to apply predefined skills stored in the workspace's .orb/skills directory. Each skill contains specialized instructions for performing specific tasks or following particular patterns.",
 		strict: true,
 		parameters: {
 			type: "object",

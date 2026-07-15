@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Trans } from "react-i18next"
-import { ExternalLink, Library, RefreshCw, Search } from "lucide-react"
+import { ExternalLink, Package, RefreshCw, Search } from "lucide-react"
 
 import type { MarketplaceItem } from "@roo-code/types"
-import type { MarketplaceInstalledMetadata } from "@src/../../src/shared/ExtensionMessage"
+import type { MarketplaceInstalledMetadata, MarketplacePluginInventory } from "@src/../../src/shared/ExtensionMessage"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,54 +18,68 @@ interface SkillsMarketplaceViewProps {
 	onDone?: () => void
 }
 
-type SkillItem = Extract<MarketplaceItem, { type: "skill" }>
+type PluginItem = Extract<MarketplaceItem, { type: "plugin" }>
 
-interface SkillCardProps {
-	item: SkillItem
+interface PluginCardProps {
+	item: PluginItem
 	installed: boolean
+	inventory?: MarketplacePluginInventory
 	busy: boolean
 	onInstall: () => void
 	onRemove: () => void
 }
 
-function SkillCard({ item, installed, busy, onInstall, onRemove }: SkillCardProps) {
+function declaredCount(value: string | string[] | undefined): number {
+	if (Array.isArray(value)) return value.length
+	return value ? 1 : 0
+}
+
+function PluginCard({ item, installed, inventory, busy, onInstall, onRemove }: PluginCardProps) {
 	const { t } = useAppTranslation()
-	const category = item.tags?.[0]
-	const author = item.author
+	const category = item.category || item.tags?.[0]
+	const capabilities = inventory ?? {
+		skills: item.skills?.length ?? 0,
+		commands: declaredCount(item.commands),
+		agents: declaredCount(item.agents),
+		mcpServers: item.mcpServers ? 1 : 0,
+		hooks: item.hooks ? 1 : 0,
+	}
+	const badges = [
+		capabilities.skills > 0 ? `${capabilities.skills} ${capabilities.skills === 1 ? "skill" : "skills"}` : null,
+		capabilities.commands > 0
+			? `${capabilities.commands} ${capabilities.commands === 1 ? "command" : "commands"}`
+			: null,
+		capabilities.agents > 0 ? `${capabilities.agents} ${capabilities.agents === 1 ? "agent" : "agents"}` : null,
+		capabilities.mcpServers > 0 ? `${capabilities.mcpServers} MCP` : null,
+		capabilities.hooks > 0 ? `${capabilities.hooks} ${capabilities.hooks === 1 ? "hook" : "hooks"}` : null,
+	].filter((badge): badge is string => Boolean(badge))
 
 	return (
 		<div className="flex flex-col gap-2 rounded-lg border border-vscode-panel-border bg-vscode-editor-background p-3 transition-colors hover:border-vscode-focusBorder">
 			<div className="flex items-start justify-between gap-2">
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2">
-						<Library className="size-4 shrink-0 text-vscode-descriptionForeground" />
+						<Package className="size-4 shrink-0 text-vscode-descriptionForeground" />
 						<h3 className="m-0 truncate text-sm font-semibold text-vscode-foreground">{item.name}</h3>
 					</div>
 					<p className="m-0 mt-0.5 text-xs text-vscode-descriptionForeground">
-						<span className="font-mono text-[10px]">{item.id}</span>
+						<span className="font-mono text-[10px]">
+							{item.id}@{item.marketplace}
+						</span>
 					</p>
 				</div>
-				<div className="flex shrink-0 items-center gap-1">
-					{installed ? (
-						<Button
-							size="sm"
-							variant="secondary"
-							disabled={busy}
-							onClick={onRemove}
-							className="h-6 px-2 text-xs">
-							{t("marketplace:skillsMarketplace.remove")}
-						</Button>
-					) : (
-						<Button
-							size="sm"
-							variant="default"
-							disabled={busy}
-							onClick={onInstall}
-							className="h-6 px-2 text-xs">
-							{t("marketplace:skillsMarketplace.install")}
-						</Button>
-					)}
-				</div>
+				<Button
+					size="sm"
+					variant={installed ? "secondary" : "default"}
+					disabled={busy}
+					onClick={installed ? onRemove : onInstall}
+					className="h-6 shrink-0 px-2 text-xs">
+					{busy
+						? t("marketplace:skillsMarketplace.working")
+						: installed
+							? t("marketplace:skillsMarketplace.remove")
+							: t("marketplace:skillsMarketplace.install")}
+				</Button>
 			</div>
 
 			{item.description && (
@@ -73,19 +87,25 @@ function SkillCard({ item, installed, busy, onInstall, onRemove }: SkillCardProp
 			)}
 
 			<div className="flex flex-wrap items-center gap-1.5">
+				<span className="rounded-sm bg-vscode-badge-background px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-vscode-badge-foreground">
+					Plugin
+				</span>
 				{installed && (
 					<span className="rounded-sm border border-green-600/30 bg-green-600/20 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-green-400">
 						{t("marketplace:skillsMarketplace.installed")}
 					</span>
 				)}
-				{category && (
-					<span className="rounded-sm bg-vscode-badge-background px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-vscode-badge-foreground">
-						{category}
+				{badges.map((badge) => (
+					<span
+						key={badge}
+						className="rounded-sm border border-vscode-panel-border px-1.5 py-0.5 text-[10px] text-vscode-descriptionForeground">
+						{badge}
 					</span>
-				)}
-				{author && (
+				))}
+				{category && <span className="text-[10px] text-vscode-descriptionForeground">{category}</span>}
+				{item.author && (
 					<span className="text-[10px] text-vscode-descriptionForeground">
-						{t("marketplace:skillsMarketplace.author")}: {author}
+						{t("marketplace:skillsMarketplace.author")}: {item.author}
 					</span>
 				)}
 			</div>
@@ -96,8 +116,8 @@ function SkillCard({ item, installed, busy, onInstall, onRemove }: SkillCardProp
 					<a
 						href={item.sourceUrl}
 						className="truncate text-vscode-textLink-foreground hover:text-vscode-textLink-activeForeground hover:underline"
-						onClick={(e) => {
-							e.preventDefault()
+						onClick={(event) => {
+							event.preventDefault()
 							vscode.postMessage({ type: "openExternal", url: item.sourceUrl! })
 						}}>
 						{t("marketplace:skillsMarketplace.viewSource")}
@@ -111,7 +131,7 @@ function SkillCard({ item, installed, busy, onInstall, onRemove }: SkillCardProp
 export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 	const { t } = useAppTranslation()
 	const { cwd } = useExtensionState()
-	const [items, setItems] = useState<SkillItem[]>([])
+	const [items, setItems] = useState<PluginItem[]>([])
 	const [installedMetadata, setInstalledMetadata] = useState<MarketplaceInstalledMetadata>({
 		project: {},
 		global: {},
@@ -120,8 +140,7 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 	const [error, setError] = useState<string | null>(null)
 	const [search, setSearch] = useState("")
 	const [busyIds, setBusyIds] = useState<Set<string>>(new Set())
-
-	const hasWorkspace = !!cwd
+	const hasWorkspace = Boolean(cwd)
 
 	const fetchData = useCallback(() => {
 		setIsLoading(true)
@@ -129,38 +148,23 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 		vscode.postMessage({ type: "fetchSkillsMarketplaceData" })
 	}, [])
 
-	useEffect(() => {
-		fetchData()
-	}, [fetchData])
+	useEffect(() => fetchData(), [fetchData])
 
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
 			const message = event.data
 			if (message?.type === "skillsMarketplaceData") {
-				const next: SkillItem[] = (message.marketplaceItems ?? []).filter(
-					(item: MarketplaceItem) => item.type === "skill",
+				setItems(
+					(message.marketplaceItems ?? []).filter(
+						(item: MarketplaceItem): item is PluginItem => item.type === "plugin",
+					),
 				)
-				setItems(next)
-				if (message.marketplaceInstalledMetadata) {
-					setInstalledMetadata(message.marketplaceInstalledMetadata)
-				}
-				if (Array.isArray(message.errors) && message.errors.length > 0) {
-					setError(message.errors.join("\n"))
-				} else {
-					setError(null)
-				}
+				setInstalledMetadata(message.marketplaceInstalledMetadata ?? { project: {}, global: {} })
+				setError(Array.isArray(message.errors) && message.errors.length ? message.errors.join("\n") : null)
 				setIsLoading(false)
-			} else if (message?.type === "marketplaceInstallResult") {
-				// Refresh installed metadata after install/remove.
-				setBusyIds((prev) => {
-					const next = new Set(prev)
-					next.delete(message.slug)
-					return next
-				})
-				vscode.postMessage({ type: "fetchSkillsMarketplaceData" })
-			} else if (message?.type === "marketplaceRemoveResult") {
-				setBusyIds((prev) => {
-					const next = new Set(prev)
+			} else if (message?.type === "marketplaceInstallResult" || message?.type === "marketplaceRemoveResult") {
+				setBusyIds((previous) => {
+					const next = new Set(previous)
 					next.delete(message.slug)
 					return next
 				})
@@ -174,23 +178,13 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 	const filteredItems = useMemo(() => {
 		const term = search.trim().toLowerCase()
 		if (!term) return items
-		return items.filter((item) => {
-			const haystack = `${item.name} ${item.description} ${item.id} ${(item.tags ?? []).join(" ")}`.toLowerCase()
-			return haystack.includes(term)
-		})
+		return items.filter((item) =>
+			`${item.name} ${item.description} ${item.id} ${(item.tags ?? []).join(" ")}`.toLowerCase().includes(term),
+		)
 	}, [items, search])
 
-	const isInstalled = useCallback(
-		(item: SkillItem) => {
-			// Skills are keyed by their folder name (the part after `:` in the id).
-			const folder = item.id.includes(":") ? item.id.split(":").pop()! : item.id
-			return Boolean(installedMetadata.project?.[folder] || installedMetadata.global?.[folder])
-		},
-		[installedMetadata],
-	)
-
 	const handleInstall = useCallback(
-		(item: SkillItem) => {
+		(item: PluginItem) => {
 			if (!hasWorkspace) {
 				vscode.postMessage({
 					type: "showToast",
@@ -199,7 +193,7 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 				})
 				return
 			}
-			setBusyIds((prev) => new Set(prev).add(item.id))
+			setBusyIds((previous) => new Set(previous).add(item.id))
 			vscode.postMessage({
 				type: "installMarketplaceItem",
 				mpItem: item,
@@ -209,8 +203,8 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 		[hasWorkspace, t],
 	)
 
-	const handleRemove = useCallback((item: SkillItem) => {
-		setBusyIds((prev) => new Set(prev).add(item.id))
+	const handleRemove = useCallback((item: PluginItem) => {
+		setBusyIds((previous) => new Set(previous).add(item.id))
 		vscode.postMessage({
 			type: "removeInstalledMarketplaceItem",
 			mpItem: item,
@@ -223,7 +217,7 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 			<TabHeader className="flex flex-col gap-2">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
-						<Library className="size-4 text-vscode-foreground" />
+						<Package className="size-4 text-vscode-foreground" />
 						<h3 className="m-0 text-sm font-bold text-vscode-foreground">
 							{t("marketplace:skillsMarketplace.title")}
 						</h3>
@@ -239,7 +233,7 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 							{t("marketplace:skillsMarketplace.refresh")}
 						</Button>
 						{onDone && (
-							<Button size="sm" variant="default" onClick={onDone} className="h-7 px-3 text-xs">
+							<Button size="sm" onClick={onDone} className="h-7 px-3 text-xs">
 								{t("marketplace:done")}
 							</Button>
 						)}
@@ -252,9 +246,6 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 							0: (
 								<code className="rounded bg-vscode-textCodeBlock-background px-1 font-mono text-[11px]" />
 							),
-							1: (
-								<code className="rounded bg-vscode-textCodeBlock-background px-1 font-mono text-[11px]" />
-							),
 						}}
 					/>
 				</p>
@@ -264,7 +255,7 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 						type="text"
 						placeholder={t("marketplace:filters.search.placeholder")}
 						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onChange={(event) => setSearch(event.target.value)}
 						className="h-7 pl-7 text-xs"
 					/>
 				</div>
@@ -281,7 +272,6 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 						<p className="m-0 text-xs">{t("marketplace:skillsMarketplace.loading")}</p>
 					</div>
 				)}
-
 				{!isLoading && error && items.length === 0 && (
 					<div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-vscode-panel-border bg-vscode-editor-background p-6 text-center">
 						<p className="m-0 text-sm font-semibold text-vscode-errorForeground">
@@ -290,38 +280,38 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 						<p className="m-0 max-w-md text-xs text-vscode-descriptionForeground">
 							{t("marketplace:skillsMarketplace.errorBody")}
 						</p>
-						{error && (
-							<pre className="m-0 mt-2 max-w-md overflow-auto whitespace-pre-wrap break-words rounded bg-vscode-textCodeBlock-background p-2 text-left text-[10px] text-vscode-descriptionForeground">
-								{error}
-							</pre>
-						)}
-						<Button size="sm" variant="secondary" onClick={fetchData} className="mt-2">
+						<pre className="m-0 mt-2 max-w-md overflow-auto whitespace-pre-wrap break-words rounded bg-vscode-textCodeBlock-background p-2 text-left text-[10px] text-vscode-descriptionForeground">
+							{error}
+						</pre>
+						<Button size="sm" variant="secondary" onClick={fetchData}>
 							<RefreshCw className="mr-1 size-3" />
 							{t("marketplace:skillsMarketplace.refresh")}
 						</Button>
 					</div>
 				)}
-
 				{!isLoading && !error && items.length === 0 && (
 					<div className="flex flex-col items-center justify-center gap-2 py-12 text-vscode-descriptionForeground">
-						<Library className="size-8 opacity-50" />
+						<Package className="size-8 opacity-50" />
 						<p className="m-0 text-sm">{t("marketplace:skillsMarketplace.empty")}</p>
 						<p className="m-0 text-xs">{t("marketplace:skillsMarketplace.emptyHint")}</p>
 					</div>
 				)}
-
 				{filteredItems.length > 0 && (
 					<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-						{filteredItems.map((item) => (
-							<SkillCard
-								key={item.id}
-								item={item}
-								installed={isInstalled(item)}
-								busy={busyIds.has(item.id)}
-								onInstall={() => handleInstall(item)}
-								onRemove={() => handleRemove(item)}
-							/>
-						))}
+						{filteredItems.map((item) => {
+							const metadata = installedMetadata.project[item.id] || installedMetadata.global[item.id]
+							return (
+								<PluginCard
+									key={item.id}
+									item={item}
+									installed={Boolean(metadata)}
+									inventory={metadata?.inventory}
+									busy={busyIds.has(item.id)}
+									onInstall={() => handleInstall(item)}
+									onRemove={() => handleRemove(item)}
+								/>
+							)
+						})}
 					</div>
 				)}
 			</TabContent>
