@@ -31,7 +31,6 @@ export interface AxonCodeWindowUsage {
 export interface AxonCodeTieredUsage {
 	plan: string
 	monthlyLimit: number
-	fiveHour: AxonCodeWindowUsage
 	weekly: AxonCodeWindowUsage
 	monthly: AxonCodeWindowUsage
 }

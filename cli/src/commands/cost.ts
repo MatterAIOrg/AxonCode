@@ -90,7 +90,6 @@ async function showCost(context: any): Promise<void> {
 		lines.push("```")
 		lines.push(`Window                 Usage                 Resets`)
 		lines.push(`────────────────────────────────────────────────────`)
-		lines.push(renderWindowUsage("5-Hour", tiered.fiveHour))
 		lines.push(renderWindowUsage("Weekly", tiered.weekly))
 		lines.push(renderWindowUsage("Monthly", tiered.monthly))
 		lines.push("```")

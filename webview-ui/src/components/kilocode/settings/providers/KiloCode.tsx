@@ -164,15 +164,14 @@ export const KiloCode = ({
 										{profileData.plan?.toLocaleUpperCase()}
 									</div>
 								</div>
-								{/* Tiered usage windows (5hr / weekly / monthly) */}
+								{/* Tiered usage windows (weekly / monthly) */}
 								{profileData.tieredUsage && (
 									<div className="space-y-3 pt-2">
-										{(["fiveHour", "weekly", "monthly"] as const).map((key) => {
+										{(["weekly", "monthly"] as const).map((key) => {
 											const w = profileData.tieredUsage![key]
 											const pct = Math.max(0, Math.min(100, w.percentage || 0))
 											const exhausted = (w.remaining || 0) <= 0
 											const labelMap: Record<typeof key, string> = {
-												fiveHour: "5-Hour Window",
 												weekly: "Weekly Window",
 												monthly: "Monthly Window",
 											}

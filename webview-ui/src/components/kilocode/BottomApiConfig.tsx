@@ -134,9 +134,9 @@ export const BottomApiConfig = () => {
 									flexShrink: 0,
 								}}
 							/>
-							{profileData?.tieredUsage?.fiveHour
+							{profileData?.tieredUsage?.weekly
 								? (() => {
-										const fh = profileData.tieredUsage!.fiveHour
+										const fh = profileData.tieredUsage!.weekly
 										const pct = Math.max(0, Math.min(100, fh.percentage || 0))
 										return `${pct.toFixed(0)}% (resets ${formatRelativeTime(fh.resetsAt)})`
 									})()
@@ -167,13 +167,12 @@ export const BottomApiConfig = () => {
 											Limits
 										</div>
 
-										{/* Tiered usage windows (5hr / weekly / monthly) */}
+										{/* Tiered usage windows (weekly / monthly) */}
 										{profileData?.tieredUsage &&
-											(["fiveHour", "weekly", "monthly"] as const).map((key) => {
+											(["weekly", "monthly"] as const).map((key) => {
 												const w = profileData.tieredUsage![key]
 												const pct = Math.max(0, Math.min(100, w.percentage || 0))
 												const labelMap: Record<typeof key, string> = {
-													fiveHour: "5-Hour",
 													weekly: "Weekly",
 													monthly: "Monthly",
 												}

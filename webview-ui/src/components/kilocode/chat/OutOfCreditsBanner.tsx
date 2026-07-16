@@ -32,15 +32,15 @@ function parseResetTime(iso?: string): number | null {
 }
 
 // Choose which reset time to surface on the banner. Under tiered usage a user
-// can have several limit windows (5-hour / weekly / monthly) maxed at once, and
+// can have several limit windows (weekly / monthly) maxed at once, and
 // can only use Pro models again once every exhausted window has reset — so we
 // surface the latest reset among the exhausted windows. When no single window
 // is maxed (near-limit warning), fall back to the soonest upcoming reset, then
 // to the legacy monthly creditsResetDate.
 function selectResetIso(creditsResetDate?: string, tieredUsage?: AxonCodeTieredUsage): string | undefined {
 	if (tieredUsage) {
-		const windows = [tieredUsage.fiveHour, tieredUsage.weekly, tieredUsage.monthly].filter(
-			(usage): usage is AxonCodeWindowUsage => Boolean(usage),
+		const windows = [tieredUsage.weekly, tieredUsage.monthly].filter((usage): usage is AxonCodeWindowUsage =>
+			Boolean(usage),
 		)
 		const isExhausted = (usage: AxonCodeWindowUsage) => usage.remaining <= 0 || usage.percentage >= 100
 
