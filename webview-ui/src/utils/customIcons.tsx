@@ -202,8 +202,24 @@ export const PlayIcon = (props: React.SVGProps<SVGSVGElement>) => (
 			d="M18.8906 12.846C18.5371 14.189 16.8667 15.138 13.5257 17.0361C10.296 18.8709 8.6812 19.7884 7.37983 19.4196C6.8418 19.2671 6.35159 18.9776 5.95624 18.5787C5 17.6139 5 15.7426 5 12C5 8.2574 5 6.3861 5.95624 5.42132C6.35159 5.02245 6.8418 4.73288 7.37983 4.58042C8.6812 4.21165 10.296 5.12907 13.5257 6.96393C16.8667 8.86197 18.5371 9.811 18.8906 11.154C19.0365 11.7084 19.0365 12.2916 18.8906 12.846Z"
 			stroke="currentcolor"
 			strokeWidth="1.5"
-			strokeLinejoin="round"
-		/>
+			strokeLinecap="round"
+			strokeLinejoin="round"></path>
+	</svg>
+)
+
+export const FigmaIcon = (props: React.SVGProps<SVGSVGElement>) => (
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width={24} height={24} {...props}>
+		<g>
+			<path d="M12,4h4a0,0,0,0,1,0,0v8a0,0,0,0,1,0,0H12A4,4,0,0,1,8,8V8A4,4,0,0,1,12,4Z" fill="#f4511e" />
+			<path
+				d="M20,4h4a0,0,0,0,1,0,0v8a0,0,0,0,1,0,0H20a4,4,0,0,1-4-4V8a4,4,0,0,1,4-4Z"
+				transform="translate(40 16) rotate(180)"
+				fill="#ff8a65"
+			/>
+			<rect x="16" y="12" width="8" height="8" rx="4" transform="translate(40 32) rotate(180)" fill="#29b6f6" />
+			<path d="M12,12h4a0,0,0,0,1,0,0v8a0,0,0,0,1,0,0H12a4,4,0,0,1-4-4v0A4,4,0,0,1,12,12Z" fill="#7c4dff" />
+			<path d="M12,20h4a0,0,0,0,1,0,0v4a4,4,0,0,1-4,4h0a4,4,0,0,1-4-4v0A4,4,0,0,1,12,20Z" fill="#00e676" />
+		</g>
 	</svg>
 )
 

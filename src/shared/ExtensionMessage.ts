@@ -589,6 +589,7 @@ export interface ClineSayTool {
 		| "useSkill"
 		| "webFetch"
 		| "webSearch"
+		| "figmaFetch"
 		| "executeCommand"
 		| "planFileEdit"
 	path?: string

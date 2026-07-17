@@ -33,6 +33,7 @@ import { getCheckPastChatMemoriesDescription } from "./check-past-chat-memories"
 import { getUseSkillDescription } from "./use-skill"
 import { getWebFetchDescription } from "./web-fetch"
 import { getWebSearchDescription } from "./web-search"
+import { getFigmaFetchDescription } from "./figma-fetch"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 import { discoverSkills } from "../../tools/skills"
 import { type ClineProviderState } from "../../webview/ClineProvider"
@@ -63,6 +64,7 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined 
 	use_skill: (args) => getUseSkillDescription(args),
 	web_fetch: (args) => getWebFetchDescription(args),
 	web_search: (args) => getWebSearchDescription(args),
+	figma_fetch: (args) => getFigmaFetchDescription(args),
 }
 
 export async function getToolDescriptionsForMode(
@@ -197,4 +199,5 @@ export {
 	getCheckPastChatMemoriesDescription,
 	getWebFetchDescription,
 	getWebSearchDescription,
+	getFigmaFetchDescription,
 }
