@@ -42,6 +42,7 @@ import { reportBugTool } from "../tools/reportBugTool" // kilocode_change
 import { validateToolUse } from "../tools/validateToolUse"
 import { webFetchTool } from "../tools/webFetchTool"
 import { webSearchTool } from "../tools/webSearchTool"
+import { figmaFetchTool } from "../tools/figmaFetchTool"
 import { askFollowupQuestionTool } from "../tools/askFollowupQuestionTool"
 
 /**
@@ -241,6 +242,8 @@ export async function presentAssistantMessage(cline: Task) {
 					case "use_skill":
 						return `[${block.name} for '${block.params.skill_name}']`
 					case "web_fetch":
+						return `[${block.name} for '${block.params.url}']`
+					case "figma_fetch":
 						return `[${block.name} for '${block.params.url}']`
 					case "web_search":
 						return `[${block.name} for '${block.params.query}']`
@@ -619,6 +622,7 @@ export async function presentAssistantMessage(cline: Task) {
 					"lsp",
 					"web_fetch",
 					"web_search",
+					"figma_fetch",
 					"use_mcp_tool",
 					"access_mcp_resource",
 				]
@@ -809,6 +813,9 @@ export async function presentAssistantMessage(cline: Task) {
 						break
 					case "web_fetch":
 						await webFetchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+						break
+					case "figma_fetch":
+						await figmaFetchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 						break
 					case "web_search":
 						await webSearchTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)

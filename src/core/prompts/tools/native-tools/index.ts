@@ -14,6 +14,7 @@ import fileWrite from "./file_write"
 import updateTodoList from "./update_todo_list"
 import codebaseSearch from "./codebase_search"
 import useSkill from "./use_skill"
+import figmaFetch from "./figma_fetch"
 import webFetch from "./web_fetch"
 import webSearch from "./web_search"
 
@@ -33,6 +34,7 @@ export const nativeTools = [
 	searchFiles,
 	updateTodoList,
 	useSkill,
+	figmaFetch,
 	webFetch,
 	webSearch,
 ] satisfies OpenAI.Chat.ChatCompletionTool[]

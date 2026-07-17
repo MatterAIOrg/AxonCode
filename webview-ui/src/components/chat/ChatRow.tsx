@@ -40,7 +40,7 @@ import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
-import { Globe02Icon, PlayIcon } from "@/utils/customIcons"
+import { FigmaIcon, Globe02Icon, PlayIcon } from "@/utils/customIcons"
 import { appendImages, normalizeImages } from "@src/utils/imageUtils"
 import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // kilocode_change
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
@@ -1413,6 +1413,31 @@ export const ChatRowContent = ({
 								<ToolUseBlockHeader className="group">
 									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left">
 										{tool.content || "unknown"}
+									</span>
+								</ToolUseBlockHeader>
+							</ToolUseBlock>
+						</div>
+					</div>
+				)
+			case "figmaFetch":
+				return (
+					<div className="flex gap-1 min-w-0">
+						<div style={{ ...headerStyle, flexShrink: 0 }}>
+							<FigmaIcon className="size-3 mr-1" />
+							<span style={{}}>Fetched from Figma</span>
+						</div>
+						<div className="min-w-0 flex-1 overflow-hidden">
+							<ToolUseBlock>
+								<ToolUseBlockHeader>
+									<span
+										style={{
+											fontWeight: "500",
+											whiteSpace: "nowrap",
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+											display: "block",
+										}}>
+										{tool.content}
 									</span>
 								</ToolUseBlockHeader>
 							</ToolUseBlock>

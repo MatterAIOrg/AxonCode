@@ -253,6 +253,7 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	use_skill: "use skill",
 	web_fetch: "fetch web content",
 	web_search: "search the web",
+	figma_fetch: "fetch Figma design data",
 } as const
 
 // Define available tool groups.
@@ -270,6 +271,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 			"use_skill",
 			"web_fetch",
 			"web_search",
+			"figma_fetch",
 		],
 	},
 	edit: {
