@@ -1,4 +1,5 @@
 import * as fs from "fs/promises"
+import * as os from "os"
 import * as path from "path"
 import { parseSkillFile } from "./parser"
 import type { Skill, SkillDiscoveryOptions } from "./types"
@@ -30,6 +31,24 @@ async function parseSkill(skillPath: string, folderName: string, namespace?: str
 	} catch {
 		return null
 	}
+}
+
+function resolveSkillFile(skillPath: string, workspacePath: string): string {
+	const expandedPath =
+		skillPath === "~"
+			? os.homedir()
+			: skillPath.startsWith(`~${path.sep}`)
+				? path.join(os.homedir(), skillPath.slice(2))
+				: skillPath
+	const resolvedPath = path.resolve(workspacePath, expandedPath)
+
+	return path.basename(resolvedPath) === SKILL_FILE ? resolvedPath : path.join(resolvedPath, SKILL_FILE)
+}
+
+/** Load a skill from an explicit directory or SKILL.md path. */
+export async function getSkillByPath(skillPath: string, options: SkillDiscoveryOptions): Promise<Skill | null> {
+	const skillFile = resolveSkillFile(skillPath.trim(), options.workspacePath)
+	return parseSkill(skillFile, path.basename(path.dirname(skillFile)))
 }
 
 async function discoverPersonalSkills(workspacePath: string): Promise<Skill[]> {
@@ -112,5 +131,10 @@ export async function discoverSkills(options: SkillDiscoveryOptions): Promise<Sk
 
 export async function getSkillByName(name: string, options: SkillDiscoveryOptions): Promise<Skill | null> {
 	const skills = await discoverSkills(options)
-	return skills.find((skill) => skill.metadata.name === name) || null
+	const discoveredSkill = skills.find((skill) => skill.metadata.name === name)
+	if (discoveredSkill) return discoveredSkill
+
+	// A caller may provide a skill directory or SKILL.md path that is not part
+	// of the standard .orb discovery catalog.
+	return getSkillByPath(name, options)
 }

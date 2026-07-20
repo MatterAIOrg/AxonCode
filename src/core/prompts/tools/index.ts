@@ -35,7 +35,6 @@ import { getWebFetchDescription } from "./web-fetch"
 import { getWebSearchDescription } from "./web-search"
 import { getFigmaFetchDescription } from "./figma-fetch"
 import { CodeIndexManager } from "../../../services/code-index/manager"
-import { discoverSkills } from "../../tools/skills"
 import { type ClineProviderState } from "../../webview/ClineProvider"
 
 // Map of tool names to their description functions
@@ -147,12 +146,6 @@ export async function getToolDescriptionsForMode(
 	// Conditionally exclude run_slash_command if experiment is not enabled
 	if (!experiments?.runSlashCommand) {
 		tools.delete("run_slash_command")
-	}
-
-	// Conditionally exclude use_skill if no skills are available
-	const skills = await discoverSkills({ workspacePath: cwd })
-	if (skills.length === 0) {
-		tools.delete("use_skill")
 	}
 
 	// Map tool descriptions for allowed tools
