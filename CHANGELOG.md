@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **`/create-skill` built-in command.** Users can describe a repository-specific workflow in plain language and have Orbital create or update a reusable skill under `.orb/skills/<skill-name>/`, including any supporting scripts, references, or assets within that skill directory.
+
+---
+
 ## [v6.4.7] - 2026-06-30
 
 ### Added

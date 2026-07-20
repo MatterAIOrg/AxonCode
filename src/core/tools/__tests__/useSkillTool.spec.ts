@@ -79,7 +79,32 @@ describe("useSkillTool", () => {
 
 		expect(mockCline.say).toHaveBeenCalled()
 		expect(mockPushToolResult).toHaveBeenCalledWith(
-			'<error>Skill "non-existent-skill" not found. Check .orb/skills/ or use the plugin:skill name from .orb/plugins/.</error>',
+			'<error>Skill "non-existent-skill" not found or invalid. Use a listed skill name, a plugin:skill name, or a path to a skill directory or SKILL.md file.</error>',
+		)
+	})
+
+	it("should pass an explicit skill path to the resolver", async () => {
+		const block = {
+			type: "tool_use",
+			name: "use_skill",
+			params: { skill_name: "../shared-skills/review/SKILL.md" },
+			partial: false,
+		} as const
+
+		vi.mocked(getSkillByName).mockResolvedValue({
+			metadata: { name: "review", description: "Review changes" },
+			content: "Review carefully.",
+			folderName: "review",
+			path: "/shared-skills/review/SKILL.md",
+		})
+
+		await useSkillTool(mockCline, block, mockHandleError, mockPushToolResult)
+
+		expect(getSkillByName).toHaveBeenCalledWith("../shared-skills/review/SKILL.md", {
+			workspacePath: "/workspace",
+		})
+		expect(mockPushToolResult).toHaveBeenCalledWith(
+			"You are requested to follow the below instructions\n\nReview carefully.",
 		)
 	})
 

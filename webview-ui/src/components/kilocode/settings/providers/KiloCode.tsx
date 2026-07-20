@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react"
 import { KiloCodeWrapperProperties } from "../../../../../../src/shared/kilocode/wrapper"
 import { ModelPicker } from "../../../settings/ModelPicker"
 import { OrganizationSelector } from "../../common/OrganizationSelector"
+import { WeeklyResetButton } from "../../common/WeeklyResetButton"
 import { getKiloCodeBackendSignInUrl } from "../../helpers"
 
 function formatRelativeTime(isoStr?: string): string {
@@ -58,6 +59,8 @@ export const KiloCode = ({
 
 	// Profile data state for usage info
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
+	const [isResettingWeekly, setIsResettingWeekly] = useState(false)
+	const [weeklyResetError, setWeeklyResetError] = useState<string | null>(null)
 	const previousMessagesRef = useRef<string>("")
 
 	// Fetch profile data on mount if token exists
@@ -75,6 +78,24 @@ export const KiloCode = ({
 				const payload = message.payload as any
 				if (payload?.success && payload.data) {
 					setProfileData(payload.data)
+				}
+			}
+			if (message.type === "resetWeeklyUsageResponse") {
+				const payload = message.payload as any
+				setIsResettingWeekly(false)
+				if (payload?.success && payload.data) {
+					setWeeklyResetError(null)
+					setProfileData((current) =>
+						current
+							? {
+									...current,
+									tieredUsage: payload.data.tieredUsage,
+									weeklyReset: payload.data.weeklyReset,
+								}
+							: current,
+					)
+				} else {
+					setWeeklyResetError(payload?.error || "Failed to reset weekly usage")
 				}
 			}
 		}
@@ -110,6 +131,13 @@ export const KiloCode = ({
 			previousMessagesRef.current = currentMessagesHash
 		}
 	}, [clineMessages, apiConfiguration?.kilocodeToken])
+
+	const handleWeeklyReset = () => {
+		if (isResettingWeekly) return
+		setWeeklyResetError(null)
+		setIsResettingWeekly(true)
+		vscode.postMessage({ type: "resetWeeklyUsageRequest" })
+	}
 
 	// Always show all models including axon-code-2-pro
 	// The model will be marked as disabled if betaModelsEnabled is false
@@ -209,16 +237,13 @@ export const KiloCode = ({
 										})}
 									</div>
 								)}
-								{profileData.remainingReviews !== undefined && (
-									<div>
-										<div className="pt-1 text-md font-medium text-[var(--vscode-foreground)]">
-											Monthly Code Reviews
-										</div>
-										<div className="mt-1 text-md text-[var(--vscode-descriptionForeground)]">
-											{profileData.remainingReviews.toFixed(0)} reviews remaining
-										</div>
-									</div>
-								)}
+								<WeeklyResetButton
+									plan={profileData?.plan}
+									availability={profileData?.weeklyReset}
+									isResetting={isResettingWeekly}
+									error={weeklyResetError}
+									onReset={handleWeeklyReset}
+								/>
 							</div>
 						)}
 					</div>

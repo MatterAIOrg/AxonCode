@@ -5,6 +5,7 @@ import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 import { GaugeCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import { WeeklyResetButton } from "./common/WeeklyResetButton"
 
 function formatRelativeTime(isoStr?: string): string {
 	if (!isoStr) return "on session start"
@@ -31,7 +32,10 @@ export const BottomApiConfig = () => {
 	const [showHoverCard, setShowHoverCard] = useState(false)
 	const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 })
 	const triggerRef = useRef<HTMLDivElement>(null)
+	const cardRef = useRef<HTMLDivElement>(null)
 	const [_isLoading, setIsLoading] = useState(false)
+	const [isResettingWeekly, setIsResettingWeekly] = useState(false)
+	const [weeklyResetError, setWeeklyResetError] = useState<string | null>(null)
 	const previousMessagesRef = useRef<string>("")
 
 	useEffect(() => {
@@ -58,6 +62,24 @@ export const BottomApiConfig = () => {
 				const payload = message.payload as any
 				if (payload?.success) {
 					setCurrentBranch(payload.branch)
+				}
+			}
+			if (message.type === "resetWeeklyUsageResponse") {
+				const payload = message.payload as any
+				setIsResettingWeekly(false)
+				if (payload?.success && payload.data) {
+					setWeeklyResetError(null)
+					setProfileData((current) =>
+						current
+							? {
+									...current,
+									tieredUsage: payload.data.tieredUsage,
+									weeklyReset: payload.data.weeklyReset,
+								}
+							: current,
+					)
+				} else {
+					setWeeklyResetError(payload?.error || "Failed to reset weekly usage")
 				}
 			}
 		}
@@ -97,6 +119,24 @@ export const BottomApiConfig = () => {
 		}
 	}, [clineMessages, apiConfiguration?.kilocodeToken])
 
+	// Close the hover card when clicking outside of it (or the trigger).
+	// The card stays visible until dismissed this way.
+	useEffect(() => {
+		if (!showHoverCard) return
+		const handlePointerDown = (event: MouseEvent) => {
+			const target = event.target as Node | null
+			const trigger = triggerRef.current
+			const card = cardRef.current
+			if (target && trigger && !trigger.contains(target) && card && !card.contains(target)) {
+				setShowHoverCard(false)
+			}
+		}
+		document.addEventListener("mousedown", handlePointerDown)
+		return () => {
+			document.removeEventListener("mousedown", handlePointerDown)
+		}
+	}, [showHoverCard])
+
 	if (!apiConfiguration) {
 		return null
 	}
@@ -116,15 +156,18 @@ export const BottomApiConfig = () => {
 		setShowHoverCard(true)
 	}
 
+	const handleWeeklyReset = () => {
+		if (isResettingWeekly) return
+		setWeeklyResetError(null)
+		setIsResettingWeekly(true)
+		vscode.postMessage({ type: "resetWeeklyUsageRequest" })
+	}
+
 	return (
 		<div className="flex items-center justify-center">
 			{apiConfiguration.kilocodeToken && (
 				<>
-					<div
-						ref={triggerRef}
-						className="relative"
-						onMouseEnter={handleMouseEnter}
-						onMouseLeave={() => setShowHoverCard(false)}>
+					<div ref={triggerRef} className="relative" onMouseEnter={handleMouseEnter}>
 						<span className="items-center justify-center flex shrink-1 overflow-hidden w-auto ml-2 text-sm text-[var(--vscode-descriptionForeground)] cursor-pointer hover:text-[var(--vscode-foreground)] transition-colors">
 							<GaugeCircle
 								size={14}
@@ -147,6 +190,7 @@ export const BottomApiConfig = () => {
 						{showHoverCard &&
 							createPortal(
 								<div
+									ref={cardRef}
 									className="fixed w-72 bg-[var(--vscode-editor-background)] border border-[var(--vscode-panel-border)] rounded-lg p-4 shadow-lg z-[9999]"
 									style={{
 										top: `${cardPosition.top}px`,
@@ -213,13 +257,14 @@ export const BottomApiConfig = () => {
 												)
 											})}
 
-										<div className="space-y-1">
-											<div className="text-md font-medium text-[var(--vscode-foreground)]">
-												Monthly Code Reviews
-											</div>
-											<div className="text-xs text-[var(--vscode-descriptionForeground)]">
-												{(profileData?.remainingReviews || 0).toFixed(0)} reviews remaining
-											</div>
+										<div className="pt-1">
+											<WeeklyResetButton
+												plan={profileData?.plan}
+												availability={profileData?.weeklyReset}
+												isResetting={isResettingWeekly}
+												error={weeklyResetError}
+												onReset={handleWeeklyReset}
+											/>
 										</div>
 									</div>
 								</div>,

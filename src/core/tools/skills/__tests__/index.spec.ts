@@ -3,7 +3,7 @@ import * as os from "os"
 import * as path from "path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
-import { discoverSkills, getSkillByName } from "../index"
+import { discoverSkills, getSkillByName, getSkillByPath } from "../index"
 
 function skillFile(name: string, description = `${name} description`): string {
 	return `---\nname: ${name}\ndescription: ${description}\n---\n\n# ${name}\n\nInstructions.`
@@ -58,5 +58,24 @@ describe("skill discovery", () => {
 		await fs.writeFile(path.join(skillsDir, "invalid", "SKILL.md"), "# Missing frontmatter")
 
 		expect(await discoverSkills({ workspacePath })).toEqual([])
+	})
+
+	it("loads a skill from an explicit directory outside .orb", async () => {
+		const skillDir = path.join(workspacePath, "team-skills", "review")
+		await fs.mkdir(skillDir, { recursive: true })
+		await fs.writeFile(path.join(skillDir, "SKILL.md"), skillFile("external-review"))
+
+		const skill = await getSkillByPath(skillDir, { workspacePath })
+		expect(skill?.metadata.name).toBe("external-review")
+		expect(skill?.path).toBe(path.join(skillDir, "SKILL.md"))
+	})
+
+	it("accepts a workspace-relative SKILL.md path through name resolution", async () => {
+		const skillFilePath = path.join(workspacePath, "shared", "deploy", "SKILL.md")
+		await fs.mkdir(path.dirname(skillFilePath), { recursive: true })
+		await fs.writeFile(skillFilePath, skillFile("external-deploy"))
+
+		const skill = await getSkillByName(path.join("shared", "deploy", "SKILL.md"), { workspacePath })
+		expect(skill?.metadata.name).toBe("external-deploy")
 	})
 })

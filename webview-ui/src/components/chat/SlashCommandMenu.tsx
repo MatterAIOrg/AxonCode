@@ -27,6 +27,8 @@ const getCommandIcon = (name: string): string => {
 			return "codicon-cloud-download"
 		case "init":
 			return "codicon-notebook"
+		case "create-skill":
+			return "codicon-tools"
 		case "link":
 			return "codicon-link"
 		// Modes

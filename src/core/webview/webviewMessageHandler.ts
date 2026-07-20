@@ -3892,6 +3892,45 @@ ${comment.suggestion}
 				})
 			}
 			break
+		case "resetWeeklyUsageRequest":
+			try {
+				const { apiConfiguration } = await provider.getState()
+				const kilocodeToken = apiConfiguration?.kilocodeToken
+				if (!kilocodeToken) {
+					provider.postMessageToWebview({
+						type: "resetWeeklyUsageResponse",
+						payload: { success: false, error: "KiloCode API token not configured." },
+					})
+					break
+				}
+
+				const url = "https://api.matterai.so/axoncode/weekly-reset"
+				const response = await axios.post(
+					url,
+					{},
+					{
+						headers: {
+							Authorization: `Bearer ${kilocodeToken}`,
+							"Content-Type": "application/json",
+						},
+					},
+				)
+				provider.postMessageToWebview({
+					type: "resetWeeklyUsageResponse",
+					payload: { success: true, data: response.data },
+				})
+			} catch (error: any) {
+				const errorMessage = error.response?.data?.error || error.message || "Failed to reset weekly usage."
+				provider.postMessageToWebview({
+					type: "resetWeeklyUsageResponse",
+					payload: {
+						success: false,
+						error: errorMessage,
+						data: error.response?.data,
+					},
+				})
+			}
+			break
 		case "startSpeechRecording": // kilocode_change
 			try {
 				// Stop any prior session before starting a new one.

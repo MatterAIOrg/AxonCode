@@ -28,6 +28,7 @@ import {
 	BetaModelsResponsePayload,
 	GitBranchResponsePayload,
 	ProfileDataResponsePayload,
+	WeeklyResetResponsePayload,
 	TaskHistoryResponsePayload,
 	TasksByIdResponsePayload,
 	MemoryItem,
@@ -173,6 +174,7 @@ export interface ExtensionMessage {
 		| "mcpExecutionStatus"
 		| "vsCodeSetting"
 		| "profileDataResponse" // kilocode_change
+		| "resetWeeklyUsageResponse"
 		| "gitBranchResponse" // kilocode_change
 		| "balanceDataResponse" // kilocode_change
 		| "updateProfileData" // kilocode_change
@@ -213,6 +215,7 @@ export interface ExtensionMessage {
 	// forked_change start
 	payload?:
 		| ProfileDataResponsePayload
+		| WeeklyResetResponsePayload
 		| GitBranchResponsePayload
 		| BalanceDataResponsePayload
 		| BetaModelsResponsePayload

@@ -23,6 +23,8 @@ import * as fs from "node:fs"
 import * as os from "node:os"
 import * as path from "node:path"
 
+import { isFigmaMcpServer } from "./figmaMcpGuard"
+
 /** Normalized MCP server config after the migration step. Mirrors the
  *  shape Orbital's `McpHub` already accepts (stdio / sse / streamable-http). */
 export interface MigrationServerConfig {
@@ -209,7 +211,7 @@ function readMcpServers(filePath: string): Record<string, MigrationServerConfig>
 	for (const [name, raw] of Object.entries(block)) {
 		if (!SERVER_NAME_RE.test(name)) continue
 		const config = normalizeExternalServer(raw)
-		if (config) out[name] = config
+		if (config && !isFigmaMcpServer(name, config)) out[name] = config
 	}
 	return out
 }
@@ -232,7 +234,7 @@ function readCursorPluginMcpServers(filePath: string): Record<string, MigrationS
 		if (name === "mcpServers") continue
 		if (!SERVER_NAME_RE.test(name)) continue
 		const config = normalizeExternalServer(raw)
-		if (config) out[name] = config
+		if (config && !isFigmaMcpServer(name, config)) out[name] = config
 	}
 	return out
 }
@@ -313,7 +315,7 @@ function readMcpServersFromObject(obj: Record<string, unknown>): Record<string, 
 	for (const [name, raw] of Object.entries(block)) {
 		if (!SERVER_NAME_RE.test(name)) continue
 		const config = normalizeExternalServer(raw)
-		if (config) out[name] = config
+		if (config && !isFigmaMcpServer(name, config)) out[name] = config
 	}
 	return out
 }
@@ -476,6 +478,10 @@ export function applyMigration(entries: MigrationEntry[], filePath: string): Mig
 	const skipped: { entry: MigrationEntry; reason: string }[] = []
 
 	for (const entry of entries) {
+		if (isFigmaMcpServer(entry.name, entry.config)) {
+			skipped.push({ entry, reason: "external Figma MCPs are disabled; use the native figma_fetch tool" })
+			continue
+		}
 		if (entry.name in block) {
 			skipped.push({ entry, reason: "already exists in destination" })
 			continue

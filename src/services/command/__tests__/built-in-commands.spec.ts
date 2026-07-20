@@ -1,6 +1,6 @@
 import { getBuiltInCommands, getBuiltInCommand, getBuiltInCommandNames } from "../built-in-commands"
 
-const EXPECTED_COMMANDS = ["commit", "migrate", "init", "link"]
+const EXPECTED_COMMANDS = ["commit", "migrate", "init", "create-skill", "link"]
 
 describe("Built-in Commands", () => {
 	describe("getBuiltInCommands", () => {
@@ -39,6 +39,14 @@ describe("Built-in Commands", () => {
 			expect(linkCommand!.content).toContain(".orb/links.json")
 			expect(linkCommand!.content).toContain("Linked Repositories")
 			expect(linkCommand!.description).toBe("Link other repos so changes here are checked against them")
+
+			const createSkillCommand = commands.find((cmd) => cmd.name === "create-skill")
+			expect(createSkillCommand).toBeDefined()
+			expect(createSkillCommand!.content).toContain(".orb/skills/<skill-name>/SKILL.md")
+			expect(createSkillCommand!.argumentHint).toBe("<describe the skill you want>")
+			expect(createSkillCommand!.description).toBe(
+				"Create or update a repo-local skill from a plain-language description",
+			)
 
 			const commitCommand = commands.find((cmd) => cmd.name === "commit")
 			expect(commitCommand).toBeDefined()
@@ -112,6 +120,18 @@ describe("Built-in Commands", () => {
 			expect(content).toContain(".orb/links.json")
 			expect(content).toContain("ask_followup_question")
 			expect(content).toContain("folder path")
+		})
+
+		it("create-skill command keeps every generated skill artifact in .orb/skills", async () => {
+			const command = await getBuiltInCommand("create-skill")
+			const content = command!.content
+
+			expect(content).toContain("user's text after /create-skill")
+			expect(content).toContain(".orb/skills/<skill-name>/SKILL.md")
+			expect(content).toContain("Supporting scripts, references, and assets")
+			expect(content).toContain("frontmatter containing exactly name and description")
+			expect(content).toContain("Do not create the skill in .orbcode")
+			expect(content).toContain("do not modify any file outside that skill directory")
 		})
 	})
 })

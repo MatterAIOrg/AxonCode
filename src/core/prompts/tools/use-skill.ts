@@ -6,11 +6,11 @@ export async function getUseSkillDescription(args: ToolArgs): Promise<string> {
 
 	if (skills.length === 0) {
 		return `## use_skill
-Description: Use a specific skill to guide the task execution. This tool allows you to apply predefined skills stored in the workspace's .orb/skills directory.
+Description: Use a specific skill to guide the task execution. Load a discovered skill by name or load a skill from an explicit directory or SKILL.md path.
 Parameters:
-- skill_name: (required) The name of the skill to use.
+- skill_name: (required) A discovered skill name, plugin:skill name, or absolute, workspace-relative, or home-relative path to a skill directory or SKILL.md file.
 
-No skills are currently available in this workspace. To add skills, create SKILL.md files in .orb/skills/<skill-name>/ directories.`
+No skills were discovered in this workspace. You can still use a skill by passing its path.`
 	}
 
 	const skillList = skills
@@ -28,9 +28,9 @@ No skills are currently available in this workspace. To add skills, create SKILL
 		: ""
 
 	return `## use_skill
-Description: Use a specific skill to guide the task execution. This tool allows you to apply predefined skills stored in the workspace's .orb/skills directory. Each skill contains specialized instructions for performing specific tasks or following particular patterns.
+Description: Use a specific skill to guide the task execution. Load a discovered skill by name or load a skill from an explicit directory or SKILL.md path. Each skill contains specialized instructions for performing specific tasks or following particular patterns.
 Parameters:
-- skill_name: (required) The name of the skill to use. Available skills:
+- skill_name: (required) A skill name from the list below, a plugin:skill name, or an absolute, workspace-relative, or home-relative path to a skill directory or SKILL.md file. Available skills:
 ${skillList}
 
 ${example}`

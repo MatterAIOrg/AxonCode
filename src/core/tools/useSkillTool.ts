@@ -38,7 +38,7 @@ export async function useSkillTool(
 			if (!skill) {
 				pushToolResult(
 					formatResponse.toolError(
-						`Skill "${skillName}" not found. Check .orb/skills/ or use the plugin:skill name from .orb/plugins/.`,
+						`Skill "${skillName}" not found or invalid. Use a listed skill name, a plugin:skill name, or a path to a skill directory or SKILL.md file.`,
 					),
 				)
 				return

@@ -18,6 +18,7 @@ import { teamsCommand } from "./teams.js"
 import { configCommand } from "./config.js"
 import { costCommand } from "./cost.js"
 import { migrateCommand } from "./migrate.js"
+import { weeklyResetCommand } from "./weekly-reset.js"
 
 /**
  * Initialize all commands
@@ -35,4 +36,5 @@ export function initializeCommands(): void {
 	commandRegistry.register(configCommand)
 	commandRegistry.register(costCommand)
 	commandRegistry.register(migrateCommand)
+	commandRegistry.register(weeklyResetCommand)
 }
