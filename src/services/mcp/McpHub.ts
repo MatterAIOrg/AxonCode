@@ -37,6 +37,7 @@ import { arePathsEqual, getWorkspacePath } from "../../utils/path"
 import { injectVariables } from "../../utils/config"
 import { NotificationService } from "./kilocode/NotificationService"
 import { McpOAuthProvider } from "./oauth-provider"
+import { isFigmaMcpServer, isFigmaMcpTool } from "./figmaMcpGuard"
 
 // Discriminated union for connection states
 export type ConnectedMcpConnection = {
@@ -649,6 +650,13 @@ export class McpHub {
 	): Promise<void> {
 		// Remove existing connection if it exists with the same source
 		await this.deleteConnection(name, source)
+
+		// MatterAI provides Figma through the native figma_fetch tool. Never
+		// connect an external Figma MCP, regardless of where it was configured.
+		if (isFigmaMcpServer(name, config)) {
+			console.warn(`Ignoring external Figma MCP server "${name}"; use the native figma_fetch tool instead.`)
+			return
+		}
 
 		// Check if MCP is globally enabled
 		const mcpEnabled = await this.isMcpEnabled()
@@ -1318,11 +1326,13 @@ export class McpHub {
 			}
 
 			// Mark tools as always allowed and enabled for prompt based on settings
-			const tools = (response?.tools || []).map((tool) => ({
-				...tool,
-				alwaysAllow: alwaysAllowConfig.includes(tool.name),
-				enabledForPrompt: !disabledToolsList.includes(tool.name),
-			}))
+			const tools = (response?.tools || [])
+				.filter((tool) => !isFigmaMcpTool(tool))
+				.map((tool) => ({
+					...tool,
+					alwaysAllow: alwaysAllowConfig.includes(tool.name),
+					enabledForPrompt: !disabledToolsList.includes(tool.name),
+				}))
 
 			return tools
 		} catch (error) {
@@ -1427,12 +1437,15 @@ export class McpHub {
 			this.isConnecting = true
 		}
 		this.removeAllFileWatchers()
+		const allowedServers = Object.fromEntries(
+			Object.entries(newServers).filter(([name, config]) => !isFigmaMcpServer(name, config)),
+		)
 		// Filter connections by source
 		const currentConnections = this.connections.filter(
 			(conn) => conn.server.source === source || (!conn.server.source && source === "global"),
 		)
 		const currentNames = new Set(currentConnections.map((conn) => conn.server.name))
-		const newNames = new Set(Object.keys(newServers))
+		const newNames = new Set(Object.keys(allowedServers))
 
 		// Delete removed servers
 		for (const name of currentNames) {
@@ -1442,7 +1455,7 @@ export class McpHub {
 		}
 
 		// Update or add servers in parallel to prevent slow servers from blocking others
-		const connectionPromises = Object.entries(newServers).map(async ([name, config]) => {
+		const connectionPromises = Object.entries(allowedServers).map(async ([name, config]) => {
 			// Only consider connections that match the current source
 			const currentConnection = this.findConnection(name, source)
 
@@ -2014,6 +2027,9 @@ export class McpHub {
 		toolArguments?: Record<string, unknown>,
 		source?: "global" | "project",
 	): Promise<McpToolCallResponse> {
+		if (isFigmaMcpServer(serverName, {}) || isFigmaMcpTool({ name: toolName })) {
+			throw new Error("External Figma MCP tools are disabled. Use the native figma_fetch tool instead.")
+		}
 		const connection = this.findConnection(serverName, source)
 		if (!connection) {
 			throw new Error(
@@ -2035,6 +2051,17 @@ export class McpHub {
 
 		if (connection.server.disabled) {
 			throw new Error(`Server "${serverName}" is disabled and cannot be used`)
+		}
+
+		let connectedConfig: unknown = {}
+		try {
+			connectedConfig = JSON.parse(connection.server.config)
+		} catch {
+			// Invalid config is handled by the timeout parsing below.
+		}
+		const declaredTool = connection.server.tools?.find((tool) => tool.name === toolName)
+		if (isFigmaMcpServer(serverName, connectedConfig) || (declaredTool && isFigmaMcpTool(declaredTool))) {
+			throw new Error("External Figma MCP tools are disabled. Use the native figma_fetch tool instead.")
 		}
 
 		let timeout: number
