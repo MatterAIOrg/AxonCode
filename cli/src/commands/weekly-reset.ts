@@ -51,7 +51,13 @@ export const weeklyResetCommand: Command = {
 		await context.sendMessage({ type: "resetWeeklyUsageRequest" })
 		const response = await responsePromise
 		if (!response) {
-			throw new Error("Timed out waiting for the weekly reset")
+			context.addMessage({
+				id: Date.now().toString(),
+				type: "error",
+				content: "Timed out waiting for the weekly reset.",
+				ts: Date.now(),
+			})
+			return
 		}
 		if (!response.payload?.success) {
 			context.addMessage({

@@ -238,8 +238,8 @@ export const KiloCode = ({
 									</div>
 								)}
 								<WeeklyResetButton
-									plan={profileData.plan}
-									availability={profileData.weeklyReset}
+									plan={profileData?.plan}
+									availability={profileData?.weeklyReset}
 									isResetting={isResettingWeekly}
 									error={weeklyResetError}
 									onReset={handleWeeklyReset}

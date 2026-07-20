@@ -1,5 +1,5 @@
 import { EventEmitter } from "events"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { CommandContext } from "../core/types.js"
 import { weeklyResetCommand } from "../weekly-reset.js"
 
@@ -7,6 +7,10 @@ describe("/weekly-reset command", () => {
 	let service: EventEmitter
 	let context: CommandContext
 	let addMessage: ReturnType<typeof vi.fn>
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
 
 	beforeEach(() => {
 		service = new EventEmitter()
@@ -58,6 +62,20 @@ describe("/weekly-reset command", () => {
 
 		expect(addMessage).toHaveBeenCalledWith(
 			expect.objectContaining({ type: "error", content: "Weekly reset already used" }),
+		)
+	})
+
+	it("reports a friendly error instead of throwing on timeout", async () => {
+		vi.useFakeTimers()
+		// Never emit a response so waitForReset times out.
+		context.sendMessage = vi.fn(async () => {})
+
+		const handlerPromise = weeklyResetCommand.handler(context)
+		await vi.advanceTimersByTimeAsync(10_000)
+		await handlerPromise
+
+		expect(addMessage).toHaveBeenCalledWith(
+			expect.objectContaining({ type: "error", content: "Timed out waiting for the weekly reset." }),
 		)
 	})
 })

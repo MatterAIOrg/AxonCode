@@ -37,7 +37,7 @@ function resolveSkillFile(skillPath: string, workspacePath: string): string {
 	const expandedPath =
 		skillPath === "~"
 			? os.homedir()
-			: skillPath.startsWith(`~${path.sep}`)
+			: skillPath.startsWith("~/") || skillPath.startsWith(`~\\`)
 				? path.join(os.homedir(), skillPath.slice(2))
 				: skillPath
 	const resolvedPath = path.resolve(workspacePath, expandedPath)
