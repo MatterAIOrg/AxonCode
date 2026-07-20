@@ -236,6 +236,8 @@ export interface WebviewMessage {
 		| "profileButtonClicked" // kilocode_change
 		| "fetchProfileDataRequest" // kilocode_change
 		| "profileDataResponse" // kilocode_change
+		| "resetWeeklyUsageRequest"
+		| "resetWeeklyUsageResponse"
 		| "fetchGitBranchRequest" // kilocode_change
 		| "gitBranchResponse" // kilocode_change
 		| "fetchBalanceDataRequest" // kilocode_change
@@ -500,6 +502,14 @@ export type ProfileData = {
 	// Tiered usage windows (weekly / monthly). Each window is expressed
 	// as a fraction of the user's monthly plan limit.
 	tieredUsage?: AxonCodeTieredUsage
+	weeklyReset?: AxonCodeWeeklyResetAvailability
+}
+
+export interface AxonCodeWeeklyResetAvailability {
+	eligible: boolean
+	available: boolean
+	lastResetAt: string | null
+	nextAvailableAt: string | null
 }
 
 export interface AxonCodeWindowUsage {
@@ -521,6 +531,15 @@ export interface AxonCodeTieredUsage {
 export interface ProfileDataResponsePayload {
 	success: boolean
 	data?: ProfileData
+	error?: string
+}
+
+export interface WeeklyResetResponsePayload {
+	success: boolean
+	data?: {
+		weeklyReset: AxonCodeWeeklyResetAvailability
+		tieredUsage: AxonCodeTieredUsage
+	}
 	error?: string
 }
 
@@ -687,6 +706,7 @@ export interface ApplyAllCodeReviewFixesPayload {
 export type WebViewMessagePayload =
 	// forked_change start
 	| ProfileDataResponsePayload
+	| WeeklyResetResponsePayload
 	| BalanceDataResponsePayload
 	| BetaModelsResponsePayload
 	| SeeNewChangesPayload

@@ -35,6 +35,13 @@ export interface AxonCodeTieredUsage {
 	monthly: AxonCodeWindowUsage
 }
 
+export interface AxonCodeWeeklyResetAvailability {
+	eligible: boolean
+	available: boolean
+	lastResetAt: string | null
+	nextAvailableAt: string | null
+}
+
 export interface ProfileData {
 	user?: ProfileUser
 	organizations?: UserOrganization[]
@@ -43,6 +50,7 @@ export interface ProfileData {
 	usagePercentage?: number
 	creditsResetDate?: string
 	tieredUsage?: AxonCodeTieredUsage
+	weeklyReset?: AxonCodeWeeklyResetAvailability
 }
 
 export interface BalanceData {
