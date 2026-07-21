@@ -1,6 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [v6.4.9] - 2026-07-21
+
+### Fixed
+
+- **Accept-all edit telemetry.** Accepting all pending edits from the IDE review bar now reports accepted line counts to the task metadata endpoint, matching the chat and per-edit accept actions.
+- **Review-bar change navigation.** The up and down buttons now move between individual edit locations in the active file, while the left and right buttons continue to navigate between edited files.
 
 ### Added
 
