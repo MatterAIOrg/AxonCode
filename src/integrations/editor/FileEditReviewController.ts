@@ -4,6 +4,7 @@ import * as path from "path"
 
 import { getReadablePath } from "../../utils/path"
 import { myersDiff } from "../../services/continuedev/core/diff/myers"
+import { computeDifferenceLineNumbers, findAdjacentChangeLine } from "./fileEditReviewNavigation"
 
 type PendingFileEdit = {
 	relPath: string
@@ -109,17 +110,17 @@ export class FileEditReviewController implements vscode.Disposable {
 					: FileEditReviewController.getActiveController()
 				return controller?.handleRejectAll()
 			})
-			vscode.commands.registerCommand(NEXT_COMMAND, (taskId?: string) => {
+			vscode.commands.registerCommand(NEXT_COMMAND, (taskId?: string, navigateChanges = false) => {
 				const controller = taskId
 					? FileEditReviewController.controllers.get(taskId)
 					: FileEditReviewController.getActiveController()
-				return controller?.handleReviewNext()
+				return navigateChanges ? controller?.handleReviewNextChange() : controller?.handleReviewNext()
 			})
-			vscode.commands.registerCommand(PREV_COMMAND, (taskId?: string) => {
+			vscode.commands.registerCommand(PREV_COMMAND, (taskId?: string, navigateChanges = false) => {
 				const controller = taskId
 					? FileEditReviewController.controllers.get(taskId)
 					: FileEditReviewController.getActiveController()
-				return controller?.handleReviewPrev()
+				return navigateChanges ? controller?.handleReviewPrevChange() : controller?.handleReviewPrev()
 			})
 			vscode.commands.registerCommand("axon-code.fileEdit.deletedLine", () => {}) // no-op command so VS Code doesn't strip it
 
@@ -377,20 +378,6 @@ export class FileEditReviewController implements vscode.Disposable {
 		filePath: string
 		taskId?: string
 	}): Promise<void> {
-		const kilocodeToken = await this._getToken?.()
-
-		if (!kilocodeToken) {
-			console.log("[FileEditReviewController] No kilocodeToken available, skipping metrics reporting")
-			return
-		}
-
-		const taskId = editData.taskId || this._taskId
-
-		if (!taskId) {
-			console.log("[FileEditReviewController] No taskId available, skipping metrics reporting")
-			return
-		}
-
 		// Calculate line changes using myers diff
 		const diffLines = myersDiff(editData.originalContent, editData.newContent)
 		let linesAdded = 0
@@ -403,14 +390,40 @@ export class FileEditReviewController implements vscode.Disposable {
 			}
 		}
 
-		// Skip if no changes
-		if (linesAdded === 0 && linesDeleted === 0) {
+		await this.reportLineMetrics({
+			filePath: editData.filePath,
+			linesAdded,
+			linesUpdated: 0,
+			linesDeleted,
+			taskId: editData.taskId,
+		})
+	}
+
+	private async reportLineMetrics(metrics: {
+		filePath: string
+		linesAdded: number
+		linesUpdated: number
+		linesDeleted: number
+		taskId?: string
+	}): Promise<void> {
+		if (metrics.linesAdded === 0 && metrics.linesUpdated === 0 && metrics.linesDeleted === 0) {
 			console.log("[FileEditReviewController] No changes detected, skipping")
 			return
 		}
 
-		// Determine language from file extension
-		const ext = path.extname(editData.filePath).toLowerCase()
+		const kilocodeToken = await this._getToken?.()
+		if (!kilocodeToken) {
+			console.log("[FileEditReviewController] No kilocodeToken available, skipping metrics reporting")
+			return
+		}
+
+		const taskId = metrics.taskId || this._taskId
+		if (!taskId) {
+			console.log("[FileEditReviewController] No taskId available, skipping metrics reporting")
+			return
+		}
+
+		const ext = path.extname(metrics.filePath).toLowerCase()
 		const languageMap: Record<string, string> = {
 			".ts": "ts",
 			".tsx": "tsx",
@@ -447,9 +460,9 @@ export class FileEditReviewController implements vscode.Disposable {
 				},
 				body: JSON.stringify({
 					language,
-					linesAdded,
-					linesUpdated: 0,
-					linesDeleted,
+					linesAdded: metrics.linesAdded,
+					linesUpdated: metrics.linesUpdated,
+					linesDeleted: metrics.linesDeleted,
 				}),
 			})
 
@@ -525,6 +538,7 @@ export class FileEditReviewController implements vscode.Disposable {
 		let linesAdded = 0
 		let linesUpdated = 0
 		let linesDeleted = 0
+		const firstEditedFile = this.pendingEdits.values().next().value?.absolutePath
 
 		for (const edit of this.pendingEdits.values()) {
 			for (const editEntry of edit.edits) {
@@ -550,6 +564,15 @@ export class FileEditReviewController implements vscode.Disposable {
 		this.refreshDecorations()
 		this.updateContext()
 		this.codeLensEmitter.fire()
+
+		if (firstEditedFile) {
+			await this.reportLineMetrics({
+				filePath: firstEditedFile,
+				linesAdded,
+				linesUpdated,
+				linesDeleted,
+			})
+		}
 
 		return { linesAdded, linesUpdated, linesDeleted }
 	}
@@ -610,6 +633,66 @@ export class FileEditReviewController implements vscode.Disposable {
 		const document = await vscode.workspace.openTextDocument(prevEntry.absolutePath)
 		const editor = await vscode.window.showTextDocument(document, { preview: false })
 		editor.revealRange(prevEntry.diffAnchor, vscode.TextEditorRevealType.InCenter)
+	}
+
+	async handleReviewNextChange() {
+		await this.handleReviewChange(1)
+	}
+
+	async handleReviewPrevChange() {
+		await this.handleReviewChange(-1)
+	}
+
+	private async handleReviewChange(direction: 1 | -1) {
+		if (this.reviewQueue.length === 0) {
+			vscode.window.showInformationMessage("No more pending file reviews.")
+			return
+		}
+
+		const activeEditor = vscode.window.activeTextEditor
+		const activeReadablePath = activeEditor
+			? getReadablePath(this.cwd, path.relative(this.cwd, activeEditor.document.uri.fsPath))
+			: undefined
+		const activeEntry = activeReadablePath ? this.pendingEdits.get(activeReadablePath) : undefined
+		const readablePath = activeEntry ? activeReadablePath : this.reviewQueue[this.currentReviewIndex]
+		const entry = readablePath ? this.pendingEdits.get(readablePath) : undefined
+
+		if (!entry || entry.edits.length === 0) {
+			return
+		}
+
+		if (activeEntry && activeReadablePath) {
+			const activeFileIndex = this.reviewQueue.indexOf(activeReadablePath)
+			if (activeFileIndex !== -1) {
+				this.currentReviewIndex = activeFileIndex
+				this.updateContext()
+			}
+		}
+
+		const editor = activeEntry
+			? activeEditor
+			: await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(entry.absolutePath), {
+					preview: false,
+				})
+		if (!editor) {
+			return
+		}
+
+		const changeLines = new Set<number>()
+		for (const edit of entry.edits) {
+			for (const line of computeDifferenceLineNumbers(edit.originalContent, edit.newContent)) {
+				changeLines.add(line)
+			}
+		}
+		const lines = Array.from(changeLines).sort((a, b) => a - b)
+		const targetLine = findAdjacentChangeLine(lines, editor.selection.active.line, direction)
+		if (targetLine === undefined) {
+			return
+		}
+
+		const anchor = new vscode.Range(targetLine, 0, targetLine, Number.MAX_SAFE_INTEGER)
+		editor.selection = new vscode.Selection(anchor.start, anchor.start)
+		editor.revealRange(anchor, vscode.TextEditorRevealType.InCenter)
 	}
 
 	private clearEntry(entry: PendingFileEdit) {
@@ -701,15 +784,7 @@ export class FileEditReviewController implements vscode.Disposable {
 }
 
 function computeFirstDifferenceRange(originalContent: string, newContent: string): vscode.Range {
-	const originalLines = originalContent.split("\n")
-	const newLines = newContent.split("\n")
-
-	let line = 0
-	while (line < originalLines.length && line < newLines.length && originalLines[line] === newLines[line]) {
-		line++
-	}
-
-	// Just return the line for simplicity in this visual anchor
+	const line = computeDifferenceLineNumbers(originalContent, newContent)[0] ?? 0
 	return new vscode.Range(line, 0, line, Number.MAX_SAFE_INTEGER)
 }
 
