@@ -1,12 +1,18 @@
 import { DropdownOption, DropdownOptionType, SelectDropdown, StandardTooltip } from "@/components/ui"
 import { usePreferredModels } from "@/components/ui/hooks/kilocode/usePreferredModels"
 import { useThirdPartyModels } from "@/components/ui/hooks/useOllamaModels"
-import { Alert02Icon, Brain01Icon } from "@/utils/customIcons"
-import { OPENROUTER_DEFAULT_PROVIDER_NAME, type ProviderSettings } from "@roo-code/types"
+import { Alert02Icon, BulbIcon } from "@/utils/customIcons"
+import {
+	canUse400kContext,
+	get200kAxonFallback,
+	is400kAxonModel,
+	OPENROUTER_DEFAULT_PROVIDER_NAME,
+	type ProviderSettings,
+} from "@roo-code/types"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
-import { useMemo, useCallback } from "react"
+import { useMemo, useCallback, useEffect } from "react"
 import { prettyModelName, AXON_MODEL_TOOLTIPS } from "../../../utils/prettyModelName"
 import { useProviderModels } from "../hooks/useProviderModels"
 import { getModelIdKey, getSelectedModelId } from "../hooks/useSelectedModel"
@@ -43,13 +49,36 @@ const sanitizeModelLabel = (modelId: string, provider: string): string => {
 	return baseName
 }
 
+const MODEL_QUALIFIER_PATTERN = /\s*(\((?:200k context|400k context|free)\))$/i
+
+const ModelLabel = ({ label }: { label: string }) => {
+	const match = label.match(MODEL_QUALIFIER_PATTERN)
+
+	if (!match || typeof match.index === "undefined") {
+		return <>{label}</>
+	}
+
+	return (
+		<>
+			<span>{label.slice(0, match.index)}</span>{" "}
+			<span className="text-[0.85em] text-vscode-descriptionForeground opacity-70">{match[1]}</span>
+		</>
+	)
+}
+
 interface ModelSelectorProps {
 	currentApiConfigName?: string
 	apiConfiguration: ProviderSettings
 	fallbackText: string
+	profilePlan?: string
 }
 
-export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallbackText }: ModelSelectorProps) => {
+export const ModelSelector = ({
+	currentApiConfigName,
+	apiConfiguration,
+	fallbackText,
+	profilePlan,
+}: ModelSelectorProps) => {
 	const { t } = useAppTranslation()
 	const { currentTaskItem } = useExtensionState()
 	const { provider, providerModels, providerDefaultModel, isLoading, isError, proModelIds, proModelsEnabled } =
@@ -66,6 +95,7 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			defaultModelId: providerDefaultModel,
 		})
 	const modelIdKey = getModelIdKey({ provider })
+	const has400kAccess = canUse400kContext(profilePlan)
 
 	const modelsIds = usePreferredModels(providerModels)
 
@@ -189,15 +219,40 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			const label = baseLabel
 			const isProModel = proModelIds?.includes(modelId)
 			const isProModelDisabled = isProModel && !proModelsEnabled
+			const isExtendedContextDisabled = is400kAxonModel(modelId) && !has400kAccess
 
 			return {
 				value: modelId,
 				label,
 				type: DropdownOptionType.ITEM,
-				disabled: isProModelDisabled,
+				disabled: isProModelDisabled || isExtendedContextDisabled,
 				isProModelDisabled,
+				isExtendedContextDisabled,
 			}
 		})
+		const groupedContextWindows = [200000, 400000]
+		const contextOptions = groupedContextWindows.flatMap((contextWindow) => {
+			const modelsInGroup = allOptions.filter(
+				(option) => providerModels[option.value]?.contextWindow === contextWindow,
+			)
+
+			return modelsInGroup.length > 0
+				? [
+						{
+							value: `__context_${contextWindow}__`,
+							label: `Context: ${contextWindow / 1000}k`,
+							type: DropdownOptionType.GROUP,
+							disabled: true,
+							isProModelDisabled: false,
+							isExtendedContextDisabled: false,
+						},
+						...modelsInGroup,
+					]
+				: []
+		})
+		const ungroupedOptions = allOptions.filter(
+			(option) => !groupedContextWindows.includes(providerModels[option.value]?.contextWindow),
+		)
 
 		// Add matterai3p models (always shown after Axon models)
 		const matterai3pOpts = Object.entries(matterai3pOptions).map(([modelId, { label }]) => ({
@@ -206,6 +261,7 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			type: DropdownOptionType.ITEM,
 			disabled: false,
 			isProModelDisabled: false,
+			isExtendedContextDisabled: false,
 		}))
 
 		// Add other third-party provider models (shown after matterai3p)
@@ -215,24 +271,62 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			type: DropdownOptionType.ITEM,
 			disabled: false,
 			isProModelDisabled: false,
+			isExtendedContextDisabled: false,
 		}))
 
 		// Add "Configure Models" option at the end
 		const configureOption = {
 			value: "__configure_models__",
 			label: "Configure Models...",
+			codicon: "settings",
 			type: DropdownOptionType.ITEM,
 			disabled: false,
 			isProModelDisabled: false,
+			isExtendedContextDisabled: false,
 		}
 
 		// Order: Axon models -> matterai3p models -> other 3p models -> configure
-		return [...allOptions, ...matterai3pOpts, ...thirdPartyOptions, configureOption]
-	}, [modelsIds, providerModels, selectedModelId, proModelIds, proModelsEnabled, matterai3pOptions, thirdPartyModels])
+		return [...contextOptions, ...ungroupedOptions, ...matterai3pOpts, ...thirdPartyOptions, configureOption]
+	}, [
+		modelsIds,
+		providerModels,
+		selectedModelId,
+		proModelIds,
+		proModelsEnabled,
+		matterai3pOptions,
+		thirdPartyModels,
+		has400kAccess,
+	])
 
 	const disabled = isLoading || isError
+	const selectAxonModel = useCallback(
+		(value: string) => {
+			if (currentTaskItem && provider) {
+				vscode.postMessage({
+					type: "updateTaskModel",
+					apiProvider: provider,
+					apiModelId: value,
+					thirdPartySelectedModel: undefined,
+				})
+			} else {
+				vscode.postMessage({
+					type: "upsertApiConfiguration",
+					text: currentApiConfigName || "default",
+					apiConfiguration: {
+						...apiConfiguration,
+						[modelIdKey]: value,
+						openRouterSpecificProvider: OPENROUTER_DEFAULT_PROVIDER_NAME,
+						thirdPartySelectedModel: undefined,
+					},
+				})
+			}
+		},
+		[currentTaskItem, provider, currentApiConfigName, apiConfiguration, modelIdKey],
+	)
 
 	const onChange = (value: string) => {
+		if (is400kAxonModel(value) && !has400kAccess) return
+
 		// Handle "Configure Models" option
 		if (value === "__configure_models__") {
 			vscode.postMessage({
@@ -301,47 +395,19 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			return
 		}
 
-		// If there's an active task, use task-local model update for isolation
-		// This prevents changing the model from affecting all tasks across all windows
-		if (currentTaskItem && provider) {
-			vscode.postMessage({
-				type: "updateTaskModel",
-				apiProvider: provider,
-				apiModelId: value,
-				// Clear third-party model selection when switching to Axon model
-				thirdPartySelectedModel: undefined,
-			})
-		} else if (currentApiConfigName) {
-			// No active task, update global configuration
-			vscode.postMessage({
-				type: "upsertApiConfiguration",
-				text: currentApiConfigName,
-				apiConfiguration: {
-					...apiConfiguration,
-					[modelIdKey]: value,
-					openRouterSpecificProvider: OPENROUTER_DEFAULT_PROVIDER_NAME,
-					// Clear third-party model selection when switching to Axon model
-					thirdPartySelectedModel: undefined,
-				},
-			})
-		} else {
-			// No task and no config name - still try to update global configuration
-			// This handles the case where model is selected before creating a task
-			vscode.postMessage({
-				type: "upsertApiConfiguration",
-				text: "default",
-				apiConfiguration: {
-					...apiConfiguration,
-					[modelIdKey]: value,
-					openRouterSpecificProvider: OPENROUTER_DEFAULT_PROVIDER_NAME,
-					// Clear third-party model selection when switching to Axon model
-					thirdPartySelectedModel: undefined,
-				},
-			})
-		}
+		selectAxonModel(value)
 	}
 
-	const renderItem = (option: DropdownOption & { isProModelDisabled?: boolean }) => {
+	useEffect(() => {
+		if (!profilePlan || has400kAccess || !is400kAxonModel(selectedModelId)) return
+
+		const fallbackId = get200kAxonFallback(selectedModelId)
+		if (providerModels[fallbackId]) selectAxonModel(fallbackId)
+	}, [profilePlan, has400kAccess, selectedModelId, providerModels, selectAxonModel])
+
+	const renderItem = (
+		option: DropdownOption & { isProModelDisabled?: boolean; isExtendedContextDisabled?: boolean },
+	) => {
 		const isConfigureOption = option.value === "__configure_models__"
 		const isThirdPartyModel =
 			option.value.startsWith("ollama:") ||
@@ -349,56 +415,93 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			option.value.startsWith("matterai3p:") ||
 			option.value.startsWith("fireworks:")
 		const axonTooltip = AXON_MODEL_TOOLTIPS[option.value]
+		const axonDescription = providerModels[option.value]?.description
+		const isSelected = option.value === selectedModelId
 
 		const itemContent = (
-			<div className="flex items-center justify-start gap-1 flex-1 py-1.5 px-3 hover:bg-[var(--vscode-menu-background)] hover:text-vscode-list-activeSelectionForeground">
-				<div className="">
-					<div>{option.label}</div>
-				</div>
+			<div
+				className={cn(
+					"flex w-full items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors duration-150 rounded-lg",
+					option.disabled
+						? "opacity-50 cursor-not-allowed"
+						: isSelected
+							? "bg-[var(--vscode-list-activeSelectionBackground)] text-[var(--vscode-list-activeSelectionForeground)]"
+							: "hover:bg-[var(--vscode-list-hoverBackground)] text-[var(--vscode-foreground)] opacity-80",
+				)}>
 				{isConfigureOption ? (
-					<Settings className="size-3.5 text-vscode-descriptionForeground" />
+					<Settings className="opacity-80 mr-2 size-4 shrink-0" />
 				) : isThirdPartyModel ? null : (
-					<>
-						<Brain01Icon className="size-3.5 text-white" />
-						{option.isProModelDisabled && (
-							<StandardTooltip
-								content={
-									<div className="flex flex-col gap-2 text-[13px] p-2">
-										<span className="font-semibold">
-											Pro models are only available on the Paid Plan
-										</span>
-										<button
-											className="text-[var(--vscode-button-background)] hover:underline text-left"
-											onClick={(e) => {
-												e.stopPropagation()
-												vscode.postMessage({
-													type: "openExternal",
-													url: "https://app.matterai.so/ai-coding-agent",
-												})
-											}}>
-											Upgrade your plan here →
-										</button>
-									</div>
-								}>
-								<span className="flex items-center">
-									<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+					<BulbIcon className="opacity-80 mr-2 size-4 shrink-0" />
+				)}
+				<div className="flex-1 min-w-0 flex items-baseline gap-2">
+					<div className="font-bold text-sm shrink-0">
+						<ModelLabel label={option.label} />
+					</div>
+				</div>
+				{option.isProModelDisabled && (
+					<StandardTooltip
+						content={
+							<div className="flex flex-col gap-2 text-[13px] p-2">
+								<span className="font-semibold">Pro models are only available on the Paid Plan</span>
+								<button
+									className="text-[var(--vscode-button-background)] hover:underline text-left"
+									onClick={(e) => {
+										e.stopPropagation()
+										vscode.postMessage({
+											type: "openExternal",
+											url: "https://app.matterai.so/ai-coding-agent",
+										})
+									}}>
+									Upgrade your plan here →
+								</button>
+							</div>
+						}>
+						<span className="flex items-center">
+							<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+						</span>
+					</StandardTooltip>
+				)}
+				{option.isExtendedContextDisabled && (
+					<StandardTooltip
+						content={
+							<div className="flex flex-col gap-2 text-[13px] p-2">
+								<span className="font-semibold">
+									400k context is available on Pro Plus and Ultra plans
 								</span>
-							</StandardTooltip>
-						)}
-					</>
+								<button
+									className="text-[var(--vscode-button-background)] hover:underline text-left"
+									onClick={(e) => {
+										e.stopPropagation()
+										vscode.postMessage({
+											type: "openExternal",
+											url: "https://app.matterai.so/ai-coding-agent",
+										})
+									}}>
+									Upgrade your plan here →
+								</button>
+							</div>
+						}>
+						<span className="flex items-center">
+							<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+						</span>
+					</StandardTooltip>
 				)}
 			</div>
 		)
 
 		// Wrap with tooltip for Axon models
-		if (axonTooltip && !isConfigureOption && !isThirdPartyModel) {
+		if ((axonTooltip || axonDescription) && !isConfigureOption && !isThirdPartyModel) {
 			return (
 				<StandardTooltip
 					content={
-						<div className="flex flex-col">
-							<span>{axonTooltip[0]}</span>
-							<span>{axonTooltip[1]}</span>
-						</div>
+						axonTooltip ? (
+							<div className="flex flex-col">
+								<span>{axonTooltip[0]}</span>
+								<span>{axonTooltip[1]}</span>
+							</div>
+						) : (
+							axonDescription
+						)
 					}
 					side="right"
 					sideOffset={8}>
@@ -425,14 +528,14 @@ export const ModelSelector = ({ currentApiConfigName, apiConfiguration, fallback
 			title={t("chat:selectApiConfig")}
 			options={options}
 			onChange={onChange}
-			contentClassName="max-h-[300px] overflow-y-auto scrollbar-hide"
 			triggerClassName={cn(
-				"w-full text-ellipsis overflow-hidden p-0",
-				"bg-transparent border-transparent hover:bg-transparent hover:border-transparent",
+				"w-full h-7 px-2 py-0 bg-[var(--vscode-editor-background)] rounded-lg border-none",
+				"hover:bg-[var(--vscode-activityBar-border)]",
 			)}
-			triggerIcon={true}
+			triggerIcon={false}
 			itemClassName="group"
 			renderItem={renderItem}
+			renderValue={(option) => <ModelLabel label={option.label} />}
 			onRefresh={handleRefreshModels} // Always show refresh since matterai3p is always enabled
 		/>
 	)

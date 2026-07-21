@@ -115,6 +115,19 @@ describe("SelectDropdown", () => {
 		expect(trigger).toHaveTextContent("Option 3")
 	})
 
+	it("supports custom rendering for the selected value", () => {
+		render(
+			<SelectDropdown
+				value="option1"
+				options={options}
+				onChange={onChangeMock}
+				renderValue={(option) => <span data-testid="custom-value">{option.label}</span>}
+			/>,
+		)
+
+		expect(screen.getByTestId("custom-value")).toHaveTextContent("Option 1")
+	})
+
 	it("applies custom className to trigger when provided", () => {
 		render(
 			<SelectDropdown
@@ -149,8 +162,33 @@ describe("SelectDropdown", () => {
 		expect(content).toBeInTheDocument()
 	})
 
+	it("keeps the search bar pinned while options scroll", () => {
+		render(<SelectDropdown value="option1" options={options} onChange={onChangeMock} />)
+
+		const searchBar = screen.getByRole("textbox", { name: "Search" }).parentElement
+		expect(searchBar).toHaveClass("sticky", "top-0", "z-10")
+	})
+
 	// Tests for the new functionality
 	describe("Option types", () => {
+		it("renders non-selectable group headings", () => {
+			const groupedOptions = [
+				{
+					value: "context-200k",
+					label: "Context Window: 200k",
+					type: DropdownOptionType.GROUP,
+					disabled: true,
+				},
+				{ value: "option1", label: "Option 1" },
+			]
+
+			render(<SelectDropdown value="option1" options={groupedOptions} onChange={onChangeMock} />)
+
+			expect(screen.getByTestId("dropdown-group")).toHaveTextContent("Context Window: 200k")
+			fireEvent.click(screen.getByTestId("dropdown-group"))
+			expect(onChangeMock).not.toHaveBeenCalled()
+		})
+
 		it("renders separator options correctly", () => {
 			const optionsWithTypedSeparator = [
 				{ value: "option1", label: "Option 1" },

@@ -385,6 +385,11 @@ describe("WebAuthService", () => {
 
 			// Manually set the credentials in the service
 			authService["credentials"] = credentials
+			authService["state"] = "active-session"
+			authService["sessionToken"] = "test-session-token"
+
+			const authStateChangedSpy = vi.fn()
+			authService.on("auth-state-changed", authStateChangedSpy)
 
 			// Mock successful logout response
 			mockFetch.mockResolvedValue({ ok: true })
@@ -406,7 +411,15 @@ describe("WebAuthService", () => {
 					}),
 				}),
 			)
-			expect(mockShowInfo).toHaveBeenCalledWith("Logged out from Roo Code Cloud")
+			expect(authService.getState()).toBe("logged-out")
+			expect(authService.isAuthenticated()).toBe(false)
+			expect(authService.getSessionToken()).toBeUndefined()
+			expect(mockTimer.stop).toHaveBeenCalled()
+			expect(authStateChangedSpy).toHaveBeenCalledWith({
+				state: "logged-out",
+				previousState: "active-session",
+			})
+			expect(mockShowInfo).toHaveBeenCalledWith("Logged Out from Orbital")
 		})
 
 		it("should handle logout without credentials", async () => {
@@ -418,7 +431,7 @@ describe("WebAuthService", () => {
 
 			expect(mockContext.secrets.delete).toHaveBeenCalled()
 			expect(mockFetch).not.toHaveBeenCalled()
-			expect(mockShowInfo).toHaveBeenCalledWith("Logged out from Roo Code Cloud")
+			expect(mockShowInfo).toHaveBeenCalledWith("Logged Out from Orbital")
 		})
 
 		it("should handle Clerk logout errors gracefully", async () => {
@@ -441,7 +454,7 @@ describe("WebAuthService", () => {
 			await authService.logout()
 
 			expect(mockLog).toHaveBeenCalledWith("[auth] Error calling clerkLogout:", expect.any(Error))
-			expect(mockShowInfo).toHaveBeenCalledWith("Logged out from Roo Code Cloud")
+			expect(mockShowInfo).toHaveBeenCalledWith("Logged Out from Orbital")
 		})
 	})
 

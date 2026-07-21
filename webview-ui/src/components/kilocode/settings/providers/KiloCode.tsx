@@ -1,11 +1,18 @@
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { getAppUrl, type OrganizationAllowList, type ProviderSettings } from "@roo-code/types"
+import {
+	canUse400kContext,
+	get200kAxonFallback,
+	getAppUrl,
+	is400kAxonModel,
+	type OrganizationAllowList,
+	type ProviderSettings,
+} from "@roo-code/types"
 import type { RouterModels } from "@roo/api"
 import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { KiloCodeWrapperProperties } from "../../../../../../src/shared/kilocode/wrapper"
 import { ModelPicker } from "../../../settings/ModelPicker"
 import { OrganizationSelector } from "../../common/OrganizationSelector"
@@ -142,6 +149,23 @@ export const KiloCode = ({
 	// Always show all models including axon-code-2-pro
 	// The model will be marked as disabled if betaModelsEnabled is false
 	const models = routerModels?.["kilocode-openrouter"] ?? {}
+	const profilePlan = profileData?.plan ?? profileData?.tieredUsage?.plan
+	const has400kAccess = canUse400kContext(profilePlan)
+	const availableModels = useMemo(
+		() =>
+			has400kAccess
+				? models
+				: Object.fromEntries(Object.entries(models).filter(([modelId]) => !is400kAxonModel(modelId))),
+		[models, has400kAccess],
+	)
+
+	useEffect(() => {
+		const selectedModelId = apiConfiguration.kilocodeModel
+		if (!profilePlan || has400kAccess || !selectedModelId || !is400kAxonModel(selectedModelId)) return
+
+		const fallbackId = get200kAxonFallback(selectedModelId)
+		if (models[fallbackId]) setApiConfigurationField("kilocodeModel", fallbackId)
+	}, [apiConfiguration.kilocodeModel, profilePlan, has400kAccess, models, setApiConfigurationField])
 
 	// List of pro model IDs which require paid plan
 	const proModelIds = ["axon-code-2-pro"]
@@ -272,7 +296,7 @@ export const KiloCode = ({
 				apiConfiguration={apiConfiguration}
 				setApiConfigurationField={setApiConfigurationField}
 				defaultModelId={kilocodeDefaultModel}
-				models={models}
+				models={availableModels}
 				modelIdKey="kilocodeModel"
 				serviceName="Orbital"
 				serviceUrl={getAppUrl()}

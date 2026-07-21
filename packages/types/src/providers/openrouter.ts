@@ -1,11 +1,11 @@
 import type { ModelInfo } from "../model.js"
 
 // https://openrouter.ai/models?order=newest&supported_parameters=tools
-export const openRouterDefaultModelId = "axon-eido-3-code-mini"
+export const openRouterDefaultModelId = "axon-eido-3-code-mini-200k"
 
 export const openRouterDefaultModelInfo: ModelInfo = {
 	maxTokens: 64000,
-	contextWindow: 400_000,
+	contextWindow: 200_000,
 	supportsImages: true,
 	supportsComputerUse: false,
 	supportsPromptCache: false,

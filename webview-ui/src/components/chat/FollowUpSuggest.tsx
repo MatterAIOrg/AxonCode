@@ -103,19 +103,19 @@ export const FollowUpSuggest = ({
 	}
 
 	return (
-		<div className="flex flex-col gap-1 mt-2">
+		<div className="mt-2 flex flex-col gap-1">
 			{suggestions.map((suggestion, index) => {
 				const isFirstSuggestion = index === 0
 
 				return (
 					<div
 						key={`${suggestion.answer}-${ts}`}
-						className="flex items-center gap-2 p-2 rounded-lg hover:bg-vscode-list-hoverBackground group cursor-pointer transition-colors group"
+						className="group flex cursor-pointer items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--vscode-commandCenter-inactiveBorder)_70%,transparent)] bg-[color-mix(in_srgb,var(--vscode-editor-background)_72%,transparent)] px-2.5 py-1.5 transition-all duration-150 hover:border-[color-mix(in_srgb,var(--vscode-focusBorder)_55%,transparent)] hover:bg-vscode-list-hoverBackground"
 						onClick={(event) => handleSuggestionClick(suggestion, event)}>
-						<div className="flex-shrink-0 w-6 h-6 bg-vscode-button-background/20 group-hover:bg-vscode-button-background/40 rounded flex items-center justify-center text-xs text-vscode-badge-foreground font-medium">
+						<div className="flex size-6 shrink-0 items-center justify-center rounded-md border border-[color-mix(in_srgb,var(--vscode-button-background)_25%,transparent)] bg-[color-mix(in_srgb,var(--vscode-button-background)_12%,transparent)] text-xs font-semibold text-vscode-foreground transition-colors group-hover:bg-[color-mix(in_srgb,var(--vscode-button-background)_22%,transparent)]">
 							{index + 1}
 						</div>
-						<div className="flex-1 text-md text-vscode-foreground/70 group-hover:text-vscode-foreground whitespace-normal break-words">
+						<div className="flex-1 break-words text-left text-sm leading-5 text-vscode-foreground/85 transition-colors group-hover:text-vscode-foreground whitespace-normal">
 							{suggestion.answer}
 							{isFirstSuggestion && countdown !== null && !suggestionSelected && !isAnswered && (
 								<span
@@ -126,16 +126,18 @@ export const FollowUpSuggest = ({
 							)}
 						</div>
 						<StandardTooltip content={t("chat:followUpSuggest.copyToInput")}>
-							<div
-								className="flex-shrink-0 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+							<button
+								type="button"
+								aria-label={t("chat:followUpSuggest.copyToInput")}
+								className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-vscode-descriptionForeground opacity-0 transition-all hover:bg-[color-mix(in_srgb,var(--vscode-foreground)_10%,transparent)] hover:text-vscode-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder group-hover:opacity-100"
 								onClick={(e) => {
 									e.stopPropagation()
 									setSuggestionSelected(true)
 									onCancelAutoApproval?.()
 									onSuggestionClick?.(suggestion, { ...e, shiftKey: true })
 								}}>
-								<ClipboardCopy className="w-4 text-vscode-descriptionForeground" />
-							</div>
+								<ClipboardCopy className="size-4" />
+							</button>
 						</StandardTooltip>
 					</div>
 				)

@@ -49,6 +49,7 @@ import { useSelectedModel } from "../ui/hooks/useSelectedModel"
 import { getModelIdKey } from "../kilocode/hooks/useSelectedModel"
 import { AutoApprovedRequestLimitWarning } from "./AutoApprovedRequestLimitWarning"
 import { ChatTextArea } from "./ChatTextArea"
+import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 import ChatTimestamps from "./ChatTimestamps" // kilocode_change
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
@@ -2120,16 +2121,18 @@ export const ChatRowContent = ({
 									{/* forked_change start */}
 								</div>
 							)}
-							<div className="flex flex-col gap-2 mr-3">
-								<div className="bg-vscode-textCodeBlock-background rounded-lg p-3">
-									<div className="flex items-center justify-between mb-2">
-										<span className="text-sm text-vscode-descriptionForeground font-medium">
+							<div className="mb-2 flex flex-col gap-1.5">
+								<div className="overflow-hidden rounded-xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-[color-mix(in_srgb,var(--vscode-textCodeBlock-background)_78%,var(--vscode-editor-background))] p-3 shadow-[0_6px_18px_rgba(0,0,0,0.1)]">
+									<div className="mb-1.5 flex items-center">
+										<span className="text-sm font-medium text-vscode-descriptionForeground">
 											Question
 										</span>
 									</div>
-									<Markdown
-										markdown={message.partial === true ? message?.text : followUpData?.question}
-									/>
+									<div className="text-[15px] leading-6 text-vscode-foreground [&_p]:m-0">
+										<Markdown
+											markdown={message.partial === true ? message?.text : followUpData?.question}
+										/>
+									</div>
 									<FollowUpSuggest
 										suggestions={followUpData?.suggest}
 										onSuggestionClick={onSuggestionClick}
@@ -2212,7 +2215,9 @@ const ChatRow = memo((props: ChatRowProps) => {
 		<div
 			// kilocode_change: add highlighted className
 			className={cn(
-				`px-[15px] py-[2px] pr-[6px] relative animate-fade-up ${highlighted ? "animate-message-highlight" : ""}`,
+				CHAT_CONTENT_HORIZONTAL_PADDING,
+				"relative animate-fade-up py-[2px]",
+				highlighted && "animate-message-highlight",
 			)}>
 			{/* {showTaskTimeline && <KiloChatRowGutterBar message={message} />} */}
 			<ChatRowContent {...props} />

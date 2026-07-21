@@ -13,6 +13,7 @@ import { useExtensionState } from "@src/context/ExtensionStateContext"
 
 import CodeBlock, { CODE_BLOCK_BG_COLOR } from "../kilocode/common/CodeBlock" // kilocode_change
 import { ChatRowContent } from "./ChatRow"
+import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 import { ProgressIndicator } from "./ProgressIndicator"
 import { Globe, Pointer, SquareTerminal } from "lucide-react"
 
@@ -236,7 +237,9 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 		: displayState.mousePosition || defaultMousePosition
 
 	const [browserSessionRow, { height: rowHeight }] = useSize(
-		<div style={{ padding: "10px 6px 10px 15px", marginBottom: -10 }}>
+		<div
+			className={CHAT_CONTENT_HORIZONTAL_PADDING}
+			style={{ paddingTop: 10, paddingBottom: 10, marginBottom: -10 }}>
 			<div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
 				{isBrowsing ? <ProgressIndicator /> : <Pointer className="w-4" aria-label="Browser action indicator" />}
 				<span style={{ fontWeight: "bold" }}>

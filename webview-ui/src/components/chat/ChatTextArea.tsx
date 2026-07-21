@@ -24,11 +24,12 @@ import { useAudioRecorder } from "@/hooks/useAudioRecorder"
 import { cn } from "@/lib/utils"
 import { renderMentionChip, renderSlashCommandChip } from "@/utils/chat-render"
 import { MessageSquareX, VolumeX } from "lucide-react"
-import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import DocumentAttachments from "../common/DocumentAttachments"
+import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
 import { useSelectedModel } from "../ui/hooks/useSelectedModel"
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
+import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 import CommandApprovalSelector from "./CommandApprovalSelector" // forked_change
 import ContextMenu from "./ContextMenu"
 import { ContextUsageIndicator } from "./ContextUsageIndicator" // kilocode_change
@@ -38,7 +39,7 @@ import { AcceptRejectButtons } from "./kilocode/AcceptRejectButtons"
 
 // forked_change start: pull slash commands from Cline
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
-import { ArrowRight02Icon, FileAddIcon } from "@/utils/customIcons"
+import { ArrowUp02Icon, PlusIcon } from "@/utils/customIcons"
 import {
 	SlashCommand,
 	getMatchingSlashCommands,
@@ -145,6 +146,7 @@ interface ChatTextAreaProps {
 	// Streaming state and cancel handler
 	isStreaming?: boolean
 	onCancelStreaming?: () => void
+	profilePlan?: string
 }
 
 export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
@@ -170,6 +172,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			sendMessageOnEnter = true,
 			isStreaming = false,
 			onCancelStreaming,
+			profilePlan,
 		},
 		ref,
 	) => {
@@ -1879,7 +1882,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						"text-vscode-editor-font-size",
 						"cursor-text",
 						"outline-none",
-						isEditMode ? "pt-1.5 pb-2 px-2" : "py-1.5 px-2",
+						isEditMode ? "pt-3 pb-2 px-3" : "pt-3 pb-1.5 px-3",
 						"min-h-[80px]",
 						"max-h-[calc(100vh/2.5)]",
 						"box-border",
@@ -1911,7 +1914,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 				{!inputValue && (
 					<div
-						className="absolute inset-0 z-[3] px-2 flex items-start pt-1.5"
+						className="absolute inset-0 z-[3] px-3 flex items-start pt-3"
 						style={{
 							color: "var(--vscode-tab-inactiveForeground)",
 							userSelect: "none",
@@ -1934,12 +1937,42 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								customModes={customModes}
 							/>
 						</div> */}
+						<div className="shrink-0 mr-1">
+							<StandardTooltip content={attachmentButtonLabel}>
+								<button
+									aria-label={attachmentButtonLabel}
+									disabled={shouldDisableAttachmentButton}
+									onClick={() => {
+										if (shouldDisableAttachmentButton) return
+										onSelectImages()
+									}}
+									className={cn(
+										"relative inline-flex items-center justify-center",
+										"bg-transparent border-none py-1.5",
+										"rounded-lg min-w-[24px] min-h-[28px]",
+										"opacity-100 text-vscode-foreground",
+										"transition-all duration-150",
+										"focus-visible:ring-1 focus-visible:ring-white/50",
+										"active:bg-[rgba(255,255,255,0.1)]",
+										!shouldDisableAttachmentButton && "cursor-pointer",
+										shouldDisableAttachmentButton && "cursor-not-allowed",
+									)}>
+									<PlusIcon
+										className={cn("w-4 h-4 text-vscode-foreground opacity-100", {
+											hidden: containerWidth < 235,
+										})}
+										style={{ opacity: 1 }}
+									/>
+								</button>
+							</StandardTooltip>
+						</div>
 						{apiConfiguration && (
-							<div className="mt-1 w-auto overflow-hidden min-w-0" data-testid="model-selector">
+							<div className="w-auto overflow-hidden min-w-0" data-testid="model-selector">
 								<ModelSelector
 									currentApiConfigName={currentApiConfigName}
 									apiConfiguration={apiConfiguration}
 									fallbackText={`${selectedProvider}:${selectedModelId}`}
+									profilePlan={profilePlan}
 								/>
 							</div>
 						)}
@@ -1954,28 +1987,6 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
 							</div>
 						)}
-						<StandardTooltip content={attachmentButtonLabel}>
-							<button
-								aria-label={attachmentButtonLabel}
-								disabled={shouldDisableAttachmentButton}
-								onClick={() => {
-									if (shouldDisableAttachmentButton) return
-									onSelectImages()
-								}}
-								className={cn(
-									"relative inline-flex items-center justify-center",
-									"bg-transparent border-none py-1.5",
-									"rounded-md min-w-[24px] min-h-[28px]",
-									"opacity-80 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-									"transition-all duration-150",
-									"focus-visible:ring-1 focus-visible:ring-white/50",
-									"active:bg-[rgba(255,255,255,0.1)]",
-									!shouldDisableAttachmentButton && "cursor-pointer",
-									shouldDisableAttachmentButton && "opacity-40 cursor-not-allowed",
-								)}>
-								<FileAddIcon className={cn("w-4", "h-4", { hidden: containerWidth < 235 })} />
-							</button>
-						</StandardTooltip>
 						{isEditMode && (
 							<StandardTooltip content={t("chat:cancel.title")}>
 								<button
@@ -1985,7 +1996,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									className={cn(
 										"relative inline-flex items-center justify-center",
 										"bg-transparent border-none py-1.5",
-										"rounded-md min-w-[24px] min-h-[28px]",
+										"rounded-lg min-w-[24px] min-h-[28px]",
 										"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 										"transition-all duration-150",
 										"focus-visible:ring-1 focus-visible:ring-white/50",
@@ -2034,7 +2045,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									className={cn(
 										"relative inline-flex items-center justify-center",
 										"bg-transparent border-none py-1.5",
-										"rounded-md min-w-[24px] min-h-[28px]",
+										"rounded-lg min-w-[24px] min-h-[28px]",
 										"transition-all duration-150",
 										"focus-visible:ring-1 focus-visible:ring-white/50",
 										"active:bg-[rgba(255,255,255,0.1)]",
@@ -2062,7 +2073,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 								className={cn(
 									"relative inline-flex items-center justify-center",
 									"bg-transparent border-none",
-									"rounded-md min-w-[28px] min-h-[28px]",
+									"rounded-lg min-w-[28px] min-h-[28px]",
 									"opacity-100 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
 									"transition-all duration-150",
 									"focus-visible:ring-1 focus-visible:ring-white/50",
@@ -2076,7 +2087,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									<div className="w-4 h-4 bg-current rounded-sm"></div>
 								) : (
 									<div className="w-5.5 h-5.5 rounded-full bg-current/20 flex items-center justify-center">
-										<ArrowRight02Icon className="w-4 h-4 rtl:-scale-x-100" />
+										<ArrowUp02Icon className="w-4 h-4 rtl:-scale-x-100" />
 									</div>
 								)}
 							</button>
@@ -2094,10 +2105,10 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					"flex-col",
 					"gap-1",
 					"bg-editor-background",
-					isEditMode ? "px-0" : "px-1.5",
+					isEditMode ? "px-0" : CHAT_CONTENT_HORIZONTAL_PADDING,
 					"outline-none",
 					"border-none",
-					isEditMode ? "w-full" : "w-[calc(100%-16px)]",
+					"w-full",
 					"ml-auto",
 					"mr-auto",
 					"box-border",

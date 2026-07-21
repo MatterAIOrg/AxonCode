@@ -6,6 +6,7 @@ import { safeJsonParse } from "@roo/safeJsonParse"
 import { cn } from "@/lib/utils"
 import { ArrowDown01Icon } from "@/utils/customIcons"
 import ChatRow from "./ChatRow"
+import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 
 // Types for exploration tools
 export type ExplorationToolType =
@@ -501,7 +502,10 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 		<div className="group/exploration">
 			{/* Header - matches ReasoningBlock style */}
 			<div
-				className="flex items-center justify-start ml-4 gap-1.5 pr-2 mb-0.5 cursor-pointer select-none text-vscode-descriptionForeground transition-colors hover:text-vscode-foreground"
+				className={cn(
+					CHAT_CONTENT_HORIZONTAL_PADDING,
+					"mb-0.5 flex cursor-pointer select-none items-center justify-start gap-1.5 text-vscode-descriptionForeground transition-colors hover:text-vscode-foreground",
+				)}
 				onClick={handleToggle}>
 				<div className="flex items-center gap-1">
 					<span className={cn("text-sm font-medium", isExploring && "animate-shimmer")}>
@@ -520,7 +524,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 
 			{/* Expandable content - renders ChatRow for each message */}
 			{expanded && (
-				<div className="mt-1 flex min-w-0 flex-col py-1 ml-0.5 rounded-xs">
+				<div className="mt-1 flex min-w-0 flex-col rounded-xs py-1">
 					{messages.map((message, idx) => (
 						<ChatRow
 							key={message.ts}

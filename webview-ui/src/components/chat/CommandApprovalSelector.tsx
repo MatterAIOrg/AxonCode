@@ -69,8 +69,9 @@ export const CommandApprovalSelector = ({ disabled = false, triggerClassName }: 
 			disableSearch
 			options={options}
 			onChange={handleChange}
+			triggerIcon={false}
 			triggerClassName={cn(
-				`w-full
+				`w-full h-7 px-2 py-0
 				bg-[var(--vscode-editor-background)]
 				rounded-lg
 				border-none

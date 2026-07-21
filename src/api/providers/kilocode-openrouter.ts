@@ -5,6 +5,7 @@ import { getModels } from "./fetchers/modelCache"
 import { DEEP_SEEK_DEFAULT_TEMPERATURE, openRouterDefaultModelId, openRouterDefaultModelInfo } from "@roo-code/types"
 import { getKiloUrlFromToken } from "@roo-code/types"
 import { ApiHandlerCreateMessageMetadata } from ".."
+import { getKilocodeApiModelId } from "./kilocode-models"
 // import { getModelEndpoints } from "./fetchers/modelEndpointCache"
 import { getKilocodeDefaultModel } from "./kilocode/getKilocodeDefaultModel"
 import {
@@ -84,21 +85,23 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 	}
 
 	override getModel() {
-		let id = this.options.kilocodeModel ?? this.defaultModel
+		let selectedId = this.options.kilocodeModel ?? this.defaultModel
 
 		// Safety net: if the selected model is not in the fetched model list,
 		// fall back to the default. This handles stale config values that were
 		// not yet caught by ClineProvider's validation during initialization.
-		if (id && !this.models[id]) {
-			id = this.defaultModel
+		if (selectedId && !this.models[selectedId]) {
+			selectedId = this.defaultModel
 		}
 
-		let info = this.models[id] ?? openRouterDefaultModelInfo
+		let info = this.models[selectedId] ?? openRouterDefaultModelInfo
 
 		// If a specific provider is requested, use the endpoint for that provider.
 		if (this.options.openRouterSpecificProvider && this.endpoints[this.options.openRouterSpecificProvider]) {
 			info = this.endpoints[this.options.openRouterSpecificProvider]
 		}
+
+		const id = getKilocodeApiModelId(selectedId)
 
 		const params = getModelParams({
 			format: "openrouter",

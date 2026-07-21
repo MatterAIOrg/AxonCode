@@ -69,7 +69,7 @@ const KiloTaskHeader = ({
 				{/* Title with close button */}
 				<div className="flex items-center gap-1">
 					<div className="px-1 py-1 flex items-center gap-1 min-w-0 outline-none">
-						<span className="text-sm truncate opacity-70">{cleanTitle || "New agent..."}</span>
+						<span className="text-sm truncate opacity-100">{cleanTitle || "New agent..."}</span>
 						{!cleanTitle && <MatterProgressIndicator className="shrink-0" />}
 					</div>
 					<StandardTooltip content="Move Agent to Background">
