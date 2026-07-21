@@ -570,11 +570,14 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div
-							className={`animate-fade-up flex flex-row gap-1 items-start w-full cursor-pointer`}
+							className={cn(
+								"animate-fade-up flex flex-row gap-1 w-full cursor-pointer",
+								message.partial ? "items-center" : "items-start",
+							)}
 							onClick={handleToggleExpand}>
 							<div style={headerStyle} className="">
 								{message.partial ? (
-									<MatterProgressIndicator className="mr-1" />
+									<MatterProgressIndicator className="relative top-px mr-1" />
 								) : tool.isProtected ? (
 									<span
 										className="codicon codicon-lock"
@@ -598,7 +601,11 @@ export const ChatRowContent = ({
 												: t("chat:fileOperations.wantsToEdit")}
 								</span>
 							</div>
-							<div className="flex items-center gap-2 w-fit -mt-[1px]">
+							<div
+								className={cn(
+									"flex items-center gap-2 w-fit",
+									message.partial ? "relative -top-px" : "-mt-[1px]",
+								)}>
 								{tool.path ? (
 									<span
 										className="cursor-pointer hover:underline text-vscode-descriptionForeground"
@@ -768,11 +775,14 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div
-							className={`animate-fade-up flex flex-row gap-1 items-start w-full cursor-pointer`}
+							className={cn(
+								"animate-fade-up flex flex-row gap-1 w-full cursor-pointer",
+								message.partial ? "items-center" : "items-start",
+							)}
 							onClick={handleToggleExpand}>
 							<div style={headerStyle} className="">
 								{message.partial ? (
-									<MatterProgressIndicator className="mr-1" />
+									<MatterProgressIndicator className="relative top-px mr-1" />
 								) : tool.isProtected ? (
 									<span
 										className="codicon codicon-lock"
@@ -796,7 +806,11 @@ export const ChatRowContent = ({
 												: t("chat:fileOperations.wantsToCreate")}
 								</span>
 							</div>
-							<div className="flex items-center gap-2 w-fit -mt-[1px]">
+							<div
+								className={cn(
+									"flex items-center gap-2 w-fit",
+									message.partial ? "relative -top-px" : "-mt-[1px]",
+								)}>
 								{tool.path ? (
 									<span
 										className="cursor-pointer hover:underline text-vscode-descriptionForeground"

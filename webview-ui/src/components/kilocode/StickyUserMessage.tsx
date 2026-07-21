@@ -2,12 +2,13 @@
 import { memo, useState } from "react"
 import type { ClineMessage } from "@roo-code/types"
 import { ReadOnlyChatText } from "../chat/ReadOnlyChatText"
+import type { ExplorationGroup } from "../chat/ExplorationGroupRow"
 import { cn } from "@src/lib/utils"
 import { useVSCodeTheme } from "@src/kilocode/hooks/useVSCodeTheme"
 
 export interface StickyUserMessageProps {
 	task: ClineMessage
-	messages: (ClineMessage | ClineMessage[])[]
+	messages: (ClineMessage | ClineMessage[] | ExplorationGroup)[]
 	stickyIndex: number | null
 }
 
@@ -17,7 +18,7 @@ export interface StickyUserMessageProps {
  * This works like sticky headers on mobile UI:
  * - Shows the initial prompt (task.text) by default
  * - As user scrolls, it tracks which user message should be sticky
- * - Uses CSS position: sticky to stay at the top of the scroll container
+ * - Is rendered in a pinned overlay above the virtualized scroll container
  */
 const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessageProps) => {
 	const [isExpanded, setIsExpanded] = useState(false)
@@ -38,7 +39,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 		// Find the user_feedback message at the given index in groupedMessages
 		const msg = messages[stickyIndex]
 
-		if (!msg || Array.isArray(msg)) {
+		if (!msg || Array.isArray(msg) || "_type" in msg) {
 			return {
 				text: task?.text,
 				images: task?.images,

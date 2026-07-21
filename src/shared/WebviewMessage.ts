@@ -150,6 +150,8 @@ export interface WebviewMessage {
 		| "enhancePrompt"
 		| "enhancedPrompt"
 		| "draggedImages"
+		| "attachmentPathToAttachment" // kilocode_change: paste file path -> attachment
+		| "pastedFileAttachment" // kilocode_change: paste file blob -> attachment
 		| "deleteMessage"
 		| "deleteMessageConfirm"
 		| "submitEditedMessage"
@@ -403,6 +405,9 @@ export interface WebviewMessage {
 	promptMode?: PromptMode
 	customPrompt?: PromptComponent
 	dataUrls?: string[]
+	imagePath?: string // kilocode_change: for attachmentPathToAttachment
+	fileName?: string // kilocode_change: for pastedFileAttachment
+	fileDataUrl?: string // kilocode_change: for pastedFileAttachment
 	values?: Record<string, any>
 	query?: string
 	setting?: string

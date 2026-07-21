@@ -802,7 +802,7 @@ input[cmdk-input]:focus {
 	font-weight: 400;
 	line-height: 1;
 	height: 20px;
-	margin-right: -2px;
+	/* Let each layout control its own spacing; this unlayered rule otherwise overrides utility margins. */
 	user-select: none;
 	-webkit-font-smoothing: antialiased;
 }
