@@ -68,12 +68,16 @@ const DOCUMENT_MIME_TO_EXT: Record<string, string> = {
 }
 
 // Browser-safe file extension / basename helpers (the webview cannot use node:path)
-const fileExt = (name: string): string => {
+export const fileExt = (name: string): string => {
 	const idx = name.lastIndexOf(".")
 	return idx > 0 ? name.slice(idx).toLowerCase() : ""
 }
-const fileBaseName = (name: string, ext: string): string =>
-	ext && name.endsWith(ext) ? name.slice(0, name.length - ext.length) : name
+
+// ext is expected to be a lowercased, dot-prefixed extension (as returned by fileExt).
+// Compare case-insensitively so files with uppercase extensions (e.g. "Report.PDF")
+// still have their extension stripped, but preserve the original casing of the base name.
+export const fileBaseName = (name: string, ext: string): string =>
+	ext && name.toLowerCase().endsWith(ext) ? name.slice(0, name.length - ext.length) : name
 
 /**
  * Returns a normalized absolute file path if the pasted text looks like a path
