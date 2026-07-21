@@ -61,6 +61,7 @@ import Announcement from "./Announcement"
 import BrowserSessionRow from "./BrowserSessionRow"
 import ChatRow from "./ChatRow"
 import { ChatTextArea } from "./ChatTextArea"
+import OrbitalUpdateBanner from "./OrbitalUpdateBanner"
 import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 import { formatMessageWithDocuments } from "../common/DocumentAttachments"
 import ExplorationGroupRow, {
@@ -2577,6 +2578,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						</div>
 						{!isReviewOnlyMode && (
 							<>
+								<OrbitalUpdateBanner />
 								<ChatTextArea
 									ref={textAreaRef}
 									inputValue={inputValue}
@@ -3043,6 +3045,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					{!isReviewOnlyMode && (
 						<div
 							className={`${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}>
+							<OrbitalUpdateBanner />
 							<ChatTextArea
 								ref={textAreaRef}
 								inputValue={inputValue}

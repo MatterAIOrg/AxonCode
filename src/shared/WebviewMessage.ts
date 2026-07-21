@@ -336,6 +336,8 @@ export interface WebviewMessage {
 		| "forceSendQueuedMessage"
 		| "dismissUpsell"
 		| "getDismissedUpsells"
+		| "checkForOrbitalUpdate"
+		| "installOrbitalUpdate"
 		// forked_change start
 		| "getCommitChanges"
 		| "commitChanges"

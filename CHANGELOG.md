@@ -1,5 +1,19 @@
 # Changelog
 
+## [v6.6.1] - 2026-07-21
+
+### Added
+
+- **In-app Orbital extension update banner.** When running inside the Orbital IDE, the chat view now polls the Open VSX registry on mount and shows a banner above the composer when a newer version of the extension is available. The banner surfaces the latest version, an "Update & Restart" action that installs the update via `workbench.extensions.installExtension` and reloads the window, and a retry button on failure. Progress states (downloading / installing / restarting) are reflected inline with a spinner. The check is gated to Orbital hosts (`appName === "orbital"` or `uriScheme === "orbital"`) so VS Code installs are unaffected.
+- **`src/services/orbital/extensionUpdate.ts`.** New module exposing `checkForOrbitalExtensionUpdate`, `installOrbitalExtensionUpdate`, `isOrbitalIde`, and a semver-aware `isNewerVersion` helper that handles `v`-prefixed and prerelease tags.
+- **`orbitalUpdate` i18n strings.** New `chat:orbitalUpdate.*` keys (`available`, `description`, `updateAndRestart`, `downloading`, `installing`, `restarting`, `failed`, `retry`).
+
+### Changed
+
+- **Primary button border-radius.** `vscode-button[appearance="primary"]` border-radius bumped from `6px` to `7px` in `webview-ui/src/index.css` for a slightly softer corner.
+
+---
+
 ## [v6.6.0] - 2026-07-21
 
 ### Added
