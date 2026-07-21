@@ -12,6 +12,9 @@ interface ThumbnailsProps {
 	style?: React.CSSProperties
 	setImages?: React.Dispatch<React.SetStateAction<string[]>> | React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 	onHeightChange?: (height: number) => void
+	// When true, render only the chips (no wrapper) so they can live inside a
+	// shared flex container alongside document attachment chips. kilocode_change
+	inline?: boolean
 }
 
 // Helper to truncate filename to max 10 chars
@@ -38,7 +41,7 @@ export const normalizeImages = (images: string[] | ImageAttachment[] | undefined
 	})
 }
 
-const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProps) => {
+const Thumbnails = ({ images, style, setImages, onHeightChange, inline = false }: ThumbnailsProps) => {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
 	const { width } = useWindowSize()
@@ -69,6 +72,96 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 		vscode.postMessage({ type: "openImage", text: image.dataUrl })
 	}
 
+	const chips = normalizedImages.map((image, index) => (
+		<div
+			key={index}
+			style={{ position: "relative" }}
+			onMouseEnter={() => setHoveredIndex(index)}
+			onMouseLeave={() => setHoveredIndex(null)}>
+			{/* Pill container */}
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					backgroundColor: "var(--vscode-badge-background)",
+					borderRadius: 16,
+					padding: "2px 10px 2px 2px",
+					gap: 6,
+					cursor: "pointer",
+					transition: "background-color 0.15s",
+				}}
+				onClick={() => handleImageClick(image)}
+				onMouseEnter={(e) => {
+					e.currentTarget.style.backgroundColor = "var(--vscode-list-hoverBackground)"
+				}}
+				onMouseLeave={(e) => {
+					e.currentTarget.style.backgroundColor = "var(--vscode-badge-background)"
+				}}>
+				{/* Circular image */}
+				<img
+					src={image.dataUrl}
+					alt={`Thumbnail ${index + 1}`}
+					style={{
+						width: 24,
+						height: 24,
+						objectFit: "cover",
+						borderRadius: "50%",
+						flexShrink: 0,
+					}}
+				/>
+				{/* Filename */}
+				<span
+					style={{
+						fontSize: 11,
+						color: "var(--vscode-badge-foreground)",
+						whiteSpace: "nowrap",
+						overflow: "hidden",
+						textOverflow: "ellipsis",
+						maxWidth: 100,
+						fontFamily: "var(--vscode-font-family)",
+					}}>
+					{truncateFilename(image.name)}
+				</span>
+			</div>
+			{/* Delete button */}
+			{isDeletable && hoveredIndex === index && (
+				<div
+					onClick={(e) => {
+						e.stopPropagation()
+						handleDelete(index)
+					}}
+					style={{
+						position: "absolute",
+						top: -5,
+						right: -5,
+						width: 18,
+						height: 18,
+						borderRadius: "50%",
+						backgroundColor: "var(--vscode-badge-background)",
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+						cursor: "pointer",
+						zIndex: 10,
+					}}>
+					<span
+						className="codicon codicon-close"
+						style={{
+							color: "var(--vscode-foreground)",
+							fontSize: 12,
+							fontWeight: "bold",
+						}}></span>
+				</div>
+			)}
+		</div>
+	))
+
+	// kilocode_change: when inline, render chips without a wrapper so they flow
+	// inside a shared flex container alongside document attachment chips.
+	if (inline) {
+		return <>{chips}</>
+	}
+
 	return (
 		<div
 			ref={containerRef}
@@ -80,89 +173,7 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 				rowGap: 6,
 				...style,
 			}}>
-			{normalizedImages.map((image, index) => (
-				<div
-					key={index}
-					style={{ position: "relative" }}
-					onMouseEnter={() => setHoveredIndex(index)}
-					onMouseLeave={() => setHoveredIndex(null)}>
-					{/* Pill container */}
-					<div
-						style={{
-							display: "flex",
-							alignItems: "center",
-							backgroundColor: "var(--vscode-badge-background)",
-							borderRadius: 16,
-							padding: "2px 10px 2px 2px",
-							gap: 6,
-							cursor: "pointer",
-							transition: "background-color 0.15s",
-						}}
-						onClick={() => handleImageClick(image)}
-						onMouseEnter={(e) => {
-							e.currentTarget.style.backgroundColor = "var(--vscode-list-hoverBackground)"
-						}}
-						onMouseLeave={(e) => {
-							e.currentTarget.style.backgroundColor = "var(--vscode-badge-background)"
-						}}>
-						{/* Circular image */}
-						<img
-							src={image.dataUrl}
-							alt={`Thumbnail ${index + 1}`}
-							style={{
-								width: 24,
-								height: 24,
-								objectFit: "cover",
-								borderRadius: "50%",
-								flexShrink: 0,
-							}}
-						/>
-						{/* Filename */}
-						<span
-							style={{
-								fontSize: 11,
-								color: "var(--vscode-badge-foreground)",
-								whiteSpace: "nowrap",
-								overflow: "hidden",
-								textOverflow: "ellipsis",
-								maxWidth: 100,
-								fontFamily: "var(--vscode-font-family)",
-							}}>
-							{truncateFilename(image.name)}
-						</span>
-					</div>
-					{/* Delete button */}
-					{isDeletable && hoveredIndex === index && (
-						<div
-							onClick={(e) => {
-								e.stopPropagation()
-								handleDelete(index)
-							}}
-							style={{
-								position: "absolute",
-								top: -5,
-								right: -5,
-								width: 18,
-								height: 18,
-								borderRadius: "50%",
-								backgroundColor: "var(--vscode-badge-background)",
-								display: "flex",
-								justifyContent: "center",
-								alignItems: "center",
-								cursor: "pointer",
-								zIndex: 10,
-							}}>
-							<span
-								className="codicon codicon-close"
-								style={{
-									color: "var(--vscode-foreground)",
-									fontSize: 12,
-									fontWeight: "bold",
-								}}></span>
-						</div>
-					)}
-				</div>
-			))}
+			{chips}
 		</div>
 	)
 }

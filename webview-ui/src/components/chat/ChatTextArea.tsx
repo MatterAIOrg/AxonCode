@@ -48,6 +48,75 @@ import {
 } from "@/utils/slash-commands"
 // forked_change end
 
+// kilocode_change start: detect pasted file paths for attachments
+const IMAGE_PATH_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"]
+const DOCUMENT_PATH_EXTENSIONS = [".csv", ".docx", ".json", ".md", ".pdf", ".text", ".txt", ".tsv", ".xlsx"]
+const ATTACHMENT_PATH_EXTENSIONS = [...IMAGE_PATH_EXTENSIONS, ...DOCUMENT_PATH_EXTENSIONS]
+
+// MIME types for document attachments that arrive as File blobs when a file is
+// copied directly (e.g. from Finder/Explorer). Maps MIME -> file extension so we
+// can name the temp file correctly for the extension's extractor.
+const DOCUMENT_MIME_TO_EXT: Record<string, string> = {
+	"application/pdf": ".pdf",
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+	"application/json": ".json",
+	"text/csv": ".csv",
+	"text/tab-separated-values": ".tsv",
+	"text/plain": ".txt",
+	"text/markdown": ".md",
+}
+
+// Browser-safe file extension / basename helpers (the webview cannot use node:path)
+const fileExt = (name: string): string => {
+	const idx = name.lastIndexOf(".")
+	return idx > 0 ? name.slice(idx).toLowerCase() : ""
+}
+const fileBaseName = (name: string, ext: string): string =>
+	ext && name.endsWith(ext) ? name.slice(0, name.length - ext.length) : name
+
+/**
+ * Returns a normalized absolute file path if the pasted text looks like a path
+ * to a supported attachment file (image or document), otherwise null. Relative
+ * paths are resolved against the provided cwd. file:// URIs are decoded.
+ */
+function resolveAttachmentPath(text: string, cwd?: string): string | null {
+	let candidate = text.trim()
+
+	// Strip file:// protocol
+	if (candidate.startsWith("file://")) {
+		try {
+			candidate = decodeURIComponent(candidate.substring(7))
+		} catch {
+			return null
+		}
+	}
+
+	// Fix leading slash on Windows paths like /d:/...
+	if (candidate.startsWith("/") && candidate[2] === ":") {
+		candidate = candidate.substring(1)
+	}
+
+	const lower = candidate.toLowerCase()
+	if (!ATTACHMENT_PATH_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
+		return null
+	}
+
+	// Absolute path (POSIX or Windows drive letter)
+	if (candidate.startsWith("/") || /^[a-zA-Z]:[\\/]/.test(candidate)) {
+		return candidate
+	}
+
+	// Relative path: resolve against cwd if available
+	if (cwd) {
+		const sep = cwd.includes("\\") ? "\\" : "/"
+		return `${cwd.replace(/[\\/]+$/, "")}${sep}${candidate.replace(/^\.?\//, "").replace(/^\.?\\/, "")}`
+	}
+
+	return null
+}
+// kilocode_change end: detect pasted file paths for attachments
+
 interface ChatTextAreaProps {
 	inputValue: string
 	setInputValue: React.Dispatch<React.SetStateAction<string>>
@@ -627,6 +696,36 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				const selectionEnd = selection?.end ?? selectionStart
 				const currentValue = getPlainTextFromInput()
 
+				// kilocode_change start: detect pasted file paths and attach them
+				// instead of inserting the path as plain text. The webview cannot
+				// read the filesystem, so we ask the extension to read the file and
+				// return image/document attachments via the existing
+				// selectedAttachments response channel.
+				const trimmedPaste = pastedText.trim()
+				if (trimmedPaste && !trimmedPaste.includes("\n")) {
+					const attachmentPath = resolveAttachmentPath(trimmedPaste, cwd)
+					if (attachmentPath) {
+						const lower = attachmentPath.toLowerCase()
+						const isImage = IMAGE_PATH_EXTENSIONS.some((ext) => lower.endsWith(ext))
+						if (isImage) {
+							if (shouldDisableImages) {
+								e.preventDefault()
+								showImageWarning("kilocode:imageWarnings.modelNoImageSupport")
+								return
+							}
+							if (selectedImages.length >= MAX_IMAGES_PER_MESSAGE) {
+								e.preventDefault()
+								showImageWarning("kilocode:imageWarnings.maxImagesReached")
+								return
+							}
+						}
+						e.preventDefault()
+						vscode.postMessage({ type: "attachmentPathToAttachment", imagePath: attachmentPath })
+						return
+					}
+				}
+				// kilocode_change end: detect pasted file paths
+
 				// Check if the pasted content is a URL, add space after so user
 				// can easily delete if they don't want it.
 				const urlRegex = /^\S+:\/\/\S+$/
@@ -724,6 +823,60 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						console.warn(t("chat:noValidImages"))
 					}
 				}
+
+				// kilocode_change start: handle non-image file blobs pasted directly
+				// (e.g. copying a PDF from Finder). The webview cannot extract
+				// document text, so read the blob as a data URL and ask the
+				// extension to process it.
+				const documentFileItems = Array.from(items).filter((item) => {
+					if (item.kind !== "file") return false
+					const file = item.getAsFile()
+					if (!file) return false
+					// Skip images (already handled above) and items with no usable type
+					if (item.type.startsWith("image/")) return false
+					const ext = fileExt(file.name || "")
+					if (DOCUMENT_PATH_EXTENSIONS.includes(ext)) return true
+					// Fall back to MIME mapping for files with no/empty extension
+					return !!DOCUMENT_MIME_TO_EXT[item.type]
+				})
+
+				if (documentFileItems.length > 0) {
+					e.preventDefault()
+					const filePromises = documentFileItems.map((item) => {
+						return new Promise<{ dataUrl: string; name: string } | null>((resolve) => {
+							const file = item.getAsFile()
+							if (!file) {
+								resolve(null)
+								return
+							}
+							const ext = fileExt(file.name || "")
+							const resolvedExt = ext || DOCUMENT_MIME_TO_EXT[item.type] || ""
+							const baseName = fileBaseName(file.name || "attachment", ext)
+							const fileName = `${baseName}${resolvedExt}`
+							const reader = new FileReader()
+							reader.onloadend = () => {
+								if (reader.error || typeof reader.result !== "string") {
+									resolve(null)
+								} else {
+									resolve({ dataUrl: reader.result, name: fileName })
+								}
+							}
+							reader.readAsDataURL(file)
+						})
+					})
+
+					const fileResults = await Promise.all(filePromises)
+					for (const file of fileResults) {
+						if (file) {
+							vscode.postMessage({
+								type: "pastedFileAttachment",
+								fileDataUrl: file.dataUrl,
+								fileName: file.name,
+							})
+						}
+					}
+				}
+				// kilocode_change end: handle non-image file blobs pasted directly
 			},
 			[
 				shouldDisableImages,
@@ -735,6 +888,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				getCaretPosition,
 				getSelectionOffsets,
 				getPlainTextFromInput,
+				cwd, // kilocode_change - for image path resolution
 			],
 		)
 
@@ -1298,25 +1452,68 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		const handleDrop = useCallback(
 			async (e: React.DragEvent<HTMLDivElement>) => {
+				// kilocode_change: detect whether this is a file/attachment drop
+				// (external file drag or a path-like text). For plain text drags
+				// (e.g. moving a text selection inside the editor) we let the
+				// native behavior proceed by not preventing default.
+				const textFieldList = e.dataTransfer.getData("text")
+				const textUriList = e.dataTransfer.getData("application/vnd.code.uri-list")
+				const droppedFiles = Array.from(e.dataTransfer.files)
+				const text = textFieldList || textUriList
+				const looksLikePathDrop =
+					droppedFiles.length > 0 ||
+					!!textUriList ||
+					(text.length > 0 &&
+						text
+							.split(/\r?\n/)
+							.some((line) => line.trim().startsWith("/") || /^[a-zA-Z]:[\\/]/.test(line.trim())))
+
+				if (!looksLikePathDrop) {
+					// Not a file drop — let the editor handle it natively.
+					return
+				}
+
 				e.preventDefault()
 				setIsDraggingOver(false)
 
-				const textFieldList = e.dataTransfer.getData("text")
-				const textUriList = e.dataTransfer.getData("application/vnd.code.uri-list")
 				// When textFieldList is empty, it may attempt to use textUriList obtained from drag-and-drop tabs; if not empty, it will use textFieldList.
-				const text = textFieldList || textUriList
 				if (text) {
 					// Split text on newlines to handle multiple files
 					const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "")
 
 					if (lines.length > 0) {
-						// Process each line as a separate file path
+						// kilocode_change start: route image/document paths to attachments
+						// instead of inserting them as mentions, matching paste behavior.
+						const mentionLines: string[] = []
+						for (const line of lines) {
+							const attachmentPath = resolveAttachmentPath(line, cwd)
+							if (attachmentPath) {
+								const lower = attachmentPath.toLowerCase()
+								const isImage = IMAGE_PATH_EXTENSIONS.some((ext) => lower.endsWith(ext))
+								if (isImage) {
+									if (shouldDisableImages) {
+										showImageWarning("kilocode:imageWarnings.modelNoImageSupport")
+										continue
+									}
+									if (selectedImages.length >= MAX_IMAGES_PER_MESSAGE) {
+										showImageWarning("kilocode:imageWarnings.maxImagesReached")
+										continue
+									}
+								}
+								vscode.postMessage({ type: "attachmentPathToAttachment", imagePath: attachmentPath })
+							} else {
+								mentionLines.push(line)
+							}
+						}
+						// kilocode_change end: route image/document paths to attachments
+
+						// Process remaining lines as mentions
 						let newValue = inputValue.slice(0, cursorPosition)
 						let totalLength = 0
 
 						// Using a standard for loop instead of forEach for potential performance gains.
-						for (let i = 0; i < lines.length; i++) {
-							const line = lines[i]
+						for (let i = 0; i < mentionLines.length; i++) {
+							const line = mentionLines[i]
 							// Convert each path to a mention-friendly format
 							const fullMention = convertToMentionPath(line, cwd)
 							// Extract filename for compact display
@@ -1333,31 +1530,31 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							totalLength += mentionText.length
 
 							// Add space after each mention except the last one
-							if (i < lines.length - 1) {
+							if (i < mentionLines.length - 1) {
 								newValue += " "
 								totalLength += 1
 							}
 						}
 
 						// Add space after the last mention and append the rest of the input
-						newValue += " " + inputValue.slice(cursorPosition)
-						totalLength += 1
+						if (mentionLines.length > 0) {
+							newValue += " " + inputValue.slice(cursorPosition)
+							totalLength += 1
 
-						setInputValue(newValue)
-						const newCursorPosition = cursorPosition + totalLength + 1
-						setCursorPosition(newCursorPosition)
-						intendedCursorPositionRef.current = newCursorPosition
+							setInputValue(newValue)
+							const newCursorPosition = cursorPosition + totalLength + 1
+							setCursorPosition(newCursorPosition)
+							intendedCursorPositionRef.current = newCursorPosition
+						}
 					}
 
 					return
 				}
 
-				const files = Array.from(e.dataTransfer.files)
-
-				if (files.length > 0) {
+				if (droppedFiles.length > 0) {
 					const acceptedTypes = ["png", "jpeg", "webp"]
 
-					const imageFiles = files.filter((file) => {
+					const imageFiles = droppedFiles.filter((file) => {
 						const [type, subtype] = file.type.split("/")
 						return type === "image" && acceptedTypes.includes(subtype)
 					})
@@ -1412,6 +1609,49 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							console.warn(t("chat:noValidImages"))
 						}
 					}
+
+					// kilocode_change start: handle non-image document files dropped
+					// from the OS (e.g. Finder). The webview cannot extract document
+					// text, so read each as a data URL and ask the extension to process
+					// it, matching the paste flow.
+					const documentFiles = droppedFiles.filter((file) => {
+						if (file.type.startsWith("image/")) return false
+						const ext = fileExt(file.name || "")
+						if (DOCUMENT_PATH_EXTENSIONS.includes(ext)) return true
+						return !!DOCUMENT_MIME_TO_EXT[file.type]
+					})
+
+					if (documentFiles.length > 0) {
+						const filePromises = documentFiles.map((file) => {
+							return new Promise<{ dataUrl: string; name: string } | null>((resolve) => {
+								const ext = fileExt(file.name || "")
+								const resolvedExt = ext || DOCUMENT_MIME_TO_EXT[file.type] || ""
+								const baseName = fileBaseName(file.name || "attachment", ext)
+								const fileName = `${baseName}${resolvedExt}`
+								const reader = new FileReader()
+								reader.onloadend = () => {
+									if (reader.error || typeof reader.result !== "string") {
+										resolve(null)
+									} else {
+										resolve({ dataUrl: reader.result, name: fileName })
+									}
+								}
+								reader.readAsDataURL(file)
+							})
+						})
+
+						const fileResults = await Promise.all(filePromises)
+						for (const file of fileResults) {
+							if (file) {
+								vscode.postMessage({
+									type: "pastedFileAttachment",
+									fileDataUrl: file.dataUrl,
+									fileName: file.name,
+								})
+							}
+						}
+					}
+					// kilocode_change end: handle non-image document files dropped
 				}
 			},
 			[
@@ -1878,12 +2118,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						)}
 						onDrop={handleDrop}
 						onDragOver={(e) => {
-							// Only allowed to drop images/files on shift key pressed.
+							// VS Code intercepts native file drags; holding Shift lets the
+							// drag reach the webview so we can handle it here.
 							if (!e.shiftKey) {
-								setIsDraggingOver(false)
 								return
 							}
-
 							e.preventDefault()
 							setIsDraggingOver(true)
 							e.dataTransfer.dropEffect = "copy"
@@ -1956,19 +2195,29 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					</div>
 				</div>
 
-				{selectedImages.length > 0 && (
-					<Thumbnails
-						images={selectedImages}
-						setImages={setSelectedImages}
+				{(selectedImages.length > 0 || selectedDocuments.length > 0) && (
+					<div
 						style={{
+							display: "flex",
+							flexWrap: "wrap",
+							gap: 8,
+							rowGap: 6,
 							left: "16px",
 							zIndex: 2,
 							marginTop: "4px",
 							marginBottom: 0,
-						}}
-					/>
+							paddingLeft: 16,
+							paddingRight: 16,
+						}}>
+						<Thumbnails images={selectedImages} setImages={setSelectedImages} inline />
+						<DocumentAttachments
+							documents={selectedDocuments}
+							setDocuments={setSelectedDocuments}
+							materialIconsBaseUri={materialIconsBaseUri}
+							inline
+						/>
+					</div>
 				)}
-				<DocumentAttachments documents={selectedDocuments} setDocuments={setSelectedDocuments} />
 			</div>
 		)
 	},

@@ -61,7 +61,11 @@ import { Terminal } from "../../integrations/terminal/Terminal"
 import { openFile } from "../../integrations/misc/open-file"
 import { openImage, saveImage } from "../../integrations/misc/image-handler"
 import { selectImages } from "../../integrations/misc/process-images"
-import { selectAttachments } from "../../integrations/misc/process-attachments"
+import {
+	selectAttachments,
+	readAttachmentByPath,
+	readAttachmentFromDataUrl,
+} from "../../integrations/misc/process-attachments"
 import { getTheme } from "../../integrations/theme/getTheme"
 import { discoverChromeHostUrl, tryChromeHostUrl } from "../../services/browser/browserDiscovery"
 import { searchWorkspaceFiles } from "../../services/search/file-search"
@@ -1614,6 +1618,55 @@ ${comment.suggestion}
 				messageTs: message.messageTs,
 			})
 			break
+		case "attachmentPathToAttachment": {
+			// kilocode_change: paste file path -> attachment (images or documents)
+			const attachmentPath = message.imagePath
+			if (!attachmentPath) {
+				break
+			}
+			try {
+				const attachment = await readAttachmentByPath(attachmentPath)
+				if (attachment.errors.length > 0) {
+					void vscode.window.showWarningMessage(`Could not attach file: ${attachment.errors.join("; ")}`)
+				}
+				await provider.postMessageToWebview({
+					type: "selectedAttachments",
+					images: attachment.images,
+					documents: attachment.documents,
+					attachmentErrors: attachment.errors,
+				})
+			} catch (error) {
+				void vscode.window.showWarningMessage(
+					`Could not attach file from path: ${error instanceof Error ? error.message : String(error)}`,
+				)
+			}
+			break
+		}
+		case "pastedFileAttachment": {
+			// kilocode_change: paste file blob -> attachment (non-image documents)
+			const fileDataUrl = message.fileDataUrl
+			const fileName = message.fileName || "attachment"
+			if (!fileDataUrl) {
+				break
+			}
+			try {
+				const attachment = await readAttachmentFromDataUrl(fileDataUrl, fileName)
+				if (attachment.errors.length > 0) {
+					void vscode.window.showWarningMessage(`Could not attach file: ${attachment.errors.join("; ")}`)
+				}
+				await provider.postMessageToWebview({
+					type: "selectedAttachments",
+					images: attachment.images,
+					documents: attachment.documents,
+					attachmentErrors: attachment.errors,
+				})
+			} catch (error) {
+				void vscode.window.showWarningMessage(
+					`Could not attach pasted file: ${error instanceof Error ? error.message : String(error)}`,
+				)
+			}
+			break
+		}
 		case "selectAttachments": {
 			const attachments = await selectAttachments()
 			if (attachments.errors.length > 0) {
