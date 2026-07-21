@@ -2,7 +2,10 @@
 // npx vitest run src/api/providers/__tests__/kilocode-openrouter.spec.ts
 
 // Mock vscode first to avoid import errors
-vitest.mock("vscode", () => ({}))
+vitest.mock("vscode", () => ({
+	env: { appName: "Visual Studio Code" },
+	version: "1.100.0",
+}))
 
 import { Anthropic } from "@anthropic-ai/sdk"
 import OpenAI from "openai"
@@ -14,7 +17,17 @@ import {
 	X_KILOCODE_ORGANIZATIONID,
 	X_KILOCODE_PROJECTID,
 	X_AXON_REPO,
+	X_MODEL_CONTEXT_WINDOW,
+	X_DEVICE_OS,
+	X_CLIENT_USER_AGENT,
 } from "../../../shared/kilocode/headers"
+import { Package } from "../../../shared/package"
+
+const clientMetadataHeaders = {
+	[X_MODEL_CONTEXT_WINDOW]: "200000",
+	[X_DEVICE_OS]: process.platform,
+	[X_CLIENT_USER_AGENT]: `Axon-Code/${Package.version} (Visual Studio Code/1.100.0)`,
+}
 
 // Mock dependencies
 vitest.mock("openai")
@@ -24,6 +37,15 @@ vitest.mock("../fetchers/modelCache", () => ({
 		"axon-eido-3-code-pro-200k": {
 			maxTokens: 64000,
 			contextWindow: 200000,
+			supportsImages: true,
+			supportsPromptCache: false,
+			inputPrice: 3,
+			outputPrice: 9,
+			description: "Axon Eido 3 Pro",
+		},
+		"axon-eido-3-code-pro-400k": {
+			maxTokens: 64000,
+			contextWindow: 400000,
 			supportsImages: true,
 			supportsPromptCache: false,
 			inputPrice: 3,
@@ -59,12 +81,23 @@ describe("KilocodeOpenrouterHandler", () => {
 	beforeEach(() => vitest.clearAllMocks())
 
 	describe("customRequestOptions", () => {
+		it("reports the selected 400k context window", async () => {
+			const handler = new KilocodeOpenrouterHandler({
+				kilocodeToken: "test-token",
+				kilocodeModel: "axon-eido-3-code-pro-400k",
+			})
+			await handler.fetchModel()
+
+			expect(handler.customRequestOptions()?.headers[X_MODEL_CONTEXT_WINDOW]).toBe("400000")
+		})
+
 		it("includes taskId header when provided in metadata", () => {
 			const handler = new KilocodeOpenrouterHandler(mockOptions)
 			const result = handler.customRequestOptions({ taskId: "test-task-id", mode: "code" })
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 				},
 			})
@@ -79,6 +112,7 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 					[X_KILOCODE_ORGANIZATIONID]: "test-org-id",
 				},
@@ -98,6 +132,7 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 					[X_KILOCODE_ORGANIZATIONID]: "test-org-id",
 					[X_KILOCODE_PROJECTID]: "https://github.com/user/repo.git",
@@ -118,6 +153,7 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 					[X_KILOCODE_PROJECTID]: "https://github.com/user/repo.git",
 					[X_KILOCODE_ORGANIZATIONID]: "test-org-id",
@@ -134,6 +170,7 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 					[X_KILOCODE_ORGANIZATIONID]: "test-org-id",
 				},
@@ -151,17 +188,18 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 				},
 			})
 			expect(result?.headers).not.toHaveProperty(X_KILOCODE_PROJECTID)
 		})
 
-		it("returns undefined when no headers are needed", () => {
+		it("includes client metadata when no request metadata is provided", () => {
 			const handler = new KilocodeOpenrouterHandler(mockOptions)
 			const result = handler.customRequestOptions()
 
-			expect(result).toBeUndefined()
+			expect(result).toEqual({ headers: clientMetadataHeaders })
 		})
 
 		it("includes repo header when provided in metadata", () => {
@@ -174,6 +212,7 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 					[X_AXON_REPO]: "https://github.com/user/repo.git",
 				},
@@ -190,6 +229,7 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 					[X_AXON_REPO]: "my-project-folder",
 				},
@@ -210,6 +250,7 @@ describe("KilocodeOpenrouterHandler", () => {
 
 			expect(result).toEqual({
 				headers: {
+					...clientMetadataHeaders,
 					[X_KILOCODE_TASKID]: "test-task-id",
 					[X_KILOCODE_ORGANIZATIONID]: "test-org-id",
 					[X_KILOCODE_PROJECTID]: "https://github.com/user/repo.git",
@@ -244,10 +285,9 @@ describe("KilocodeOpenrouterHandler", () => {
 			])
 			await generator.next()
 
-			expect(mockCreate).toHaveBeenCalledWith(
-				expect.objectContaining({ model: "axon-eido-3-code-pro" }),
-				undefined,
-			)
+			expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ model: "axon-eido-3-code-pro" }), {
+				headers: clientMetadataHeaders,
+			})
 		})
 
 		it("passes custom headers to OpenAI client", async () => {
@@ -287,6 +327,7 @@ describe("KilocodeOpenrouterHandler", () => {
 				expect.any(Object),
 				expect.objectContaining({
 					headers: {
+						...clientMetadataHeaders,
 						[X_KILOCODE_TASKID]: "test-task-id",
 						[X_KILOCODE_PROJECTID]: "https://github.com/user/repo.git",
 						[X_KILOCODE_ORGANIZATIONID]: "test-org-id",
