@@ -1,4 +1,5 @@
 import { ApiHandlerOptions, ModelRecord } from "../../shared/api"
+import * as vscode from "vscode"
 import { CompletionUsage, OpenRouterHandler } from "./openrouter"
 import { getModelParams } from "../transform/model-params"
 import { getModels } from "./fetchers/modelCache"
@@ -14,7 +15,21 @@ import {
 	X_KILOCODE_PROJECTID,
 	X_KILOCODE_TESTER,
 	X_AXON_REPO,
+	X_MODEL_CONTEXT_WINDOW,
+	X_DEVICE_OS,
+	X_CLIENT_USER_AGENT,
 } from "../../shared/kilocode/headers"
+import { Package } from "../../shared/package"
+
+const getClientUserAgent = (): string => {
+	const ideName = vscode.env?.appName?.trim()
+	const ideVersion = vscode.version?.trim()
+	const ideUserAgent = [ideName, ideVersion]
+		.filter(Boolean)
+		.join("/")
+		.replace(/[^\x20-\x7E]/g, "")
+	return `Axon-Code/${Package.version}${ideUserAgent ? ` (${ideUserAgent})` : ""}`
+}
 
 /**
  * A custom OpenRouter handler that overrides the getModel function
@@ -39,7 +54,11 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 	}
 
 	override customRequestOptions(metadata?: ApiHandlerCreateMessageMetadata) {
-		const headers: Record<string, string> = {}
+		const headers: Record<string, string> = {
+			[X_MODEL_CONTEXT_WINDOW]: String(this.getModel().info.contextWindow),
+			[X_DEVICE_OS]: process.platform,
+			[X_CLIENT_USER_AGENT]: getClientUserAgent(),
+		}
 
 		if (metadata?.taskId) {
 			headers[X_KILOCODE_TASKID] = metadata.taskId
@@ -68,7 +87,7 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 			headers[X_KILOCODE_TESTER] = "SUPPRESS"
 		}
 
-		return Object.keys(headers).length > 0 ? { headers } : undefined
+		return { headers }
 	}
 
 	override getTotalCost(lastUsage: CompletionUsage): number {

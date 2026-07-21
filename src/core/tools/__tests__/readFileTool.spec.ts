@@ -1,6 +1,7 @@
 // npx vitest src/core/tools/__tests__/readFileTool.spec.ts
 
 import * as path from "path"
+import fs from "fs"
 
 import { countFileLines } from "../../../integrations/misc/line-counter"
 import { readLines } from "../../../integrations/misc/read-lines"
@@ -201,6 +202,7 @@ function createMockCline(): any {
 		recordToolUsage: vi.fn().mockReturnValue(undefined),
 		recordToolError: vi.fn().mockReturnValue(undefined),
 		didRejectTool: false,
+		readRegionHistory: new Map<string, number>(),
 		// CRITICAL: Always ensure image support is enabled
 		api: {
 			getModel: vi.fn().mockReturnValue({
@@ -482,6 +484,74 @@ describe("read_file tool with maxReadFileLine setting", () => {
 			// Verify - just check that the result contains the expected elements
 			expect(rangeResult).toContain(`<file><path>${testFilePath}</path>`)
 			expect(rangeResult).toContain(`<content lines="2-4">`)
+		})
+	})
+
+	describe("repeated unchanged regions", () => {
+		it("skips the read and returns concrete next actions without pausing", async () => {
+			const statSpy = vi.spyOn(fs.promises, "stat").mockResolvedValue({ mtimeMs: 123 } as any)
+			mockCline.readRegionHistory.set(`${absoluteFilePath}|1|all`, 123)
+
+			try {
+				const result = await executeReadFileTool({}, { maxReadFileLine: -1 })
+
+				expect(result).toContain("[repeated-read skipped]")
+				expect(result).toContain("No file content was returned")
+				expect(result).toContain("continue the analysis or make the edit")
+				expect(result).toContain("Do not walk through nearby offsets")
+				expect(result).toContain("use search_files for the relevant symbol or text")
+				expect(result).toContain("Do not stop or ask the user")
+				expect(mockedExtractTextFromFile).not.toHaveBeenCalled()
+				expect(mockCline.ask).not.toHaveBeenCalledWith("mistake_limit_reached", expect.anything())
+			} finally {
+				statSpy.mockRestore()
+			}
+		})
+
+		it("reads normally when the file changed since the earlier read", async () => {
+			const statSpy = vi.spyOn(fs.promises, "stat").mockResolvedValue({ mtimeMs: 124 } as any)
+			mockCline.readRegionHistory.set(`${absoluteFilePath}|1|all`, 123)
+
+			try {
+				const result = await executeReadFileTool({}, { maxReadFileLine: -1 })
+
+				expect(result).not.toContain("[repeated-read skipped]")
+				expect(mockedExtractTextFromFile).toHaveBeenCalledTimes(1)
+				expect(mockCline.readRegionHistory.get(`${absoluteFilePath}|1|all`)).toBe(124)
+			} finally {
+				statSpy.mockRestore()
+			}
+		})
+
+		it.each([
+			["filepath", `/other/file.txt|1|all`],
+			["offset", `${absoluteFilePath}|50|all`],
+			["limit", `${absoluteFilePath}|1|20`],
+		])("reads normally when only the %s differs", async (_field, priorRegionKey) => {
+			const statSpy = vi.spyOn(fs.promises, "stat").mockResolvedValue({ mtimeMs: 123 } as any)
+			mockCline.readRegionHistory.set(priorRegionKey, 123)
+
+			try {
+				const result = await executeReadFileTool({}, { maxReadFileLine: -1 })
+
+				expect(result).not.toContain("[repeated-read skipped]")
+				expect(mockedExtractTextFromFile).toHaveBeenCalledTimes(1)
+			} finally {
+				statSpy.mockRestore()
+			}
+		})
+
+		it("falls back to the normal read when file metadata cannot be checked", async () => {
+			const statSpy = vi.spyOn(fs.promises, "stat").mockRejectedValue(new Error("stat unavailable"))
+
+			try {
+				const result = await executeReadFileTool({}, { maxReadFileLine: -1 })
+
+				expect(result).not.toContain("[repeated-read skipped]")
+				expect(mockedExtractTextFromFile).toHaveBeenCalledTimes(1)
+			} finally {
+				statSpy.mockRestore()
+			}
 		})
 	})
 })

@@ -85,6 +85,7 @@ interface FileResult {
 	feedbackText?: string // User feedback text from approval/denial
 	feedbackImages?: any[] // User feedback images from approval/denial
 	mtimeMs?: number // forked_change: file mtime at read time, for repeated-read detection
+	wasRepeated?: boolean // The unchanged region was already served earlier in this task
 }
 
 // forked_change: key for Task.readRegionHistory — identifies one exact read request.
@@ -421,12 +422,22 @@ export async function readFileTool(
 				if (cline.readRegionHistory.get(regionKey) === mtimeMs) {
 					const startLine = fileResult.offset ?? 1
 					const endLabel = fileResult.limit !== undefined ? String(startLine + fileResult.limit - 1) : "end"
-					const offsetHint =
+					const nextRegionHint =
 						startLine === 1
-							? " If you meant to inspect a specific line number (e.g. from search results), you MUST pass `offset` — to look around line N, use offset ≈ N-20. Calling read_file without `offset` always returns the top of the file."
-							: ""
+							? "If you need line N, call read_file with `offset` near N (for example N-20) and a focused `limit`; `limit` alone always reads from the top."
+							: "If you need more context, request a different, non-overlapping range by changing `offset` or `limit`."
 					updateFileResult(relPath, {
-						xmlContent: `--- ${relPath} ---\n[notice] You already read lines ${startLine}-${endLabel} of this file earlier in this task and it has not changed since. Use that earlier result instead of re-reading.${offsetHint}`,
+						wasRepeated: true,
+						xmlContent: `--- ${relPath} ---
+[repeated-read skipped] This unchanged region (lines ${startLine}-${endLabel}) is already available earlier in the conversation. No file content was returned.
+
+Do not call read_file again with the same path, offset, and limit. Choose the next action now:
+- If the earlier content is sufficient, continue the analysis or make the edit.
+- ${nextRegionHint}
+- Do not walk through nearby offsets on this file one-by-one; that is still a repeated-read loop.
+- If you do not know the target line, use search_files for the relevant symbol or text, then read only the matched range.
+
+Do not stop or ask the user because of this skipped read; proceed with the best next action above.`,
 					})
 					continue
 				}
@@ -610,11 +621,18 @@ export async function readFileTool(
 		// reads of the same unchanged region can be short-circuited next time.
 		// Only successful reads count — denials and errors must stay retryable.
 		for (const result of fileResults) {
-			if (result.status === "approved" && result.xmlContent && !result.error && result.mtimeMs !== undefined) {
+			if (
+				result.status === "approved" &&
+				result.xmlContent &&
+				!result.error &&
+				!result.wasRepeated &&
+				result.mtimeMs !== undefined
+			) {
 				const fullPath = path.isAbsolute(result.path) ? result.path : path.resolve(cline.cwd, result.path)
 				cline.readRegionHistory.set(readRegionKey(fullPath, result.offset, result.limit), result.mtimeMs)
 			}
 		}
+
 		// forked_change end
 
 		// Generate final result from all file results
