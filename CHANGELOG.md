@@ -1,5 +1,13 @@
 # Changelog
 
+## [v6.6.3] - 2026-07-21
+
+### Changed
+
+- **Orbital update banner now polls continuously.** The in-app update banner no longer checks the Open VSX registry only once on mount. It now re-checks every five minutes (including while an update banner is already visible, so a newer release can replace a stale one), and whenever a long-lived view becomes visible again or the window regains focus. This keeps every open IDE window informed about subsequent releases without requiring an Extension Host restart. Polling is throttled to once per minute and pauses only while an installation or restart is actively in progress. The "Update & Restart" action now optimistically flips the banner to an installing state before the backend confirms, so the spinner appears immediately.
+
+---
+
 ## [v6.6.1] - 2026-07-21
 
 ### Added
