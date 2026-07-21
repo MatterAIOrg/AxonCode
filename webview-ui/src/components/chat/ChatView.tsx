@@ -2908,7 +2908,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									<div className="pointer-events-auto">
 										<StickyUserMessage
 											task={task}
-											messages={groupedMessagesWithoutExploration}
+											messages={groupedMessages}
 											stickyIndex={stickyMessageIndex}
 										/>
 									</div>
