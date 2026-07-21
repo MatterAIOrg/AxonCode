@@ -1037,6 +1037,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		partial?: boolean,
 		progressStatus?: ToolProgressStatus,
 		isProtected?: boolean,
+		autoApproved?: boolean,
 	): Promise<{ response: ClineAskResponse; text?: string; images?: string[] }> {
 		// If this Cline instance was aborted by the provider, then the only
 		// thing keeping us alive is a promise still running in the background,
@@ -1065,6 +1066,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					lastMessage.partial = partial
 					lastMessage.progressStatus = progressStatus
 					lastMessage.isProtected = isProtected
+					lastMessage.autoApproved = autoApproved
 					// TODO: Be more efficient about saving and posting only new
 					// data or one whole message at a time so ignore partial for
 					// saves, and only post parts of partial message instead of
@@ -1076,7 +1078,15 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					// state.
 					askTs = await this.nextClineMessageTimestamp_kilocode()
 					this.lastMessageTs = askTs
-					await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, partial, isProtected })
+					await this.addToClineMessages({
+						ts: askTs,
+						type: "ask",
+						ask: type,
+						text,
+						partial,
+						isProtected,
+						autoApproved,
+					})
 					throw new Error("Current ask promise was ignored (#2)")
 				}
 			} else {
@@ -1104,6 +1114,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					lastMessage.partial = false
 					lastMessage.progressStatus = progressStatus
 					lastMessage.isProtected = isProtected
+					lastMessage.autoApproved = autoApproved
 					await this.saveClineMessages()
 					this.updateClineMessage(lastMessage)
 				} else {
@@ -1113,7 +1124,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					this.askResponseImages = undefined
 					askTs = await this.nextClineMessageTimestamp_kilocode()
 					this.lastMessageTs = askTs
-					await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, isProtected })
+					await this.addToClineMessages({
+						ts: askTs,
+						type: "ask",
+						ask: type,
+						text,
+						isProtected,
+						autoApproved,
+					})
 				}
 			}
 		} else {
@@ -1123,7 +1141,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this.askResponseImages = undefined
 			askTs = await this.nextClineMessageTimestamp_kilocode()
 			this.lastMessageTs = askTs
-			await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, isProtected })
+			await this.addToClineMessages({
+				ts: askTs,
+				type: "ask",
+				ask: type,
+				text,
+				isProtected,
+				autoApproved,
+			})
 		}
 
 		// forked_change start: YOLO mode auto-answer for follow-up questions

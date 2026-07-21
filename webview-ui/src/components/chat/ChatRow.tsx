@@ -74,13 +74,9 @@ interface ChatRowProps {
 	onFollowUpUnmount?: () => void
 	isFollowUpAnswered?: boolean
 	editable?: boolean
-	// Button handlers for command execution
 	onPrimaryButtonClick?: (text?: string, images?: ImageAttachment[]) => void
 	onSecondaryButtonClick?: (text?: string, images?: ImageAttachment[]) => void
-	onRunEverythingClick?: () => void
 	enableButtons?: boolean
-	primaryButtonText?: string
-	secondaryButtonText?: string
 	isAgentManagerMode?: boolean
 }
 
@@ -229,10 +225,7 @@ export const ChatRowContent = ({
 	// _editable,
 	onPrimaryButtonClick,
 	onSecondaryButtonClick,
-	onRunEverythingClick,
 	enableButtons,
-	primaryButtonText,
-	secondaryButtonText,
 	isAgentManagerMode: _isAgentManagerMode,
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
@@ -2003,33 +1996,15 @@ export const ChatRowContent = ({
 				case "mistake_limit_reached":
 					return <ErrorRow type="mistake_limit" message={message.text || ""} />
 				case "api_req_failed":
-					return (
-						<CommandExecution
-							executionId={message.ts.toString()}
-							text={message.text}
-							icon={icon}
-							title={title}
-							onPrimaryButtonClick={onPrimaryButtonClick}
-							onSecondaryButtonClick={onSecondaryButtonClick}
-							onRunEverythingClick={onRunEverythingClick}
-							enableButtons={enableButtons}
-							primaryButtonText={primaryButtonText}
-							secondaryButtonText={secondaryButtonText}
-						/>
-					)
+					return <CommandExecution executionId={message.ts.toString()} text={message.text} />
 				case "command":
 					return (
 						<CommandExecution
 							executionId={message.ts.toString()}
 							text={message.text}
-							icon={icon}
-							title={title}
 							onPrimaryButtonClick={onPrimaryButtonClick}
 							onSecondaryButtonClick={onSecondaryButtonClick}
-							onRunEverythingClick={onRunEverythingClick}
 							enableButtons={enableButtons}
-							primaryButtonText={primaryButtonText}
-							secondaryButtonText={secondaryButtonText}
 						/>
 					)
 				case "use_mcp_server":

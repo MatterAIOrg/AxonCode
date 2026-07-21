@@ -221,6 +221,9 @@ export const clineMessageSchema = z.object({
 	progressStatus: toolProgressStatusSchema.optional(),
 	contextCondense: contextCondenseSchema.optional(),
 	isProtected: z.boolean().optional(),
+	// Set when the extension has decided this request needs no user interaction.
+	// The webview uses this authoritative decision instead of re-running approval rules.
+	autoApproved: z.boolean().optional(),
 	apiProtocol: z.union([z.literal("openai"), z.literal("anthropic")]).optional(),
 	isAnswered: z.boolean().optional(),
 	metadata: z

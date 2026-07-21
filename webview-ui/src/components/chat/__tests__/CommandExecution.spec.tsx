@@ -61,6 +61,47 @@ describe("CommandExecution", () => {
 		expect(screen.getByTestId("code-block")).toHaveTextContent("npm install")
 	})
 
+	it("shows the command title and keeps legacy details collapsed until requested", () => {
+		render(
+			<ExtensionStateWrapper>
+				<CommandExecution executionId="test-compact" text={"npm test\nOutput:\nTests passed"} />
+			</ExtensionStateWrapper>,
+		)
+
+		expect(screen.getByTestId("command-title")).toHaveTextContent("npm test")
+		expect(screen.getByTestId("command-status")).toHaveTextContent("Ran Command")
+		expect(screen.getByTestId("command-execution-details")).toHaveClass("hidden")
+
+		fireEvent.click(screen.getByRole("button", { name: "Expand command details" }))
+
+		expect(screen.getByTestId("command-execution-details")).not.toHaveClass("hidden")
+		expect(screen.getByRole("button", { name: "Collapse command details" })).toBeInTheDocument()
+	})
+
+	it("shows running state with the Matter progress indicator", () => {
+		render(
+			<ExtensionStateWrapper>
+				<CommandExecution executionId="test-running" text="npm test" />
+			</ExtensionStateWrapper>,
+		)
+
+		expect(screen.getByTestId("command-status")).toHaveTextContent("Running Command")
+		expect(screen.getByRole("status", { name: "Working" })).toBeInTheDocument()
+	})
+
+	it("does not render legacy command approval controls", () => {
+		render(
+			<ExtensionStateWrapper>
+				<CommandExecution executionId="test-no-legacy-approval" text="npm test" />
+			</ExtensionStateWrapper>,
+		)
+
+		expect(screen.queryByText("Run Everything")).not.toBeInTheDocument()
+		expect(screen.queryByText("Run")).not.toBeInTheDocument()
+		expect(screen.queryByText("Reject")).not.toBeInTheDocument()
+		expect(screen.queryByText("Submit")).not.toBeInTheDocument()
+	})
+
 	it("should render command with output", () => {
 		render(
 			<ExtensionStateWrapper>
@@ -72,18 +113,14 @@ describe("CommandExecution", () => {
 		expect(codeBlocks[0]).toHaveTextContent("npm install")
 	})
 
-	it("should render with custom icon and title", () => {
-		const icon = <span data-testid="custom-icon">📦</span>
-		const title = <span data-testid="custom-title">Installing Dependencies</span>
-
+	it("should prefer the provided command message as the title", () => {
 		render(
 			<ExtensionStateWrapper>
-				<CommandExecution executionId="test-1" text="npm install" icon={icon} title={title} />
+				<CommandExecution executionId="test-1" text={"MESSAGE:Installing dependencies\n---\nnpm install"} />
 			</ExtensionStateWrapper>,
 		)
 
-		expect(screen.getByTestId("custom-icon")).toBeInTheDocument()
-		expect(screen.getByTestId("custom-title")).toBeInTheDocument()
+		expect(screen.getByTestId("command-title")).toHaveTextContent("Installing dependencies")
 	})
 
 	it("should show command pattern selector for commands", () => {
@@ -252,7 +289,7 @@ Suggested patterns: npm, npm install, npm run`
 		expect(screen.queryByTestId("command-pattern-selector")).not.toBeInTheDocument()
 	})
 
-	it("should expand output when terminal shell integration is disabled", () => {
+	it("should stay collapsed when terminal shell integration is disabled", () => {
 		const disabledState = {
 			...mockExtensionState,
 			terminalShellIntegrationDisabled: true,
@@ -268,9 +305,10 @@ Output here`
 			</ExtensionStateContext.Provider>,
 		)
 
-		// Output should be visible when shell integration is disabled
+		// Parsed details remain available, but the compact row should stay collapsed.
+		expect(screen.getByTestId("command-execution-details")).toHaveClass("hidden")
 		const codeBlocks = screen.getAllByTestId("code-block")
-		expect(codeBlocks).toHaveLength(2) // Command and output blocks
+		expect(codeBlocks).toHaveLength(2)
 		expect(codeBlocks[1]).toHaveTextContent("Output here")
 	})
 
@@ -337,12 +375,7 @@ Other output here`
 
 			render(
 				<ExtensionStateWrapper>
-					<CommandExecution
-						executionId="test-6"
-						text={commandWithOutput}
-						icon={<span>icon</span>}
-						title={<span>Run Command</span>}
-					/>
+					<CommandExecution executionId="test-6" text={commandWithOutput} />
 				</ExtensionStateWrapper>,
 			)
 
@@ -400,12 +433,7 @@ Running tests...
 
 			render(
 				<ExtensionStateWrapper>
-					<CommandExecution
-						executionId="test-10"
-						text={commandWithMixedContent}
-						icon={<span>icon</span>}
-						title={<span>Run Command</span>}
-					/>
+					<CommandExecution executionId="test-10" text={commandWithMixedContent} />
 				</ExtensionStateWrapper>,
 			)
 
@@ -567,211 +595,100 @@ Output:
 	})
 })
 
-describe("CommandExecution - Approval Mode", () => {
-	const mockOnPrimary = vi.fn()
-	const mockOnSecondary = vi.fn()
+describe("CommandExecution approval panel", () => {
+	const onApprove = vi.fn()
+	const onReject = vi.fn()
+	const approvalText = "MESSAGE:Allow dependency installation.\n---\nnpm install express"
 
-	beforeEach(() => {
-		vi.clearAllMocks()
-		mockOnPrimary.mockClear()
-		mockOnSecondary.mockClear()
-	})
-
-	const renderApprovalMode = () => {
+	const renderApproval = () =>
 		render(
 			<ExtensionStateWrapper>
 				<CommandExecution
 					executionId="approval-test"
-					text={`MESSAGE:install dependencies\n---\nnpm install express`}
-					onPrimaryButtonClick={mockOnPrimary}
-					onSecondaryButtonClick={mockOnSecondary}
-					enableButtons={true}
+					text={approvalText}
+					onPrimaryButtonClick={onApprove}
+					onSecondaryButtonClick={onReject}
+					enableButtons
 				/>
 			</ExtensionStateWrapper>,
 		)
-	}
-
-	it("renders approval mode UI when buttons and enableButtons are provided", () => {
-		renderApprovalMode()
-
-		expect(screen.getByText("install dependencies")).toBeInTheDocument()
-		expect(screen.getByText("npm install express")).toBeInTheDocument()
-		expect(screen.getByText("Yes")).toBeInTheDocument()
-		expect(screen.getByText("Yes, and don't ask again for this command")).toBeInTheDocument()
-		expect(screen.getByText("No, and tell Orbital the next step")).toBeInTheDocument()
-		expect(screen.getByText("Submit")).toBeInTheDocument()
-	})
-
-	it('calls onPrimaryButtonClick when "Yes" is selected and submitted', () => {
-		renderApprovalMode()
-
-		fireEvent.click(screen.getByText("Submit"))
-
-		expect(mockOnPrimary).toHaveBeenCalledTimes(1)
-		expect(mockOnSecondary).not.toHaveBeenCalled()
-	})
-
-	it('sends allowedCommands via vscode.postMessage when "Yes, always" is selected and submitted', () => {
-		renderApprovalMode()
-
-		fireEvent.click(screen.getByText("Yes, and don't ask again for this command"))
-		fireEvent.click(screen.getByText("Submit"))
-
-		expect(mockOnPrimary).toHaveBeenCalledTimes(1)
-		expect(vscode.postMessage).toHaveBeenCalledWith(
-			expect.objectContaining({
-				type: "allowedCommands",
-				commands: expect.arrayContaining(["npm install express"]),
-			}),
-		)
-	})
-
-	it('shows feedback input when "No, with feedback" is selected', () => {
-		renderApprovalMode()
-
-		fireEvent.click(screen.getByText("No, and tell Orbital the next step"))
-
-		const feedbackInput = screen.getByPlaceholderText("your message...")
-		expect(feedbackInput).toBeInTheDocument()
-	})
-
-	it('calls onSecondaryButtonClick with feedback text when "No" is submitted', () => {
-		renderApprovalMode()
-
-		fireEvent.click(screen.getByText("No, and tell Orbital the next step"))
-		const feedbackInput = screen.getByPlaceholderText("your message...")
-		fireEvent.change(feedbackInput, { target: { value: "try pip instead" } })
-		fireEvent.click(screen.getByText("Submit"))
-
-		expect(mockOnSecondary).toHaveBeenCalledWith("try pip instead")
-		expect(mockOnPrimary).not.toHaveBeenCalled()
-	})
-
-	it("uses commandRef to prevent stale closure when message streams", () => {
-		const { rerender } = render(
-			<ExtensionStateWrapper>
-				<CommandExecution
-					executionId="stream-test"
-					text={`MESSAGE:run checks\n---\nnpm test`}
-					onPrimaryButtonClick={mockOnPrimary}
-					onSecondaryButtonClick={mockOnSecondary}
-					enableButtons={true}
-				/>
-			</ExtensionStateWrapper>,
-		)
-
-		rerender(
-			<ExtensionStateWrapper>
-				<CommandExecution
-					executionId="stream-test"
-					text={`MESSAGE:run checks\n---\nnpm run test:all`}
-					onPrimaryButtonClick={mockOnPrimary}
-					onSecondaryButtonClick={mockOnSecondary}
-					enableButtons={true}
-				/>
-			</ExtensionStateWrapper>,
-		)
-
-		fireEvent.click(screen.getByText("Yes, and don't ask again for this command"))
-		fireEvent.click(screen.getByText("Submit"))
-
-		expect(vscode.postMessage).toHaveBeenCalledWith(
-			expect.objectContaining({
-				type: "allowedCommands",
-				commands: expect.arrayContaining(["npm run test:all"]),
-			}),
-		)
-	})
-})
-
-describe("CommandExecution - Keyboard Navigation", () => {
-	const mockOnPrimary = vi.fn()
-	const mockOnSecondary = vi.fn()
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockOnPrimary.mockClear()
-		mockOnSecondary.mockClear()
 	})
 
-	const renderApprovalMode = () => {
-		render(
-			<ExtensionStateWrapper>
-				<CommandExecution
-					executionId="kb-test"
-					text={`MESSAGE:run tests\n---\nnpm test`}
-					onPrimaryButtonClick={mockOnPrimary}
-					onSecondaryButtonClick={mockOnSecondary}
-					enableButtons={true}
-				/>
-			</ExtensionStateWrapper>,
+	it("renders the compact command approval view", () => {
+		renderApproval()
+
+		expect(screen.getByTestId("command-approval")).toBeInTheDocument()
+		expect(screen.getByText("Allow dependency installation.")).toBeInTheDocument()
+		expect(screen.getByTestId("command-approval-preview")).toHaveTextContent("npm install express")
+		expect(screen.getByRole("button", { name: "1. Yes" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: /Yes, and don't ask again/ })).toHaveTextContent(
+			"npm install express",
 		)
-	}
-
-	it("navigates options with ArrowUp and ArrowDown", () => {
-		renderApprovalMode()
-
-		fireEvent.keyDown(window, { key: "ArrowDown" })
-		fireEvent.keyDown(window, { key: "ArrowDown" })
-		fireEvent.keyDown(window, { key: "ArrowUp" })
-
-		fireEvent.keyDown(window, { key: "Enter" })
-
-		expect(mockOnPrimary).toHaveBeenCalledTimes(1)
-		expect(vscode.postMessage).toHaveBeenCalledWith(
-			expect.objectContaining({
-				type: "allowedCommands",
-				commands: expect.arrayContaining(["npm test"]),
-			}),
-		)
+		expect(
+			screen.getByRole("button", { name: "3. No, and tell Orbital what to do differently" }),
+		).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Skip" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Submit" })).toBeInTheDocument()
 	})
 
-	it("does not navigate past first option with ArrowUp", () => {
-		renderApprovalMode()
+	it("expands and collapses the command preview", () => {
+		renderApproval()
 
-		fireEvent.keyDown(window, { key: "ArrowUp" })
-		fireEvent.keyDown(window, { key: "Enter" })
+		fireEvent.click(screen.getByRole("button", { name: "Expand" }))
+		expect(screen.getByRole("button", { name: "Collapse" })).toBeInTheDocument()
 
-		expect(mockOnPrimary).toHaveBeenCalledTimes(1)
+		fireEvent.click(screen.getByRole("button", { name: "Collapse" }))
+		expect(screen.getByRole("button", { name: "Expand" })).toBeInTheDocument()
 	})
 
-	it("does not navigate past last option with ArrowDown", () => {
-		renderApprovalMode()
+	it("submits the selected approval option", () => {
+		renderApproval()
 
-		fireEvent.keyDown(window, { key: "ArrowDown" })
-		fireEvent.keyDown(window, { key: "ArrowDown" })
-		fireEvent.keyDown(window, { key: "ArrowDown" })
-		fireEvent.keyDown(window, { key: "Enter" })
+		fireEvent.click(screen.getByRole("button", { name: "Submit" }))
 
-		expect(mockOnSecondary).toHaveBeenCalledWith(undefined)
+		expect(onApprove).toHaveBeenCalledTimes(1)
+		expect(onReject).not.toHaveBeenCalled()
 	})
 
-	it("calls handleSkip on Escape", () => {
-		renderApprovalMode()
+	it("allows the current command prefix before submitting", () => {
+		renderApproval()
+
+		fireEvent.click(screen.getByRole("button", { name: /Yes, and don't ask again/ }))
+		fireEvent.click(screen.getByRole("button", { name: "Submit" }))
+
+		expect(mockExtensionState.setAllowedCommands).toHaveBeenCalledWith(["npm", "npm install express"])
+		expect(vscode.postMessage).toHaveBeenCalledWith({
+			type: "allowedCommands",
+			commands: ["npm", "npm install express"],
+		})
+		expect(onApprove).toHaveBeenCalledTimes(1)
+	})
+
+	it("submits rejection feedback", () => {
+		renderApproval()
+
+		fireEvent.click(screen.getByRole("button", { name: "3. No, and tell Orbital what to do differently" }))
+		fireEvent.change(screen.getByPlaceholderText("Tell Orbital what to do differently..."), {
+			target: { value: "Use pnpm instead" },
+		})
+		fireEvent.click(screen.getByRole("button", { name: "Submit" }))
+
+		expect(onReject).toHaveBeenCalledWith("Use pnpm instead")
+		expect(onApprove).not.toHaveBeenCalled()
+	})
+
+	it("supports arrow-key selection and Escape to skip", () => {
+		renderApproval()
+
+		fireEvent.keyDown(window, { key: "ArrowDown" })
+		fireEvent.keyDown(window, { key: "Enter" })
+		expect(mockExtensionState.setAllowedCommands).toHaveBeenCalled()
+		expect(onApprove).toHaveBeenCalledTimes(1)
 
 		fireEvent.keyDown(window, { key: "Escape" })
-
-		expect(mockOnSecondary).toHaveBeenCalledTimes(1)
-	})
-
-	it("removes keyboard listener when approval mode is exited", () => {
-		const { unmount } = render(
-			<ExtensionStateWrapper>
-				<CommandExecution
-					executionId="kb-test"
-					text={`MESSAGE:test\n---\nnpm test`}
-					onPrimaryButtonClick={mockOnPrimary}
-					onSecondaryButtonClick={mockOnSecondary}
-					enableButtons={true}
-				/>
-			</ExtensionStateWrapper>,
-		)
-
-		unmount()
-
-		fireEvent.keyDown(window, { key: "Enter" })
-
-		expect(mockOnPrimary).not.toHaveBeenCalled()
-		expect(mockOnSecondary).not.toHaveBeenCalled()
+		expect(onReject).toHaveBeenCalledWith()
 	})
 })
