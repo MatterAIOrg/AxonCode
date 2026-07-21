@@ -430,7 +430,7 @@ export async function presentAssistantMessage(cline: Task) {
 								}
 							})
 							await cline
-								.ask(type, partialMessage, false, progressStatus, isProtected || false)
+								.ask(type, partialMessage, false, progressStatus, isProtected || false, true)
 								.catch(() => {})
 						}
 						return true

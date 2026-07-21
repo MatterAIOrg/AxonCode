@@ -418,6 +418,16 @@
 	"versionIndicator": {
 		"ariaLabel": "Version {{version}} - Click to view release notes"
 	},
+	"orbitalUpdate": {
+		"available": "Orbital {{version}} is available",
+		"description": "Install the update and reload Orbital to apply it.",
+		"updateAndRestart": "Update & Restart",
+		"downloading": "Downloading update…",
+		"installing": "Installing update…",
+		"restarting": "Reloading Orbital…",
+		"failed": "Update failed",
+		"retry": "Retry"
+	},
 	"command": {
 		"triggerDescription": "Trigger the {{name}} command"
 	},

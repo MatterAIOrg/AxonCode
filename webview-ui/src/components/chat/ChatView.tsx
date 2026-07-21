@@ -61,6 +61,7 @@ import Announcement from "./Announcement"
 import BrowserSessionRow from "./BrowserSessionRow"
 import ChatRow from "./ChatRow"
 import { ChatTextArea } from "./ChatTextArea"
+import OrbitalUpdateBanner from "./OrbitalUpdateBanner"
 import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 import { formatMessageWithDocuments } from "../common/DocumentAttachments"
 import ExplorationGroupRow, {
@@ -105,6 +106,9 @@ export interface ChatViewRef {
 }
 
 export const MAX_IMAGES_PER_MESSAGE = 20 // This is the Anthropic limit.
+
+export const shouldEnableCommandApproval = (message: ClineMessage, isPartial: boolean): boolean =>
+	!isPartial && message.autoApproved !== true
 
 const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0
 
@@ -511,13 +515,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setSecondaryButtonText(t("chat:reject.title"))
 							break
 						case "command":
-							if (!isAutoApproved(lastMessage) && !isPartial) {
+							if (!lastMessage.autoApproved && !isAutoApproved(lastMessage) && !isPartial) {
 								playSound("notification")
 								showSystemNotification(t("kilocode:notifications.command")) // kilocode_change
 							}
 							setSendingDisabled(isPartial)
 							setClineAsk("command")
-							setEnableButtons(!isPartial)
+							// Auto-approved commands remain visible as compact execution rows, but must
+							// never enter the approval UI. The extension sets this flag before posting
+							// the message for both safe "Approve for me" commands and every command in
+							// "Full access" mode, so this also prevents a one-frame approval flash.
+							setEnableButtons(shouldEnableCommandApproval(lastMessage, isPartial))
 							setPrimaryButtonText(t("chat:runCommand.title"))
 							setSecondaryButtonText(t("chat:reject.title"))
 							break
@@ -1011,14 +1019,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		},
 		[clineAsk, startNewTask, isStreaming, setInputValue, setSelectedImages, selectedDocuments],
 	)
-
-	// kilocode_change: handle "Run Everything" click - auto-approve all commands for current task
-	const handleRunEverythingClick = useCallback(() => {
-		// Send message to backend to set autoApproveAllCommands flag
-		vscode.postMessage({ type: "autoApproveAllCommands" })
-		// Then approve the current command
-		handlePrimaryButtonClick()
-	}, [handlePrimaryButtonClick])
 
 	const handleTaskCloseButtonClick = useCallback(() => startNewTask(), [startNewTask]) // kilocode_change
 
@@ -2254,8 +2254,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						handleFollowUpUnmount={handleFollowUpUnmount}
 						currentFollowUpTs={currentFollowUpTs}
 						enableButtons={enableButtons}
-						primaryButtonText={primaryButtonText}
-						secondaryButtonText={secondaryButtonText}
 						handlePrimaryButtonClick={handlePrimaryButtonClick}
 						handleSecondaryButtonClick={handleSecondaryButtonClick}
 						isAgentManagerMode={isAgentManagerMode}
@@ -2317,10 +2315,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					editable={isEditable}
 					onPrimaryButtonClick={handlePrimaryButtonClick}
 					onSecondaryButtonClick={handleSecondaryButtonClick}
-					onRunEverythingClick={handleRunEverythingClick}
 					enableButtons={enableButtons && index === groupedMessages.length - 1}
-					primaryButtonText={primaryButtonText}
-					secondaryButtonText={secondaryButtonText}
 					isAgentManagerMode={isAgentManagerMode} // kilocode_change: pass agent manager mode
 				/>
 			)
@@ -2339,11 +2334,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handleFollowUpUnmount,
 			currentFollowUpTs,
 			enableButtons,
-			primaryButtonText,
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
-			secondaryButtonText,
-			handleRunEverythingClick,
 			isAgentManagerMode, // kilocode_change: add to dependencies
 		],
 	)
@@ -2577,6 +2569,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						</div>
 						{!isReviewOnlyMode && (
 							<>
+								<OrbitalUpdateBanner />
 								<ChatTextArea
 									ref={textAreaRef}
 									inputValue={inputValue}
@@ -3043,6 +3036,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					{!isReviewOnlyMode && (
 						<div
 							className={`${isAgentManagerMode ? `ml-12 ${isAgentFileViewerOpen ? "mr-12" : "mr-64"}` : "mx-0"}`}>
+							<OrbitalUpdateBanner />
 							<ChatTextArea
 								ref={textAreaRef}
 								inputValue={inputValue}

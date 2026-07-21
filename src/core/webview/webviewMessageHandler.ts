@@ -46,6 +46,7 @@ import { changeLanguage, t } from "../../i18n"
 import { Package } from "../../shared/package"
 import { type RouterName, type ModelRecord, toRouterName } from "../../shared/api"
 import { MessageEnhancer } from "./messageEnhancer"
+import { checkForOrbitalExtensionUpdate, installOrbitalExtensionUpdate } from "../../services/orbital/extensionUpdate"
 
 import {
 	type WebviewMessage,
@@ -1172,6 +1173,57 @@ export const webviewMessageHandler = async (
 
 			provider.isViewLaunched = true
 			break
+		case "checkForOrbitalUpdate": {
+			try {
+				const update = await checkForOrbitalExtensionUpdate()
+				await provider.postMessageToWebview({
+					type: "orbitalUpdateStatus",
+					values: update
+						? { status: "available", latestVersion: update.latestVersion }
+						: { status: "current" },
+				})
+			} catch (error) {
+				provider.log(
+					`[Orbital Update] Failed to check for updates: ${error instanceof Error ? error.message : String(error)}`,
+				)
+				await provider.postMessageToWebview({
+					type: "orbitalUpdateStatus",
+					values: { status: "hidden" },
+				})
+			}
+			break
+		}
+		case "installOrbitalUpdate": {
+			try {
+				const update = await checkForOrbitalExtensionUpdate()
+				if (!update) {
+					await provider.postMessageToWebview({
+						type: "orbitalUpdateStatus",
+						values: { status: "current" },
+					})
+					break
+				}
+
+				await provider.postMessageToWebview({
+					type: "orbitalUpdateStatus",
+					values: { status: "installing", latestVersion: update.latestVersion },
+				})
+				await installOrbitalExtensionUpdate()
+				await provider.postMessageToWebview({
+					type: "orbitalUpdateStatus",
+					values: { status: "restarting", latestVersion: update.latestVersion },
+				})
+				await vscode.commands.executeCommand("workbench.action.reloadWindow")
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : String(error)
+				provider.log(`[Orbital Update] Failed to install update: ${errorMessage}`)
+				await provider.postMessageToWebview({
+					type: "orbitalUpdateStatus",
+					values: { status: "error", error: errorMessage },
+				})
+			}
+			break
+		}
 		case "newTask":
 			// Initializing new instance of Cline will make sure that any
 			// agentically running promises in old instance don't affect our new

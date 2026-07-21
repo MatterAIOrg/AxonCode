@@ -211,6 +211,7 @@ export interface ExtensionMessage {
 		| "memories_response"
 		| "memory_deleted"
 		| "speechToTextResponse" // kilocode_change: audio transcription response
+		| "orbitalUpdateStatus"
 	text?: string
 	// forked_change start
 	payload?:
