@@ -61,6 +61,7 @@ import Announcement from "./Announcement"
 import BrowserSessionRow from "./BrowserSessionRow"
 import ChatRow from "./ChatRow"
 import { ChatTextArea } from "./ChatTextArea"
+import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 import { formatMessageWithDocuments } from "../common/DocumentAttachments"
 import ExplorationGroupRow, {
 	ExplorationGroup,
@@ -2600,6 +2601,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									sendMessageOnEnter={sendMessageOnEnter}
 									isStreaming={isStreaming}
 									onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
+									profilePlan={profileData?.plan ?? profileData?.tieredUsage?.plan}
 								/>
 								<BottomControls showApiConfig />
 							</>
@@ -2904,7 +2906,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								{/* kilocode_change: Sticky user message - positioned outside Virtuoso for true sticky behavior */}
 								<div
 									ref={stickyHeaderRef}
-									className="absolute -top-1 left-0 right-0 z-10 pl-3 pr-1 py-0.5 pointer-events-none">
+									className={`${CHAT_CONTENT_HORIZONTAL_PADDING} pointer-events-none absolute -top-1 left-0 right-0 z-10 py-0.5`}>
 									<div className="pointer-events-auto">
 										<StickyUserMessage
 											task={task}
@@ -3065,6 +3067,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								sendMessageOnEnter={sendMessageOnEnter} // kilocode_change
 								isStreaming={isStreaming}
 								onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
+								profilePlan={profileData?.plan ?? profileData?.tieredUsage?.plan}
 							/>
 						</div>
 					)}

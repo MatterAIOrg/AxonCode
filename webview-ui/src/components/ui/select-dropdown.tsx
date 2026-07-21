@@ -1,6 +1,6 @@
 import { CaretUpIcon } from "@radix-ui/react-icons"
 import { Fzf } from "fzf"
-import { Infinity as InfinityIC, ListTodo, LucideIcon, MessagesSquare, RefreshCw, X } from "lucide-react"
+import { Infinity as InfinityIC, ListTodo, LucideIcon, MessagesSquare, RefreshCw, Settings, X } from "lucide-react"
 import * as React from "react"
 
 import { Popover, PopoverContent, PopoverTrigger, StandardTooltip } from "@/components/ui"
@@ -17,6 +17,7 @@ const iconMap: Record<string, DropdownIcon> = {
 	"list-todo": ListTodo,
 	"infinity-ic": InfinityIC,
 	"messages-square": MessagesSquare,
+	settings: Settings,
 	// forked_change: command approval mode icons
 	hand: HandIcon,
 	"shield-user": ShieldUserIcon,
@@ -36,6 +37,7 @@ const getIconComponent = (iconName?: string): DropdownIcon | null => {
 
 export enum DropdownOptionType {
 	ITEM = "item",
+	GROUP = "group",
 	SEPARATOR = "separator",
 	SHORTCUT = "shortcut",
 	ACTION = "action",
@@ -66,6 +68,7 @@ export interface SelectDropdownProps {
 	placeholder?: string
 	shortcutText?: string
 	renderItem?: (option: DropdownOption) => React.ReactNode
+	renderValue?: (option: DropdownOption) => React.ReactNode
 	disableSearch?: boolean
 	triggerIcon?: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>> | boolean | undefined // kilocode_change
 	onRefresh?: () => void // kilocode_change: callback for refreshing model list
@@ -89,6 +92,7 @@ export const SelectDropdown = React.memo(
 				placeholder = "",
 				// shortcutText = "",
 				renderItem,
+				renderValue,
 				disableSearch = false,
 				triggerIcon = CaretUpIcon, // kilocode_change
 				onRefresh, // kilocode_change
@@ -140,7 +144,9 @@ export const SelectDropdown = React.memo(
 				return options
 					.filter(
 						(option) =>
-							option.type !== DropdownOptionType.SEPARATOR && option.type !== DropdownOptionType.SHORTCUT,
+							option.type !== DropdownOptionType.GROUP &&
+							option.type !== DropdownOptionType.SEPARATOR &&
+							option.type !== DropdownOptionType.SHORTCUT,
 					)
 					.map((option) => ({
 						original: option,
@@ -165,7 +171,11 @@ export const SelectDropdown = React.memo(
 
 				// Always include separators and shortcuts
 				return options.filter((option) => {
-					if (option.type === DropdownOptionType.SEPARATOR || option.type === DropdownOptionType.SHORTCUT) {
+					if (
+						option.type === DropdownOptionType.GROUP ||
+						option.type === DropdownOptionType.SEPARATOR ||
+						option.type === DropdownOptionType.SHORTCUT
+					) {
 						return true
 					}
 
@@ -179,7 +189,27 @@ export const SelectDropdown = React.memo(
 				const result: DropdownOption[] = []
 				let lastWasSeparator = false
 
-				filteredOptions.forEach((option) => {
+				filteredOptions.forEach((option, optionIndex) => {
+					if (option.type === DropdownOptionType.GROUP) {
+						const optionsAfterGroup = filteredOptions.slice(optionIndex + 1)
+						const nextGroupIndex = optionsAfterGroup.findIndex(
+							(nextOption) => nextOption.type === DropdownOptionType.GROUP,
+						)
+						const currentGroupOptions =
+							nextGroupIndex >= 0 ? optionsAfterGroup.slice(0, nextGroupIndex) : optionsAfterGroup
+						const hasVisibleGroupItem = currentGroupOptions.some(
+							(nextOption) =>
+								nextOption.type !== DropdownOptionType.SEPARATOR &&
+								nextOption.type !== DropdownOptionType.SHORTCUT,
+						)
+
+						if (hasVisibleGroupItem) {
+							result.push(option)
+						}
+						lastWasSeparator = false
+						return
+					}
+
 					if (option.type === DropdownOptionType.SEPARATOR) {
 						// Only add separator if we have items before and after it
 						if (result.length > 0 && !lastWasSeparator) {
@@ -257,7 +287,9 @@ export const SelectDropdown = React.memo(
 							)
 						})()}
 					{/* forked_change end */}
-					<span className="truncate">{displayText}</span>
+					<span className="truncate">
+						{selectedOption && renderValue ? renderValue(selectedOption) : displayText}
+					</span>
 				</PopoverTrigger>
 			)
 
@@ -275,7 +307,7 @@ export const SelectDropdown = React.memo(
 						<div className="flex flex-col w-min-content">
 							{/* Search input */}
 							{!disableSearch && (
-								<div className="relative p-2 border-b border-vscode-dropdown-border flex items-center gap-2">
+								<div className="sticky top-0 z-10 p-2 border-b border-vscode-dropdown-border bg-[var(--vscode-editor-background)] flex items-center gap-2">
 									<input
 										aria-label="Search"
 										ref={searchInputRef}
@@ -313,6 +345,17 @@ export const SelectDropdown = React.memo(
 									<div className="py-1">
 										{groupedOptions.map((option, index) => {
 											// Memoize rendering of each item type for better performance
+											if (option.type === DropdownOptionType.GROUP) {
+												return (
+													<div
+														key={`group-${option.value || index}`}
+														className="px-3 pt-2.5 pb-1 text-xs font-medium text-vscode-descriptionForeground opacity-70"
+														data-testid="dropdown-group">
+														{option.label}
+													</div>
+												)
+											}
+
 											if (option.type === DropdownOptionType.SEPARATOR) {
 												return (
 													<div

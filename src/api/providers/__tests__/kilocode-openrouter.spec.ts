@@ -21,6 +21,15 @@ vitest.mock("openai")
 vitest.mock("delay", () => ({ default: vitest.fn(() => Promise.resolve()) }))
 vitest.mock("../fetchers/modelCache", () => ({
 	getModels: vitest.fn().mockResolvedValue({
+		"axon-eido-3-code-pro-200k": {
+			maxTokens: 64000,
+			contextWindow: 200000,
+			supportsImages: true,
+			supportsPromptCache: false,
+			inputPrice: 3,
+			outputPrice: 9,
+			description: "Axon Eido 3 Pro",
+		},
 		"anthropic/claude-sonnet-4": {
 			maxTokens: 8192,
 			contextWindow: 200000,
@@ -211,6 +220,36 @@ describe("KilocodeOpenrouterHandler", () => {
 	})
 
 	describe("createMessage", () => {
+		it("sends the upstream model ID for a context-window variant", async () => {
+			const handler = new KilocodeOpenrouterHandler({
+				kilocodeToken: "test-token",
+				kilocodeModel: "axon-eido-3-code-pro-200k",
+			})
+
+			const mockStream = {
+				async *[Symbol.asyncIterator]() {
+					yield {
+						id: "test-id",
+						choices: [{ delta: { content: "test response" } }],
+					}
+				},
+			}
+			const mockCreate = vitest.fn().mockResolvedValue(mockStream)
+			;(OpenAI as any).prototype.chat = {
+				completions: { create: mockCreate },
+			} as any
+
+			const generator = handler.createMessage("test system prompt", [
+				{ role: "user" as const, content: "test message" },
+			])
+			await generator.next()
+
+			expect(mockCreate).toHaveBeenCalledWith(
+				expect.objectContaining({ model: "axon-eido-3-code-pro" }),
+				undefined,
+			)
+		})
+
 		it("passes custom headers to OpenAI client", async () => {
 			const handler = new KilocodeOpenrouterHandler({
 				...mockOptions,

@@ -349,9 +349,20 @@ export class WebAuthService extends EventEmitter<AuthServiceEvents> implements A
 		const oldCredentials = this.credentials
 
 		try {
-			// Clear credentials from storage - onDidChange will handle state transitions
+			// Clear persisted credentials first, then update in-memory state explicitly.
+			// SecretStorage.onDidChange is useful for changes from other extension
+			// instances, but is not a reliable completion signal for this logout.
 			await this.clearCredentials()
 			await this.context.globalState.update(AUTH_STATE_KEY, undefined)
+
+			if (
+				this.state !== "logged-out" ||
+				this.credentials !== null ||
+				this.sessionToken !== null ||
+				this.userInfo !== null
+			) {
+				this.transitionToLoggedOut()
+			}
 
 			if (oldCredentials) {
 				try {
@@ -364,10 +375,10 @@ export class WebAuthService extends EventEmitter<AuthServiceEvents> implements A
 			const vscode = await importVscode()
 
 			if (vscode) {
-				vscode.window.showInformationMessage("Logged out from Roo Code Cloud")
+				vscode.window.showInformationMessage("Logged Out from Orbital")
 			}
 
-			this.log("[auth] Logged out from Roo Code Cloud")
+			this.log("[auth] Logged Out from Orbital")
 		} catch (error) {
 			this.log(`[auth] Error logging out from Roo Code Cloud: ${error}`)
 			throw new Error(`Failed to log out from Roo Code Cloud: ${error}`)

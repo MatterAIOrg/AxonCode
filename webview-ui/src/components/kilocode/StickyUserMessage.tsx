@@ -69,7 +69,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 	return (
 		<div
 			className={cn(
-				"px-2 py-2 flex flex-col gap-1 relative ml-0.9",
+				"relative flex flex-col gap-1 px-2 py-2",
 				"rounded-lg",
 				"border border-[var(--vscode-commandCenter-inactiveBorder)]",
 				"transition-all duration-150",

@@ -69,6 +69,10 @@ describe("/model command", () => {
 			kilocodeDefaultModel: "",
 			updateProviderModel: updateProviderModelMock,
 			refreshRouterModels: vi.fn().mockResolvedValue(undefined),
+			profileData: null,
+			profileLoading: false,
+			balanceData: null,
+			balanceLoading: false,
 		}
 	})
 
@@ -277,6 +281,31 @@ describe("/model command", () => {
 			const message = addMessageMock.mock.calls[0][0]
 			expect(message.type).toBe("error")
 			expect(message.content).toContain("No provider configured")
+		})
+
+		it("should restrict 400k Axon models to Pro Plus and Ultra", async () => {
+			mockContext.currentProvider = {
+				id: "test-provider",
+				provider: "kilocode",
+				kilocodeModel: "axon-eido-3-code-mini-200k",
+			}
+			mockContext.routerModels!["kilocode-openrouter"] = {
+				"axon-eido-3-code-mini-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-mini-400k": { contextWindow: 400000 },
+			}
+			mockContext.args = ["select", "axon-eido-3-code-mini-400k"]
+			mockContext.profileData = { plan: "Pro" }
+
+			await modelCommand.handler(mockContext)
+
+			expect(updateProviderModelMock).not.toHaveBeenCalled()
+			expect(addMessageMock.mock.calls[0][0].content).toContain("Pro Plus and Ultra")
+
+			addMessageMock.mockClear()
+			mockContext.profileData = { plan: "Ultra" }
+			await modelCommand.handler(mockContext)
+
+			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3-code-mini-400k")
 		})
 	})
 

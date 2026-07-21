@@ -37,6 +37,74 @@ type KiloCodeModel = {
 	}
 }
 
+type KiloCodeModelVariant = Omit<KiloCodeModel, "id" | "name" | "context_length">
+
+const AXON_EIDO_3_CODE_PRO: KiloCodeModelVariant = {
+	description:
+		"Axon Eido 3 Pro is the frontier Axon Code model for coding tasks, long running agents and general intelligence, fine-tuned on open source models.",
+	input_modalities: ["text", "image"],
+	max_output_length: 64000,
+	output_modalities: ["text"],
+	supported_sampling_parameters: [
+		"temperature",
+		"top_p",
+		"top_k",
+		"repetition_penalty",
+		"frequency_penalty",
+		"presence_penalty",
+		"seed",
+		"stop",
+	],
+	supported_features: ["tools", "structured_outputs", "web_search"],
+	openrouter: {
+		slug: "matterai/axon",
+	},
+	datacenters: [{ country_code: "US" }],
+	created: 1750426201,
+	owned_by: "matterai",
+	pricing: {
+		prompt: "0.000003",
+		completion: "0.000009",
+		image: "0",
+		request: "0",
+		input_cache_reads: "0",
+		input_cache_writes: "0",
+	},
+}
+
+const AXON_EIDO_3_CODE_MINI: KiloCodeModelVariant = {
+	description:
+		"Axon Eido 3 Mini is a general purpose super intelligent LLM coding model for high-effort day-to-day tasks",
+	input_modalities: ["text", "image"],
+	max_output_length: 64000,
+	output_modalities: ["text"],
+	supported_sampling_parameters: [
+		"temperature",
+		"top_p",
+		"top_k",
+		"repetition_penalty",
+		"frequency_penalty",
+		"presence_penalty",
+		"seed",
+		"stop",
+	],
+	supported_features: ["tools", "structured_outputs", "web_search"],
+	openrouter: {
+		slug: "matterai/axon",
+	},
+	datacenters: [{ country_code: "US" }],
+	created: 1750426201,
+	owned_by: "matterai",
+	pricing: {
+		prompt: "0.0000015",
+		completion: "0.0000045",
+		image: "0",
+		request: "0",
+		input_cache_reads: "0",
+		input_cache_writes: "0",
+	},
+}
+
 const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 	"axon-eido-3-flash": {
 		id: "axon-eido-3-flash",
@@ -72,75 +140,29 @@ const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 			input_cache_writes: "0",
 		},
 	},
-	"axon-eido-3-code-pro": {
+	"axon-eido-3-code-pro-200k": {
+		...AXON_EIDO_3_CODE_PRO,
 		id: "axon-eido-3-code-pro",
-		name: "Axon Eido 3 Pro",
-		description:
-			"Axon Eido 3 Pro is the frontier Axon Code model for coding tasks, long running agents and general intelligence, fine-tuned on open source models.",
-		input_modalities: ["text", "image"],
-		context_length: 400000,
-		max_output_length: 64000,
-		output_modalities: ["text"],
-		supported_sampling_parameters: [
-			"temperature",
-			"top_p",
-			"top_k",
-			"repetition_penalty",
-			"frequency_penalty",
-			"presence_penalty",
-			"seed",
-			"stop",
-		],
-		supported_features: ["tools", "structured_outputs", "web_search"],
-		openrouter: {
-			slug: "matterai/axon",
-		},
-		datacenters: [{ country_code: "US" }],
-		created: 1750426201,
-		owned_by: "matterai",
-		pricing: {
-			prompt: "0.000003",
-			completion: "0.000009",
-			image: "0",
-			request: "0",
-			input_cache_reads: "0",
-			input_cache_writes: "0",
-		},
+		name: "Axon Eido 3 Pro (200K context)",
+		context_length: 200000,
 	},
-	"axon-eido-3-code-mini": {
-		id: "axon-eido-3-code-mini",
-		name: "Axon Eido 3 Mini",
-		description:
-			"Axon Eido 3 Mini is a general purpose super intelligent LLM coding model for high-effort day-to-day tasks",
-		input_modalities: ["text", "image"],
+	"axon-eido-3-code-pro-400k": {
+		...AXON_EIDO_3_CODE_PRO,
+		id: "axon-eido-3-code-pro",
+		name: "Axon Eido 3 Pro (400K context)",
 		context_length: 400000,
-		max_output_length: 64000,
-		output_modalities: ["text"],
-		supported_sampling_parameters: [
-			"temperature",
-			"top_p",
-			"top_k",
-			"repetition_penalty",
-			"frequency_penalty",
-			"presence_penalty",
-			"seed",
-			"stop",
-		],
-		supported_features: ["tools", "structured_outputs", "web_search"],
-		openrouter: {
-			slug: "matterai/axon",
-		},
-		datacenters: [{ country_code: "US" }],
-		created: 1750426201,
-		owned_by: "matterai",
-		pricing: {
-			prompt: "0.0000015",
-			completion: "0.0000045",
-			image: "0",
-			request: "0",
-			input_cache_reads: "0",
-			input_cache_writes: "0",
-		},
+	},
+	"axon-eido-3-code-mini-200k": {
+		...AXON_EIDO_3_CODE_MINI,
+		id: "axon-eido-3-code-mini",
+		name: "Axon Eido 3 Mini (200K context)",
+		context_length: 200000,
+	},
+	"axon-eido-3-code-mini-400k": {
+		...AXON_EIDO_3_CODE_MINI,
+		id: "axon-eido-3-code-mini",
+		name: "Axon Eido 3 Mini (400K context)",
+		context_length: 400000,
 	},
 }
 

@@ -105,7 +105,7 @@ const StyledMarkdown = styled.div`
 	li,
 	ol,
 	ul {
-		line-height: 1.35em;
+		line-height: 1.7em;
 	}
 
 	li {

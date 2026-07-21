@@ -8,6 +8,7 @@ import { Button } from "@src/components/ui"
 import Thumbnails from "../common/Thumbnails"
 
 import { Mention } from "./Mention"
+import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 import { UploadCircle01Icon } from "@/utils/customIcons"
 
 interface QueuedMessagesProps {
@@ -42,7 +43,7 @@ export const QueuedMessages = ({ queue, onRemove, onUpdate, onForceSend }: Queue
 	}
 
 	return (
-		<div className="px-[15px] py-[10px] pr-[6px]" data-testid="queued-messages">
+		<div className={`${CHAT_CONTENT_HORIZONTAL_PADDING} py-[10px]`} data-testid="queued-messages">
 			<div className="text-vscode-descriptionForeground text-md mb-2">{t("queuedMessages.title")}</div>
 			<div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 rounded-md">
 				{queue.map((message, index) => {

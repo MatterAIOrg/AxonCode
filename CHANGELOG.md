@@ -1,5 +1,32 @@
 # Changelog
 
+## [v6.6.0] - 2026-07-21
+
+### Added
+
+- **Axon Eido 3 context-window variants.** `axon-eido-3-code-pro` and `axon-eido-3-code-mini` are now exposed as separate 200K and 400K context options (`-200k` / `-400k` suffixes). Both variants share the same upstream model; the extension resolves the selected variant to its API model ID via `getKilocodeApiModelId`. The default model is now `axon-eido-3-code-mini-200k`.
+- **400K context gated to Pro Plus and Ultra.** The 400K variants are only available on Pro Plus and Ultra plans. The model selector disables them with an upgrade tooltip for lower tiers, the KiloCode settings panel filters them out and auto-falls back to the matching 200K variant, and the CLI `/model` command rejects selection with a clear error message.
+- **`SelectDropdown` group headings.** New `DropdownOptionType.GROUP` renders non-selectable section headings (e.g. "Context: 200k") inside the dropdown, with automatic hiding when the group has no visible items.
+- **`SelectDropdown` custom value rendering.** New `renderValue` prop lets callers customize how the selected option is displayed in the trigger (used by the model selector to dim the context qualifier).
+- **Sticky search bar in `SelectDropdown`.** The search input stays pinned at the top of the dropdown while options scroll.
+- **New icons in `utils/customIcons.tsx`.** `BulbIcon`, `PlusIcon`, and `ArrowUp02Icon` added to support the refreshed model selector and chat composer.
+
+### Changed
+
+- **Model selector refresh.** Axon models are now grouped by context window with a `BulbIcon` indicator, the selected option is highlighted, and the trigger uses a compact rounded style matching the command-approval selector. Tooltips fall back to the model's description when no curated tooltip is defined.
+- **Chat composer refresh.** The attachment button moved to the left of the model selector with a `PlusIcon`, the send button uses an `ArrowUp02Icon`, and the textarea padding was unified across edit and compose modes.
+- **Follow-up question card.** Restyled with a rounded-xl border, subtle shadow, and improved typography (15px / leading-6). The suggestion list now uses bordered cards with a focusable copy-to-input button.
+- **Shared chat horizontal padding.** New `CHAT_CONTENT_HORIZONTAL_PADDING` constant (`px-3.5`) in `webview-ui/src/components/chat/chatLayout.ts` is used by `ChatRow`, `ChatTextArea`, `ChatView`, `ExplorationGroupRow`, `BrowserSessionRow`, `QueuedMessages`, and the sticky user message so the chat column stays aligned.
+- **Markdown list spacing.** `MarkdownBlock` list/ordered/unordered line-height bumped from `1.35em` to `1.7em` for better readability.
+- **Task header title opacity.** `KiloTaskHeader` task title opacity raised from 70% to 100%.
+- **Logout copy.** Logout notification changed from "Logged out from Roo Code Cloud" to "Logged Out from Orbital".
+
+### Fixed
+
+- **`WebAuthService.logout` state transition.** Logout now explicitly calls `transitionToLoggedOut()` after clearing persisted credentials, so the in-memory state, session token, and user info are cleared even when `SecretStorage.onDidChange` does not fire. The auth-state-changed event is emitted with the previous state.
+
+---
+
 ## [v6.4.9] - 2026-07-21
 
 ### Fixed

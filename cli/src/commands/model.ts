@@ -3,6 +3,7 @@
  */
 
 import type { Command, ArgumentProviderContext } from "./core/types.js"
+import { canUse400kContext, is400kAxonModel } from "@roo-code/types"
 import {
 	getModelsByProvider,
 	getCurrentModelId,
@@ -249,7 +250,8 @@ async function showModelInfo(context: any, modelId: string): Promise<void> {
  * Select a different model
  */
 async function selectModel(context: any, modelId: string): Promise<void> {
-	const { currentProvider, routerModels, kilocodeDefaultModel, updateProviderModel, addMessage } = context
+	const { currentProvider, routerModels, kilocodeDefaultModel, updateProviderModel, addMessage, profileData } =
+		context
 
 	if (!currentProvider) {
 		addMessage({
@@ -279,6 +281,17 @@ async function selectModel(context: any, modelId: string): Promise<void> {
 			id: Date.now().toString(),
 			type: "error",
 			content: `Model "${modelId}" not found for provider ${currentProvider.provider}.`,
+			ts: Date.now(),
+		})
+		return
+	}
+
+	const plan = profileData?.plan ?? profileData?.tieredUsage?.plan
+	if (currentProvider.provider === "kilocode" && is400kAxonModel(modelId) && !canUse400kContext(plan)) {
+		addMessage({
+			id: Date.now().toString(),
+			type: "error",
+			content: "400k context is only available on Pro Plus and Ultra plans.",
 			ts: Date.now(),
 		})
 		return
@@ -317,7 +330,7 @@ async function selectModel(context: any, modelId: string): Promise<void> {
  * List all available models
  */
 async function listModels(context: any, filter?: string): Promise<void> {
-	const { currentProvider, routerModels, kilocodeDefaultModel, addMessage } = context
+	const { currentProvider, routerModels, kilocodeDefaultModel, addMessage, profileData } = context
 
 	if (!currentProvider) {
 		addMessage({
@@ -348,6 +361,10 @@ async function listModels(context: any, filter?: string): Promise<void> {
 	})
 
 	let modelIds = filter ? fuzzyFilterModels(models, filter) : Object.keys(models)
+	const plan = profileData?.plan ?? profileData?.tieredUsage?.plan
+	if (currentProvider.provider === "kilocode" && !canUse400kContext(plan)) {
+		modelIds = modelIds.filter((modelId) => !is400kAxonModel(modelId))
+	}
 	modelIds = sortModelsByPreference(
 		modelIds.reduce(
 			(acc, id) => {
@@ -423,7 +440,7 @@ async function modelAutocompleteProvider(context: ArgumentProviderContext) {
 		return []
 	}
 
-	const { currentProvider, routerModels, kilocodeDefaultModel } = context.commandContext
+	const { currentProvider, routerModels, kilocodeDefaultModel, profileData } = context.commandContext
 
 	if (!currentProvider) {
 		return []
@@ -435,7 +452,10 @@ async function modelAutocompleteProvider(context: ArgumentProviderContext) {
 		kilocodeDefaultModel: kilocodeDefaultModel || "",
 	})
 
-	const sortedModelIds = sortModelsByPreference(models)
+	const plan = profileData?.plan ?? profileData?.tieredUsage?.plan
+	const sortedModelIds = sortModelsByPreference(models).filter(
+		(modelId) => currentProvider.provider !== "kilocode" || canUse400kContext(plan) || !is400kAxonModel(modelId),
+	)
 
 	return sortedModelIds
 		.map((modelId) => {
