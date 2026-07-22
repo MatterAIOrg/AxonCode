@@ -2977,7 +2977,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							{/* Pinned todo list - single static position, updates in place (not a chat row) */}
 							{latestTodos.length > 0 && (
 								<div
-									className={`px-2 mb-1 mx-2 ${isAgentManagerMode ? `ml-14 ${isAgentFileViewerOpen ? "mr-14" : "mr-64"}` : "mx-0"}`}>
+									className={`px-2 mb-1 mx-3.5 ${isAgentManagerMode ? `ml-14 ${isAgentFileViewerOpen ? "mr-14" : "mr-64"}` : "mx-0"}`}>
 									<PinnedTodoList todos={latestTodos} />
 								</div>
 							)}

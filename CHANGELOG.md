@@ -1,5 +1,27 @@
 # Changelog
 
+## [v6.6.7] - 2026-07-22
+
+### Added
+
+- **FFF-backed `search_files` with ripgrep fallback.** `search_files` now runs through the native `@ff-labs/fff-node` file finder first, falling back to a streaming ripgrep implementation when FFF is unavailable or fails. Results are compact (at most three matches per file), paginated, and capped at a configurable page size so the model reads only the relevant regions instead of a context-flooding dump.
+    - New `src/services/search-files` module (`index.ts`, `format.ts`, `types.ts`) is the single entry point: it tries FFF, falls back to ripgrep, and formats a compact `Engine / Matches / Next cursor` page.
+    - New `src/services/fff/index.ts` wraps the ESM-only FFF SDK, keeps it out of the CommonJS bundle via a dynamic `import()`, caches up to three `FileFinder` instances per base path, encodes the user regex for FFF's query parser, and continues through FFF pages until `.orbitalignore`-filtered matches fill the requested page.
+    - New `searchFilesWithRipgrep` in `src/services/ripgrep/index.ts` streams JSON ripgrep output, applies `.orbitalignore` before consuming the page budget, enforces the per-file match cap, and returns a ripgrep-engine cursor for continuation.
+    - New `cursor`, `max_results` (1-100, default 50), and `context_lines` (0-2, default 0) parameters on both the XML and native JSON `search_files` tool schemas; cursors are engine-scoped (`fff:<offset>` / `ripgrep:<offset>`) and validated by `parseSearchCursor` / `normalizeNullableSearchString`.
+    - `searchFilesTool` now parses the new params and delegates to `searchFiles`; `toolParamNames` and `SearchFilesToolUse` extended accordingly.
+    - `esbuild.mjs` copies the FFF runtime packages (and their platform-specific native libraries) under `dist/fff/node_modules` so the packaged extension can resolve the native SDK; root `package.json` declares `pnpm.supportedArchitectures` so all platform FFF binaries install.
+    - `extension.ts` disposes FFF finders and closes the native library on deactivate.
+    - Tests for the FFF wrapper, ripgrep fallback, search-files orchestration, and cursor/format helpers.
+
+### Changed
+
+- **`search_files` system prompt rewritten.** The tool description and capabilities section now describe compact, paginated matches and direct the model to read the relevant file region rather than relying on large context windows. The verbose `file_pattern` quoting examples were removed in favor of a concise parameter list.
+- **`ChatRow` shows the `file_pattern` for `search_files` rows.** Parallel searches are now distinguishable in the chat history by their glob, rendered as a `<code>` chip next to the regex.
+- **Pinned todo list horizontal padding.** `ChatView` pinned-todo container padding aligned with the shared `mx-3.5` chat column padding.
+
+---
+
 ## [v6.6.3] - 2026-07-21
 
 ### Changed
