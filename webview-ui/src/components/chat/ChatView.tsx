@@ -289,6 +289,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [currentFollowUpTs, setCurrentFollowUpTs] = useState<number | null>(null)
 	// forked_change start: Sticky user message state
 	const [stickyMessageIndex, setStickyMessageIndex] = useState<number | null>(null)
+	const stickyMessageIndexRef = useRef<number | null>(null)
 	const stickyHeaderRef = useRef<HTMLDivElement | null>(null)
 	const virtuosoScrollerRef = useRef<HTMLElement | null>(null)
 	const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0)
@@ -2052,6 +2053,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 		const handleScroll = () => {
 			if (userFeedbackIndices.length === 0) {
+				stickyMessageIndexRef.current = null
 				setStickyMessageIndex(null)
 				return
 			}
@@ -2060,6 +2062,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			const scrollerRect = scroller.getBoundingClientRect()
 			const threshold = scrollerRect.top + stickyHeight
 
+			// Hysteresis margin: require a candidate to be past the threshold by this
+			// amount before switching to it, and require the current sticky to be past
+			// by this amount before dropping it. Prevents flicker between two adjacent
+			// user_feedback messages when a new one streams in near the threshold.
+			const HYSTERESIS_PX = 8
+
 			// Find the first rendered item to determine our position relative to the virtual list
 			const firstRenderedEl = scroller.querySelector("[data-item-index]")
 			const firstRenderedIndex = firstRenderedEl
@@ -2067,6 +2075,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				: 0
 
 			let bestIndex: number | null = null
+			const currentIndex = stickyMessageIndexRef.current
 
 			for (const idx of userFeedbackIndices) {
 				const el = scroller.querySelector(`[data-item-index="${idx}"]`) as HTMLElement | null
@@ -2083,7 +2092,20 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}
 
 				const elTop = el.getBoundingClientRect().top
-				if (elTop <= threshold) {
+				// If this is the currently-sticky message, keep it sticky until it has
+				// scrolled far enough past the threshold to be clearly out of view.
+				if (idx === currentIndex) {
+					if (elTop <= threshold + HYSTERESIS_PX) {
+						bestIndex = idx
+					} else {
+						// Current sticky has scrolled well past; let a later candidate win.
+					}
+					continue
+				}
+
+				// For a new candidate, require it to be clearly above the threshold
+				// (by the hysteresis margin) before adopting it, to avoid flicker.
+				if (elTop <= threshold - HYSTERESIS_PX) {
 					bestIndex = idx
 				} else {
 					// Below the threshold, everything after will be too
@@ -2091,7 +2113,19 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}
 			}
 
-			setStickyMessageIndex(bestIndex)
+			// Prefer keeping the current sticky index when no candidate clearly won,
+			// to avoid dropping to null (task prompt) during transient reflows.
+			if (bestIndex === null && currentIndex !== null && userFeedbackIndices.includes(currentIndex)) {
+				const el = scroller.querySelector(`[data-item-index="${currentIndex}"]`) as HTMLElement | null
+				if (!el || el.getBoundingClientRect().top <= threshold + HYSTERESIS_PX) {
+					bestIndex = currentIndex
+				}
+			}
+
+			if (bestIndex !== currentIndex) {
+				stickyMessageIndexRef.current = bestIndex
+				setStickyMessageIndex(bestIndex)
+			}
 		}
 
 		scroller.addEventListener("scroll", handleScroll, { passive: true })

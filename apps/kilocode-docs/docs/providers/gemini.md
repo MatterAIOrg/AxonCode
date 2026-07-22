@@ -2,9 +2,9 @@
 sidebar_label: Google Gemini
 ---
 
-# Using Google Gemini With Axon Code
+# Using Google Gemini With Orbital
 
-Axon Code supports Google's Gemini family of models through the Google AI Gemini API.
+Orbital supports Google's Gemini family of models through the Google AI Gemini API.
 
 **Website:** [https://ai.google.dev/](https://ai.google.dev/)
 
@@ -17,7 +17,7 @@ Axon Code supports Google's Gemini family of models through the Google AI Gemini
 
 ## Supported Models
 
-Axon Code supports the following Gemini models:
+Orbital supports the following Gemini models:
 
 ### Chat Models
 
@@ -41,9 +41,9 @@ Axon Code supports the following Gemini models:
 
 Refer to the [Gemini documentation](https://ai.google.dev/models/gemini) for more details on each model.
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
-1.  **Open Axon Code Settings:** Click the gear icon (<Codicon name="gear" />) in the Axon Code panel.
+1.  **Open Orbital Settings:** Click the gear icon (<Codicon name="gear" />) in the Orbital panel.
 2.  **Select Provider:** Choose "Google Gemini" from the "API Provider" dropdown.
 3.  **Enter API Key:** Paste your Gemini API key into the "Gemini API Key" field.
 4.  **Select Model:** Choose your desired Gemini model from the "Model" dropdown.

@@ -2,7 +2,7 @@
 sidebar_label: Anthropic
 ---
 
-# 在 Axon Code 中使用 Anthropic
+# 在 Orbital 中使用 Anthropic
 
 Anthropic 是一家专注于 AI 安全和研究的公司，致力于构建可靠、可解释且可控的 AI 系统。他们的 Claude 模型以强大的推理能力、实用性和诚实性著称。
 
@@ -17,7 +17,7 @@ Anthropic 是一家专注于 AI 安全和研究的公司，致力于构建可靠
 
 ## 支持的模型
 
-Axon Code 支持以下 Anthropic Claude 模型：
+Orbital 支持以下 Anthropic Claude 模型：
 
 - `claude-3-7-sonnet-20250219` (推荐)
 - `claude-3-7-sonnet-20250219:thinking` (扩展思考版)
@@ -28,9 +28,9 @@ Axon Code 支持以下 Anthropic Claude 模型：
 
 查看 [Anthropic 模型文档](https://docs.anthropic.com/en/docs/about-claude/models) 获取各模型能力的详细信息
 
-## 在 Axon Code 中配置
+## 在 Orbital 中配置
 
-1. **打开 Axon Code 设置:** 点击 Axon Code 面板中的齿轮图标 (<Codicon name="gear" />)
+1. **打开 Orbital 设置:** 点击 Orbital 面板中的齿轮图标 (<Codicon name="gear" />)
 2. **选择提供商:** 在 "API Provider" 下拉菜单中选择 "Anthropic"
 3. **输入 API 密钥:** 将 Anthropic API 密钥粘贴到 "Anthropic API Key" 字段
 4. **选择模型:** 从 "Model" 下拉列表中选择所需的 Claude 模型

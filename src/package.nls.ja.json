@@ -1,5 +1,5 @@
 {
-	"extension.displayName": "Axon Code AIエージェント",
+	"extension.displayName": "Orbital AIエージェント",
 	"extension.description": "AI コーディング エージェントでコードの計画、構築、修正、AI コードレビュー、MatterAI 提供",
 	"views.contextMenu.label": "Orbital",
 	"views.terminalMenu.label": "Orbital",

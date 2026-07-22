@@ -1,5 +1,5 @@
 {
-	"greeting": "ماذا يمكن لـ Axon Code أن يفعل لك؟",
+	"greeting": "ماذا يمكن لـ Orbital أن يفعل لك؟",
 	"task": {
 		"title": "مهمة",
 		"expand": "توسيع المهمة",
@@ -21,7 +21,7 @@
 		"sharePublicly": "مشاركة عامة",
 		"sharePubliclyDescription": "يمكن لأي شخص لديه الرابط الوصول",
 		"connectToCloud": "الاتصال بالسحابة",
-		"connectToCloudDescription": "تسجيل الدخول إلى Axon Code Cloud لمشاركة المهام",
+		"connectToCloudDescription": "تسجيل الدخول إلى Orbital Cloud لمشاركة المهام",
 		"sharingDisabledByOrganization": "المشاركة معطلة من قبل المؤسسة",
 		"shareSuccessOrganization": "تم نسخ رابط المؤسسة إلى الحافظة",
 		"shareSuccessPublic": "تم نسخ الرابط العام إلى الحافظة",
@@ -130,7 +130,7 @@
 		"title": "الأوضاع",
 		"marketplace": "سوق الأوضاع",
 		"settings": "إعدادات الأوضاع",
-		"description": "شخصيات متخصصة تخصص سلوك Axon Code.",
+		"description": "شخصيات متخصصة تخصص سلوك Orbital.",
 		"searchPlaceholder": "البحث عن الأوضاع...",
 		"noResults": "لم يتم العثور على نتائج",
 		"organizationModes": "أوضاع المؤسسة"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "فشل التحرير"
 	},
-	"troubleMessage": "يواجه Axon Code مشكلة...",
+	"troubleMessage": "يواجه Orbital مشكلة...",
 	"powershell": {
 		"issues": "يبدو أنك تواجه مشكلات في Windows PowerShell، يرجى الاطلاع على هذا"
 	},
@@ -356,18 +356,18 @@
 	"profileViolationWarning": "الملف الشخصي الحالي غير متوافق مع إعدادات مؤسستك",
 	"shellIntegration": {
 		"title": "تحذير تنفيذ الأمر",
-		"description": "يتم تنفيذ أمرك بدون تكامل صدفة محطة VSCode. لإخفاء هذا التحذير، يمكنك تعطيل تكامل الصدفة في قسم <strong>المحطة الطرفية</strong> من <settingsLink>إعدادات Axon Code</settingsLink> أو استكشاف مشكلات تكامل محطة VSCode باستخدام الرابط أدناه.",
+		"description": "يتم تنفيذ أمرك بدون تكامل صدفة محطة VSCode. لإخفاء هذا التحذير، يمكنك تعطيل تكامل الصدفة في قسم <strong>المحطة الطرفية</strong> من <settingsLink>إعدادات Orbital</settingsLink> أو استكشاف مشكلات تكامل محطة VSCode باستخدام الرابط أدناه.",
 		"troubleshooting": "انقر هنا للحصول على وثائق تكامل الصدفة."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "تم الوصول إلى حد الطلبات المعتمدة تلقائيًا",
-			"description": "وصل Axon Code إلى الحد المعتمد تلقائيًا وهو {{count}} طلب API. هل ترغب في إعادة تعيين العدد والمتابعة بالمهمة؟",
+			"description": "وصل Orbital إلى الحد المعتمد تلقائيًا وهو {{count}} طلب API. هل ترغب في إعادة تعيين العدد والمتابعة بالمهمة؟",
 			"button": "إعادة التعيين والمتابعة"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "تم الوصول إلى حد التكلفة المعتمدة تلقائيًا",
-			"description": "وصل Axon Code إلى حد التكلفة المعتمدة تلقائيًا وهو ${{count}}. هل ترغب في إعادة تعيين التكلفة والمتابعة بالمهمة؟",
+			"description": "وصل Orbital إلى حد التكلفة المعتمدة تلقائيًا وهو ${{count}}. هل ترغب في إعادة تعيين التكلفة والمتابعة بالمهمة؟",
 			"button": "إعادة التعيين والمتابعة"
 		}
 	},
@@ -406,7 +406,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "تشغيل أمر شرطة مائلة",
-		"didRun": "قام Axon Code بتشغيل أمر شرطة مائلة"
+		"didRun": "قام Orbital بتشغيل أمر شرطة مائلة"
 	},
 	"queuedMessages": {
 		"title": "الرسائل في قائمة الانتظار",

@@ -209,7 +209,7 @@ export async function fileWriteTool(
 
 			await cline.say(
 				"error",
-				`Axon Code tried to use file_write${
+				`Orbital tried to use file_write${
 					filePath ? ` for '${filePath}'` : ""
 				} but the required parameter 'line_count' was missing or truncated after ${actualLineCount} lines of content were written. Retrying...`,
 			)

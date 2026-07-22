@@ -45,8 +45,8 @@
 			"codeReview": "AIコードレビュー"
 		},
 		"provider": {
-			"account": "Axon Code アカウント",
-			"apiKey": "Axon Code APIキー",
+			"account": "Orbital アカウント",
+			"apiKey": "Orbital APIキー",
 			"login": "Kilo Codeにログイン",
 			"logout": "Kilo Codeからログアウト",
 			"providerRouting": {

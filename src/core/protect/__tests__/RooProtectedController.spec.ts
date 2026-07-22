@@ -129,7 +129,7 @@ describe("RooProtectedController", () => {
 	describe("getProtectionMessage", () => {
 		it("should return appropriate protection message", () => {
 			const message = controller.getProtectionMessage()
-			expect(message).toBe("This is a Axon Code configuration file and requires approval for modifications")
+			expect(message).toBe("This is a Orbital configuration file and requires approval for modifications")
 		})
 	})
 

@@ -292,7 +292,7 @@ describe("URL functions", () => {
 			// Use a token that looks like JWT but has invalid JSON payload
 			const result = getKiloUrlFromToken("https://api.matterai.so/test", "header.invalid-json.signature")
 			expect(result).toBe("https://api.matterai.so/test")
-			expect(consoleSpy).toHaveBeenCalledWith("Failed to get base URL from Axon Code token")
+			expect(consoleSpy).toHaveBeenCalledWith("Failed to get base URL from Orbital token")
 			consoleSpy.mockRestore()
 		})
 	})

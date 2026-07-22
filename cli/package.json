@@ -1,7 +1,7 @@
 {
 	"name": "@matterai/axoncode",
 	"version": "1.0.0",
-	"description": "Terminal User Interface for Axon Code",
+	"description": "Terminal User Interface for Orbital",
 	"type": "module",
 	"main": "dist/index.js",
 	"bin": {

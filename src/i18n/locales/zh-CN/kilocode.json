@@ -63,7 +63,7 @@
 		"activationFailed": "Kilo：消息生成器激活失败：{{error}}",
 		"errors": {
 			"noProject": "没有可用项目",
-			"connectionFailed": "连接到 Axon Code 扩展失败",
+			"connectionFailed": "连接到 Orbital 扩展失败",
 			"missingMessage": "未从扩展接收到提交信息",
 			"invalidResponse": "从扩展程序收到的响应格式无效",
 			"timeout": "请求在 30 秒后超时",
@@ -89,7 +89,7 @@
 			"title": "生成提交信息",
 			"analyzing": "分析更改中...",
 			"generating": "生成提交消息中...",
-			"connecting": "连接到 Axon Code..."
+			"connecting": "连接到 Orbital..."
 		},
 		"ui": {
 			"generateButton": "生成提交信息",

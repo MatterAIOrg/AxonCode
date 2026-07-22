@@ -1,6 +1,6 @@
 # list_code_definition_names
 
-The `list_code_definition_names` tool provides a structural overview of your codebase by listing code definitions from source files at the top level of a specified directory. It helps Axon Code understand code architecture by displaying line numbers and definition snippets.
+The `list_code_definition_names` tool provides a structural overview of your codebase by listing code definitions from source files at the top level of a specified directory. It helps Orbital understand code architecture by displaying line numbers and definition snippets.
 
 ## Parameters
 
@@ -14,8 +14,8 @@ This tool scans source code files at the top level of a specified directory and 
 
 ## When is it used?
 
-- When Axon Code needs to understand your codebase architecture quickly
-- When Axon Code needs to locate important code constructs across multiple files
+- When Orbital needs to understand your codebase architecture quickly
+- When Orbital needs to locate important code constructs across multiple files
 - When planning refactoring or extensions to existing code
 - Before diving into implementation details with other tools
 - When identifying relationships between different parts of your codebase
@@ -86,12 +86,12 @@ This output format helps you quickly see both where definitions are located in t
 
 ## Examples When Used
 
-- When starting a new task, Axon Code first lists key code definitions to understand the overall structure of your project.
-- When planning refactoring work, Axon Code uses this tool to identify classes and functions that might be affected.
-- When exploring unfamiliar codebases, Axon Code maps the important code constructs before diving into implementation details.
-- When adding new features, Axon Code identifies existing patterns and relevant code definitions to maintain consistency.
-- When troubleshooting bugs, Axon Code maps the codebase structure to locate potential sources of the issue.
-- When planning architecture changes, Axon Code identifies all affected components across files.
+- When starting a new task, Orbital first lists key code definitions to understand the overall structure of your project.
+- When planning refactoring work, Orbital uses this tool to identify classes and functions that might be affected.
+- When exploring unfamiliar codebases, Orbital maps the important code constructs before diving into implementation details.
+- When adding new features, Orbital identifies existing patterns and relevant code definitions to maintain consistency.
+- When troubleshooting bugs, Orbital maps the codebase structure to locate potential sources of the issue.
+- When planning architecture changes, Orbital identifies all affected components across files.
 
 ## Usage Examples
 

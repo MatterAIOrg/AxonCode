@@ -1,6 +1,6 @@
 # Using Modes
 
-Modes in Axon Code are specialized personas that tailor the assistant's behavior to your current task. Each mode offers different capabilities, expertise, and access levels to help you accomplish specific goals.
+Modes in Orbital are specialized personas that tailor the assistant's behavior to your current task. Each mode offers different capabilities, expertise, and access levels to help you accomplish specific goals.
 
 ## Why Use Different Modes?
 
@@ -11,7 +11,7 @@ Modes in Axon Code are specialized personas that tailor the assistant's behavior
 
 <YouTubeEmbed
   url="https://youtu.be/cS4vQfX528w"
-  caption="Explaining the different modes in Axon Code"
+  caption="Explaining the different modes in Orbital"
 />
 
 ## Switching Between Modes
@@ -34,9 +34,9 @@ Four ways to switch modes:
     | Windows          | Ctrl + . |
     | Linux            | Ctrl + . |
 
-4. **Accept suggestions:** Click on mode switch suggestions that Axon Code offers when appropriate
+4. **Accept suggestions:** Click on mode switch suggestions that Orbital offers when appropriate
 
- <img src="/docs/img/modes/modes-2.png" alt="Accepting a mode switch suggestion from Axon Code" width="400" />
+ <img src="/docs/img/modes/modes-2.png" alt="Accepting a mode switch suggestion from Orbital" width="400" />
 
 ## Built-in Modes
 

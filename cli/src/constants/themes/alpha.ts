@@ -1,5 +1,5 @@
 /**
- * Dark theme for Axon Code CLI
+ * Dark theme for Orbital CLI
  *
  * The default dark theme using standard terminal colors for maximum compatibility.
  */
@@ -15,7 +15,7 @@ export const alphaTheme: Theme = {
 	name: "Alpha",
 
 	brand: {
-		primary: "#faf74f", // Axon Code yellow
+		primary: "#faf74f", // Orbital yellow
 		secondary: "cyan",
 	},
 

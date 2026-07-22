@@ -9,7 +9,7 @@ has_asdf_plugin() {
 }
 
 build_extension() {
-  echo "🔨 Building the Axon Code extension..."
+  echo "🔨 Building the Orbital extension..."
   pnpm -w vsix -- --out ../bin/kilo-code-$(git rev-parse --short HEAD).vsix || exit 1
   code --install-extension ../../bin/kilo-code-$(git rev-parse --short HEAD).vsix || exit 1
   cd evals
@@ -357,7 +357,7 @@ fi
 # Check and start Docker services before database operations
 check_docker_services
 
-echo -n "🗄️ Syncing Axon Code evals database... "
+echo -n "🗄️ Syncing Orbital evals database... "
 pnpm --filter @roo-code/evals db:push --force &>/dev/null || exit 1
 echo "✅ Done"
 
@@ -369,7 +369,7 @@ if ! grep -q "OPENROUTER_API_KEY" .env.local; then
 fi
 
 current_version=$(code --list-extensions --show-versions 2>/dev/null | grep kilocode)
-read -p "💻 Do you want to build a new version of the Axon Code extension? [currently $current_version] (y/N): " build_extension
+read -p "💻 Do you want to build a new version of the Orbital extension? [currently $current_version] (y/N): " build_extension
 
 if [[ "$build_extension" =~ ^[Yy]$ ]]; then
   build_extension

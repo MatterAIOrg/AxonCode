@@ -2,7 +2,7 @@
 
 ## Project Status
 
-The Axon Code documentation site is a mature, production-ready Docusaurus project that serves as the comprehensive documentation hub for the Axon Code VS Code extension. The site is hosted at https://matterai.so/docs and provides extensive documentation covering installation, usage, features, and extension capabilities.
+The Orbital documentation site is a mature, production-ready Docusaurus project that serves as the comprehensive documentation hub for the Orbital VS Code extension. The site is hosted at https://matterai.so/docs and provides extensive documentation covering installation, usage, features, and extension capabilities.
 
 ## Current Work Focus
 
@@ -21,14 +21,14 @@ The documentation is organized into several major sections:
 ### Core User Journey
 
 - **Getting Started**: Installation, setup, and first task completion
-- **Using Axon Code**: Chat interface, modes, context mentions, and basic features
+- **Using Orbital**: Chat interface, modes, context mentions, and basic features
 - **Core Concepts**: Auto-approving actions, suggested responses, tool usage, and checkpoints
 
 ### Advanced Features
 
 - **Advanced Usage**: Prompt engineering, customization options, memory bank, and large project handling
 - **Customization**: Settings management, custom modes, API configuration profiles
-- **Extending Axon Code**: Model providers (18+ supported), local models, MCP integration, shell integration
+- **Extending Orbital**: Model providers (18+ supported), local models, MCP integration, shell integration
 
 ### Reference Materials
 

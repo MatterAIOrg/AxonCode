@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Axon Code 커밋 메시지 생성기 활성화됨",
+		"activated": "Orbital 커밋 메시지 생성기 활성화됨",
 		"gitNotFound": "⚠️ Git 저장소를 찾을 수 없거나 git을 사용할 수 없습니다",
 		"gitInitError": "⚠️ Git 초기화 오류: {{error}}",
 		"generating": "Axon: 커밋 메시지 생성 중...",
@@ -63,7 +63,7 @@
 		"providerRegistered": "Axon: 커밋 메시지 공급자 등록됨",
 		"errors": {
 			"noProject": "이용 가능한 프로젝트 없음",
-			"connectionFailed": "Axon Code 확장 프로그램에 연결하지 못했습니다",
+			"connectionFailed": "Orbital 확장 프로그램에 연결하지 못했습니다",
 			"timeout": "30초 후 요청 시간이 초과되었습니다",
 			"invalidResponse": "확장 프로그램으로부터 잘못된 응답 형식을 받았습니다",
 			"noChanges": "커밋할 변경 사항 없음",

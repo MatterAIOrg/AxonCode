@@ -1,6 +1,6 @@
 # 工具使用概述
 
-Axon Code 实现了一个复杂的工具系统，允许 AI 模型以受控和安全的方式与你的开发环境交互。本文档解释了工具的工作原理、调用时机和管理方式。
+Orbital 实现了一个复杂的工具系统，允许 AI 模型以受控和安全的方式与你的开发环境交互。本文档解释了工具的工作原理、调用时机和管理方式。
 
 ## 核心概念
 
@@ -31,7 +31,7 @@ Axon Code 实现了一个复杂的工具系统，允许 AI 模型以受控和安
 
 ### 读取工具
 
-这些工具帮助 Axon Code 理解你的代码和项目：
+这些工具帮助 Orbital 理解你的代码和项目：
 
 - [read_file](/features/tools/read-file) - 检查文件内容
 - [search_files](/features/tools/search-files) - 跨多个文件查找模式
@@ -40,26 +40,26 @@ Axon Code 实现了一个复杂的工具系统，允许 AI 模型以受控和安
 
 ### 编辑工具
 
-这些工具帮助 Axon Code 修改你的代码：
+这些工具帮助 Orbital 修改你的代码：
 
 - [apply_diff](/features/tools/apply-diff) - 对代码进行精确修改
 - [write_to_file](/features/tools/write-to-file) - 创建新文件或完全重写现有文件
 
 ### 浏览器工具
 
-这些工具帮助 Axon Code 与网页应用交互：
+这些工具帮助 Orbital 与网页应用交互：
 
 - [browser_action](/features/tools/browser-action) - 自动化浏览器交互
 
 ### 命令工具
 
-这些工具帮助 Axon Code 执行命令：
+这些工具帮助 Orbital 执行命令：
 
 - [execute_command](/features/tools/execute-command) - 运行系统命令和程序
 
 ### MCP工具
 
-这些工具帮助 Axon Code 连接外部服务：
+这些工具帮助 Orbital 连接外部服务：
 
 - [use_mcp_tool](/features/tools/use-mcp-tool) - 使用专门的外部工具
 - [access_mcp_resource](/features/tools/access-mcp-resource) - 访问外部数据源

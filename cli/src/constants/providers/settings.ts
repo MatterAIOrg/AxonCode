@@ -28,9 +28,9 @@ export interface FieldMetadata {
 export const FIELD_REGISTRY: Record<string, FieldMetadata> = {
 	// Kilocode fields
 	kilocodeToken: {
-		label: "Axon Code Token",
+		label: "Orbital Token",
 		type: "password",
-		placeholder: "Enter your Axon Code token...",
+		placeholder: "Enter your Orbital token...",
 	},
 	kilocodeOrganizationId: {
 		label: "Organization ID",

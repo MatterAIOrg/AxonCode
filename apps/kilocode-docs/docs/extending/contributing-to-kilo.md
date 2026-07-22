@@ -1,6 +1,6 @@
-# Contributing to Axon Code
+# Contributing to Orbital
 
-Axon Code is an open-source project that welcomes contributions from developers of all skill levels. This guide will help you get started with contributing to Axon Code, whether you're fixing bugs, adding features, improving documentation, or sharing custom modes.
+Orbital is an open-source project that welcomes contributions from developers of all skill levels. This guide will help you get started with contributing to Orbital, whether you're fixing bugs, adding features, improving documentation, or sharing custom modes.
 
 ## Ways to Contribute
 
@@ -57,7 +57,7 @@ git checkout -b your-branch-name
     git push origin your-branch-name
     ```
 
-2. Go to the [Axon Code repository](https://github.com/MatterAIOrg/Orbital-Extension)
+2. Go to the [Orbital repository](https://github.com/MatterAIOrg/Orbital-Extension)
 
 3. Click "New Pull Request" and select "compare across forks"
 
@@ -71,7 +71,7 @@ git checkout -b your-branch-name
 
 ## Creating Custom Modes
 
-Custom modes are a powerful way to extend Axon Code's capabilities. To create and share a custom mode:
+Custom modes are a powerful way to extend Orbital's capabilities. To create and share a custom mode:
 
 1. Follow the [Custom Modes documentation](/features/custom-modes) to create your mode
 
@@ -102,7 +102,7 @@ Documentation improvements are highly valued contributions:
 
 ## Community Guidelines
 
-When participating in the Axon Code community:
+When participating in the Orbital community:
 
 - Be respectful and inclusive
 - Provide constructive feedback
@@ -119,10 +119,10 @@ If you need help with your contribution:
 
 ## Recognition
 
-All contributors are valued members of the Axon Code community. Contributors are recognized in:
+All contributors are valued members of the Orbital community. Contributors are recognized in:
 
 - Release notes
 - The project's README
 - The contributors list on GitHub
 
-Thank you for contributing to Axon Code and helping make AI-powered coding assistance better for everyone!
+Thank you for contributing to Orbital and helping make AI-powered coding assistance better for everyone!

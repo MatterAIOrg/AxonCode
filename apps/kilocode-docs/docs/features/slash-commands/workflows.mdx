@@ -3,13 +3,14 @@ title: "Workflows"
 sidebarTitle: "Workflows"
 ---
 
-Workflows automate repetitive tasks by defining step-by-step instructions for Axon Code to execute. Invoke any workflow by typing `/[workflow-name.md]` in the chat.
+Workflows automate repetitive tasks by defining step-by-step instructions for Orbital to execute. Invoke any workflow by typing `/[workflow-name.md]` in the chat.
 
-<img src="/docs/img/slash-commands/workflows.png" alt="Workflows tab in Axon Code" width="600" />
+<img src="/docs/img/slash-commands/workflows.png" alt="Workflows tab in Orbital" width="600" />
 
 ## Creating Workflows
 
 Workflows are markdown files stored in `.orbital/workflows/`:
+
 - **Global workflows**: `~/.orbital/workflows/` (available in all projects)
 - **Project workflows**: `[project]/.orbital/workflows/` (project-specific)
 
@@ -22,6 +23,7 @@ Workflows are markdown files stored in `.orbital/workflows/`:
 ### Workflow Capabilities
 
 Workflows can leverage:
+
 - [Built-in tools](/features/tools/tool-use-overview): [`read_file()`](/features/tools/read-file), [`search_files()`](/features/tools/search-files), [`execute_command()`](/features/tools/execute-command)
 - CLI tools: `gh`, `docker`, `npm`, custom scripts
 - [MCP integrations](/features/mcp/overview): Slack, databases, APIs
@@ -30,6 +32,7 @@ Workflows can leverage:
 ## Common Workflow Patterns
 
 **Release Management**
+
 ```markdown
 1. Gather merged PRs since last release
 2. Generate changelog from commit messages
@@ -39,6 +42,7 @@ Workflows can leverage:
 ```
 
 **Project Setup**
+
 ```markdown
 1. Clone repository template
 2. Install dependencies (`npm install`, `pip install -r requirements.txt`)
@@ -48,6 +52,7 @@ Workflows can leverage:
 ```
 
 **Code Review Preparation**
+
 ```markdown
 1. Search for TODO comments and debug statements
 2. Run linting and formatting
@@ -73,11 +78,12 @@ You are helping submit a pull request. Follow these steps:
 5. Use `ask_followup_question` to get the PR title and description from the user
 
 Parameters needed (ask if not provided):
+
 - Branch name
 - Reviewers to assign
 ```
 
-Now you can trigger this workflow by typing `/submit-pr.md` in the chat. Axon Code will:
+Now you can trigger this workflow by typing `/submit-pr.md` in the chat. Orbital will:
 
 - Scan your code for common issues before committing
 - Run your test suite to catch problems early

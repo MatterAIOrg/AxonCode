@@ -1,5 +1,5 @@
 {
-	"greeting": "Co Axon Code może dla Ciebie zrobić?",
+	"greeting": "Co Orbital może dla Ciebie zrobić?",
 	"task": {
 		"title": "Zadanie",
 		"expand": "Rozwiń zadanie",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Udostępnij publicznie",
 		"sharePubliclyDescription": "Każdy z linkiem może uzyskać dostęp",
 		"connectToCloud": "Połącz z chmurą",
-		"connectToCloudDescription": "Zaloguj się do Axon Code Cloud, aby udostępniać zadania",
+		"connectToCloudDescription": "Zaloguj się do Orbital Cloud, aby udostępniać zadania",
 		"sharingDisabledByOrganization": "Udostępnianie wyłączone przez organizację",
 		"shareSuccessOrganization": "Link organizacji skopiowany do schowka",
 		"shareSuccessPublic": "Link publiczny skopiowany do schowka",
@@ -103,7 +103,7 @@
 	},
 	"scrollToBottom": "Przewiń do dołu czatu",
 	"about": "Generuj, refaktoryzuj i debuguj kod z pomocą sztucznej inteligencji. Sprawdź naszą <DocsLink>dokumentację</DocsLink>, aby dowiedzieć się więcej.",
-	"onboarding": "<strong>Twoja lista zadań w tym obszarze roboczym jest pusta.</strong> Zacznij od wpisania zadania poniżej. Nie wiesz, jak zacząć? Przeczytaj więcej o tym, co Axon Code może dla Ciebie zrobić w <DocsLink>dokumentacji</DocsLink>.",
+	"onboarding": "<strong>Twoja lista zadań w tym obszarze roboczym jest pusta.</strong> Zacznij od wpisania zadania poniżej. Nie wiesz, jak zacząć? Przeczytaj więcej o tym, co Orbital może dla Ciebie zrobić w <DocsLink>dokumentacji</DocsLink>.",
 	"rooTips": {
 		"boomerangTasks": {
 			"title": "Orkiestracja Zadań",
@@ -130,7 +130,7 @@
 		"title": "Tryby",
 		"marketplace": "Marketplace Trybów",
 		"settings": "Ustawienia Trybów",
-		"description": "Wyspecjalizowane persony, które dostosowują zachowanie Axon Code.",
+		"description": "Wyspecjalizowane persony, które dostosowują zachowanie Orbital.",
 		"searchPlaceholder": "Szukaj trybów...",
 		"noResults": "Nie znaleziono wyników",
 		"organizationModes": "Tryby organizacji"
@@ -180,50 +180,50 @@
 		"tokens": "tokeny"
 	},
 	"instructions": {
-		"wantsToFetch": "Axon Code chce pobrać szczegółowe instrukcje, aby pomóc w bieżącym zadaniu"
+		"wantsToFetch": "Orbital chce pobrać szczegółowe instrukcje, aby pomóc w bieżącym zadaniu"
 	},
 	"fileOperations": {
-		"wantsToRead": "Axon Code chce przeczytać ten plik",
-		"wantsToReadMultiple": "Axon Code chce odczytać wiele plików",
-		"wantsToReadAndXMore": "Axon Code chce przeczytać ten plik i {{count}} więcej",
-		"wantsToReadOutsideWorkspace": "Axon Code chce przeczytać ten plik poza obszarem roboczym",
-		"didRead": "Axon Code przeczytał ten plik",
-		"wantsToEdit": "Axon Code chce edytować ten plik",
-		"wantsToEditOutsideWorkspace": "Axon Code chce edytować ten plik poza obszarem roboczym",
-		"wantsToEditProtected": "Axon Code chce edytować chroniony plik konfiguracyjny",
-		"wantsToApplyBatchChanges": "Axon Code chce zastosować zmiany do wielu plików",
-		"wantsToGenerateImage": "Axon Code chce wygenerować obraz",
-		"wantsToGenerateImageOutsideWorkspace": "Axon Code chce wygenerować obraz poza obszarem roboczym",
-		"wantsToGenerateImageProtected": "Axon Code chce wygenerować obraz w chronionym miejscu",
-		"didGenerateImage": "Axon Code wygenerował obraz",
-		"wantsToCreate": "Axon Code chce utworzyć nowy plik",
-		"wantsToSearchReplace": "Axon Code chce wykonać wyszukiwanie i zamianę w tym pliku",
-		"didSearchReplace": "Axon Code wykonał wyszukiwanie i zamianę w tym pliku",
-		"wantsToInsert": "Axon Code chce wstawić zawartość do tego pliku",
-		"wantsToInsertWithLineNumber": "Axon Code chce wstawić zawartość do tego pliku w linii {{lineNumber}}",
-		"wantsToInsertAtEnd": "Axon Code chce dodać zawartość na końcu tego pliku"
+		"wantsToRead": "Orbital chce przeczytać ten plik",
+		"wantsToReadMultiple": "Orbital chce odczytać wiele plików",
+		"wantsToReadAndXMore": "Orbital chce przeczytać ten plik i {{count}} więcej",
+		"wantsToReadOutsideWorkspace": "Orbital chce przeczytać ten plik poza obszarem roboczym",
+		"didRead": "Orbital przeczytał ten plik",
+		"wantsToEdit": "Orbital chce edytować ten plik",
+		"wantsToEditOutsideWorkspace": "Orbital chce edytować ten plik poza obszarem roboczym",
+		"wantsToEditProtected": "Orbital chce edytować chroniony plik konfiguracyjny",
+		"wantsToApplyBatchChanges": "Orbital chce zastosować zmiany do wielu plików",
+		"wantsToGenerateImage": "Orbital chce wygenerować obraz",
+		"wantsToGenerateImageOutsideWorkspace": "Orbital chce wygenerować obraz poza obszarem roboczym",
+		"wantsToGenerateImageProtected": "Orbital chce wygenerować obraz w chronionym miejscu",
+		"didGenerateImage": "Orbital wygenerował obraz",
+		"wantsToCreate": "Orbital chce utworzyć nowy plik",
+		"wantsToSearchReplace": "Orbital chce wykonać wyszukiwanie i zamianę w tym pliku",
+		"didSearchReplace": "Orbital wykonał wyszukiwanie i zamianę w tym pliku",
+		"wantsToInsert": "Orbital chce wstawić zawartość do tego pliku",
+		"wantsToInsertWithLineNumber": "Orbital chce wstawić zawartość do tego pliku w linii {{lineNumber}}",
+		"wantsToInsertAtEnd": "Orbital chce dodać zawartość na końcu tego pliku"
 	},
 	"directoryOperations": {
-		"wantsToViewTopLevel": "Axon Code chce zobaczyć pliki najwyższego poziomu w tym katalogu",
-		"didViewTopLevel": "Axon Code zobaczył pliki najwyższego poziomu w tym katalogu",
-		"wantsToViewTopLevelOutsideWorkspace": "Axon Code chce zobaczyć pliki najwyższego poziomu w tym katalogu (poza obszarem roboczym)",
-		"didViewTopLevelOutsideWorkspace": "Axon Code zobaczył pliki najwyższego poziomu w tym katalogu (poza obszarem roboczym)",
-		"wantsToViewRecursive": "Axon Code chce rekurencyjnie zobaczyć wszystkie pliki w tym katalogu",
-		"didViewRecursive": "Axon Code rekurencyjnie zobaczył wszystkie pliki w tym katalogu",
-		"wantsToViewRecursiveOutsideWorkspace": "Axon Code chce rekurencyjnie zobaczyć wszystkie pliki w tym katalogu (poza obszarem roboczym)",
-		"didViewRecursiveOutsideWorkspace": "Axon Code rekurencyjnie zobaczył wszystkie pliki w tym katalogu (poza obszarem roboczym)",
-		"wantsToViewDefinitions": "Axon Code chce zobaczyć nazwy definicji kodu źródłowego używane w tym katalogu",
-		"didViewDefinitions": "Axon Code zobaczył nazwy definicji kodu źródłowego używane w tym katalogu",
-		"wantsToViewDefinitionsOutsideWorkspace": "Axon Code chce zobaczyć nazwy definicji kodu źródłowego używane w tym katalogu (poza obszarem roboczym)",
-		"didViewDefinitionsOutsideWorkspace": "Axon Code zobaczył nazwy definicji kodu źródłowego używane w tym katalogu (poza obszarem roboczym)",
-		"wantsToSearch": "Axon Code chce przeszukać ten katalog w poszukiwaniu <code>{{regex}}</code>",
-		"didSearch": "Axon Code przeszukał ten katalog w poszukiwaniu <code>{{regex}}</code>",
-		"wantsToSearchOutsideWorkspace": "Axon Code chce przeszukać ten katalog (poza obszarem roboczym) w poszukiwaniu <code>{{regex}}</code>",
-		"didSearchOutsideWorkspace": "Axon Code przeszukał ten katalog (poza obszarem roboczym) w poszukiwaniu <code>{{regex}}</code>"
+		"wantsToViewTopLevel": "Orbital chce zobaczyć pliki najwyższego poziomu w tym katalogu",
+		"didViewTopLevel": "Orbital zobaczył pliki najwyższego poziomu w tym katalogu",
+		"wantsToViewTopLevelOutsideWorkspace": "Orbital chce zobaczyć pliki najwyższego poziomu w tym katalogu (poza obszarem roboczym)",
+		"didViewTopLevelOutsideWorkspace": "Orbital zobaczył pliki najwyższego poziomu w tym katalogu (poza obszarem roboczym)",
+		"wantsToViewRecursive": "Orbital chce rekurencyjnie zobaczyć wszystkie pliki w tym katalogu",
+		"didViewRecursive": "Orbital rekurencyjnie zobaczył wszystkie pliki w tym katalogu",
+		"wantsToViewRecursiveOutsideWorkspace": "Orbital chce rekurencyjnie zobaczyć wszystkie pliki w tym katalogu (poza obszarem roboczym)",
+		"didViewRecursiveOutsideWorkspace": "Orbital rekurencyjnie zobaczył wszystkie pliki w tym katalogu (poza obszarem roboczym)",
+		"wantsToViewDefinitions": "Orbital chce zobaczyć nazwy definicji kodu źródłowego używane w tym katalogu",
+		"didViewDefinitions": "Orbital zobaczył nazwy definicji kodu źródłowego używane w tym katalogu",
+		"wantsToViewDefinitionsOutsideWorkspace": "Orbital chce zobaczyć nazwy definicji kodu źródłowego używane w tym katalogu (poza obszarem roboczym)",
+		"didViewDefinitionsOutsideWorkspace": "Orbital zobaczył nazwy definicji kodu źródłowego używane w tym katalogu (poza obszarem roboczym)",
+		"wantsToSearch": "Orbital chce przeszukać ten katalog w poszukiwaniu <code>{{regex}}</code>",
+		"didSearch": "Orbital przeszukał ten katalog w poszukiwaniu <code>{{regex}}</code>",
+		"wantsToSearchOutsideWorkspace": "Orbital chce przeszukać ten katalog (poza obszarem roboczym) w poszukiwaniu <code>{{regex}}</code>",
+		"didSearchOutsideWorkspace": "Orbital przeszukał ten katalog (poza obszarem roboczym) w poszukiwaniu <code>{{regex}}</code>"
 	},
 	"codebaseSearch": {
-		"wantsToSearch": "Axon Code chce przeszukać bazę kodu w poszukiwaniu <code>{{query}}</code>",
-		"wantsToSearchWithPath": "Axon Code chce przeszukać bazę kodu w poszukiwaniu <code>{{query}}</code> w <code>{{path}}</code>",
+		"wantsToSearch": "Orbital chce przeszukać bazę kodu w poszukiwaniu <code>{{query}}</code>",
+		"wantsToSearchWithPath": "Orbital chce przeszukać bazę kodu w poszukiwaniu <code>{{query}}</code> w <code>{{path}}</code>",
 		"didSearch_one": "Znaleziono 1 wynik",
 		"didSearch_other": "Znaleziono {{count}} wyników",
 		"resultTooltip": "Wynik podobieństwa: {{score}} (kliknij, aby otworzyć plik)"
@@ -254,18 +254,18 @@
 		"youSaid": "Powiedziałeś"
 	},
 	"mcp": {
-		"wantsToUseTool": "Axon Code chce użyć narzędzia na serwerze MCP {{serverName}}",
-		"wantsToAccessResource": "Axon Code chce uzyskać dostęp do zasobu na serwerze MCP {{serverName}}"
+		"wantsToUseTool": "Orbital chce użyć narzędzia na serwerze MCP {{serverName}}",
+		"wantsToAccessResource": "Orbital chce uzyskać dostęp do zasobu na serwerze MCP {{serverName}}"
 	},
 	"modes": {
-		"wantsToSwitch": "Axon Code chce przełączyć się na tryb <code>{{mode}}</code>",
-		"wantsToSwitchWithReason": "Axon Code chce przełączyć się na tryb <code>{{mode}}</code> ponieważ: {{reason}}",
-		"didSwitch": "Axon Code przełączył się na tryb <code>{{mode}}</code>",
-		"didSwitchWithReason": "Axon Code przełączył się na tryb <code>{{mode}}</code> ponieważ: {{reason}}"
+		"wantsToSwitch": "Orbital chce przełączyć się na tryb <code>{{mode}}</code>",
+		"wantsToSwitchWithReason": "Orbital chce przełączyć się na tryb <code>{{mode}}</code> ponieważ: {{reason}}",
+		"didSwitch": "Orbital przełączył się na tryb <code>{{mode}}</code>",
+		"didSwitchWithReason": "Orbital przełączył się na tryb <code>{{mode}}</code> ponieważ: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Axon Code chce utworzyć nowe podzadanie w trybie <code>{{mode}}</code>",
-		"wantsToFinish": "Axon Code chce zakończyć to podzadanie",
+		"wantsToCreate": "Orbital chce utworzyć nowe podzadanie w trybie <code>{{mode}}</code>",
+		"wantsToFinish": "Orbital chce zakończyć to podzadanie",
 		"newTaskContent": "Instrukcje podzadania",
 		"completionContent": "Podzadanie zakończone",
 		"resultContent": "Wyniki podzadania",
@@ -273,14 +273,14 @@
 		"completionInstructions": "Podzadanie zakończone! Możesz przejrzeć wyniki i zasugerować poprawki lub następne kroki. Jeśli wszystko wygląda dobrze, potwierdź, aby zwrócić wynik do zadania nadrzędnego."
 	},
 	"questions": {
-		"hasQuestion": "Axon Code ma pytanie"
+		"hasQuestion": "Orbital ma pytanie"
 	},
 	"taskCompleted": "Zadanie zakończone",
 	"error": "Błąd",
 	"diffError": {
 		"title": "Edycja nieudana"
 	},
-	"troubleMessage": "Axon Code ma problemy...",
+	"troubleMessage": "Orbital ma problemy...",
 	"powershell": {
 		"issues": "Wygląda na to, że masz problemy z Windows PowerShell, proszę zapoznaj się z tym"
 	},
@@ -322,7 +322,7 @@
 		"countdownDisplay": "{{count}}s"
 	},
 	"browser": {
-		"rooWantsToUse": "Axon Code chce użyć przeglądarki",
+		"rooWantsToUse": "Orbital chce użyć przeglądarki",
 		"consoleLogs": "Logi konsoli",
 		"noNewLogs": "(Brak nowych logów)",
 		"screenshot": "Zrzut ekranu przeglądarki",
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "Bieżący profil nie jest kompatybilny z ustawieniami Twojej organizacji",
 	"shellIntegration": {
 		"title": "Ostrzeżenie wykonania polecenia",
-		"description": "Twoje polecenie jest wykonywane bez integracji powłoki terminala VSCode. Aby ukryć to ostrzeżenie, możesz wyłączyć integrację powłoki w sekcji <strong>Terminal</strong> w <settingsLink>ustawieniach Axon Code</settingsLink> lub rozwiązać problemy z integracją terminala VSCode korzystając z poniższego linku.",
+		"description": "Twoje polecenie jest wykonywane bez integracji powłoki terminala VSCode. Aby ukryć to ostrzeżenie, możesz wyłączyć integrację powłoki w sekcji <strong>Terminal</strong> w <settingsLink>ustawieniach Orbital</settingsLink> lub rozwiązać problemy z integracją terminala VSCode korzystając z poniższego linku.",
 		"troubleshooting": "Kliknij tutaj, aby zobaczyć dokumentację integracji powłoki."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Osiągnięto limit automatycznie zatwierdzonych żądań",
-			"description": "Axon Code osiągnął automatycznie zatwierdzony limit {{count}} żądania/żądań API. Czy chcesz zresetować licznik i kontynuować zadanie?",
+			"description": "Orbital osiągnął automatycznie zatwierdzony limit {{count}} żądania/żądań API. Czy chcesz zresetować licznik i kontynuować zadanie?",
 			"button": "Zresetuj i kontynuuj"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Osiągnięto limit kosztów z automatycznym zatwierdzaniem",
-			"description": "Axon Code osiągnął automatycznie zatwierdzony limit kosztów wynoszący ${{count}}. Czy chcesz zresetować koszt i kontynuować zadanie?",
+			"description": "Orbital osiągnął automatycznie zatwierdzony limit kosztów wynoszący ${{count}}. Czy chcesz zresetować koszt i kontynuować zadanie?",
 			"button": "Zresetuj i Kontynuuj"
 		}
 	},
@@ -403,8 +403,8 @@
 		}
 	},
 	"slashCommand": {
-		"wantsToRun": "Axon Code chce uruchomić komendę slash",
-		"didRun": "Axon Code uruchomił komendę slash"
+		"wantsToRun": "Orbital chce uruchomić komendę slash",
+		"didRun": "Orbital uruchomił komendę slash"
 	},
 	"queuedMessages": {
 		"title": "Wiadomości w kolejce",

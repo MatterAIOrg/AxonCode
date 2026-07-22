@@ -1,5 +1,5 @@
 {
-	"greeting": "Apa yang bisa Axon Code lakukan untuk Anda?",
+	"greeting": "Apa yang bisa Orbital lakukan untuk Anda?",
 	"task": {
 		"title": "Tugas",
 		"expand": "Perluas tugas",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Bagikan Secara Publik",
 		"sharePubliclyDescription": "Siapa pun dengan tautan dapat mengakses",
 		"connectToCloud": "Hubungkan ke Cloud",
-		"connectToCloudDescription": "Masuk ke Axon Code Cloud untuk membagikan tugas",
+		"connectToCloudDescription": "Masuk ke Orbital Cloud untuk membagikan tugas",
 		"sharingDisabledByOrganization": "Berbagi dinonaktifkan oleh organisasi",
 		"shareSuccessOrganization": "Tautan organisasi disalin ke clipboard",
 		"shareSuccessPublic": "Tautan publik disalin ke clipboard",
@@ -130,7 +130,7 @@
 		"title": "Mode",
 		"marketplace": "Pasar Mode",
 		"settings": "Pengaturan Mode",
-		"description": "Persona khusus yang menyesuaikan perilaku Axon Code.",
+		"description": "Persona khusus yang menyesuaikan perilaku Orbital.",
 		"searchPlaceholder": "Cari mode...",
 		"noResults": "Tidak ada hasil ditemukan",
 		"organizationModes": "Mode Organisasi"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "Edit Tidak Berhasil"
 	},
-	"troubleMessage": "Axon Code mengalami masalah...",
+	"troubleMessage": "Orbital mengalami masalah...",
 	"powershell": {
 		"issues": "Sepertinya Anda mengalami masalah Windows PowerShell, silakan lihat ini"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "Profil saat ini tidak kompatibel dengan pengaturan organisasi Anda",
 	"shellIntegration": {
 		"title": "Peringatan Eksekusi Perintah",
-		"description": "Perintah Anda sedang dijalankan tanpa integrasi shell terminal VSCode. Untuk menekan peringatan ini, Anda dapat menonaktifkan integrasi shell di bagian <strong>Terminal</strong> dari <settingsLink>pengaturan Axon Code</settingsLink> atau memecahkan masalah integrasi terminal VSCode menggunakan tautan di bawah.",
+		"description": "Perintah Anda sedang dijalankan tanpa integrasi shell terminal VSCode. Untuk menekan peringatan ini, Anda dapat menonaktifkan integrasi shell di bagian <strong>Terminal</strong> dari <settingsLink>pengaturan Orbital</settingsLink> atau memecahkan masalah integrasi terminal VSCode menggunakan tautan di bawah.",
 		"troubleshooting": "Klik di sini untuk dokumentasi integrasi shell."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Batas Permintaan yang Disetujui Otomatis Tercapai",
-			"description": "Axon Code telah mencapai batas yang disetujui otomatis sebanyak {{count}} permintaan API. Apakah Anda ingin mereset hitungan dan melanjutkan tugas?",
+			"description": "Orbital telah mencapai batas yang disetujui otomatis sebanyak {{count}} permintaan API. Apakah Anda ingin mereset hitungan dan melanjutkan tugas?",
 			"button": "Reset dan Lanjutkan"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Batas Biaya yang Disetujui Otomatis Tercapai",
-			"description": "Axon Code telah mencapai batas biaya yang disetujui otomatis sebesar ${{count}}. Apakah Anda ingin mereset biaya dan melanjutkan tugas?",
+			"description": "Orbital telah mencapai batas biaya yang disetujui otomatis sebesar ${{count}}. Apakah Anda ingin mereset biaya dan melanjutkan tugas?",
 			"button": "Reset dan Lanjutkan"
 		}
 	},
@@ -404,7 +404,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "jalankan perintah garis miring",
-		"didRun": "Axon Code menjalankan perintah garis miring"
+		"didRun": "Orbital menjalankan perintah garis miring"
 	},
 	"queuedMessages": {
 		"title": "Pesan Antrian",

@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Generátor zpráv pro commit Axon Code aktivován",
+		"activated": "Generátor zpráv pro commit Orbital aktivován",
 		"gitNotFound": "⚠️ Git repozitář nebyl nalezen nebo git není dostupný",
 		"gitInitError": "⚠️ Chyba inicializace Gitu: {{error}}",
 		"generating": "Axon: Generuji zprávu commitu...",
@@ -63,7 +63,7 @@
 		"providerRegistered": "Axon: Poskytovatel zpráv commitů zaregistrován",
 		"errors": {
 			"noProject": "Žádný projekt k dispozici",
-			"connectionFailed": "Nepodařilo se připojit k rozšíření Axon Code",
+			"connectionFailed": "Nepodařilo se připojit k rozšíření Orbital",
 			"timeout": "Časový limit požadavku vypršel po 30 sekundách",
 			"invalidResponse": "Neplatný formát odpovědi obdržen od rozšíření",
 			"missingMessage": "Z rozšíření nebyla přijata žádná zpráva o commitu",
@@ -87,7 +87,7 @@
 		},
 		"progress": {
 			"title": "Generování Commit Message",
-			"connecting": "Připojování k Axon Code...",
+			"connecting": "Připojování k Orbital...",
 			"analyzing": "Analyzuji změny...",
 			"generating": "Generuji zprávu commitu..."
 		},

@@ -1,24 +1,24 @@
 import Image from '@site/src/components/Image';
 
-# 与 Axon Code 聊天
+# 与 Orbital 聊天
 
 :::tip
 
-**总结：** Axon Code 是一个 AI 编码助手，它存在于 VS Code 中。您可以用简单的英语与它聊天，它会为您编写、编辑和解释代码。
+**总结：** Orbital 是一个 AI 编码助手，它存在于 VS Code 中。您可以用简单的英语与它聊天，它会为您编写、编辑和解释代码。
 
 :::
 
 ## 快速设置
 
-在 VS Code 的主侧边栏中找到 Axon Code 图标（<img src="/docs/img/matterai-ic.svg" width="12" />）。单击它以打开聊天面板。
+在 VS Code 的主侧边栏中找到 Orbital 图标（<img src="/docs/img/matterai-ic.svg" width="12" />）。单击它以打开聊天面板。
 
-**找不到面板？** 转到“视图”>“打开视图...”并搜索“Axon Code”
+**找不到面板？** 转到“视图”>“打开视图...”并搜索“Orbital”
 
-## 如何与 Axon Code 对话
+## 如何与 Orbital 对话
 
 **关键见解：** 只需用普通英语输入您想要的内容。无需特殊命令。
 
-<Image src="/docs/img/typing-your-requests/typing-your-requests.png" alt="在 Axon Code 中输入请求的示例" width="600" />
+<Image src="/docs/img/typing-your-requests/typing-your-requests.png" alt="在 Orbital 中输入请求的示例" width="600" />
 
 **好的请求：**
 
@@ -81,6 +81,6 @@ import Image from '@site/src/components/Image';
 | 多个不相关的任务     | 一次提交一个重点突出的请求                     |
 | 技术术语过多         | 清晰、直接的语言效果最好                       |
 
-**重要的原因：** 当您像与需要明确指导的聪明队友交谈一样进行交流时，Axon Code 的效果最佳。
+**重要的原因：** 当您像与需要明确指导的聪明队友交谈一样进行交流时，Orbital 的效果最佳。
 
 准备好开始编码了吗？打开聊天面板并描述您想要构建的内容！

@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "matterai",
-	"version": "6.6.3",
+	"version": "6.6.4",
 	"icon": "assets/icons/matterai-ic.png",
 	"galleryBanner": {
 		"color": "#FFFFFF",
@@ -57,13 +57,13 @@
 		"walkthroughs": [
 			{
 				"id": "matteraiCodeWalkthrough",
-				"title": "How to use Axon Code to code faster!",
-				"description": "Axon Code is your personal AI coding assistant.",
+				"title": "How to use Orbital to code faster!",
+				"description": "Orbital is your personal AI coding assistant.",
 				"steps": [
 					{
 						"id": "welcome",
 						"title": "Write code for you",
-						"description": "Describe what you want to build. Axon Code will write it from scratch, generate the files, and run them for you.",
+						"description": "Describe what you want to build. Orbital will write it from scratch, generate the files, and run them for you.",
 						"media": {
 							"markdown": "./dist/walkthrough/step1.md"
 						}
@@ -71,7 +71,7 @@
 					{
 						"id": "getting-started",
 						"title": "Understand your codebase",
-						"description": "Need clarity on how something works? Ask Axon Code about any part of your files and get a clear explanation.",
+						"description": "Need clarity on how something works? Ask Orbital about any part of your files and get a clear explanation.",
 						"media": {
 							"markdown": "./dist/walkthrough/step2.md"
 						},

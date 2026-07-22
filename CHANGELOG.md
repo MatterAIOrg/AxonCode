@@ -88,7 +88,7 @@
 
 ### Changed
 
-- **Axon Code → Orbital rebrand in copy.** `troubleMessage` string in `chat.json` and the consecutive-mistake-limit description in `settings.json` now read "Orbital" where they previously read "Axon Code".
+- **Orbital → Orbital rebrand in copy.** `troubleMessage` string in `chat.json` and the consecutive-mistake-limit description in `settings.json` now read "Orbital" where they previously read "Orbital".
 - **Axon marketing copy.** Welcome-view subtitle changed from "Frontier LLMs, fraction of the cost. Save 70% inference cost." to "Cut agent inference costs by 60% using Frontier Axon models".
 - **History UI refresh (`TaskItem`).** Visual and layout rework of the history list (90 insertions / 52 deletions).
 - **MCP UI refresh (`McpView`).** Major rework of the MCP view with a new icon set and updated i18n strings (283 insertions / 228 deletions across `McpView.tsx`, `mcp.json`, and `customIcons.tsx`).
@@ -680,7 +680,7 @@ This major release introduces the **Agent Manager**, a powerful new feature for 
 
 ### Added
 
-- New Auto-Generated memories for past chats: Axon Code can now generate and reference memories in chats when building or updating codebase to ensure any previously used context can be quickly remembered.
+- New Auto-Generated memories for past chats: Orbital can now generate and reference memories in chats when building or updating codebase to ensure any previously used context can be quickly remembered.
 
 ### Changed
 

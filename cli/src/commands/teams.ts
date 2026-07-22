@@ -64,7 +64,7 @@ async function listTeams(context: any): Promise<void> {
 		addMessage({
 			id: Date.now().toString(),
 			type: "system",
-			content: `You're currently not a part of any Axon Code teams. Go to https://app.matterai.so/get-started/teams to get started with Axon Code for Teams!`,
+			content: `You're currently not a part of any Orbital teams. Go to https://app.matterai.so/get-started/teams to get started with Orbital for Teams!`,
 			ts: Date.now(),
 		})
 		return
@@ -268,7 +268,7 @@ export const teamsCommand: Command = {
 		{
 			name: "team-name",
 			description:
-				"Team name in lowercase with dashes (e.g., 'kilo-code' for 'Axon Code') or 'personal' (for select subcommand)",
+				"Team name in lowercase with dashes (e.g., 'kilo-code' for 'Orbital') or 'personal' (for select subcommand)",
 			required: false,
 			conditionalProviders: [
 				{

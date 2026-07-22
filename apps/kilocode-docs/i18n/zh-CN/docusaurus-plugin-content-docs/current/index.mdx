@@ -2,14 +2,20 @@
 sidebar_label: 欢迎
 ---
 
-import { DISCORD_URL, REDDIT_URL, GITHUB_ISSUES_MAIN_URL, GITHUB_FEATURES_URL, YOUTUBE_URL } from '@site/src/constants.ts'
-import Image from '@site/src/components/Image';
+import {
+	DISCORD_URL,
+	REDDIT_URL,
+	GITHUB_ISSUES_MAIN_URL,
+	GITHUB_FEATURES_URL,
+	YOUTUBE_URL,
+} from "@site/src/constants.ts"
+import Image from "@site/src/components/Image"
 
-# Axon Code 文档
+# Orbital 文档
 
-Axon Code 通过 AI 驱动的代码生成和任务自动化**加速**开发。这个开源扩展直接集成到 VS Code 中。
+Orbital 通过 AI 驱动的代码生成和任务自动化**加速**开发。这个开源扩展直接集成到 VS Code 中。
 
-## Axon Code 能做什么？
+## Orbital 能做什么？
 
 - 🚀 **生成代码**：根据自然语言描述生成代码
 - 🔧 **重构与调试**：优化现有代码并修复问题
@@ -20,26 +26,28 @@ Axon Code 通过 AI 驱动的代码生成和任务自动化**加速**开发。�
 
 ## 快速开始
 
-1. [安装 Axon Code](/getting-started/installing)
-2. [设置 Axon Code](/getting-started/setting-up)
+1. [安装 Orbital](/getting-started/installing)
+2. [设置 Orbital](/getting-started/setting-up)
 3. [尝试你的首个任务](/getting-started/your-first-task)
 
 ## 功能
 
-<Image src="/docs/img/kilogif.gif" alt="展示 Axon Code 部分功能的 GIF" width="600" />
+<Image src="/docs/img/kilogif.gif" alt="展示 Orbital 部分功能的 GIF" width="600" />
 
 ### 基础功能
 
-使用[聊天界面](/basic-usage/the-chat-interface)告诉 Axon Code 您需要什么。它依赖于针对编码优化的 AI 模型来完成每个请求。
+使用[聊天界面](/basic-usage/the-chat-interface)告诉 Orbital 您需要什么。它依赖于针对编码优化的 AI 模型来完成每个请求。
 
 - 切换[模式](/basic-usage/using-modes)以适应任务
 - 控制允许的[操作](/features/auto-approving-actions)
 - 运行直接[代码操作](/features/code-actions)
 
-### 使用 Axon Code
+### 使用 Orbital
 
 #### 多种模式
-Axon Code 通过专门的[模式](/basic-usage/using-modes)适应你的需求：
+
+Orbital 通过专门的[模式](/basic-usage/using-modes)适应你的需求：
+
 - [**Code 模式：**](/basic-usage/using-modes#code-mode-default) 用于通用编码任务
 - [**Architect 模式：**](/basic-usage/using-modes#architect-mode) 用于规划和技术领导
 - [**Ask 模式：**](/basic-usage/using-modes#ask-mode) 用于回答问题并提供信息
@@ -47,7 +55,9 @@ Axon Code 通过专门的[模式](/basic-usage/using-modes)适应你的需求：
 - **[自定义模式](/features/custom-modes)：** 创建无限数量的专门角色，用于安全审计、性能优化、文档编写或任何其他任务
 
 #### 核心工具
-Axon Code 配备了强大的[工具](/features/tools/tool-use-overview)，可以：
+
+Orbital 配备了强大的[工具](/features/tools/tool-use-overview)，可以：
+
 - [读取](/features/tools/read-file)和[写入](/features/tools/write-to-file)项目中的文件
 - 在你的 VS Code 终端中[执行命令](/features/tools/execute-command)
 - [控制网页浏览器](/features/tools/browser-action)
@@ -56,12 +66,15 @@ Axon Code 配备了强大的[工具](/features/tools/tool-use-overview)，可以
 
 查看完整的[工具参考](/features/tools/tool-use-overview)以了解所有可用工具。
 
-### 扩展 Axon Code
-- **[MCP（模型上下文协议）](/features/mcp/overview)：** 添加无限自定义工具，集成外部 API，连接数据库，或创建专门的开发工具
-- **[本地模型](/advanced-usage/local-models)：** 使用本地 AI 模型运行 Axon Code，以实现离线使用或增强隐私
+### 扩展 Orbital
 
-### 自定义 Axon Code
-通过以下方式让 Axon Code 按照你的方式工作：
+- **[MCP（模型上下文协议）](/features/mcp/overview)：** 添加无限自定义工具，集成外部 API，连接数据库，或创建专门的开发工具
+- **[本地模型](/advanced-usage/local-models)：** 使用本地 AI 模型运行 Orbital，以实现离线使用或增强隐私
+
+### 自定义 Orbital
+
+通过以下方式让 Orbital 按照你的方式工作：
+
 - [设置管理](/features/settings-management)来配置你的体验
 - [自定义模式](/features/custom-modes)用于专门任务
 - [自定义规则](/advanced-usage/custom-rules)用于项目特定规则
@@ -72,15 +85,17 @@ Axon Code 配备了强大的[工具](/features/tools/tool-use-overview)，可以
 ## 资源
 
 ### 文档
-- [使用 Axon Code](/basic-usage/the-chat-interface) - 学习基础知识
+
+- [使用 Orbital](/basic-usage/the-chat-interface) - 学习基础知识
 - [核心概念](/features/auto-approving-actions) - 掌握关键功能
 - [高级用法](/advanced-usage/prompt-engineering) - 进一步提升你的技能
 - [常见问题解答](/faq) - 获取常见问题的答案
 
 ### 社区
+
 - **Discord：** <a href={DISCORD_URL} target="_blank">加入我们的 Discord 服务器</a>以获取实时帮助和讨论
 - **Reddit：** <a href={REDDIT_URL} target="_blank">访问我们的 subreddit</a>以分享经验和技巧
-- **YouTube：** <a href={YOUTUBE_URL} target="_blank">查看我们的 YouTube</a>以学习使用 Axon Code 的实践技能
+- **YouTube：** <a href={YOUTUBE_URL} target="_blank">查看我们的 YouTube</a>以学习使用 Orbital 的实践技能
 - **GitHub：** 在<a href={GITHUB_ISSUES_MAIN_URL} target="_blank">问题页面</a>报告问题或在<a href={GITHUB_FEATURES_URL} target="_blank">功能请求页面</a>提出建议
 
-准备好开始了吗？点击下方的**下一步**按钮，开启你的 Axon Code 之旅！
+准备好开始了吗？点击下方的**下一步**按钮，开启你的 Orbital 之旅！

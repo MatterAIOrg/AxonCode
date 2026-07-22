@@ -1,5 +1,5 @@
 {
-	"greeting": "Was kann Axon Code für Sie tun?",
+	"greeting": "Was kann Orbital für Sie tun?",
 	"task": {
 		"title": "Aufgabe",
 		"expand": "Aufgabe erweitern",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Öffentlich teilen",
 		"sharePubliclyDescription": "Jeder mit dem Link kann darauf zugreifen",
 		"connectToCloud": "Mit Cloud verbinden",
-		"connectToCloudDescription": "Melden Sie sich bei Axon Code Cloud an, um Aufgaben zu teilen",
+		"connectToCloudDescription": "Melden Sie sich bei Orbital Cloud an, um Aufgaben zu teilen",
 		"sharingDisabledByOrganization": "Teilen von Organisation deaktiviert",
 		"shareSuccessOrganization": "Organisationslink in Zwischenablage kopiert",
 		"shareSuccessPublic": "Öffentlicher Link in Zwischenablage kopiert",
@@ -130,7 +130,7 @@
 		"title": "Modi",
 		"marketplace": "Modus-Marktplatz",
 		"settings": "Modus-Einstellungen",
-		"description": "Spezialisierte Personas, die das Verhalten von Axon Code anpassen.",
+		"description": "Spezialisierte Personas, die das Verhalten von Orbital anpassen.",
 		"searchPlaceholder": "Modi suchen...",
 		"noResults": "Keine Ergebnisse gefunden",
 		"organizationModes": "Organisationsmodi"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "Bearbeitung nicht erfolgreich"
 	},
-	"troubleMessage": "Axon Code hat Probleme...",
+	"troubleMessage": "Orbital hat Probleme...",
 	"powershell": {
 		"issues": "Es scheint, dass Sie Windows PowerShell-Probleme haben, bitte sehen Sie sich dies an"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "Das aktuelle Profil ist nicht mit den Einstellungen Ihrer Organisation kompatibel",
 	"shellIntegration": {
 		"title": "Warnung zur Befehlsausführung",
-		"description": "Ihr Befehl wird ohne VSCode-Terminal-Shell-Integration ausgeführt. Um diese Warnung zu unterdrücken, können Sie die Shell-Integration im Abschnitt <strong>Terminal</strong> der <settingsLink>Axon Code-Einstellungen</settingsLink> deaktivieren oder die VSCode-Terminal-Integration über den unten stehenden Link beheben.",
+		"description": "Ihr Befehl wird ohne VSCode-Terminal-Shell-Integration ausgeführt. Um diese Warnung zu unterdrücken, können Sie die Shell-Integration im Abschnitt <strong>Terminal</strong> der <settingsLink>Orbital-Einstellungen</settingsLink> deaktivieren oder die VSCode-Terminal-Integration über den unten stehenden Link beheben.",
 		"troubleshooting": "Klicken Sie hier für die Shell-Integrationsdokumentation."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Auto-genehmigtes Anfragelimit erreicht",
-			"description": "Axon Code hat das automatisch genehmigte Limit von {{count}} API-Anfrage(n) erreicht. Möchten Sie den Zähler zurücksetzen und mit der Aufgabe fortfahren?",
+			"description": "Orbital hat das automatisch genehmigte Limit von {{count}} API-Anfrage(n) erreicht. Möchten Sie den Zähler zurücksetzen und mit der Aufgabe fortfahren?",
 			"button": "Zurücksetzen und fortfahren"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Auto-genehmigtes Kostenlimit erreicht",
-			"description": "Axon Code hat das automatisch genehmigte Kostenlimit von ${{count}} erreicht. Möchten Sie die Kosten zurücksetzen und mit der Aufgabe fortfahren?",
+			"description": "Orbital hat das automatisch genehmigte Kostenlimit von ${{count}} erreicht. Möchten Sie die Kosten zurücksetzen und mit der Aufgabe fortfahren?",
 			"button": "Zurücksetzen und fortfahren"
 		}
 	},
@@ -404,7 +404,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "einen Slash-Befehl ausführen",
-		"didRun": "Axon Code hat einen Slash-Befehl ausgeführt"
+		"didRun": "Orbital hat einen Slash-Befehl ausgeführt"
 	},
 	"queuedMessages": {
 		"title": "Nachrichten in Warteschlange",

@@ -2,9 +2,9 @@
 sidebar_label: DeepSeek
 ---
 
-# Using DeepSeek With Axon Code
+# Using DeepSeek With Orbital
 
-Axon Code supports accessing models through the DeepSeek API, including `deepseek-chat` and `deepseek-reasoner`.
+Orbital supports accessing models through the DeepSeek API, including `deepseek-chat` and `deepseek-reasoner`.
 
 **Website:** [https://platform.deepseek.com/](https://platform.deepseek.com/)
 
@@ -17,14 +17,14 @@ Axon Code supports accessing models through the DeepSeek API, including `deepsee
 
 ## Supported Models
 
-Axon Code supports the following DeepSeek models:
+Orbital supports the following DeepSeek models:
 
 - `deepseek-chat` (Recommended for coding tasks)
 - `deepseek-reasoner` (Recommended for reasoning tasks)
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
-1.  **Open Axon Code Settings:** Click the gear icon (<Codicon name="gear" />) in the Axon Code panel.
+1.  **Open Orbital Settings:** Click the gear icon (<Codicon name="gear" />) in the Orbital panel.
 2.  **Select Provider:** Choose "DeepSeek" from the "API Provider" dropdown.
 3.  **Enter API Key:** Paste your DeepSeek API key into the "DeepSeek API Key" field.
 4.  **Select Model:** Choose your desired model from the "Model" dropdown.

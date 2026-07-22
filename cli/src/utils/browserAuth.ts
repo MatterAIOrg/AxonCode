@@ -96,7 +96,7 @@ function createCallbackServer(port: number, state: string): Promise<AuthCallback
 						</style>
 					</head>
 					<body>
-						<h1>Axon Code Authentication Successful</h1>
+						<h1>Orbital Authentication Successful</h1>
 						<p>You can now close this window and return to the CLI.</p>
 					</body>
 				</html>
@@ -213,7 +213,7 @@ export async function performBrowserAuth(source: string = "axon-code-cli"): Prom
 
 		console.log("✓ Configuration saved successfully!")
 		console.log("")
-		console.log("You can now use the Axon Code CLI with your authenticated account.")
+		console.log("You can now use the Orbital CLI with your authenticated account.")
 	} catch (error) {
 		logs.error("Browser authentication failed", "BrowserAuth", { error })
 		throw error

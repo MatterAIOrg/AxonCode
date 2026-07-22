@@ -1,7 +1,7 @@
 {
-	"extension.displayName": "Axon Code Nightly",
-	"views.contextMenu.label": "Axon Code Nightly",
-	"views.terminalMenu.label": "Axon Code Nightly",
-	"views.activitybar.title": "Axon Code Nightly",
-	"configuration.title": "Axon Code Nightly"
+	"extension.displayName": "Orbital Nightly",
+	"views.contextMenu.label": "Orbital Nightly",
+	"views.terminalMenu.label": "Orbital Nightly",
+	"views.activitybar.title": "Orbital Nightly",
+	"configuration.title": "Orbital Nightly"
 }

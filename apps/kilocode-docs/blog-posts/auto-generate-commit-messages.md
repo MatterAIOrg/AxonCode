@@ -27,7 +27,7 @@ This is crucial because it means the AI understands the scope of what you're act
 The process is dead simple:
 
 1. Stage your changes (like you normally would)
-2. Click the Axon Code logo next to the commit message field
+2. Click the Orbital logo next to the commit message field
 3. Get a properly formatted commit message - automagically!
 
 <img src="https://matterai.so/docs/img/git-commit-generation/git-commit-1.png" alt="Auto-generated commit message in VS Code" width="600" />
@@ -91,7 +91,7 @@ Better commit messages also mean better code reviews. When your teammates can qu
 
 ## Getting Started
 
-The feature is available in Axon Code since `v4.35` and became customizable in `v4.38`. Just make sure you have some staged changes, and look for the Axon Code logo in your VS Code Source Control panel.
+The feature is available in Orbital since `v4.35` and became customizable in `v4.38`. Just make sure you have some staged changes, and look for the Orbital logo in your VS Code Source Control panel.
 
 Pro tip: Consider setting up a dedicated [API configuration profile](https://matterai.so/docs/features/api-configuration-profiles/) with a faster, cheaper model specifically for commit message generation. You don't need the most powerful model for this task, and it'll save you some API costs and time - yes, it's exactly what we did in [2x Faster, 30x Cheaper Prompt Enhancement](https://blog.matterai.so/p/2x-faster-prompt-enhancement-in-kilo)!
 
@@ -105,4 +105,4 @@ Give it a try. I think you'll find yourself wondering how you ever managed witho
 
 ---
 
-_Want to learn more about Axon Code's commit message generation? Check out the [full documentation](https://matterai.so/docs/basic-usage/git-commit-generation/) I wrote for setup details. And let me know what you think about it or how could we improve it even more here in comments or on our [Discord Server](https://kilo.love/discord)!_
+_Want to learn more about Orbital's commit message generation? Check out the [full documentation](https://matterai.so/docs/basic-usage/git-commit-generation/) I wrote for setup details. And let me know what you think about it or how could we improve it even more here in comments or on our [Discord Server](https://kilo.love/discord)!_

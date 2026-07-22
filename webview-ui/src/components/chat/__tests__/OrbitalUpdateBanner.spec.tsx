@@ -13,7 +13,7 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 	useAppTranslation: () => ({
 		t: (key: string, options?: { version?: string }) => {
 			const translations: Record<string, string> = {
-				"chat:orbitalUpdate.available": `Axon Code ${options?.version} is available`,
+				"chat:orbitalUpdate.available": `Orbital ${options?.version} is available`,
 				"chat:orbitalUpdate.description": "Install the update and reload Orbital to apply it.",
 				"chat:orbitalUpdate.updateAndRestart": "Update & Restart",
 				"chat:orbitalUpdate.downloading": "Downloading update…",
@@ -51,7 +51,7 @@ describe("OrbitalUpdateBanner", () => {
 			)
 		})
 
-		expect(screen.getByText("Axon Code 6.6.1 is available")).toBeInTheDocument()
+		expect(screen.getByText("Orbital 6.6.1 is available")).toBeInTheDocument()
 		fireEvent.click(screen.getByRole("button", { name: "Update & Restart" }))
 		expect(vscode.postMessage).toHaveBeenLastCalledWith({ type: "installOrbitalUpdate" })
 	})
@@ -137,7 +137,7 @@ describe("OrbitalUpdateBanner", () => {
 			)
 		})
 
-		expect(screen.getByText("Axon Code 6.6.2 is available")).toBeInTheDocument()
+		expect(screen.getByText("Orbital 6.6.2 is available")).toBeInTheDocument()
 	})
 
 	it("pauses polling while an update is being installed", () => {

@@ -2,9 +2,9 @@
 sidebar_label: Claude Code
 ---
 
-# 在 Axon Code 中使用 Claude Code
+# 在 Orbital 中使用 Claude Code
 
-Claude Code 是 Anthropic 的官方 CLI，它提供从终端直接访问 Claude 模型的功能。在 Axon Code 中使用 Claude Code 可以让您利用现有的 CLI 设置，而无需单独的 API 密钥。
+Claude Code 是 Anthropic 的官方 CLI，它提供从终端直接访问 Claude 模型的功能。在 Orbital 中使用 Claude Code 可以让您利用现有的 CLI 设置，而无需单独的 API 密钥。
 
 **网站：** [https://docs.anthropic.com/en/docs/claude-code/setup](https://docs.anthropic.com/en/docs/claude-code/setup)
 
@@ -16,16 +16,16 @@ Claude Code 是 Anthropic 的官方 CLI，它提供从终端直接访问 Claude 
 
 ## 支持的模型
 
-Axon Code 通过 Claude Code 支持以下 Claude 模型：
+Orbital 通过 Claude Code 支持以下 Claude 模型：
 
 - `claude-sonnet-4`（推荐）
 - `claude-4-opus`
 
 可用的特定模型取决于您的 Claude 订阅和计划。有关每个模型功能的更多详细信息，请参阅 [Anthropic 的模型文档](https://docs.anthropic.com/en/docs/about-claude/models)。
 
-## Axon Code 中的配置
+## Orbital 中的配置
 
-1.  **打开 Axon Code 设置：** 单击 Axon Code 面板中的齿轮图标（<Codicon name="gear" />）。
+1.  **打开 Orbital 设置：** 单击 Orbital 面板中的齿轮图标（<Codicon name="gear" />）。
 2.  **选择提供商：** 从“API 提供商”下拉菜单中选择“Claude Code”。
 3.  **选择模型：** 从“模型”下拉菜单中选择您想要的 Claude 模型。
 4.  **（可选）自定义 CLI 路径：** 如果您将 Claude Code 安装到默认 `claude` 命令以外的位置，请在“Claude Code 路径”字段中输入 Claude 可执行文件的完整路径。大多数用户不需要更改此项。
@@ -36,7 +36,7 @@ Axon Code 通过 Claude Code 支持以下 Claude 模型：
 - **成本透明：** 使用成本由 Claude CLI 直接报告，让您清楚地了解您的支出。
 - **高级推理：** 完全支持 Claude 的思考模式和推理功能（如果可用）。
 - **上下文窗口：** Claude 模型具有大型上下文窗口，允许您在提示中包含大量代码和上下文。
-- **增强提示功能：** 完全兼容 Axon Code 的增强提示功能，允许您在将提示发送到 Claude 之前自动改进和优化提示。
+- **增强提示功能：** 完全兼容 Orbital 的增强提示功能，允许您在将提示发送到 Claude 之前自动改进和优化提示。
 - **自定义路径：** 如果您将 Claude Code 安装在非标准位置，您可以在设置中指定完整路径。示例：
     - Windows：`C:\tools\claude\claude.exe`
     - macOS/Linux：`/usr/local/bin/claude` 或 `~/bin/claude`

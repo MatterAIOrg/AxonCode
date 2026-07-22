@@ -64,9 +64,9 @@ Switch to **Kilo for Teams** or **Kilo for Enterprise** from other AI coding too
 **Step 3: Team Migration**
 
 1. **Invite team members** to Kilo
-2. **Install Axon Code extension** alongside Cursor initially
+2. **Install Orbital extension** alongside Cursor initially
 3. **Migrate projects gradually** starting with non-critical work
-4. **Train team** on Axon Code features and workflows
+4. **Train team** on Orbital features and workflows
 
 **Step 4: Full Transition**
 
@@ -110,13 +110,13 @@ Switch to **Kilo for Teams** or **Kilo for Enterprise** from other AI coding too
 **Phase 1: Parallel Usage (Week 1-2)**
 
 1. **Keep GitHub Copilot** active during transition
-2. **Install Axon Code** extension for team members
-3. **Start with simple tasks** in Axon Code
+2. **Install Orbital** extension for team members
+3. **Start with simple tasks** in Orbital
 4. **Compare results** and team satisfaction
 
 **Phase 2: Gradual Transition (Week 3-4)**
 
-1. **Use Axon Code** for new projects
+1. **Use Orbital** for new projects
 2. **Migrate existing projects** one at a time
 3. **Train team** on advanced features
 4. **Optimize usage patterns** based on analytics
@@ -175,7 +175,7 @@ Switch to **Kilo for Teams** or **Kilo for Enterprise** from other AI coding too
 - [ ] Set up Kilo for Teams or Enterprise organization
 - [ ] Configure team settings and policies
 - [ ] Invite team members and assign roles
-- [ ] Install Axon Code extension across team
+- [ ] Install Orbital extension across team
 - [ ] Start with pilot projects or non-critical work
 
 **Post-Migration Optimization**
@@ -226,7 +226,7 @@ Switch to **Kilo for Teams** or **Kilo for Enterprise** from other AI coding too
 
 **Week 1: Basics**
 
-- Axon Code extension installation and setup
+- Orbital extension installation and setup
 - Basic chat interface and mode usage
 - Understanding transparent pricing model
 - Team dashboard overview

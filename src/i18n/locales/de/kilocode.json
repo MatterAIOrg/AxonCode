@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Axon Code Commit-Nachrichten-Generator aktiviert",
+		"activated": "Orbital Commit-Nachrichten-Generator aktiviert",
 		"gitNotFound": "⚠️ Git-Repository nicht gefunden oder Git nicht verfügbar",
 		"gitInitError": "⚠️ Git-Initialisierungsfehler: {{error}}",
 		"generating": "Axon: Generiere Commit-Nachricht...",
@@ -63,7 +63,7 @@
 		"providerRegistered": "Axon: Commit-Nachrichtenanbieter registriert",
 		"errors": {
 			"noProject": "Kein Projekt verfügbar",
-			"connectionFailed": "Verbindung zur Axon Code-Erweiterung fehlgeschlagen",
+			"connectionFailed": "Verbindung zur Orbital-Erweiterung fehlgeschlagen",
 			"missingMessage": "Keine Commit-Nachricht von der Erweiterung erhalten",
 			"timeout": "Anfrage nach 30 Sekunden abgelaufen",
 			"invalidResponse": "Ungültiges Antwortformat vom Erweiterung erhalten",
@@ -88,7 +88,7 @@
 		"progress": {
 			"title": "Commit-Nachricht generieren",
 			"analyzing": "Änderungen werden analysiert...",
-			"connecting": "Verbindung mit Axon Code wird hergestellt...",
+			"connecting": "Verbindung mit Orbital wird hergestellt...",
 			"generating": "Commit-Nachricht wird generiert..."
 		},
 		"ui": {

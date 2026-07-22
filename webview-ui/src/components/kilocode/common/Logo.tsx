@@ -9,7 +9,7 @@ export default function Logo({ width = 80, height = 80 }: { width?: number; heig
 	return (
 		<img
 			src={iconsBaseUri + "/matterai-ic.svg"}
-			alt="Axon Code Logo"
+			alt="Orbital Logo"
 			width={width}
 			height={height}
 			className="mb-4 mt-4"

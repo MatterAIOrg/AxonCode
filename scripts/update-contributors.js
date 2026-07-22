@@ -42,7 +42,7 @@ function makeRequest(url) {
 // Function to generate Markdown contributor list
 function generateContributorMarkdown(contributors) {
 	let markdown = "## Contributors\n\n"
-	markdown += "Thanks to all the contributors who help make Axon Code better!\n\n"
+	markdown += "Thanks to all the contributors who help make Orbital better!\n\n"
 
 	// Map the matterai.so format to expected format
 	const validContributors = contributors.map((contributor) => {

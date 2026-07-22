@@ -1,5 +1,5 @@
 {
-	"extension.displayName": "Axon Code AI 代理",
+	"extension.displayName": "Orbital AI 代理",
 	"extension.description": "AI 編碼代理，用於規劃、建置和修復程式碼，包含 AI 程式碼審查，由 MatterAI 提供",
 	"command.newTask.title": "新建任務",
 	"command.explainCode.title": "解釋程式碼",
@@ -40,8 +40,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "語言模型供應商（例如：copilot）",
 	"settings.vsCodeLmModelSelector.family.description": "語言模型系列（例如：gpt-4）",
 	"settings.customStoragePath.description": "自訂儲存路徑。留空以使用預設位置。支援絕對路徑（例如：'D:\\KiloCodeStorage'）",
-	"settings.enableCodeActions.description": "啟用 Axon Code 快速修復。",
-	"settings.autoImportSettingsPath.description": "Axon Code 設定檔案的路徑，用於在擴充功能啟動時自動匯入。支援絕對路徑和相對於主目錄的路徑（例如 '~/Documents/kilo-code-settings.json'）。留空以停用自動匯入。",
+	"settings.enableCodeActions.description": "啟用 Orbital 快速修復。",
+	"settings.autoImportSettingsPath.description": "Orbital 設定檔案的路徑，用於在擴充功能啟動時自動匯入。支援絕對路徑和相對於主目錄的路徑（例如 '~/Documents/kilo-code-settings.json'）。留空以停用自動匯入。",
 	"settings.useAgentRules.description": "為特定於代理的規則啟用 AGENTS.md 檔案的載入（請參閱 https://agent-rules.org/）",
 	"settings.apiRequestTimeout.description": "等待 API 回應的最長時間（秒）（0 = 無超時，1-86400秒，預設值：600秒）。對於像 LM Studio 和 Ollama 這樣可能需要更多處理時間的本地提供商，建議使用更高的值。",
 	"settings.newTaskRequireTodos.description": "使用 new_task 工具建立新工作時需要 todos 參數",

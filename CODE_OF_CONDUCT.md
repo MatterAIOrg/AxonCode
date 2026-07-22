@@ -1,4 +1,4 @@
-# Axon Code Community Code of Conduct
+# Orbital Community Code of Conduct
 
 ## Our Pledge
 

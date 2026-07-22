@@ -4,7 +4,7 @@ sidebar_label: 第一个任务
 
 # 开始你的第一个Kilo Code任务
 
-本快速教程将展示 Axon Code 如何从头到尾处理一个简单的请求。
+本快速教程将展示 Orbital 如何从头到尾处理一个简单的请求。
 
 完成[初始设置](/getting-started/setting-up)后，请按照以下步骤操作：
 

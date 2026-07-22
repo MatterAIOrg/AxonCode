@@ -6,7 +6,7 @@ import YouTubeEmbed from '@site/src/components/YouTubeEmbed';
 
 # Orchestrator Mode：协调复杂工作流
 
-Orchestrator Mode（原称为 Boomerang Tasks）允许你将复杂项目分解为更小、更易管理的部分。你可以将其理解为将工作的各个部分委派给专门的助手。每个子任务都在自己的上下文中运行，通常使用为特定工作定制的不同 Axon Code 模式（如 [`code`](/basic-usage/using-modes#code-mode-default)、[`architect`](/basic-usage/using-modes#architect-mode) 或 [`debug`](/basic-usage/using-modes#debug-mode)）。
+Orchestrator Mode（原称为 Boomerang Tasks）允许你将复杂项目分解为更小、更易管理的部分。你可以将其理解为将工作的各个部分委派给专门的助手。每个子任务都在自己的上下文中运行，通常使用为特定工作定制的不同 Orbital 模式（如 [`code`](/basic-usage/using-modes#code-mode-default)、[`architect`](/basic-usage/using-modes#architect-mode) 或 [`debug`](/basic-usage/using-modes#debug-mode)）。
 
 <YouTubeEmbed
   url="https://www.youtube.com/watch?v=20MmJNeOODo"
@@ -35,7 +35,7 @@ Orchestrator Mode（原称为 Boomerang Tasks）允许你将复杂项目分解�
     - **向上**：在子任务完成时通过最终摘要传递。注意，只有该摘要会返回给父任务。
 - **导航**：Kilo 的界面帮助你查看任务的层次结构（哪个任务是父任务，哪些是子任务）。你通常可以在活动和暂停的任务之间导航。
 
-Orchestrator Mode 提供了一种强大的方式来管理复杂的开发工作流，直接在 Axon Code 中利用专门模式以实现最大效率。
+Orchestrator Mode 提供了一种强大的方式来管理复杂的开发工作流，直接在 Orbital 中利用专门模式以实现最大效率。
 
 :::tip 保持任务专注
 使用子任务来保持清晰度。如果请求显著改变了焦点或需要不同的专业知识（模式），请考虑创建子任务，而不是让当前任务过载。

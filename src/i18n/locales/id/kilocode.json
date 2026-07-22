@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Generator pesan komit Axon Code diaktifkan",
+		"activated": "Generator pesan komit Orbital diaktifkan",
 		"gitNotFound": "⚠️ Repositori Git tidak ditemukan atau git tidak tersedia",
 		"gitInitError": "⚠️ Kesalahan inisialisasi Git: {{error}}",
 		"generating": "Axon: Menghasilkan pesan komit...",
@@ -63,7 +63,7 @@
 		"providerRegistered": "Axon: Penyedia pesan komit terdaftar",
 		"errors": {
 			"noProject": "Tidak ada proyek yang tersedia",
-			"connectionFailed": "Gagal terhubung ke ekstensi Axon Code",
+			"connectionFailed": "Gagal terhubung ke ekstensi Orbital",
 			"timeout": "Permintaan waktu habis setelah 30 detik",
 			"invalidResponse": "Format respons tidak valid diterima dari ekstensi",
 			"noChanges": "Tidak ada perubahan ditemukan untuk di-commit",
@@ -88,7 +88,7 @@
 		"progress": {
 			"title": "Membuat Pesan Commit",
 			"analyzing": "Menganalisis perubahan...",
-			"connecting": "Menghubungkan ke Axon Code...",
+			"connecting": "Menghubungkan ke Orbital...",
 			"generating": "Menghasilkan pesan commit..."
 		},
 		"ui": {

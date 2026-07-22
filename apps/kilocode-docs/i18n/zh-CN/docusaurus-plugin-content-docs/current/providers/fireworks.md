@@ -2,7 +2,7 @@
 sidebar_label: Fireworks AI
 ---
 
-# 在 Axon Code 中使用 Fireworks AI
+# 在 Orbital 中使用 Fireworks AI
 
 Fireworks AI 是一个高性能的 AI 模型运行平台，可以快速访问各种开源和专有语言模型。它专为速度和可靠性而构建，提供无服务器和专用部署选项，并兼容 OpenAI API。
 
@@ -21,7 +21,7 @@ Fireworks AI 是一个高性能的 AI 模型运行平台，可以快速访问各
 
 ## 支持的模型
 
-Axon Code 支持以下 Fireworks AI 模型：
+Orbital 支持以下 Fireworks AI 模型：
 
 - `accounts/fireworks/models/kimi-k2-instruct` - Kimi K2 指令调优模型
 - `accounts/fireworks/models/qwen3-235b-a22b-instruct-2507` - Qwen 3 235B 指令调优模型
@@ -31,9 +31,9 @@ Axon Code 支持以下 Fireworks AI 模型：
 
 ---
 
-## 在 Axon Code 中配置
+## 在 Orbital 中配置
 
-1. **打开 Axon Code 设置：** 在 Axon Code 面板中点击齿轮图标 (<Codicon name="gear" />)。
+1. **打开 Orbital 设置：** 在 Orbital 面板中点击齿轮图标 (<Codicon name="gear" />)。
 2. **选择提供商：** 从 "API Provider" 下拉菜单中选择 "Fireworks AI"。
 3. **输入 API 密钥：** 将您的 Fireworks AI API 密钥粘贴到 "Fireworks AI API Key" 字段中。
 4. **选择模型：** 从 "Model" 下拉菜单中选择您想要的模型。

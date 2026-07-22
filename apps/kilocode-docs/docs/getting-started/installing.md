@@ -1,10 +1,10 @@
 ---
-sidebar_label: Installing Axon Code
+sidebar_label: Installing Orbital
 ---
 
-# Installing Axon Code
+# Installing Orbital
 
-Axon Code is a VS Code extension that brings AI-powered coding assistance directly to your editor. Install using one of these methods:
+Orbital is a VS Code extension that brings AI-powered coding assistance directly to your editor. Install using one of these methods:
 
 - [**VS Code Marketplace (Recommended)**](#vs-code-marketplace) - fastest method for standard VS Code users
 - [**Cursor Marketplace**](#cursor-marketplace) - recommended way for Cursor users
@@ -15,7 +15,7 @@ Axon Code is a VS Code extension that brings AI-powered coding assistance direct
 
 :::tip
 
-If you already have VS Code installed: [Click here to install Axon Code](vscode:extension/matterai.axon-code)
+If you already have VS Code installed: [Click here to install Orbital](vscode:extension/matterai.axon-code)
 
 :::
 
@@ -24,19 +24,19 @@ alternatively, you can:
 1. Open VS Code
 2. Access Extensions: Click the Extensions icon in the Side Bar or press `Ctrl+Shift+X` (Windows/Linux) or `Cmd+Shift+X` (macOS)
 3. Search for "Orbital"
-4. Select "Orbital" by Axon Code and click **Install**
+4. Select "Orbital" by Orbital and click **Install**
 5. Reload VS Code if prompted
 
-After installation, find the Axon Code icon (<img src="/docs/img/matterai-ic.svg" width="12" />) in the Side Bar to open the Axon Code panel.
+After installation, find the Orbital icon (<img src="/docs/img/matterai-ic.svg" width="12" />) in the Side Bar to open the Orbital panel.
 
-<img src="/docs/img/installing/installing.png" alt="VS Code marketplace with Axon Code extension ready to install" width="400" />
-*VS Code marketplace with Axon Code extension ready to install*
+<img src="/docs/img/installing/installing.png" alt="VS Code marketplace with Orbital extension ready to install" width="400" />
+*VS Code marketplace with Orbital extension ready to install*
 
 ## Cursor Marketplace
 
 :::tip
 
-If you already have Cursor installed: [Click here to install Axon Code](cursor:extension/matterai.axon-code)
+If you already have Cursor installed: [Click here to install Orbital](cursor:extension/matterai.axon-code)
 
 :::
 
@@ -45,16 +45,16 @@ alternatively, you can:
 1. Open Cursor
 2. Access Extensions: Click the Extensions icon in the Side Bar or press `Ctrl+Shift+X` (Windows/Linux) or `Cmd+Shift+X` (macOS)
 3. Search for "Orbital"
-4. Select "Orbital" by Axon Code and click **Install**
+4. Select "Orbital" by Orbital and click **Install**
 5. Reload Cursor if prompted
 
-After installation, find the Axon Code icon (<img src="/docs/img/matterai-ic.svg" width="12" />) in the Side Bar to open the Axon Code panel.
+After installation, find the Orbital icon (<img src="/docs/img/matterai-ic.svg" width="12" />) in the Side Bar to open the Orbital panel.
 
 ## Open VSX Registry
 
 [Open VSX Registry](https://open-vsx.org/) is an open-source alternative to the VS Code Marketplace for VS Code-compatible editors that cannot access the official marketplace due to licensing restrictions.
 
-For VS Code-compatible editors like VSCodium, Gitpod, Eclipse Theia, and Windsurf, you can browse and install directly from the [Axon Code page on Open VSX Registry](https://open-vsx.org/extension/kilocode/Kilo-Code).
+For VS Code-compatible editors like VSCodium, Gitpod, Eclipse Theia, and Windsurf, you can browse and install directly from the [Orbital page on Open VSX Registry](https://open-vsx.org/extension/kilocode/Kilo-Code).
 
 1. Open your editor
 2. Access the Extensions view (Side Bar icon or `Ctrl+Shift+X` / `Cmd+Shift+X`)
@@ -73,7 +73,7 @@ If you prefer to download and install the VSIX file directly:
 
 1. **Download the VSIX file:**
 
-    - Find official releases on the [Axon Code GitHub Releases page](https://github.com/MatterAIOrg/Orbital-Extension/releases)
+    - Find official releases on the [Orbital GitHub Releases page](https://github.com/MatterAIOrg/Orbital-Extension/releases)
     - Download the `.vsix` file from the [latest release](https://github.com/MatterAIOrg/Orbital-Extension/releases/latest)
 
 2. **Install in VS Code:**
@@ -84,14 +84,14 @@ If you prefer to download and install the VSIX file directly:
     - Browse to and select your downloaded `.vsix` file
 
 <img src="/docs/img/installing/installing-2.png" alt="VS Code's Install from VSIX dialog" width="400" />
-*Installing Axon Code using VS Code's "Install from VSIX" dialog*
+*Installing Orbital using VS Code's "Install from VSIX" dialog*
 
 ## Troubleshooting
 
 **Extension Not Visible**
 
 - Restart VS Code
-- Verify Axon Code is listed and enabled in Extensions
+- Verify Orbital is listed and enabled in Extensions
 - Try disabling and re-enabling the extension in Extensions
 - Check Output panel for errors (View → Output, select "Orbital")
 

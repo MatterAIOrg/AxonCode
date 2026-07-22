@@ -54,7 +54,7 @@ const AuthWizardComponent: React.FC<AuthWizardProps> = ({ onComplete }) => {
 				<Logo />
 				<Box marginTop={1}>
 					<Text color={theme.brand.primary} bold>
-						Axon Code CLI
+						Orbital CLI
 					</Text>
 				</Box>
 				<Box marginTop={1}>
@@ -72,12 +72,12 @@ const AuthWizardComponent: React.FC<AuthWizardProps> = ({ onComplete }) => {
 				</Box>
 				<Box marginBottom={1}>
 					<Text bold color={theme.brand.primary}>
-						Welcome to Axon Code CLI
+						Welcome to Orbital CLI
 					</Text>
 				</Box>
 				<Box marginBottom={1}>
 					<Text color={theme.ui.text.primary}>
-						Axon Code is an AI-powered coding assistant that helps you write,
+						Orbital is an AI-powered coding assistant that helps you write,
 					</Text>
 				</Box>
 				<Box marginBottom={1}>
@@ -90,7 +90,7 @@ const AuthWizardComponent: React.FC<AuthWizardProps> = ({ onComplete }) => {
 					<Text color={theme.ui.text.secondary}>🌐 We'll open your browser to complete authentication.</Text>
 				</Box>
 				<Box marginBottom={1}>
-					<Text color={theme.ui.text.secondary}>This is a secure way to connect your Axon Code account.</Text>
+					<Text color={theme.ui.text.secondary}>This is a secure way to connect your Orbital account.</Text>
 				</Box>
 				<Box marginTop={1}>
 					<Text color={theme.ui.text.primary}>
@@ -132,7 +132,7 @@ const AuthWizardComponent: React.FC<AuthWizardProps> = ({ onComplete }) => {
 				</Box>
 				<Box marginBottom={1}>
 					<Text color={theme.ui.text.primary}>
-						You can now use the Axon Code CLI with your authenticated account.
+						You can now use the Orbital CLI with your authenticated account.
 					</Text>
 				</Box>
 				<Box>

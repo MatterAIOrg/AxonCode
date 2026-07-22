@@ -2,7 +2,7 @@
 sidebar_label: xAI (Grok)
 ---
 
-# Using xAI (Grok) With Axon Code
+# Using xAI (Grok) With Orbital
 
 xAI is the company behind Grok, a large language model known for its conversational abilities and large context window. Grok models are designed to provide helpful, informative, and contextually relevant responses.
 
@@ -17,7 +17,7 @@ xAI is the company behind Grok, a large language model known for its conversatio
 
 ## Supported Models
 
-Axon Code supports the following xAI Grok models:
+Orbital supports the following xAI Grok models:
 
 ### Grok-3 Models
 
@@ -43,9 +43,9 @@ Axon Code supports the following xAI Grok models:
 
 - `grok-beta` - xAI's Grok Beta model (legacy) with 131K context window
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
-1.  **Open Axon Code Settings:** Click the gear icon (<Codicon name="gear" />) in the Axon Code panel.
+1.  **Open Orbital Settings:** Click the gear icon (<Codicon name="gear" />) in the Orbital panel.
 2.  **Select Provider:** Choose "xAI" from the "API Provider" dropdown.
 3.  **Enter API Key:** Paste your xAI API key into the "xAI API Key" field.
 4.  **Select Model:** Choose your desired Grok model from the "Model" dropdown.

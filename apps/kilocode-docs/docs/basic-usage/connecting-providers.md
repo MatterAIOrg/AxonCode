@@ -4,9 +4,9 @@ sidebar_label: Overview
 
 # API Providers Overview
 
-**Bottom line**: Axon Code, like any agentic AI coding tool, needs AI model providers to function. You can use our [built-in provider](/providers/kilocode) (easiest) or connect your own API keys from **30+ providers**.
+**Bottom line**: Orbital, like any agentic AI coding tool, needs AI model providers to function. You can use our [built-in provider](/providers/kilocode) (easiest) or connect your own API keys from **30+ providers**.
 
-## Axon Code Extension vs. API Provider
+## Orbital Extension vs. API Provider
 
 ### The Extension
 
@@ -44,7 +44,7 @@ sidebar_label: Overview
 
 1. Choose from 30+ supported providers
 2. Get API key from your provider
-3. Configure in Axon Code settings
+3. Configure in Orbital settings
 
 ## Why Use Multiple Providers?
 

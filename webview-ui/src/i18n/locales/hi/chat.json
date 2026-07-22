@@ -1,5 +1,5 @@
 {
-	"greeting": "Axon Code आपके लिए क्या कर सकता है?",
+	"greeting": "Orbital आपके लिए क्या कर सकता है?",
 	"task": {
 		"title": "कार्य",
 		"expand": "कार्य विस्तारित करें",
@@ -21,7 +21,7 @@
 		"sharePublicly": "सार्वजनिक रूप से साझा करें",
 		"sharePubliclyDescription": "लिंक वाला कोई भी एक्सेस कर सकता है",
 		"connectToCloud": "Cloud से कनेक्ट करें",
-		"connectToCloudDescription": "कार्य साझा करने के लिए Axon Code Cloud में साइन इन करें",
+		"connectToCloudDescription": "कार्य साझा करने के लिए Orbital Cloud में साइन इन करें",
 		"sharingDisabledByOrganization": "संगठन द्वारा साझाकरण अक्षम किया गया",
 		"shareSuccessOrganization": "संगठन लिंक क्लिपबोर्ड पर कॉपी किया गया",
 		"shareSuccessPublic": "सार्वजनिक लिंक क्लिपबोर्ड पर कॉपी किया गया",
@@ -130,7 +130,7 @@
 		"title": "मोड",
 		"marketplace": "मोड मार्केटप्लेस",
 		"settings": "मोड सेटिंग्स",
-		"description": "विशेष व्यक्तित्व जो Axon Code के व्यवहार को अनुकूलित करते हैं।",
+		"description": "विशेष व्यक्तित्व जो Orbital के व्यवहार को अनुकूलित करते हैं।",
 		"searchPlaceholder": "मोड खोजें...",
 		"noResults": "कोई परिणाम नहीं मिला",
 		"organizationModes": "संगठन मोड"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "संपादन असफल"
 	},
-	"troubleMessage": "Axon Code को समस्या हो रही है...",
+	"troubleMessage": "Orbital को समस्या हो रही है...",
 	"powershell": {
 		"issues": "ऐसा लगता है कि आपको Windows PowerShell की समस्याएं हैं, कृपया इसे देखें"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "वर्तमान प्रोफ़ाइल आपके संगठन की सेटिंग्स के साथ संगत नहीं है",
 	"shellIntegration": {
 		"title": "कमांड निष्पादन चेतावनी",
-		"description": "आपकी कमांड VSCode टर्मिनल शेल इंटीग्रेशन के बिना निष्पादित की जा रही है। इस चेतावनी को दबाने के लिए आप <settingsLink>Axon Code सेटिंग्स</settingsLink> के <strong>टर्मिनल</strong> अनुभाग में शेल इंटीग्रेशन अक्षम कर सकते हैं या नीचे दिए गए लिंक का उपयोग करके VSCode टर्मिनल इंटीग्रेशन को ट्रबलशूट कर सकते हैं।",
+		"description": "आपकी कमांड VSCode टर्मिनल शेल इंटीग्रेशन के बिना निष्पादित की जा रही है। इस चेतावनी को दबाने के लिए आप <settingsLink>Orbital सेटिंग्स</settingsLink> के <strong>टर्मिनल</strong> अनुभाग में शेल इंटीग्रेशन अक्षम कर सकते हैं या नीचे दिए गए लिंक का उपयोग करके VSCode टर्मिनल इंटीग्रेशन को ट्रबलशूट कर सकते हैं।",
 		"troubleshooting": "शेल इंटीग्रेशन दस्तावेज़ीकरण के लिए यहां क्लिक करें।"
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "स्वतः-स्वीकृत अनुरोध सीमा पहुंच गई",
-			"description": "Axon Code {{count}} API अनुरोध की स्वतः-स्वीकृत सीमा पर पहुंच गया है। क्या आप गणना रीसेट करना और कार्य जारी रखना चाहते हैं?",
+			"description": "Orbital {{count}} API अनुरोध की स्वतः-स्वीकृत सीमा पर पहुंच गया है। क्या आप गणना रीसेट करना और कार्य जारी रखना चाहते हैं?",
 			"button": "रीसेट करें और जारी रखें"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "स्वतः-स्वीकृत लागत सीमा पहुंच गई",
-			"description": "Axon Code ${{count}} की स्वतः-स्वीकृत लागत सीमा पर पहुंच गया है। क्या आप लागत रीसेट करना और कार्य जारी रखना चाहते हैं?",
+			"description": "Orbital ${{count}} की स्वतः-स्वीकृत लागत सीमा पर पहुंच गया है। क्या आप लागत रीसेट करना और कार्य जारी रखना चाहते हैं?",
 			"button": "रीसेट करें और जारी रखें"
 		}
 	},
@@ -404,7 +404,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "एक स्लैश कमांड चलाएं",
-		"didRun": "Axon Code ने एक स्लैश कमांड चलाया"
+		"didRun": "Orbital ने एक स्लैश कमांड चलाया"
 	},
 	"queuedMessages": {
 		"title": "कतारबद्ध संदेश",

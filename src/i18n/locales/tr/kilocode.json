@@ -46,7 +46,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Axon Code commit mesajı oluşturucu etkinleştirildi",
+		"activated": "Orbital commit mesajı oluşturucu etkinleştirildi",
 		"gitNotFound": "⚠️ Git deposu bulunamadı veya git kullanılamıyor",
 		"gitInitError": "⚠️ Git başlatma hatası: {{error}}",
 		"generating": "Axon: Commit mesajı oluşturuluyor...",
@@ -58,7 +58,7 @@
 		"providerRegistered": "Axon: Commit mesajı sağlayıcısı kaydedildi",
 		"errors": {
 			"noProject": "Proje mevcut değil",
-			"connectionFailed": "Axon Code uzantısına bağlanılamadı",
+			"connectionFailed": "Orbital uzantısına bağlanılamadı",
 			"timeout": "İstek 30 saniye sonra zaman aşımına uğradı",
 			"noChanges": "Kaydedilecek değişiklik bulunamadı",
 			"missingMessage": "Uzantıdan taahhüt mesajı alınmadı",
@@ -84,7 +84,7 @@
 			"title": "Commit Mesajı Oluşturuluyor",
 			"analyzing": "Değişiklikler inceleniyor...",
 			"generating": "Taahhüt mesajı oluşturuluyor...",
-			"connecting": "Axon Code'a bağlanıyor..."
+			"connecting": "Orbital'a bağlanıyor..."
 		},
 		"ui": {
 			"generateButton": "Commit Mesajı Oluştur",

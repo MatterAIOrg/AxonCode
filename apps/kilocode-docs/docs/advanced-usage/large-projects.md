@@ -1,17 +1,17 @@
 # Working with Large Projects
 
-Axon Code can be used with projects of any size, but large projects require some extra care to manage context effectively. Here are some tips for working with large codebases:
+Orbital can be used with projects of any size, but large projects require some extra care to manage context effectively. Here are some tips for working with large codebases:
 
 ## Understanding Context Limits
 
-Axon Code uses large language models (LLMs) that have a limited "context window." This is the maximum amount of text (measured in tokens) that the model can process at once. If the context is too large, the model may not be able to understand your request or generate accurate responses.
+Orbital uses large language models (LLMs) that have a limited "context window." This is the maximum amount of text (measured in tokens) that the model can process at once. If the context is too large, the model may not be able to understand your request or generate accurate responses.
 
 The context window includes:
 
-- The system prompt (instructions for Axon Code).
+- The system prompt (instructions for Orbital).
 - The conversation history.
 - The content of any files you mention using `@`.
-- The output of any commands or tools Axon Code uses.
+- The output of any commands or tools Orbital uses.
 
 ## Strategies for Managing Context
 
@@ -23,7 +23,7 @@ The context window includes:
 
 4.  **Summarize:** If you need to refer to a large amount of code, consider summarizing the relevant parts in your prompt instead of including the entire code.
 
-5.  **Prioritize Recent History:** Axon Code automatically truncates older messages in the conversation history to stay within the context window. Be mindful of this, and re-include important context if needed.
+5.  **Prioritize Recent History:** Orbital automatically truncates older messages in the conversation history to stay within the context window. Be mindful of this, and re-include important context if needed.
 
 6.  **Use Prompt Caching (if available):** Some API providers like Anthropic, OpenAI, OpenRouter and Requesty support "prompt caching". This caches your prompts for use in future tasks and helps reduce the cost and latency of requests.
 

@@ -276,11 +276,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// forked_change start
 	if (!context.globalState.get("firstInstallCompleted")) {
-		outputChannel.appendLine("First installation detected, opening Axon Code sidebar!")
+		outputChannel.appendLine("First installation detected, opening Orbital sidebar!")
 		try {
 			await vscode.commands.executeCommand("axon-code.SidebarProvider.focus")
 
-			outputChannel.appendLine("Opening Axon Code walkthrough")
+			outputChannel.appendLine("Opening Orbital walkthrough")
 
 			// this can crash, see:
 			// https://discord.com/channels/1349288496988160052/1395865796026040470
@@ -350,7 +350,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	)
 
-	// forked_change start - Axon Code specific registrations
+	// forked_change start - Orbital specific registrations
 	const { kiloCodeWrapped } = getKiloCodeWrapperProperties()
 	if (kiloCodeWrapped) {
 		// Only foward logs in Jetbrains
@@ -363,12 +363,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	await vscode.commands.executeCommand("setContext", "axon:isOrbital", isOrbital)
 	outputChannel.appendLine(`Running in ${isOrbital ? "Orbital IDE" : "VS Code"}`)
 
-	// forked_change end - Axon Code specific registrations
+	// forked_change end - Orbital specific registrations
 
 	registerCodeActions(context)
 	registerTerminalActions(context)
 
-	// Allows other extensions to activate once Axon Code is ready.
+	// Allows other extensions to activate once Orbital is ready.
 	vscode.commands.executeCommand(`${Package.name}.activationCompleted`)
 
 	// Implements the `RooCodeAPI` interface.

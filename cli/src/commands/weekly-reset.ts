@@ -21,7 +21,7 @@ function waitForReset(service: ExtensionService, timeoutMs = 10_000): Promise<Ex
 export const weeklyResetCommand: Command = {
 	name: "weekly-reset",
 	aliases: ["reset-weekly"],
-	description: "Reset Axon Code weekly usage (Pro and above, once per month)",
+	description: "Reset Orbital weekly usage (Pro and above, once per month)",
 	usage: "/weekly-reset",
 	examples: ["/weekly-reset"],
 	category: "settings",
@@ -32,7 +32,7 @@ export const weeklyResetCommand: Command = {
 			context.addMessage({
 				id: Date.now().toString(),
 				type: "error",
-				content: "Weekly reset requires an authenticated Axon Code provider.",
+				content: "Weekly reset requires an authenticated Orbital provider.",
 				ts: Date.now(),
 			})
 			return

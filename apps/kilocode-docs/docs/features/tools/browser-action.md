@@ -1,6 +1,6 @@
 # browser_action
 
-The `browser_action` tool enables web automation and interaction via a Puppeteer-controlled browser. It allows Axon Code to launch browsers, navigate to websites, click elements, type text, and scroll pages with visual feedback through screenshots.
+The `browser_action` tool enables web automation and interaction via a Puppeteer-controlled browser. It allows Orbital to launch browsers, navigate to websites, click elements, type text, and scroll pages with visual feedback through screenshots.
 
 ## Parameters
 
@@ -19,11 +19,11 @@ The tool accepts these parameters:
 
 ## What It Does
 
-This tool creates an automated browser session that Axon Code can control to navigate websites, interact with elements, and perform tasks that require browser automation. Each action provides a screenshot of the current state, enabling visual verification of the process.
+This tool creates an automated browser session that Orbital can control to navigate websites, interact with elements, and perform tasks that require browser automation. Each action provides a screenshot of the current state, enabling visual verification of the process.
 
 ## When is it used?
 
-- When Axon Code needs to interact with web applications or websites
+- When Orbital needs to interact with web applications or websites
 - When testing user interfaces or web functionality
 - When capturing screenshots of web pages
 - When demonstrating web workflows visually
@@ -68,7 +68,7 @@ The tool operates in two distinct modes:
 - Browser sessions must be explicitly closed before using other tools
 - Browser window has configurable dimensions (default 900x600)
 - Cannot directly interact with browser DevTools
-- Browser sessions are temporary and not persistent across Axon Code restarts
+- Browser sessions are temporary and not persistent across Orbital restarts
 - Works only with Chrome/Chromium browsers, not Firefox or Safari
 - Local mode has no access to existing cookies; remote mode requires Chrome with debugging enabled
 
@@ -111,10 +111,10 @@ Browser interactions must follow this specific sequence:
 
 ## Examples When Used
 
-- When creating a web form submission process, Axon Code launches a browser, navigates to the form, fills out fields with the `type` action, and clicks submit.
-- When testing a responsive website, Axon Code navigates to the site and uses scroll actions to examine different sections.
-- When capturing screenshots of a web application, Axon Code navigates through different pages and takes screenshots at each step.
-- When demonstrating an e-commerce checkout flow, Axon Code simulates the entire process from product selection to payment confirmation.
+- When creating a web form submission process, Orbital launches a browser, navigates to the form, fills out fields with the `type` action, and clicks submit.
+- When testing a responsive website, Orbital navigates to the site and uses scroll actions to examine different sections.
+- When capturing screenshots of a web application, Orbital navigates through different pages and takes screenshots at each step.
+- When demonstrating an e-commerce checkout flow, Orbital simulates the entire process from product selection to payment confirmation.
 
 ## Usage Examples
 

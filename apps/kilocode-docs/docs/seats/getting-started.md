@@ -49,7 +49,7 @@ seats for Kilo in the Teams or Enterprise subscription brings transparent AI cod
 Team members receive invitation emails with these steps:
 
 1. Accept the team invitation
-2. Install Axon Code from [VS Code Marketplace](vscode:extension/matterai.axon-code)
+2. Install Orbital from [VS Code Marketplace](vscode:extension/matterai.axon-code)
 3. Sign in with their invited email
 4. Start coding with AI assistance
 

@@ -19,7 +19,7 @@
 1. **Fork 并克隆仓库**：
 
     - **Fork 仓库**：
-        - 访问 [Axon Code GitHub 仓库](https://github.com/MatterAIOrg/Orbital-Extension)
+        - 访问 [Orbital GitHub 仓库](https://github.com/MatterAIOrg/Orbital-Extension)
         - 点击右上角的 "Fork" 按钮，创建你自己的副本。
     - **克隆你的 Fork**：
         ```bash
@@ -80,7 +80,7 @@ npm run build
 要在开发模式下运行扩展：
 
 1. 在 VSCode 中按 `F5`（或选择 **Run** → **Start Debugging**）
-2. 这将打开一个新的 VSCode 窗口，并加载 Axon Code
+2. 这将打开一个新的 VSCode 窗口，并加载 Orbital
 
 ### 热重载
 
@@ -109,7 +109,7 @@ code --install-extension "$(ls -1v bin/axon-code-*.vsix | tail -n1)"
 
 ## 测试
 
-Axon Code 使用多种测试来确保质量：
+Orbital 使用多种测试来确保质量：
 
 ### 单元测试
 

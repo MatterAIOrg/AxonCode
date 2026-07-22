@@ -25,12 +25,12 @@ MCP服务器配置可以在两个级别进行管理：
 
 你可以直接从Kilo Code MCP设置视图编辑全局和项目级MCP配置文件：
 
-1.  单击 Axon Code 窗格顶部导航栏中的 <Codicon name="gear" /> 图标以打开 `Settings`。
+1.  单击 Orbital 窗格顶部导航栏中的 <Codicon name="gear" /> 图标以打开 `Settings`。
 2.  单击左侧的 `MCP Servers` 选项卡
 3.  选择 `Installed` 服务器
 4.  单击相应的按钮：
     - **`Edit Global MCP`**：打开全局 `mcp_settings.json` 文件。
-    - **`Edit Project MCP`**：打开项目特定的 `.orbital/mcp.json` 文件。如果此文件不存在，Axon Code 将为您创建它。
+    - **`Edit Project MCP`**：打开项目特定的 `.orbital/mcp.json` 文件。如果此文件不存在，Orbital 将为您创建它。
 
   <img src="/docs/img/using-mcp-in-kilo-code/mcp-installed-config.png" alt="编辑全局 MCP 和编辑项目 MCP 按钮" width="600" />
 

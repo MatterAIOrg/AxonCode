@@ -1,5 +1,5 @@
 {
-	"greeting": "Добро пожаловать в Axon Code",
+	"greeting": "Добро пожаловать в Orbital",
 	"task": {
 		"title": "Задача",
 		"expand": "Развернуть задачу",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Поделиться публично",
 		"sharePubliclyDescription": "Любой, у кого есть ссылка, может получить доступ",
 		"connectToCloud": "Подключиться к облаку",
-		"connectToCloudDescription": "Войди в Axon Code Cloud, чтобы делиться задачами",
+		"connectToCloudDescription": "Войди в Orbital Cloud, чтобы делиться задачами",
 		"sharingDisabledByOrganization": "Обмен отключен организацией",
 		"shareSuccessOrganization": "Ссылка организации скопирована в буфер обмена",
 		"shareSuccessPublic": "Публичная ссылка скопирована в буфер обмена",
@@ -103,7 +103,7 @@
 	},
 	"scrollToBottom": "Прокрутить чат вниз",
 	"about": "Создавайте, рефакторите и отлаживайте код с помощью ИИ. Подробнее см. в нашей <DocsLink>документации</DocsLink>.",
-	"onboarding": "<strong>Ваш список задач в этом рабочем пространстве пуст.</strong> Начните с ввода задачи ниже. Не знаете, с чего начать? Подробнее о возможностях Axon Code читайте в <DocsLink>документации</DocsLink>.",
+	"onboarding": "<strong>Ваш список задач в этом рабочем пространстве пуст.</strong> Начните с ввода задачи ниже. Не знаете, с чего начать? Подробнее о возможностях Orbital читайте в <DocsLink>документации</DocsLink>.",
 	"rooTips": {
 		"boomerangTasks": {
 			"title": "Оркестрация задач",
@@ -180,50 +180,50 @@
 		"tokens": "токены"
 	},
 	"instructions": {
-		"wantsToFetch": "Axon Code хочет получить подробные инструкции для помощи с текущей задачей"
+		"wantsToFetch": "Orbital хочет получить подробные инструкции для помощи с текущей задачей"
 	},
 	"fileOperations": {
-		"wantsToRead": "Axon Code хочет прочитать этот файл",
-		"wantsToReadMultiple": "Axon Code хочет прочитать несколько файлов",
-		"wantsToReadAndXMore": "Axon Code хочет прочитать этот файл и еще {{count}}",
-		"wantsToReadOutsideWorkspace": "Axon Code хочет прочитать этот файл вне рабочей области",
-		"didRead": "Axon Code прочитал этот файл",
-		"wantsToEdit": "Axon Code хочет отредактировать этот файл",
-		"wantsToEditOutsideWorkspace": "Axon Code хочет отредактировать этот файл вне рабочей области",
-		"wantsToEditProtected": "Axon Code хочет отредактировать защищённый файл конфигурации",
-		"wantsToApplyBatchChanges": "Axon Code хочет применить изменения к нескольким файлам",
-		"wantsToGenerateImage": "Axon Code хочет сгенерировать изображение",
-		"wantsToGenerateImageOutsideWorkspace": "Axon Code хочет сгенерировать изображение вне рабочего пространства",
-		"wantsToGenerateImageProtected": "Axon Code хочет сгенерировать изображение в защищённом месте",
-		"didGenerateImage": "Axon Code сгенерировал изображение",
-		"wantsToCreate": "Axon Code хочет создать новый файл",
-		"wantsToSearchReplace": "Axon Code хочет выполнить поиск и замену в этом файле",
-		"didSearchReplace": "Axon Code выполнил поиск и замену в этом файле",
-		"wantsToInsert": "Axon Code хочет вставить содержимое в этот файл",
-		"wantsToInsertWithLineNumber": "Axon Code хочет вставить содержимое в этот файл на строку {{lineNumber}}",
-		"wantsToInsertAtEnd": "Axon Code хочет добавить содержимое в конец этого файла"
+		"wantsToRead": "Orbital хочет прочитать этот файл",
+		"wantsToReadMultiple": "Orbital хочет прочитать несколько файлов",
+		"wantsToReadAndXMore": "Orbital хочет прочитать этот файл и еще {{count}}",
+		"wantsToReadOutsideWorkspace": "Orbital хочет прочитать этот файл вне рабочей области",
+		"didRead": "Orbital прочитал этот файл",
+		"wantsToEdit": "Orbital хочет отредактировать этот файл",
+		"wantsToEditOutsideWorkspace": "Orbital хочет отредактировать этот файл вне рабочей области",
+		"wantsToEditProtected": "Orbital хочет отредактировать защищённый файл конфигурации",
+		"wantsToApplyBatchChanges": "Orbital хочет применить изменения к нескольким файлам",
+		"wantsToGenerateImage": "Orbital хочет сгенерировать изображение",
+		"wantsToGenerateImageOutsideWorkspace": "Orbital хочет сгенерировать изображение вне рабочего пространства",
+		"wantsToGenerateImageProtected": "Orbital хочет сгенерировать изображение в защищённом месте",
+		"didGenerateImage": "Orbital сгенерировал изображение",
+		"wantsToCreate": "Orbital хочет создать новый файл",
+		"wantsToSearchReplace": "Orbital хочет выполнить поиск и замену в этом файле",
+		"didSearchReplace": "Orbital выполнил поиск и замену в этом файле",
+		"wantsToInsert": "Orbital хочет вставить содержимое в этот файл",
+		"wantsToInsertWithLineNumber": "Orbital хочет вставить содержимое в этот файл на строку {{lineNumber}}",
+		"wantsToInsertAtEnd": "Orbital хочет добавить содержимое в конец этого файла"
 	},
 	"directoryOperations": {
-		"wantsToViewTopLevel": "Axon Code хочет просмотреть файлы верхнего уровня в этой директории",
-		"didViewTopLevel": "Axon Code просмотрел файлы верхнего уровня в этой директории",
-		"wantsToViewTopLevelOutsideWorkspace": "Axon Code хочет просмотреть файлы верхнего уровня в этой директории (вне рабочего пространства)",
-		"didViewTopLevelOutsideWorkspace": "Axon Code просмотрел файлы верхнего уровня в этой директории (вне рабочего пространства)",
-		"wantsToViewRecursive": "Axon Code хочет рекурсивно просмотреть все файлы в этой директории",
-		"didViewRecursive": "Axon Code рекурсивно просмотрел все файлы в этой директории",
-		"wantsToViewRecursiveOutsideWorkspace": "Axon Code хочет рекурсивно просмотреть все файлы в этой директории (вне рабочего пространства)",
-		"didViewRecursiveOutsideWorkspace": "Axon Code рекурсивно просмотрел все файлы в этой директории (вне рабочего пространства)",
-		"wantsToViewDefinitions": "Axon Code хочет просмотреть имена определений исходного кода в этой директории",
-		"didViewDefinitions": "Axon Code просмотрел имена определений исходного кода в этой директории",
-		"wantsToViewDefinitionsOutsideWorkspace": "Axon Code хочет просмотреть имена определений исходного кода в этой директории (вне рабочего пространства)",
-		"didViewDefinitionsOutsideWorkspace": "Axon Code просмотрел имена определений исходного кода в этой директории (вне рабочего пространства)",
-		"wantsToSearch": "Axon Code хочет выполнить поиск в этой директории по <code>{{regex}}</code>",
-		"didSearch": "Axon Code выполнил поиск в этой директории по <code>{{regex}}</code>",
-		"wantsToSearchOutsideWorkspace": "Axon Code хочет выполнить поиск в этой директории (вне рабочего пространства) по <code>{{regex}}</code>",
-		"didSearchOutsideWorkspace": "Axon Code выполнил поиск в этой директории (вне рабочего пространства) по <code>{{regex}}</code>"
+		"wantsToViewTopLevel": "Orbital хочет просмотреть файлы верхнего уровня в этой директории",
+		"didViewTopLevel": "Orbital просмотрел файлы верхнего уровня в этой директории",
+		"wantsToViewTopLevelOutsideWorkspace": "Orbital хочет просмотреть файлы верхнего уровня в этой директории (вне рабочего пространства)",
+		"didViewTopLevelOutsideWorkspace": "Orbital просмотрел файлы верхнего уровня в этой директории (вне рабочего пространства)",
+		"wantsToViewRecursive": "Orbital хочет рекурсивно просмотреть все файлы в этой директории",
+		"didViewRecursive": "Orbital рекурсивно просмотрел все файлы в этой директории",
+		"wantsToViewRecursiveOutsideWorkspace": "Orbital хочет рекурсивно просмотреть все файлы в этой директории (вне рабочего пространства)",
+		"didViewRecursiveOutsideWorkspace": "Orbital рекурсивно просмотрел все файлы в этой директории (вне рабочего пространства)",
+		"wantsToViewDefinitions": "Orbital хочет просмотреть имена определений исходного кода в этой директории",
+		"didViewDefinitions": "Orbital просмотрел имена определений исходного кода в этой директории",
+		"wantsToViewDefinitionsOutsideWorkspace": "Orbital хочет просмотреть имена определений исходного кода в этой директории (вне рабочего пространства)",
+		"didViewDefinitionsOutsideWorkspace": "Orbital просмотрел имена определений исходного кода в этой директории (вне рабочего пространства)",
+		"wantsToSearch": "Orbital хочет выполнить поиск в этой директории по <code>{{regex}}</code>",
+		"didSearch": "Orbital выполнил поиск в этой директории по <code>{{regex}}</code>",
+		"wantsToSearchOutsideWorkspace": "Orbital хочет выполнить поиск в этой директории (вне рабочего пространства) по <code>{{regex}}</code>",
+		"didSearchOutsideWorkspace": "Orbital выполнил поиск в этой директории (вне рабочего пространства) по <code>{{regex}}</code>"
 	},
 	"codebaseSearch": {
-		"wantsToSearch": "Axon Code хочет выполнить поиск в кодовой базе по <code>{{query}}</code>",
-		"wantsToSearchWithPath": "Axon Code хочет выполнить поиск в кодовой базе по <code>{{query}}</code> в <code>{{path}}</code>",
+		"wantsToSearch": "Orbital хочет выполнить поиск в кодовой базе по <code>{{query}}</code>",
+		"wantsToSearchWithPath": "Orbital хочет выполнить поиск в кодовой базе по <code>{{query}}</code> в <code>{{path}}</code>",
 		"didSearch_one": "Найден 1 результат",
 		"didSearch_other": "Найдено {{count}} результатов",
 		"resultTooltip": "Оценка схожести: {{score}} (нажмите, чтобы открыть файл)"
@@ -254,18 +254,18 @@
 		"youSaid": "Вы сказали"
 	},
 	"mcp": {
-		"wantsToUseTool": "Axon Code хочет использовать инструмент на сервере MCP {{serverName}}",
-		"wantsToAccessResource": "Axon Code хочет получить доступ к ресурсу на сервере MCP {{serverName}}"
+		"wantsToUseTool": "Orbital хочет использовать инструмент на сервере MCP {{serverName}}",
+		"wantsToAccessResource": "Orbital хочет получить доступ к ресурсу на сервере MCP {{serverName}}"
 	},
 	"modes": {
-		"wantsToSwitch": "Axon Code хочет переключиться в режим {{mode}}",
-		"wantsToSwitchWithReason": "Axon Code хочет переключиться в режим {{mode}}, потому что: {{reason}}",
-		"didSwitch": "Axon Code переключился в режим {{mode}}",
-		"didSwitchWithReason": "Axon Code переключился в режим {{mode}}, потому что: {{reason}}"
+		"wantsToSwitch": "Orbital хочет переключиться в режим {{mode}}",
+		"wantsToSwitchWithReason": "Orbital хочет переключиться в режим {{mode}}, потому что: {{reason}}",
+		"didSwitch": "Orbital переключился в режим {{mode}}",
+		"didSwitchWithReason": "Orbital переключился в режим {{mode}}, потому что: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Axon Code хочет создать новую подзадачу в режиме {{mode}}",
-		"wantsToFinish": "Axon Code хочет завершить эту подзадачу",
+		"wantsToCreate": "Orbital хочет создать новую подзадачу в режиме {{mode}}",
+		"wantsToFinish": "Orbital хочет завершить эту подзадачу",
 		"newTaskContent": "Инструкции по подзадаче",
 		"completionContent": "Подзадача завершена",
 		"resultContent": "Результаты подзадачи",
@@ -273,14 +273,14 @@
 		"completionInstructions": "Подзадача завершена! Вы можете просмотреть результаты и предложить исправления или следующие шаги. Если всё в порядке, подтвердите для возврата результата в родительскую задачу."
 	},
 	"questions": {
-		"hasQuestion": "У Axon Code есть вопрос"
+		"hasQuestion": "У Orbital есть вопрос"
 	},
 	"taskCompleted": "Задача завершена",
 	"error": "Ошибка",
 	"diffError": {
 		"title": "Не удалось выполнить редактирование"
 	},
-	"troubleMessage": "У Axon Code возникли проблемы...",
+	"troubleMessage": "У Orbital возникли проблемы...",
 	"powershell": {
 		"issues": "Похоже, у вас проблемы с Windows PowerShell, пожалуйста, ознакомьтесь с этим"
 	},
@@ -322,7 +322,7 @@
 		"countdownDisplay": "{{count}}с"
 	},
 	"browser": {
-		"rooWantsToUse": "Axon Code хочет использовать браузер",
+		"rooWantsToUse": "Orbital хочет использовать браузер",
 		"consoleLogs": "Логи консоли",
 		"noNewLogs": "(Новых логов нет)",
 		"screenshot": "Скриншот браузера",
@@ -354,13 +354,13 @@
 	"profileViolationWarning": "Текущий профиль несовместим с настройками вашей организации",
 	"shellIntegration": {
 		"title": "Предупреждение о выполнении команды",
-		"description": "Ваша команда выполняется без интеграции оболочки терминала VSCode. Чтобы скрыть это предупреждение, вы можете отключить интеграцию оболочки в разделе <strong>Terminal</strong> в <settingsLink>настройках Axon Code</settingsLink> или устранить проблемы с интеграцией терминала VSCode, используя ссылку ниже.",
+		"description": "Ваша команда выполняется без интеграции оболочки терминала VSCode. Чтобы скрыть это предупреждение, вы можете отключить интеграцию оболочки в разделе <strong>Terminal</strong> в <settingsLink>настройках Orbital</settingsLink> или устранить проблемы с интеграцией терминала VSCode, используя ссылку ниже.",
 		"troubleshooting": "Нажмите здесь для просмотра документации по интеграции оболочки."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Достигнут лимит автоматически одобренных запросов",
-			"description": "Axon Code достиг автоматически одобренного лимита в {{count}} API-запрос(ов). Хотите сбросить счетчик и продолжить задачу?",
+			"description": "Orbital достиг автоматически одобренного лимита в {{count}} API-запрос(ов). Хотите сбросить счетчик и продолжить задачу?",
 			"button": "Сбросить и продолжить"
 		},
 		"autoApprovedCostLimitReached": {
@@ -403,8 +403,8 @@
 		}
 	},
 	"slashCommand": {
-		"wantsToRun": "Axon Code хочет выполнить слеш-команду",
-		"didRun": "Axon Code выполнил слеш-команду"
+		"wantsToRun": "Orbital хочет выполнить слеш-команду",
+		"didRun": "Orbital выполнил слеш-команду"
 	},
 	"queuedMessages": {
 		"title": "Сообщения в очереди",

@@ -2,9 +2,9 @@
 sidebar_label: OpenAI
 ---
 
-# Using OpenAI With Axon Code
+# Using OpenAI With Orbital
 
-Axon Code supports accessing models directly through the official OpenAI API.
+Orbital supports accessing models directly through the official OpenAI API.
 
 **Website:** [https://openai.com/](https://openai.com/)
 
@@ -17,7 +17,7 @@ Axon Code supports accessing models directly through the official OpenAI API.
 
 ## Supported Models
 
-Axon Code supports a variety of OpenAI models, including:
+Orbital supports a variety of OpenAI models, including:
 
 - `o3-mini` (medium reasoning effort)
 - `o3-mini-high` (high reasoning effort)
@@ -31,9 +31,9 @@ Axon Code supports a variety of OpenAI models, including:
 
 Refer to the [OpenAI Models documentation](https://platform.openai.com/docs/models) for the most up-to-date list of models and capabilities.
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
-1.  **Open Axon Code Settings:** Click the gear icon (<Codicon name="gear" />) in the Axon Code panel.
+1.  **Open Orbital Settings:** Click the gear icon (<Codicon name="gear" />) in the Orbital panel.
 2.  **Select Provider:** Choose "OpenAI" from the "API Provider" dropdown.
 3.  **Enter API Key:** Paste your OpenAI API key into the "OpenAI API Key" field.
 4.  **Select Model:** Choose your desired model from the "Model" dropdown.

@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Trình tạo thông báo commit Axon Code đã được kích hoạt",
+		"activated": "Trình tạo thông báo commit Orbital đã được kích hoạt",
 		"gitNotFound": "⚠️ Không tìm thấy kho lưu trữ Git hoặc git không khả dụng",
 		"gitInitError": "⚠️ Lỗi khởi tạo Git: {{error}}",
 		"generating": "Axon: Đang tạo thông báo commit...",
@@ -63,7 +63,7 @@
 		"providerRegistered": "Axon: Nhà cung cấp thông báo commit đã được đăng ký",
 		"errors": {
 			"noProject": "Không có dự án nào",
-			"connectionFailed": "Không thể kết nối với tiện ích mở rộng Axon Code",
+			"connectionFailed": "Không thể kết nối với tiện ích mở rộng Orbital",
 			"timeout": "Yêu cầu đã hết thời gian sau 30 giây",
 			"invalidResponse": "Nhận được định dạng phản hồi không hợp lệ từ tiện ích mở rộng",
 			"noChanges": "Không tìm thấy thay đổi nào để commit",
@@ -88,7 +88,7 @@
 		"progress": {
 			"title": "Tạo Message Cam Kết",
 			"generating": "Đang tạo thông điệp commit...",
-			"connecting": "Đang kết nối tới Axon Code...",
+			"connecting": "Đang kết nối tới Orbital...",
 			"analyzing": "Đang phân tích các thay đổi..."
 		},
 		"ui": {

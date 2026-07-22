@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Generador de missatges de commit de Axon Code activat",
+		"activated": "Generador de missatges de commit de Orbital activat",
 		"gitNotFound": "⚠️ No s'ha trobat el repositori Git o git no està disponible",
 		"gitInitError": "⚠️ Error d'inicialització de Git: {{error}}",
 		"generating": "Axon: Generant missatge de commit...",
@@ -63,7 +63,7 @@
 		"activationFailed": "Axon: No s'ha pogut activar el generador de missatges: {{error}}",
 		"errors": {
 			"noProject": "Cap projecte disponible",
-			"connectionFailed": "No s'ha pogut connectar a l'extensió de Axon Code",
+			"connectionFailed": "No s'ha pogut connectar a l'extensió de Orbital",
 			"invalidResponse": "Format de resposta invàlid rebut de l'extensió",
 			"timeout": "La sol·licitud ha esgotat el temps d'espera després de 30 segons",
 			"missingMessage": "No s'ha rebut cap missatge de comissió des de l'extensió",
@@ -87,7 +87,7 @@
 		},
 		"progress": {
 			"title": "Generant Missatge de Commit",
-			"connecting": "Connectant amb Axon Code...",
+			"connecting": "Connectant amb Orbital...",
 			"analyzing": "Analitzant canvis...",
 			"generating": "Generant missatge de commit..."
 		},

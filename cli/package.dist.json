@@ -1,7 +1,7 @@
 {
 	"name": "@kilocode/cli",
 	"version": "0.0.15",
-	"description": "Terminal User Interface for Axon Code",
+	"description": "Terminal User Interface for Orbital",
 	"type": "module",
 	"main": "index.js",
 	"bin": {

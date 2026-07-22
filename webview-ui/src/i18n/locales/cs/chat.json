@@ -1,5 +1,5 @@
 {
-	"greeting": "Co může Axon Code udělat pro vás?",
+	"greeting": "Co může Orbital udělat pro vás?",
 	"task": {
 		"title": "Úkol",
 		"expand": "Rozbalit úkol",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Sdílet veřejně",
 		"sharePubliclyDescription": "Kdokoli s odkazem může přistupovat",
 		"connectToCloud": "Připojit se ke Cloudu",
-		"connectToCloudDescription": "Přihlaste se do Axon Code Cloud pro sdílení úkolů",
+		"connectToCloudDescription": "Přihlaste se do Orbital Cloud pro sdílení úkolů",
 		"sharingDisabledByOrganization": "Sdílení zakázáno organizací",
 		"shareSuccessOrganization": "Odkaz organizace zkopírován do schránky",
 		"shareSuccessPublic": "Veřejný odkaz zkopírován do schránky",
@@ -130,7 +130,7 @@
 		"title": "Režimy",
 		"marketplace": "Tržiště režimů",
 		"settings": "Nastavení režimů",
-		"description": "Specializované osobnosti, které přizpůsobují chování Axon Code.",
+		"description": "Specializované osobnosti, které přizpůsobují chování Orbital.",
 		"searchPlaceholder": "Hledat režimy...",
 		"noResults": "Nebyly nalezeny žádné výsledky",
 		"organizationModes": "Režimy organizace"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "Úprava neúspěšná"
 	},
-	"troubleMessage": "Axon Code má potíže...",
+	"troubleMessage": "Orbital má potíže...",
 	"powershell": {
 		"issues": "Zdá se, že máte problémy s Windows PowerShell, prosím podívejte se na toto"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "Aktuální profil není kompatibilní s nastavením vaší organizace",
 	"shellIntegration": {
 		"title": "Varování při vykonávání příkazu",
-		"description": "Váš příkaz je vykonáván bez integrace shellu terminálu VSCode. Chcete-li toto varování potlačit, můžete zakázat integraci shellu v sekci <strong>Terminál</strong> v <settingsLink>nastavení Axon Code</settingsLink> nebo řešit problémy s integrací terminálu VSCode pomocí odkazu níže.",
+		"description": "Váš příkaz je vykonáván bez integrace shellu terminálu VSCode. Chcete-li toto varování potlačit, můžete zakázat integraci shellu v sekci <strong>Terminál</strong> v <settingsLink>nastavení Orbital</settingsLink> nebo řešit problémy s integrací terminálu VSCode pomocí odkazu níže.",
 		"troubleshooting": "Klikněte sem pro dokumentaci integrace shellu."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Dosažen limit automaticky schválených požadavků",
-			"description": "Axon Code dosáhl automaticky schváleného limitu {{count}} API požadavků. Chcete resetovat počet a pokračovat v úkolu?",
+			"description": "Orbital dosáhl automaticky schváleného limitu {{count}} API požadavků. Chcete resetovat počet a pokračovat v úkolu?",
 			"button": "Resetovat a pokračovat"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Dosažen limit nákladů automaticky schválených",
-			"description": "Axon Code dosáhl automaticky schváleného limitu nákladů ${{count}}. Chcete resetovat náklady a pokračovat v úkolu?",
+			"description": "Orbital dosáhl automaticky schváleného limitu nákladů ${{count}}. Chcete resetovat náklady a pokračovat v úkolu?",
 			"button": "Resetovat a pokračovat"
 		}
 	},
@@ -404,7 +404,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "spustit lomítkový příkaz",
-		"didRun": "Axon Code spustil lomítkový příkaz"
+		"didRun": "Orbital spustil lomítkový příkaz"
 	},
 	"queuedMessages": {
 		"title": "Zprávy ve frontě",

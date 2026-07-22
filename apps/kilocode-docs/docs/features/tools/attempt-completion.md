@@ -1,6 +1,6 @@
 # attempt_completion
 
-The `attempt_completion` tool signals that Axon Code believes a task is complete and presents results to the user. It provides a summary of what was accomplished, optionally includes a command to demonstrate the result, and supports continued refinement through user feedback.
+The `attempt_completion` tool signals that Orbital believes a task is complete and presents results to the user. It provides a summary of what was accomplished, optionally includes a command to demonstrate the result, and supports continued refinement through user feedback.
 
 ## Parameters
 
@@ -15,7 +15,7 @@ This tool marks the end of a task by presenting a final summary of what was acco
 
 ## When is it used?
 
-- When Axon Code believes the user's task has been completed
+- When Orbital believes the user's task has been completed
 - When summarizing what changes or improvements were made
 - When demonstrating the current result with a command execution
 - When providing a checkpoint for user feedback on the solution
@@ -23,7 +23,7 @@ This tool marks the end of a task by presenting a final summary of what was acco
 
 ## Key Features
 
-- Provides a clear signal that Axon Code believes the task is complete
+- Provides a clear signal that Orbital believes the task is complete
 - Summarizes accomplishments in a concise message
 - Optionally demonstrates results through command execution
 - Enables user feedback for further refinements
@@ -117,7 +117,7 @@ The `attempt_completion` tool has a unique feedback mechanism:
 
 - Results appear in a special "completion_result" UI format distinct from regular messages
 - The system waits for user feedback after presenting the result
-- Feedback is processed and returned to Axon Code for further refinements
+- Feedback is processed and returned to Orbital for further refinements
 - This creates an iterative improvement cycle rather than ending the conversation
 - The UI includes special elements for providing feedback
 - Results serve as clear checkpoints in the conversation flow
@@ -131,11 +131,11 @@ When used within subtasks:
 
 ## Examples When Used
 
-- When creating a website, Axon Code presents the solution and uses `open index.html` to show the result. The user provides feedback, and Axon Code refines the design.
-- When implementing a feature, Axon Code summarizes the changes and their impact. The user requests additional test coverage, and Axon Code continues the task.
-- When fixing bugs, Axon Code explains what was fixed and how the solution addresses the Kilo Codet cause. The user confirms the fix works.
-- When setting up a development environment, Axon Code confirms all components are installed. The user requests additional configuration, and Axon Code continues.
-- When creating a data processing script, Axon Code summarizes the functionality. The user suggests performance improvements, and Axon Code optimizes the code.
+- When creating a website, Orbital presents the solution and uses `open index.html` to show the result. The user provides feedback, and Orbital refines the design.
+- When implementing a feature, Orbital summarizes the changes and their impact. The user requests additional test coverage, and Orbital continues the task.
+- When fixing bugs, Orbital explains what was fixed and how the solution addresses the Kilo Codet cause. The user confirms the fix works.
+- When setting up a development environment, Orbital confirms all components are installed. The user requests additional configuration, and Orbital continues.
+- When creating a data processing script, Orbital summarizes the functionality. The user suggests performance improvements, and Orbital optimizes the code.
 
 ## Usage Examples
 

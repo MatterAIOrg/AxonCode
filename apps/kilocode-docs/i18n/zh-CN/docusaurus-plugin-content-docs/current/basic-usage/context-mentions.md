@@ -1,6 +1,6 @@
 # 上下文提及
 
-上下文提及是一种强大的方式，可以为 Axon Code 提供项目的具体信息，使其能够更准确高效地执行任务。你可以使用提及来引用文件、文件夹、问题和 Git 提交。上下文提及以 `@` 符号开头。
+上下文提及是一种强大的方式，可以为 Orbital 提供项目的具体信息，使其能够更准确高效地执行任务。你可以使用提及来引用文件、文件夹、问题和 Git 提交。上下文提及以 `@` 符号开头。
 
 <img src="/docs/img/context-mentions/context-mentions.png" alt="上下文提及概览 - 显示聊天界面中的 @ 符号下拉菜单" width="600" />
 
@@ -66,7 +66,7 @@ _问题提及直接从 VS Code 的问题面板导入诊断信息。_
 
 ### 终端提及
 
-<img src="/docs/img/context-mentions/context-mentions-4.png" alt="终端提及示例，显示终端输出被包含在 Axon Code 的上下文中" width="600" />
+<img src="/docs/img/context-mentions/context-mentions-4.png" alt="终端提及示例，显示终端输出被包含在 Orbital 的上下文中" width="600" />
 
 _终端提及捕获最近的命令输出以便调试和分析。_
 
@@ -80,7 +80,7 @@ _终端提及捕获最近的命令输出以便调试和分析。_
 
 ### Git 提及
 
-<img src="/docs/img/context-mentions/context-mentions-5.png" alt="Git 提交提及示例，显示提交详情被 Axon Code 分析" width="600" />
+<img src="/docs/img/context-mentions/context-mentions-5.png" alt="Git 提交提及示例，显示提交详情被 Orbital 分析" width="600" />
 
 _Git 提及提供提交详情和差异，以便进行上下文感知的版本分析。_
 

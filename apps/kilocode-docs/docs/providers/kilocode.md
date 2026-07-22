@@ -1,16 +1,16 @@
 ---
-sidebar_label: Axon Code Provider
+sidebar_label: Orbital Provider
 ---
 
-# Using Axon Code's Built-in Provider
+# Using Orbital's Built-in Provider
 
-Axon Code provides its own built-in API provider that gives you access to the latest frontier coding models through a simple registration process. No need to manage API keys from multiple providers - just sign up and start coding.
+Orbital provides its own built-in API provider that gives you access to the latest frontier coding models through a simple registration process. No need to manage API keys from multiple providers - just sign up and start coding.
 
 **Website:** [https://matterai.so/](https://matterai.so/)
 
 ## Getting Started
 
-When you sign up for Axon Code, you can start immediately with free models, or top up your account for the first time to get bonus credits.
+When you sign up for Orbital, you can start immediately with free models, or top up your account for the first time to get bonus credits.
 
 To claim your bonus credits:
 
@@ -20,32 +20,32 @@ To claim your bonus credits:
 
 ## Registration Process
 
-Axon Code offers a streamlined registration that connects you directly to frontier coding models:
+Orbital offers a streamlined registration that connects you directly to frontier coding models:
 
-1. **Start Registration:** Click "Try Axon Code for Free" in the extension
+1. **Start Registration:** Click "Try Orbital for Free" in the extension
 2. **Sign In:** Use your Google account to sign in at matterai.so
 3. **Authorize VS Code:**
     - matterai.so will prompt you to open Visual Studio Code
     - For web-based IDEs, you'll copy the API key manually instead
 4. **Complete Setup:** Allow VS Code to open the authorization URL when prompted
 
-<!-- <img src="/img/setting-up/signupflow.gif" alt="Sign up and registration flow with Axon Code" width="600" /> -->
+<!-- <img src="/img/setting-up/signupflow.gif" alt="Sign up and registration flow with Orbital" width="600" /> -->
 
 ## Supported Models
 
-Axon Code provides access to the latest frontier coding models through its built-in provider. The specific models available are automatically updated and managed by the Axon Code service, ensuring you always have access to the most capable models for coding tasks.
+Orbital provides access to the latest frontier coding models through its built-in provider. The specific models available are automatically updated and managed by the Orbital service, ensuring you always have access to the most capable models for coding tasks.
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
-Once you've completed the registration process, Axon Code is automatically configured:
+Once you've completed the registration process, Orbital is automatically configured:
 
-1. **Automatic Setup:** After successful registration, Axon Code is ready to use immediately
+1. **Automatic Setup:** After successful registration, Orbital is ready to use immediately
 2. **No API Key Management:** Your authentication is handled seamlessly through the registration process
-3. **Model Selection:** Access to frontier models is provided automatically through your Axon Code account
+3. **Model Selection:** Access to frontier models is provided automatically through your Orbital account
 
 ### Provider Routing
 
-Axon Code can route to many different inference providers. For personal accounts, provider routing behavior can be controlled in the API Provider settings under Provider Routing.
+Orbital can route to many different inference providers. For personal accounts, provider routing behavior can be controlled in the API Provider settings under Provider Routing.
 
 #### Provider Sorting
 
@@ -64,7 +64,7 @@ Axon Code can route to many different inference providers. For personal accounts
 
 ## Connected Accounts
 
-With the Axon Code provider, if you sign up with Google you can also connect other sign in accounts - like GitHub - by:
+With the Orbital provider, if you sign up with Google you can also connect other sign in accounts - like GitHub - by:
 
 1. Go to your profile
 2. Select [**Connected Accounts**](https://app.matterai.so/connected-accounts)
@@ -75,10 +75,10 @@ With the Axon Code provider, if you sign up with Google you can also connect oth
 
 ## Tips and Notes
 
-- **Free Credits:** New users receive free credits to explore Axon Code's capabilities
+- **Free Credits:** New users receive free credits to explore Orbital's capabilities
 - **Identity Verification:** The temporary hold system ensures service reliability while preventing misuse
 - **Seamless Integration:** No need to manage multiple API keys or provider configurations
 - **Latest Models:** Automatic access to the most current frontier coding models
 - **Support Available:** Contact [hi@matterai.so](mailto:hi@matterai.so) for questions about pricing or tokens
 
-For detailed setup instructions, see [Setting up Axon Code](/getting-started/setting-up).
+For detailed setup instructions, see [Setting up Orbital](/getting-started/setting-up).
