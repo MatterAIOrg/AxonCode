@@ -3,11 +3,16 @@ import { ToolUseStyle } from "../../../../packages/types/src" // kilocode_change
 export function getSharedToolUseSection(
 	toolUseStyle?: ToolUseStyle, // kilocode_change
 ): string {
+	const executionGuidance =
+		toolUseStyle === "json"
+			? "You MUST use the provided tools while executing a task. When several tool calls are independent (especially file reads and searches), include them in the same message so they can run together. Keep dependent calls sequential so each can use the previous result."
+			: "You must use exactly one tool per message and use tools step-by-step, with each tool use informed by the previous result."
+
 	return `====
 
 TOOL USE
 
-You have access to a set of tools that are executed upon the user's approval. You ${toolUseStyle === "json" ? "MUST USE" : "must use" /*kilocode_change*/} exactly one tool per message, and ${toolUseStyle === "json" ? "EVERY" : "every" /*kilocode_change*/} assistant message ${toolUseStyle === "json" ? "MUST" : "must" /*kilocode_change*/} include a tool call. You use tools step-by-step to accomplish a given task, with each tool use informed by the result of the previous tool use.${
+You have access to a set of tools that are executed upon the user's approval. ${executionGuidance}${
 		toolUseStyle === "json" // kilocode_change
 			? ""
 			: `

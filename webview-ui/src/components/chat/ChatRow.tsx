@@ -78,6 +78,7 @@ interface ChatRowProps {
 	onSecondaryButtonClick?: (text?: string, images?: ImageAttachment[]) => void
 	enableButtons?: boolean
 	isAgentManagerMode?: boolean
+	disableReasoningAutoExpand?: boolean
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -227,6 +228,7 @@ export const ChatRowContent = ({
 	onSecondaryButtonClick,
 	enableButtons,
 	isAgentManagerMode: _isAgentManagerMode,
+	disableReasoningAutoExpand,
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
 
@@ -1513,6 +1515,7 @@ export const ChatRowContent = ({
 							ts={message.ts}
 							isStreaming={isStreaming}
 							_isLast={isLast}
+							disableAutoExpand={disableReasoningAutoExpand}
 							partial={message.partial}
 							metadata={message.metadata as any}
 						/>

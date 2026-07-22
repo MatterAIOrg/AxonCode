@@ -36,6 +36,39 @@ describe("MarkdownBlock", () => {
 		expect(paragraph?.textContent).toBe("Check out this link: https://example.com.")
 	})
 
+	it.each([
+		["github", "https://github.com/MatterAIOrg/Orbital-Extension/pull/110"],
+		["gitlab", "https://gitlab.com/example/project/-/merge_requests/1"],
+		["bitbucket", "https://bitbucket.org/example/project/pull-requests/1"],
+		["figma", "https://www.figma.com/design/example"],
+		["google-docs", "https://docs.google.com/document/d/example"],
+		["microsoft", "https://www.microsoft.com/en-us"],
+		["azure", "https://dev.azure.com/example/project"],
+	])("renders a %s icon for a recognized link", (provider, href) => {
+		render(<MarkdownBlock markdown={`[Example](${href})`} />)
+
+		const linkElement = screen.getByRole("link", { name: "Example" })
+		expect(linkElement).toHaveAttribute("data-link-provider", provider)
+		expect(linkElement).toHaveClass("markdown-link-with-icon")
+		expect(linkElement.querySelector("svg")).toHaveAttribute("aria-hidden", "true")
+		expect(linkElement.textContent).toBe("Example")
+	})
+
+	it("does not add a brand icon to unknown, local, or lookalike links", () => {
+		const markdown = [
+			"[Unknown](https://example.com)",
+			"[Local](./README.md)",
+			"[Lookalike](https://github.com.evil.example/pull/110)",
+		].join(" ")
+		render(<MarkdownBlock markdown={markdown} />)
+
+		for (const name of ["Unknown", "Local", "Lookalike"]) {
+			const linkElement = screen.getByRole("link", { name })
+			expect(linkElement).not.toHaveAttribute("data-link-provider")
+			expect(linkElement.querySelector("svg")).toBeNull()
+		}
+	})
+
 	it("should render unordered lists with proper styling", async () => {
 		const markdown = `Here are some items:
 - First item

@@ -5,7 +5,7 @@ import { ClineProviderState } from "../../../webview/ClineProvider"
 import OpenAI from "openai"
 import { ALWAYS_AVAILABLE_TOOLS, TOOL_GROUPS } from "../../../../shared/tools"
 import { nativeTools } from "."
-import { read_file_single } from "./read_file"
+import { read_file } from "./read_file"
 
 export function getAllowedJSONToolsForMode(
 	mode: Mode,
@@ -88,8 +88,7 @@ export function getAllowedJSONToolsForMode(
 	}
 
 	if (isReadFileToolAllowedForMode) {
-		// Always use read_file_single for all models
-		allowedTools.push(read_file_single)
+		allowedTools.push(read_file)
 	}
 
 	return allowedTools

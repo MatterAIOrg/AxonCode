@@ -10,6 +10,7 @@ import { mentionRegexGlobal } from "@roo/context-mentions"
 import { vscode } from "@src/utils/vscode"
 
 import CodeBlock from "../kilocode/common/CodeBlock" // kilocode_change
+import { getLinkBrand } from "./linkBrands"
 import MermaidBlock from "./MermaidBlock"
 
 interface MarkdownBlockProps {
@@ -162,6 +163,25 @@ const StyledMarkdown = styled.div`
 		}
 	}
 
+	a.markdown-link-with-icon {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35em;
+		max-width: 100%;
+		vertical-align: -0.12em;
+	}
+
+	.markdown-link-icon {
+		width: 1em;
+		height: 1em;
+		flex: 0 0 auto;
+	}
+
+	.markdown-link-label {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
 	h1 {
 		font-size: 1.65em;
 		font-weight: 700;
@@ -243,6 +263,9 @@ const MarkdownBlock = memo(({ markdown }: MarkdownBlockProps) => {
 				)
 			},
 			a: ({ href, children, ...props }: any) => {
+				const linkBrand = getLinkBrand(href)
+				const BrandIcon = linkBrand?.Icon
+
 				const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
 					// Only process file:// protocol or local file paths
 					const isLocalPath = href?.startsWith("file://") || href?.startsWith("/") || !href?.includes("://")
@@ -277,8 +300,17 @@ const MarkdownBlock = memo(({ markdown }: MarkdownBlockProps) => {
 				}
 
 				return (
-					<a {...props} href={href} onClick={handleClick}>
-						{children}
+					<a
+						{...props}
+						href={href}
+						onClick={handleClick}
+						className={
+							[props.className, linkBrand && "markdown-link-with-icon"].filter(Boolean).join(" ") ||
+							undefined
+						}
+						data-link-provider={linkBrand?.id}>
+						{BrandIcon && <BrandIcon aria-hidden="true" focusable="false" className="markdown-link-icon" />}
+						{linkBrand ? <span className="markdown-link-label">{children}</span> : children}
 					</a>
 				)
 			},

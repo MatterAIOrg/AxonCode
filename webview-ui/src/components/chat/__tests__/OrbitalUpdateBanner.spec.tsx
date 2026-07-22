@@ -54,6 +54,7 @@ describe("OrbitalUpdateBanner", () => {
 		expect(screen.getByText("Orbital 6.6.1 is available")).toBeInTheDocument()
 		fireEvent.click(screen.getByRole("button", { name: "Update & Restart" }))
 		expect(vscode.postMessage).toHaveBeenLastCalledWith({ type: "installOrbitalUpdate" })
+		expect(screen.getByLabelText("Working")).toBeInTheDocument()
 	})
 
 	it("stays hidden when the extension is current", () => {

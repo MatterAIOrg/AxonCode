@@ -81,4 +81,13 @@ describe("getToolUseGuidelinesSection", () => {
 			expect(guidelines).toContain("4. Ensure that each action builds correctly")
 		}
 	})
+
+	it("should batch independent calls in JSON mode", () => {
+		const guidelines = getToolUseGuidelinesSection(mockCodeIndexManagerDisabled, "json")
+
+		expect(guidelines).toContain("Batch independent tool calls in the same message")
+		expect(guidelines).toContain("After an independent batch returns")
+		expect(guidelines).not.toContain("use one tool at a time per message")
+		expect(guidelines).not.toContain("waiting for the user's message after each tool use")
+	})
 })

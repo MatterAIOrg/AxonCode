@@ -39,6 +39,7 @@ import { AudioType, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
+import { prettyModelName } from "@src/utils/prettyModelName"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import {
 	CommandDecision,
@@ -62,7 +63,6 @@ import BrowserSessionRow from "./BrowserSessionRow"
 import ChatRow from "./ChatRow"
 import { ChatTextArea } from "./ChatTextArea"
 import OrbitalUpdateBanner from "./OrbitalUpdateBanner"
-import { CHAT_CONTENT_HORIZONTAL_PADDING } from "./chatLayout"
 import { formatMessageWithDocuments } from "../common/DocumentAttachments"
 import ExplorationGroupRow, {
 	ExplorationGroup,
@@ -2884,8 +2884,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																		{bt.apiModelId && (
 																			<div className="flex items-center gap-2">
 																				<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/40" />
-																				<span className="text-xs text-[var(--vscode-descriptionForeground)] truncate max-w-[150px]">
-																					{bt.apiModelId}
+																				<span className="text-xs text-[var(--vscode-descriptionForeground)]">
+																					{prettyModelName(bt.apiModelId)}
 																				</span>
 																			</div>
 																		)}
@@ -2933,7 +2933,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								{/* kilocode_change: Sticky user message - positioned outside Virtuoso for true sticky behavior */}
 								<div
 									ref={stickyHeaderRef}
-									className={`${CHAT_CONTENT_HORIZONTAL_PADDING} pointer-events-none absolute -top-1 left-0 right-0 z-10 py-0.5`}>
+									className={`px-3 pointer-events-none absolute -top-1 left-0 right-0 z-10 py-0.5`}>
 									<div className="pointer-events-auto">
 										<StickyUserMessage
 											task={task}
