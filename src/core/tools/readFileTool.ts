@@ -27,6 +27,9 @@ import {
 
 // Maximum number of lines to read when limit is not specified - prevents context window overflow
 const MAX_READ_FILE_LINES = 1000
+// Native JSON models tend to over-fragment reads. Expanding their tiny ranges
+// avoids another model round trip while keeping legacy/XML range semantics exact.
+const MIN_NATIVE_READ_FILE_LINES = 200
 
 export function getReadFileToolDescription(blockName: string, blockParams: any): string {
 	// Handle both single file_path and multiple files via args
@@ -86,6 +89,9 @@ interface FileResult {
 	feedbackImages?: any[] // User feedback images from approval/denial
 	mtimeMs?: number // forked_change: file mtime at read time, for repeated-read detection
 	wasRepeated?: boolean // The unchanged region was already served earlier in this task
+	totalLines?: number
+	startLine?: number
+	endLine?: number
 }
 
 // forked_change: key for Task.readRegionHistory — identifies one exact read request.
@@ -153,7 +159,15 @@ export async function readFileTool(
 	// forked_change start
 	// Handle native JSON format first (from OpenAI-style tool calls)
 	if (nativeFiles && Array.isArray(nativeFiles)) {
-		fileEntries.push(...parseNativeFiles(nativeFiles))
+		fileEntries.push(
+			...parseNativeFiles(nativeFiles).map((entry) => ({
+				...entry,
+				limit:
+					entry.limit === undefined
+						? undefined
+						: Math.min(MAX_READ_FILE_LINES, Math.max(MIN_NATIVE_READ_FILE_LINES, entry.limit)),
+			})),
+		)
 		// forked_change end
 	} else if (newFilePath) {
 		// Handle new single file_path format with optional offset/limit
@@ -249,11 +263,8 @@ export async function readFileTool(
 	}))
 
 	// Function to update file result status
-	const updateFileResult = (path: string, updates: Partial<FileResult>) => {
-		const index = fileResults.findIndex((result) => result.path === path)
-		if (index !== -1) {
-			fileResults[index] = { ...fileResults[index], ...updates }
-		}
+	const updateFileResult = (result: FileResult, updates: Partial<FileResult>) => {
+		Object.assign(result, updates)
 	}
 
 	try {
@@ -267,7 +278,7 @@ export async function readFileTool(
 			// Validate offset/limit if provided
 			if (fileResult.offset !== undefined && fileResult.offset < 1) {
 				const errorMsg = "Invalid offset: must be >= 1"
-				updateFileResult(relPath, {
+				updateFileResult(fileResult, {
 					status: "blocked",
 					error: errorMsg,
 					xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
@@ -277,7 +288,7 @@ export async function readFileTool(
 			}
 			if (fileResult.limit !== undefined && fileResult.limit < 1) {
 				const errorMsg = "Invalid limit: must be >= 1"
-				updateFileResult(relPath, {
+				updateFileResult(fileResult, {
 					status: "blocked",
 					error: errorMsg,
 					xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
@@ -292,7 +303,7 @@ export async function readFileTool(
 				if (!accessAllowed) {
 					await cline.say("rooignore_error", relPath)
 					const errorMsg = formatResponse.rooIgnoreError(relPath)
-					updateFileResult(relPath, {
+					updateFileResult(fileResult, {
 						status: "blocked",
 						error: errorMsg,
 						xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
@@ -345,7 +356,7 @@ export async function readFileTool(
 
 			// Auto-approve all files
 			filesToApprove.forEach((fileResult) => {
-				updateFileResult(fileResult.path, {
+				updateFileResult(fileResult, {
 					status: "approved",
 				})
 			})
@@ -385,7 +396,7 @@ export async function readFileTool(
 			})
 			await cline.ask("tool", completeMessage, false).catch(() => {})
 
-			updateFileResult(fileResult.path, {
+			updateFileResult(fileResult, {
 				status: "approved",
 			})
 		}
@@ -424,9 +435,9 @@ export async function readFileTool(
 					const endLabel = fileResult.limit !== undefined ? String(startLine + fileResult.limit - 1) : "end"
 					const nextRegionHint =
 						startLine === 1
-							? "If you need line N, call read_file with `offset` near N (for example N-20) and a focused `limit`; `limit` alone always reads from the top."
+							? "If you need line N, request the complete surrounding function or logical region with an `offset` and a 200-1000 line `limit`; batch any other known regions in the same call."
 							: "If you need more context, request a different, non-overlapping range by changing `offset` or `limit`."
-					updateFileResult(relPath, {
+					updateFileResult(fileResult, {
 						wasRepeated: true,
 						xmlContent: `--- ${relPath} ---
 [repeated-read skipped] This unchanged region (lines ${startLine}-${endLabel}) is already available earlier in the conversation. No file content was returned.
@@ -450,6 +461,7 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 			// Process approved files
 			try {
 				const [totalLines, isBinary] = await Promise.all([countFileLines(fullPath), isBinaryFile(fullPath)])
+				fileResult.totalLines = totalLines
 
 				// Handle binary files (but allow specific file types that extractTextFromFile can handle)
 				if (isBinary) {
@@ -472,7 +484,7 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 								// Track file read
 								await cline.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
 
-								updateFileResult(relPath, {
+								updateFileResult(fileResult, {
 									xmlContent: `--- ${relPath} ---\n[notice] ${validationResult.notice}`,
 								})
 								continue
@@ -488,14 +500,14 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 							await cline.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
 
 							// Store image data URL separately
-							updateFileResult(relPath, {
+							updateFileResult(fileResult, {
 								xmlContent: `--- ${relPath} ---\n[image] ${imageResult.notice}`,
 								imageDataUrl: imageResult.dataUrl,
 							})
 							continue
 						} catch (error) {
 							const errorMsg = error instanceof Error ? error.message : String(error)
-							updateFileResult(relPath, {
+							updateFileResult(fileResult, {
 								status: "error",
 								error: `Error reading image file: ${errorMsg}`,
 								xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
@@ -515,7 +527,7 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 					} else {
 						// Handle unknown binary format
 						const fileFormat = fileExtension.slice(1) || "bin" // Remove the dot, fallback to "bin"
-						updateFileResult(relPath, {
+						updateFileResult(fileResult, {
 							notice: `Binary file format: ${fileFormat}`,
 							xmlContent: `--- ${relPath} ---\n[binary ${fileFormat}] content not displayed`,
 						})
@@ -529,12 +541,14 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 					// Cap limit to MAX_READ_FILE_LINES to prevent context window overflow
 					const effectiveLimit = Math.min(fileResult.limit, MAX_READ_FILE_LINES)
 					const endLine = startLine + effectiveLimit - 1
+					fileResult.startLine = startLine
+					fileResult.endLine = Math.min(endLine, totalLines)
 					const content = addLineNumbers(await readLines(fullPath, endLine - 1, startLine - 1), startLine)
 					let xmlContent = content
 					if (fileResult.limit > MAX_READ_FILE_LINES) {
 						xmlContent = `[showing ${effectiveLimit} lines, capped from requested ${fileResult.limit} lines to prevent context overflow]\n${content}`
 					}
-					updateFileResult(relPath, {
+					updateFileResult(fileResult, {
 						xmlContent,
 					})
 					continue
@@ -545,6 +559,8 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 					const startLine = fileResult.offset
 					const endLine = startLine + MAX_READ_FILE_LINES - 1
 					const actualEndLine = Math.min(endLine, totalLines)
+					fileResult.startLine = startLine
+					fileResult.endLine = actualEndLine
 					const linesRead = actualEndLine - startLine + 1
 					const content = addLineNumbers(
 						await readLines(fullPath, actualEndLine - 1, startLine - 1),
@@ -554,7 +570,7 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 					if (totalLines > actualEndLine) {
 						xmlContent = `[showing ${linesRead} lines from offset ${startLine}, capped at ${MAX_READ_FILE_LINES} lines. Total file length: ${totalLines} lines]\n${content}`
 					}
-					updateFileResult(relPath, {
+					updateFileResult(fileResult, {
 						xmlContent,
 					})
 					continue
@@ -562,6 +578,8 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 
 				// Handle files exceeding line threshold
 				if (maxReadFileLine > 0 && totalLines > maxReadFileLine) {
+					fileResult.startLine = 1
+					fileResult.endLine = maxReadFileLine
 					const content = addLineNumbers(await readLines(fullPath, maxReadFileLine - 1, 0))
 					// kilocode_change: Return content without path header, just note truncation
 					let fileOutput = `[showing ${maxReadFileLine} of ${totalLines} lines]\n${content}`
@@ -571,7 +589,7 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 						if (defResult) {
 							fileOutput += `\n[definitions]\n${defResult}`
 						}
-						updateFileResult(relPath, {
+						updateFileResult(fileResult, {
 							xmlContent: fileOutput,
 						})
 					} catch (error) {
@@ -587,12 +605,14 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 				}
 
 				// Handle normal file read
+				fileResult.startLine = totalLines > 0 ? 1 : undefined
+				fileResult.endLine = totalLines > 0 ? totalLines : undefined
 				const content = await extractTextFromFile(fullPath)
 
 				// forked_change start: limit output size based on token count
 				const blockResult = await blockFileReadWhenTooLarge(cline, relPath, content)
 				if (blockResult) {
-					updateFileResult(relPath, blockResult)
+					updateFileResult(fileResult, blockResult)
 					continue
 				}
 				// forked_change end
@@ -603,12 +623,12 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 				// Track file read
 				await cline.fileContextTracker.trackFileContext(relPath, "read_tool" as RecordSource)
 
-				updateFileResult(relPath, {
+				updateFileResult(fileResult, {
 					xmlContent: fileOutput,
 				})
 			} catch (error) {
 				const errorMsg = error instanceof Error ? error.message : String(error)
-				updateFileResult(relPath, {
+				updateFileResult(fileResult, {
 					status: "error",
 					error: `Error reading file: ${errorMsg}`,
 					xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
@@ -636,7 +656,18 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 		// forked_change end
 
 		// Generate final result from all file results
-		const fileContents = fileResults.filter((result) => result.xmlContent).map((result) => result.xmlContent)
+		const fileContents = fileResults
+			.filter((result) => result.xmlContent)
+			.map((result) => {
+				const content = result.xmlContent as string
+				if (fileResults.length === 1 || content.startsWith("--- ")) return content
+
+				const range =
+					result.startLine !== undefined && result.endLine !== undefined && result.totalLines !== undefined
+						? ` (lines ${result.startLine}-${result.endLine} of ${result.totalLines})`
+						: ""
+				return `--- ${result.path}${range} ---\n${content}`
+			})
 		const filesOutput = fileContents.join("\n\n")
 
 		// Collect all image data URLs from file results
@@ -713,7 +744,7 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 
 		// If we have file results, update the first one with the error
 		if (fileResults.length > 0) {
-			updateFileResult(relPath, {
+			updateFileResult(fileResults[0], {
 				status: "error",
 				error: `Error reading file: ${errorMsg}`,
 				xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,

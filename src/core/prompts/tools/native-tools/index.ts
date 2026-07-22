@@ -6,7 +6,7 @@ import executeCommand from "./execute_command"
 import listCodeDefinitionNames from "./list_code_definition_names"
 import listFiles from "./list_files"
 import lsp from "./lsp"
-import { read_file_single } from "./read_file"
+import { read_file } from "./read_file"
 import searchFiles from "./search_files"
 import fileEdit from "./file_edit"
 import multiFileEdit from "./multi_file_edit"
@@ -30,7 +30,7 @@ export const nativeTools = [
 	listCodeDefinitionNames,
 	listFiles,
 	lsp,
-	read_file_single,
+	read_file,
 	searchFiles,
 	updateTodoList,
 	useSkill,

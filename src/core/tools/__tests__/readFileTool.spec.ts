@@ -5,7 +5,7 @@ import fs from "fs"
 
 import { countFileLines } from "../../../integrations/misc/line-counter"
 import { readLines } from "../../../integrations/misc/read-lines"
-import { extractTextFromFile } from "../../../integrations/misc/extract-text"
+import { addLineNumbers, extractTextFromFile } from "../../../integrations/misc/extract-text"
 import { parseSourceCodeDefinitionsForFile } from "../../../services/tree-sitter"
 import { isBinaryFile } from "isbinaryfile"
 import { ReadFileToolUse, ToolParamName, ToolResponse } from "../../../shared/tools"
@@ -242,6 +242,7 @@ describe("read_file tool with maxReadFileLine setting", () => {
 	// Mocked functions with correct types
 	const mockedCountFileLines = vi.mocked(countFileLines)
 	const mockedReadLines = vi.mocked(readLines)
+	const mockedAddLineNumbers = vi.mocked(addLineNumbers)
 	const mockedExtractTextFromFile = vi.mocked(extractTextFromFile)
 	const mockedParseSourceCodeDefinitionsForFile = vi.mocked(parseSourceCodeDefinitionsForFile)
 
@@ -484,6 +485,52 @@ describe("read_file tool with maxReadFileLine setting", () => {
 			// Verify - just check that the result contains the expected elements
 			expect(rangeResult).toContain(`<file><path>${testFilePath}</path>`)
 			expect(rangeResult).toContain(`<content lines="2-4">`)
+		})
+	})
+
+	describe("with native batched ranges", () => {
+		it("widens tiny reads and returns labeled distant regions from the same file", async () => {
+			const statSpy = vi.spyOn(fs.promises, "stat").mockResolvedValue({ mtimeMs: 123 } as any)
+			mockProvider.getState.mockResolvedValue({ maxImageFileSize: 20, maxTotalImageSize: 20 })
+			mockedCountFileLines.mockResolvedValue(2000)
+			mockedReadLines.mockClear()
+			mockedReadLines.mockImplementation(async (_filePath, _endIndex, startIndex) => `region-${startIndex}`)
+			mockedAddLineNumbers.mockImplementation((content, startLine = 1) => `${startLine} | ${content}`)
+
+			const toolUse = {
+				type: "tool_use",
+				name: "read_file",
+				params: {
+					files: [
+						{ file_path: "/large.ts", offset: 100, limit: 15 },
+						{ file_path: "/large.ts", offset: 1200, limit: 25 },
+					],
+				},
+				partial: false,
+			} as any
+
+			try {
+				await readFileTool(
+					mockCline,
+					toolUse,
+					mockCline.ask,
+					vi.fn(),
+					(result: ToolResponse) => {
+						toolResult = result
+					},
+					(_: ToolParamName, content?: string) => content ?? "",
+				)
+
+				expect(toolResult).toContain("--- /large.ts (lines 100-299 of 2000) ---")
+				expect(toolResult).toContain("100 | region-99")
+				expect(toolResult).toContain("--- /large.ts (lines 1200-1399 of 2000) ---")
+				expect(toolResult).toContain("1200 | region-1199")
+				expect(mockedReadLines).toHaveBeenCalledTimes(2)
+				expect(mockedReadLines).toHaveBeenNthCalledWith(1, "/large.ts", 298, 99)
+				expect(mockedReadLines).toHaveBeenNthCalledWith(2, "/large.ts", 1398, 1199)
+			} finally {
+				statSpy.mockRestore()
+			}
 		})
 	})
 
