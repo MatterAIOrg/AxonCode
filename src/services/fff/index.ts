@@ -48,7 +48,12 @@ async function loadFffModule(): Promise<FffModule> {
 
 		// A non-literal import is intentionally preserved by esbuild so the native
 		// SDK can resolve its platform library from the copied package tree.
-		fffModulePromise = import(specifier) as Promise<FffModule>
+		// Reset the cached promise on rejection so a transient native-library
+		// load failure does not permanently degrade to ripgrep for the session.
+		fffModulePromise = (import(specifier) as Promise<FffModule>).catch((error) => {
+			fffModulePromise = undefined
+			throw error
+		})
 	}
 
 	return fffModulePromise
