@@ -48,6 +48,7 @@ import { registerMainThreadForwardingLogger } from "./utils/fowardingLogger" // 
 import { getKiloCodeWrapperProperties } from "./core/kilocode/wrapper" // kilocode_change
 import { isOrbitalIDE } from "./utils/detectOrbitalIDE" // kilocode_change
 import { recoverPendingOrbitalExtensionUpdate } from "./services/orbital/extensionUpdate"
+import { disposeFffSearch } from "./services/fff"
 
 /**
  * Built using https://github.com/microsoft/vscode-webview-ui-toolkit
@@ -106,6 +107,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	outputChannel = vscode.window.createOutputChannel("Axon-Code")
 	context.subscriptions.push(outputChannel)
 	outputChannel.appendLine(`${Package.name} extension activated - ${JSON.stringify(Package)}`)
+	context.subscriptions.push({ dispose: () => void disposeFffSearch() })
 
 	if (await recoverPendingOrbitalExtensionUpdate(context)) {
 		outputChannel.appendLine("[Orbital Update] Requested a recovery reload to finish activating the update")
@@ -443,6 +445,7 @@ export async function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated.
 export async function deactivate() {
 	outputChannel.appendLine(`${Package.name} extension deactivated`)
+	await disposeFffSearch()
 
 	if (cloudService && CloudService.hasInstance()) {
 		try {

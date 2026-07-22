@@ -86,3 +86,22 @@ describe.each([
 		expect(fileNameElement.parentElement).toHaveClass("-mt-[1px]")
 	})
 })
+
+describe("ChatRow search files", () => {
+	it("shows the file pattern so parallel searches are distinguishable", () => {
+		const { getByText } = renderFileOperation(
+			{
+				tool: "searchFiles",
+				path: "src",
+				regex: "eido",
+				filePattern: "*.ts",
+				content: "",
+			},
+			false,
+		)
+
+		const filePattern = getByText("*.ts")
+		expect(filePattern.tagName).toBe("CODE")
+		expect(filePattern.parentElement).toHaveTextContent("chat:directoryOperations.wantsToSearch·*.ts")
+	})
+})

@@ -8,8 +8,57 @@ import * as console from "node:console"
 
 import { copyPaths, copyWasms, copyLocales, setupLocaleWatcher } from "@roo-code/build"
 
+const fffRuntimePackages = [
+	"@ff-labs/fff-node",
+	"ffi-rs",
+	"@ff-labs/fff-bin-darwin-arm64",
+	"@ff-labs/fff-bin-darwin-x64",
+	"@ff-labs/fff-bin-linux-x64-gnu",
+	"@ff-labs/fff-bin-linux-arm64-gnu",
+	"@ff-labs/fff-bin-linux-x64-musl",
+	"@ff-labs/fff-bin-linux-arm64-musl",
+	"@ff-labs/fff-bin-win32-x64",
+	"@ff-labs/fff-bin-win32-arm64",
+	"@yuuang/ffi-rs-darwin-arm64",
+	"@yuuang/ffi-rs-darwin-x64",
+	"@yuuang/ffi-rs-linux-x64-gnu",
+	"@yuuang/ffi-rs-linux-arm64-gnu",
+	"@yuuang/ffi-rs-linux-x64-musl",
+	"@yuuang/ffi-rs-linux-arm64-musl",
+	"@yuuang/ffi-rs-win32-x64-msvc",
+	"@yuuang/ffi-rs-win32-arm64-msvc",
+]
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+function copyFffRuntime(srcDir, distDir) {
+	const fffPackageRoot = fs.realpathSync(path.join(srcDir, "node_modules", "@ff-labs", "fff-node"))
+	const fffPackageJson = path.join(fffPackageRoot, "package.json")
+	const fffRequire = createRequire(fffPackageJson)
+	const destinationRoot = path.join(distDir, "fff", "node_modules")
+
+	fs.rmSync(path.join(distDir, "fff"), { recursive: true, force: true })
+
+	for (const packageName of fffRuntimePackages) {
+		let packageJson
+		try {
+			packageJson =
+				packageName === "@ff-labs/fff-node" ? fffPackageJson : fffRequire.resolve(`${packageName}/package.json`)
+		} catch {
+			throw new Error(
+				`Missing FFF runtime package ${packageName}. Run pnpm install with the configured supportedArchitectures.`,
+			)
+		}
+
+		const source = path.dirname(packageJson)
+		const destination = path.join(destinationRoot, ...packageName.split("/"))
+		fs.mkdirSync(path.dirname(destination), { recursive: true })
+		fs.cpSync(source, destination, { recursive: true, dereference: true })
+	}
+
+	console.log(`[extension] Copied FFF runtime packages to ${path.relative(srcDir, destinationRoot)}`)
+}
 
 async function main() {
 	const name = "extension"
@@ -81,6 +130,12 @@ async function main() {
 						console.error(`[${name}] Failed to copy JSDOM xhr-sync-worker.js:`, error.message)
 					}
 				})
+			},
+		},
+		{
+			name: "copyFffRuntime",
+			setup(build) {
+				build.onEnd(() => copyFffRuntime(srcDir, distDir))
 			},
 		},
 		{

@@ -5,7 +5,7 @@ import { ToolUse, AskApproval, HandleError, PushToolResult, RemoveClosingTag } f
 import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
-import { regexSearchFiles } from "../../services/ripgrep"
+import { searchFiles, normalizeNullableSearchString, parseSearchCursor } from "../../services/search-files"
 
 export async function searchFilesTool(
 	cline: Task,
@@ -17,7 +17,7 @@ export async function searchFilesTool(
 ) {
 	const relDirPath: string | undefined = block.params.path
 	const regex: string | undefined = block.params.regex
-	const filePattern: string | undefined = block.params.file_pattern
+	const filePattern = normalizeNullableSearchString(block.params.file_pattern)
 
 	const absolutePath = relDirPath ? path.resolve(cline.cwd, relDirPath) : cline.cwd
 	const isOutsideWorkspace = isPathOutsideWorkspace(absolutePath)
@@ -36,6 +36,12 @@ export async function searchFilesTool(
 			await cline.ask("tool", partialMessage, block.partial).catch(() => {})
 			return
 		} else {
+			const cursor = parseSearchCursor(block.params.cursor as unknown)
+			const rawMaxResults = block.params.max_results as unknown
+			const rawContextLines = block.params.context_lines as unknown
+			const maxResults = rawMaxResults == null ? undefined : Number(rawMaxResults)
+			const contextLines = rawContextLines == null ? undefined : Number(rawContextLines)
+
 			if (!relDirPath) {
 				cline.consecutiveMistakeCount++
 				cline.recordToolError("search_files")
@@ -52,13 +58,11 @@ export async function searchFilesTool(
 
 			cline.consecutiveMistakeCount = 0
 
-			const results = await regexSearchFiles(
-				cline.cwd,
-				absolutePath,
-				regex,
-				filePattern,
-				cline.rooIgnoreController,
-			)
+			const results = await searchFiles(cline.cwd, absolutePath, regex, filePattern, cline.rooIgnoreController, {
+				cursor,
+				maxResults: Number.isFinite(maxResults) ? maxResults : undefined,
+				contextLines: Number.isFinite(contextLines) ? contextLines : undefined,
+			})
 
 			const completeMessage = JSON.stringify({ ...sharedMessageProps, content: results } satisfies ClineSayTool)
 			const didApprove = await askApproval("tool", completeMessage)

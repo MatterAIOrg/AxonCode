@@ -1141,6 +1141,14 @@ export const ChatRowContent = ({
 										values={{ regex: tool.regex }}
 									/>
 								)}
+								{tool.filePattern && (
+									<>
+										<span className="mx-1 font-normal" aria-hidden="true">
+											·
+										</span>
+										<code className="font-medium text-xs">{tool.filePattern}</code>
+									</>
+								)}
 							</span>
 						</div>
 						<div className="">
