@@ -19,7 +19,7 @@ Before you begin, make sure you have the following installed:
 1. **Fork and Clone the Repository**:
 
     - **Fork the Repository**:
-        - Visit the [Axon Code GitHub repository](https://github.com/MatterAIOrg/Orbital-Extension)
+        - Visit the [Orbital GitHub repository](https://github.com/MatterAIOrg/Orbital-Extension)
         - Click the "Fork" button in the top-right corner to create your own copy.
     - **Clone Your Fork**:
         ```bash
@@ -80,7 +80,7 @@ This will:
 To run the extension in development mode:
 
 1. Press `F5` (or select **Run** → **Start Debugging**) in VSCode
-2. This will open a new VSCode window with Axon Code loaded
+2. This will open a new VSCode window with Orbital loaded
 
 ### Hot Reloading
 
@@ -109,7 +109,7 @@ Replace `[version]` with the current version number.
 
 ## Testing
 
-Axon Code uses several types of tests to ensure quality:
+Orbital uses several types of tests to ensure quality:
 
 ### Unit Tests
 

@@ -1,7 +1,7 @@
 {
 	"welcome": {
-		"greeting": "Axon Code'a hoş geldiniz!",
-		"introText1": "Axon Code ücretsiz, açık kaynaklı bir AI kodlama ajanıdır.",
+		"greeting": "Orbital'a hoş geldiniz!",
+		"introText1": "Orbital ücretsiz, açık kaynaklı bir AI kodlama ajanıdır.",
 		"introText2": "Claude Sonnet 4.5, Gemini 2.5 Pro, GPT-5 ve 450+ diğer en yeni AI modelleri ile çalışır.",
 		"introText3": "Ücretsiz hesap oluşturun ve ilk yüklemenizde $20 bonus kredi alın.",
 		"ctaButton": "Giriş Yap / Kayıt Ol",
@@ -13,7 +13,7 @@
 	},
 	"lowCreditWarning": {
 		"addCredit": "Kredi Ekle",
-		"lowBalance": "Axon Code bakiyeniz düşük",
+		"lowBalance": "Orbital bakiyeniz düşük",
 		"newOrganization": "İş için mi kullanıyorsun?"
 	},
 	"pagination": {
@@ -40,20 +40,20 @@
 		"contextManagement": {
 			"allowVeryLargeReads": {
 				"label": "Çok büyük dosya okumalarına izin ver",
-				"description": "Etkinleştirildiğinde, Axon Code bağlam penceresini taşma olasılığı yüksek olsa bile çok büyük dosya veya MCP çıktı okumalarını gerçekleştirir (içerik boyutu bağlam penceresinin %80'inden fazla)."
+				"description": "Etkinleştirildiğinde, Orbital bağlam penceresini taşma olasılığı yüksek olsa bile çok büyük dosya veya MCP çıktı okumalarını gerçekleştirir (içerik boyutu bağlam penceresinin %80'inden fazla)."
 			}
 		},
 		"provider": {
-			"account": "Axon Code Hesabı",
-			"apiKey": "Axon Code API Anahtarı",
-			"login": "Axon Code'a giriş yap",
-			"logout": "Axon Code'dan çıkış yap",
-			"automaticFetch": "En son modeller Axon Code'da otomatik olarak kullanılabilir. Hangi modeli seçeceğinizden emin değilseniz, Axon Code en üstte <strong>kalın yazı</strong> ile listelenen önerilen modellerle en iyi şekilde çalışır.",
+			"account": "Orbital Hesabı",
+			"apiKey": "Orbital API Anahtarı",
+			"login": "Orbital'a giriş yap",
+			"logout": "Orbital'dan çıkış yap",
+			"automaticFetch": "En son modeller Orbital'da otomatik olarak kullanılabilir. Hangi modeli seçeceğinizden emin değilseniz, Orbital en üstte <strong>kalın yazı</strong> ile listelenen önerilen modellerle en iyi şekilde çalışır.",
 			"providerRouting": {
 				"title": "Sağlayıcı Yönlendirme",
 				"managedByOrganization": "Organizasyon düzeyinde Sağlayıcı Yönlendirmeyi yönet",
 				"createOrganization": "Sağlayıcı Yönlendirmeyi yönetmek için Organizasyon oluştur",
-				"description": "Axon Code, modeliniz için en iyi kullanılabilir sağlayıcılara istekleri yönlendirir. Varsayılan olarak, çalışma süresini en üst düzeye çıkarmak için istekler en iyi sağlayıcılar arasında yük dengelenir. Ancak, bu model için kullanılacak belirli bir sağlayıcı seçebilirsiniz.",
+				"description": "Orbital, modeliniz için en iyi kullanılabilir sağlayıcılara istekleri yönlendirir. Varsayılan olarak, çalışma süresini en üst düzeye çıkarmak için istekler en iyi sağlayıcılar arasında yük dengelenir. Ancak, bu model için kullanılacak belirli bir sağlayıcı seçebilirsiniz.",
 				"sorting": {
 					"default": "Varsayılan sağlayıcı sıralaması",
 					"price": "Düşük fiyatlı sağlayıcıları tercih et",
@@ -72,7 +72,7 @@
 		"modelInfo": {
 			"contextWindow": "Bağlam penceresi",
 			"providerBreakdown": "Sağlayıcı Fiyat ve Yetenek Dökümü",
-			"averageKiloCodeCost": "Bu, Axon Code'un bu modeli kullanarak geçtiğimiz hafta boyunca yaptığı ortalama gerçek harcamadır. Prompt önbellek kullanımı nedeniyle listelenen fiyattan daha düşük olabilir.",
+			"averageKiloCodeCost": "Bu, Orbital'un bu modeli kullanarak geçtiğimiz hafta boyunca yaptığı ortalama gerçek harcamadır. Prompt önbellek kullanımı nedeniyle listelenen fiyattan daha düşük olabilir.",
 			"table": {
 				"provider": "Sağlayıcı",
 				"context": "Uç nokta bu sayıda token işleyebilir (giriş + çıkış).",
@@ -84,10 +84,10 @@
 		},
 		"systemNotifications": {
 			"label": "Sistem bildirimlerini etkinleştir",
-			"description": "Etkinleştirildiğinde, Axon Code görev tamamlama veya hatalar gibi önemli olaylar için sistem bildirimleri gönderecektir.",
+			"description": "Etkinleştirildiğinde, Orbital görev tamamlama veya hatalar gibi önemli olaylar için sistem bildirimleri gönderecektir.",
 			"testButton": "Bildirimi test et",
 			"testTitle": "Orbital",
-			"testMessage": "Bu Axon Code'dan bir test bildirimidir."
+			"testMessage": "Bu Orbital'dan bir test bildirimidir."
 		},
 		"terminal": {
 			"commandGenerator": {
@@ -109,7 +109,7 @@
 	},
 	"chat": {
 		"condense": {
-			"wantsToCondense": "Axon Code konuşmanı özetlemek istiyor",
+			"wantsToCondense": "Orbital konuşmanı özetlemek istiyor",
 			"condenseConversation": "Konuşmayı Özetle"
 		},
 		"seeNewChanges": "Yeni Değişiklikleri Göster",
@@ -140,15 +140,15 @@
 	},
 	"docs": "Belgeler",
 	"rules": {
-		"tooltip": "Axon Code Kuralları ve İş Akışlarını Yönet",
-		"ariaLabel": "Axon Code Kuralları",
+		"tooltip": "Orbital Kuralları ve İş Akışlarını Yönet",
+		"ariaLabel": "Orbital Kuralları",
 		"tabs": {
 			"rules": "Kurallar",
 			"workflows": "İş Akışları"
 		},
 		"description": {
-			"rules": "Kurallar, Axon Code'a tüm modlarda ve tüm promptlarda uyması gereken talimatlar sağlamanıza olanak tanır. Bunlar, çalışma alanınızda veya global olarak tüm konuşmalar için bağlam ve tercihleri dahil etmenin kalıcı bir yoludur.",
-			"workflows": "İş akışları, bir konuşma için hazırlanmış bir şablondur. İş akışları, sık kullandığınız promptları tanımlamanıza olanak tanır ve bir hizmeti dağıtmak veya PR göndermek gibi tekrarlayan görevler boyunca Axon Code'u yönlendirmek için bir dizi adım içerebilir. Bir iş akışını çağırmak için şunu yazın",
+			"rules": "Kurallar, Orbital'a tüm modlarda ve tüm promptlarda uyması gereken talimatlar sağlamanıza olanak tanır. Bunlar, çalışma alanınızda veya global olarak tüm konuşmalar için bağlam ve tercihleri dahil etmenin kalıcı bir yoludur.",
+			"workflows": "İş akışları, bir konuşma için hazırlanmış bir şablondur. İş akışları, sık kullandığınız promptları tanımlamanıza olanak tanır ve bir hizmeti dağıtmak veya PR göndermek gibi tekrarlayan görevler boyunca Orbital'u yönlendirmek için bir dizi adım içerebilir. Bir iş akışını çağırmak için şunu yazın",
 			"workflowsInChat": "sohbette."
 		},
 		"sections": {
@@ -218,11 +218,11 @@
 			"keybindingDescription": "Autocomplete özellikleri komutlarla tetiklenebilir. <DocsLink>Klavye Kısayollarını burada</DocsLink> yapılandırabilirsin.",
 			"enableAutoTrigger": {
 				"label": "Autocomplete'i Etkinleştir",
-				"description": "Etkinleştirildiğinde, Axon Code yazmayı bıraktığında otomatik olarak Autocomplete'i tetikleyecek. Bu hızlı düzeltmeler ve öneriler için yararlı olabilir."
+				"description": "Etkinleştirildiğinde, Orbital yazmayı bıraktığında otomatik olarak Autocomplete'i tetikleyecek. Bu hızlı düzeltmeler ve öneriler için yararlı olabilir."
 			},
 			"autoTriggerDelay": {
 				"label": "Otomatik Tetikleme Gecikmesi",
-				"description": "Yazmayı bıraktıktan sonra Axon Code'un Autocomplete'i tetiklemeden önceki saniye cinsinden gecikme. Daha kısa gecikme daha hızlı öneriler anlamına gelir, ancak daha fazla kaynak yoğun olabilir."
+				"description": "Yazmayı bıraktıktan sonra Orbital'un Autocomplete'i tetiklemeden önceki saniye cinsinden gecikme. Daha kısa gecikme daha hızlı öneriler anlamına gelir, ancak daha fazla kaynak yoğun olabilir."
 			},
 			"enableQuickInlineTaskKeybinding": {
 				"label": "Hızlı Görev ({{keybinding}})",

@@ -1,6 +1,6 @@
-# Axon Code CLI - Docker Guide
+# Orbital CLI - Docker Guide
 
-A containerized version of the Axon Code CLI with full browser automation support.
+A containerized version of the Orbital CLI with full browser automation support.
 
 ## Quick Start Examples
 
@@ -57,7 +57,7 @@ docker run --rm -v $(pwd):/workspace kilocode/cli --auto "Run tests and fix any 
 
 ### 4. With Local Configuration
 
-Mount your existing Axon Code configuration to avoid setup prompts:
+Mount your existing Orbital configuration to avoid setup prompts:
 
 ```bash
 docker run -it --rm \

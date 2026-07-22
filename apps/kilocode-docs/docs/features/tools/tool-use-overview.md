@@ -1,6 +1,6 @@
 # Tool Use Overview
 
-Axon Code implements a sophisticated tool system that allows AI models to interact with your development environment in a controlled and secure manner. This document explains how tools work, when they're called, and how they're managed.
+Orbital implements a sophisticated tool system that allows AI models to interact with your development environment in a controlled and secure manner. This document explains how tools work, when they're called, and how they're managed.
 
 ## Core Concepts
 
@@ -31,7 +31,7 @@ Certain tools are accessible regardless of the current mode:
 
 ### Read Tools
 
-These tools help Axon Code understand your code and project:
+These tools help Orbital understand your code and project:
 
 - [read_file](/features/tools/read-file) - Examines the contents of files
 - [search_files](/features/tools/search-files) - Finds patterns across multiple files
@@ -40,7 +40,7 @@ These tools help Axon Code understand your code and project:
 
 ### Edit Tools
 
-These tools help Axon Code make changes to your code:
+These tools help Orbital make changes to your code:
 
 - [apply_diff](/features/tools/apply-diff) - Makes precise, surgical changes to your code
 - [file_edit](/features/tools/file-edit) - Performs string-based replacements with fuzzy matching
@@ -48,19 +48,19 @@ These tools help Axon Code make changes to your code:
 
 ### Browser Tools
 
-These tools help Axon Code interact with web applications:
+These tools help Orbital interact with web applications:
 
 - [browser_action](/features/tools/browser-action) - Automates browser interactions
 
 ### Command Tools
 
-These tools help Axon Code execute commands:
+These tools help Orbital execute commands:
 
 - [execute_command](/features/tools/execute-command) - Runs system commands and programs
 
 ### MCP Tools
 
-These tools help Axon Code connect with external services:
+These tools help Orbital connect with external services:
 
 - [use_mcp_tool](/features/tools/use-mcp-tool) - Uses specialized external tools
 - [access_mcp_resource](/features/tools/access-mcp-resource) - Accesses external data sources

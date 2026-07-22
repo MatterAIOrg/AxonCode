@@ -46,7 +46,7 @@ async function showMacOSNotification(options: NotificationOptions): Promise<void
 		}
 		args.push("-sound", "Tink")
 
-		// Add Axon Code logo
+		// Add Orbital logo
 		const extensionUri = vscode.extensions.getExtension(`matterai.axon-code`)?.extensionUri
 		if (extensionUri) {
 			const iconPath = vscode.Uri.joinPath(extensionUri, "assets", "icons", "matterai-ic.png").fsPath

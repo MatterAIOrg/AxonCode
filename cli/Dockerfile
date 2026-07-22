@@ -1,4 +1,4 @@
-# Axon Code CLI Docker Image
+# Orbital CLI Docker Image
 FROM node:20.19.2-bookworm-slim
 
 # Build arguments for metadata (all optional with defaults)
@@ -10,8 +10,8 @@ ARG VERSION="latest"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.version="${VERSION}"
-LABEL org.opencontainers.image.title="Axon Code CLI"
-LABEL org.opencontainers.image.description="Docker image for Axon Code CLI with Chromium support"
+LABEL org.opencontainers.image.title="Orbital CLI"
+LABEL org.opencontainers.image.description="Docker image for Orbital CLI with Chromium support"
 LABEL org.opencontainers.image.vendor="Orbital"
 LABEL org.opencontainers.image.url="https://matterai.so/docs/cli"
 LABEL org.opencontainers.image.documentation="https://matterai.so/docs/cli"

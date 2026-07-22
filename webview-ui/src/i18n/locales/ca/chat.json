@@ -1,5 +1,5 @@
 {
-	"greeting": "Què pot fer Axon Code per tu?",
+	"greeting": "Què pot fer Orbital per tu?",
 	"task": {
 		"title": "Tasca",
 		"expand": "Expandir tasca",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Compartir públicament",
 		"sharePubliclyDescription": "Qualsevol amb l'enllaç pot accedir",
 		"connectToCloud": "Connectar al núvol",
-		"connectToCloudDescription": "Inicia sessió a Axon Code Cloud per compartir tasques",
+		"connectToCloudDescription": "Inicia sessió a Orbital Cloud per compartir tasques",
 		"sharingDisabledByOrganization": "Compartir desactivat per l'organització",
 		"shareSuccessOrganization": "Enllaç d'organització copiat al porta-retalls",
 		"shareSuccessPublic": "Enllaç públic copiat al porta-retalls",
@@ -130,7 +130,7 @@
 		"title": "Modes",
 		"marketplace": "Mercat de modes",
 		"settings": "Configuració de modes",
-		"description": "Personalitats especialitzades que adapten el comportament d'Axon Code.",
+		"description": "Personalitats especialitzades que adapten el comportament d'Orbital.",
 		"searchPlaceholder": "Cercar modes...",
 		"noResults": "No s'han trobat resultats",
 		"organizationModes": "Modes d'organització"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "Edició sense èxit"
 	},
-	"troubleMessage": "Axon Code està tenint problemes...",
+	"troubleMessage": "Orbital està tenint problemes...",
 	"powershell": {
 		"issues": "Sembla que tens problemes amb Windows PowerShell, si us plau consulta això"
 	},
@@ -356,18 +356,18 @@
 	"profileViolationWarning": "El perfil actual no és compatible amb la configuració de la teva organització",
 	"shellIntegration": {
 		"title": "Advertència d'execució d'ordres",
-		"description": "La teva ordre s'està executant sense la integració de shell del terminal de VSCode. Per suprimir aquest advertiment, pots desactivar la integració de shell a la secció <strong>Terminal</strong> de la <settingsLink>configuració d'Axon Code</settingsLink> o solucionar problemes de la integració del terminal de VSCode mitjançant l'enllaç de sota.",
+		"description": "La teva ordre s'està executant sense la integració de shell del terminal de VSCode. Per suprimir aquest advertiment, pots desactivar la integració de shell a la secció <strong>Terminal</strong> de la <settingsLink>configuració d'Orbital</settingsLink> o solucionar problemes de la integració del terminal de VSCode mitjançant l'enllaç de sota.",
 		"troubleshooting": "Fes clic aquí per a la documentació d'integració de shell."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "S'ha arribat al límit de sol·licituds aprovades automàticament",
-			"description": "Axon Code ha arribat al límit aprovat automàticament de {{count}} sol·licitud(s) d'API. Vols reiniciar el comptador i continuar amb la tasca?",
+			"description": "Orbital ha arribat al límit aprovat automàticament de {{count}} sol·licitud(s) d'API. Vols reiniciar el comptador i continuar amb la tasca?",
 			"button": "Reiniciar i continuar"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "S'ha arribat al límit de cost aprovat automàticament",
-			"description": "Axon Code ha arribat al límit de cost aprovat automàticament de ${{count}}. Vols reiniciar el cost i continuar amb la tasca?",
+			"description": "Orbital ha arribat al límit de cost aprovat automàticament de ${{count}}. Vols reiniciar el cost i continuar amb la tasca?",
 			"button": "Reiniciar i continuar"
 		}
 	},
@@ -406,7 +406,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "executar una ordre de barra",
-		"didRun": "Axon Code ha executat una ordre de barra"
+		"didRun": "Orbital ha executat una ordre de barra"
 	},
 	"queuedMessages": {
 		"title": "Missatges en cua",

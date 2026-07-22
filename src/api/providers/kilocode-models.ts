@@ -30,7 +30,7 @@ type KiloCodeModelVariant = Omit<KiloCodeModel, "id" | "name" | "context_length"
 
 const AXON_EIDO_3_CODE_PRO: KiloCodeModelVariant = {
 	description:
-		"Axon Eido 3 Pro is the frontier Axon Code model for coding tasks, long running agents and general intelligence, fine-tuned on open source models.",
+		"Axon Eido 3 Pro is the frontier Orbital model for coding tasks, long running agents and general intelligence, fine-tuned on open source models.",
 	input_modalities: ["text", "image"],
 	max_output_length: 64000,
 	output_modalities: ["text"],

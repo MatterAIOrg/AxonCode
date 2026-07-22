@@ -13,7 +13,7 @@
 		"cancel": "Cancel"
 	},
 	"ui": {
-		"initializing": "Axon Code is initializing...",
+		"initializing": "Orbital is initializing...",
 		"systemInformation": "System Information"
 	}
 }

@@ -6,18 +6,18 @@ import Codicon from '@site/src/components/Codicon';
 
 # Suggested Responses
 
-When Axon Code needs more information to complete a task, it uses the [`ask_followup_question` tool](/features/tools/ask-followup-question). To make responding easier and faster, Axon Code often provides suggested answers alongside the question.
+When Orbital needs more information to complete a task, it uses the [`ask_followup_question` tool](/features/tools/ask-followup-question). To make responding easier and faster, Orbital often provides suggested answers alongside the question.
 
 ## Overview
 
-Suggested Responses appear as clickable buttons directly below Axon Code's question in the chat interface. They offer pre-formulated answers relevant to the question, helping you provide input quickly.
+Suggested Responses appear as clickable buttons directly below Orbital's question in the chat interface. They offer pre-formulated answers relevant to the question, helping you provide input quickly.
 
-<img src="/docs/img/suggested-responses/suggested-responses.png" alt="Example of Axon Code asking a question with suggested response buttons below it" width="500" />
+<img src="/docs/img/suggested-responses/suggested-responses.png" alt="Example of Orbital asking a question with suggested response buttons below it" width="500" />
 
 ## How It Works
 
-1.  **Question Appears**: Axon Code asks a question using the `ask_followup_question` tool.
-2.  **Suggestions Displayed**: If suggestions are provided by Axon Code, they appear as buttons below the question.
+1.  **Question Appears**: Orbital asks a question using the `ask_followup_question` tool.
+2.  **Suggestions Displayed**: If suggestions are provided by Orbital, they appear as buttons below the question.
 3.  **Interaction**: You can interact with these suggestions in two ways.
 
 ## Interacting with Suggestions
@@ -27,7 +27,7 @@ You have two options for using suggested responses:
 1.  **Direct Selection**:
 
     - **Action**: Simply click the button containing the answer you want to provide.
-    - **Result**: The selected answer is immediately sent back to Axon Code as your response. This is the quickest way to reply if one of the suggestions perfectly matches your intent.
+    - **Result**: The selected answer is immediately sent back to Orbital as your response. This is the quickest way to reply if one of the suggestions perfectly matches your intent.
 
 2.  **Edit Before Sending**:
     - **Action**:
@@ -40,7 +40,7 @@ You have two options for using suggested responses:
 ## Benefits
 
 - **Speed**: Quickly respond without typing full answers.
-- **Clarity**: Suggestions often clarify the type of information Axon Code needs.
+- **Clarity**: Suggestions often clarify the type of information Orbital needs.
 - **Flexibility**: Edit suggestions to provide precise, customized answers when needed.
 
-This feature streamlines the interaction when Axon Code requires clarification, allowing you to guide the task effectively with minimal effort.
+This feature streamlines the interaction when Orbital requires clarification, allowing you to guide the task effectively with minimal effort.

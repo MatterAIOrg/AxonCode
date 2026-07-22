@@ -2,9 +2,9 @@
 sidebar_label: Mistral AI
 ---
 
-# 在 Axon Code 中使用 Mistral AI
+# 在 Orbital 中使用 Mistral AI
 
-Axon Code 支持通过 Mistral AI API 访问模型，包括标准 Mistral 模型和代码专用 Codestral 模型。
+Orbital 支持通过 Mistral AI API 访问模型，包括标准 Mistral 模型和代码专用 Codestral 模型。
 
 **网站：** [https://mistral.ai/](https://mistral.ai/)
 
@@ -17,7 +17,7 @@ Axon Code 支持通过 Mistral AI API 访问模型，包括标准 Mistral 模型
 
 ## 支持的模型
 
-Axon Code 支持以下 Mistral 模型：
+Orbital 支持以下 Mistral 模型：
 
 | 模型 ID              | 模型默认温度 | 函数调用 | 视觉/图像支持 |
 | -------------------- | ------------ | -------- | ------------- |

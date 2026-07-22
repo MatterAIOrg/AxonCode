@@ -40,7 +40,7 @@ Each event includes:
 
 ## Logged Events
 
-Here is the list of all events included in the Axon Code audit logs:
+Here is the list of all events included in the Orbital audit logs:
 
 - Organization: Create, Settings Change, Purchase Credits
 - Organization Member: Remove, Change Role

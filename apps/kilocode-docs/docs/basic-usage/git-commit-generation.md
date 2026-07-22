@@ -1,6 +1,6 @@
 # Generate Commit Messages
 
-Generate descriptive commit messages automatically based on your staged git changes. Axon Code analyzes your staged files and creates conventional commit messages that follow best practices.
+Generate descriptive commit messages automatically based on your staged git changes. Orbital analyzes your staged files and creates conventional commit messages that follow best practices.
 
 :::info
 This feature only analyzes **staged changes**. Make sure to stage your files using `git add` or via `VS Code` interface before generating commit messages.
@@ -19,7 +19,7 @@ The git commit message generator:
 ### Generating a Commit Message
 
 1. Stage your changes using `git add` or the VS Code git interface
-2. In the VS Code Source Control panel, look for the `Axon Code` logo next to the commit message field)
+2. In the VS Code Source Control panel, look for the `Orbital` logo next to the commit message field)
 3. Click the logo to generate a commit message
 
 The generated message will appear in the commit message field, ready for you to review and modify if needed.
@@ -154,4 +154,4 @@ The feature integrates with VS Code's built-in git functionality. If you encount
 ## Related Features
 
 - [API Configuration Profiles](/features/api-configuration-profiles) - Use different models for commit generation
-- [Settings Management](/features/settings-management) - Manage all your Axon Code preferences
+- [Settings Management](/features/settings-management) - Manage all your Orbital preferences

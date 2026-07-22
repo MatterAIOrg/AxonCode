@@ -1,5 +1,5 @@
 {
-	"greeting": "Axon Code có thể giúp gì cho bạn?",
+	"greeting": "Orbital có thể giúp gì cho bạn?",
 	"task": {
 		"title": "Nhiệm vụ",
 		"expand": "Mở rộng nhiệm vụ",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Chia sẻ công khai",
 		"sharePubliclyDescription": "Bất kỳ ai có liên kết đều có thể truy cập",
 		"connectToCloud": "Kết nối với Cloud",
-		"connectToCloudDescription": "Đăng nhập vào Axon Code Cloud để chia sẻ tác vụ",
+		"connectToCloudDescription": "Đăng nhập vào Orbital Cloud để chia sẻ tác vụ",
 		"sharingDisabledByOrganization": "Chia sẻ bị tổ chức vô hiệu hóa",
 		"shareSuccessOrganization": "Liên kết tổ chức đã được sao chép vào clipboard",
 		"shareSuccessPublic": "Liên kết công khai đã được sao chép vào clipboard",
@@ -130,7 +130,7 @@
 		"title": "Chế độ",
 		"marketplace": "Chợ Chế độ",
 		"settings": "Cài đặt Chế độ",
-		"description": "Các nhân cách chuyên biệt điều chỉnh hành vi của Axon Code.",
+		"description": "Các nhân cách chuyên biệt điều chỉnh hành vi của Orbital.",
 		"searchPlaceholder": "Tìm kiếm chế độ...",
 		"noResults": "Không tìm thấy kết quả nào",
 		"organizationModes": "Chế độ của tổ chức"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "Chỉnh sửa không thành công"
 	},
-	"troubleMessage": "Axon Code đang gặp sự cố...",
+	"troubleMessage": "Orbital đang gặp sự cố...",
 	"powershell": {
 		"issues": "Có vẻ như bạn đang gặp vấn đề với Windows PowerShell, vui lòng xem"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "Hồ sơ hiện tại không tương thích với cài đặt của tổ chức của bạn",
 	"shellIntegration": {
 		"title": "Cảnh báo thực thi lệnh",
-		"description": "Lệnh của bạn đang được thực thi mà không có tích hợp shell terminal VSCode. Để ẩn cảnh báo này, bạn có thể vô hiệu hóa tích hợp shell trong phần <strong>Terminal</strong> của <settingsLink>cài đặt Axon Code</settingsLink> hoặc khắc phục sự cố tích hợp terminal VSCode bằng liên kết bên dưới.",
+		"description": "Lệnh của bạn đang được thực thi mà không có tích hợp shell terminal VSCode. Để ẩn cảnh báo này, bạn có thể vô hiệu hóa tích hợp shell trong phần <strong>Terminal</strong> của <settingsLink>cài đặt Orbital</settingsLink> hoặc khắc phục sự cố tích hợp terminal VSCode bằng liên kết bên dưới.",
 		"troubleshooting": "Nhấp vào đây để xem tài liệu tích hợp shell."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Đã Đạt Giới Hạn Yêu Cầu Tự Động Phê Duyệt",
-			"description": "Axon Code đã đạt đến giới hạn tự động phê duyệt là {{count}} yêu cầu API. Bạn có muốn đặt lại bộ đếm và tiếp tục nhiệm vụ không?",
+			"description": "Orbital đã đạt đến giới hạn tự động phê duyệt là {{count}} yêu cầu API. Bạn có muốn đặt lại bộ đếm và tiếp tục nhiệm vụ không?",
 			"button": "Đặt lại và Tiếp tục"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Đã Đạt Giới Hạn Chi Phí Tự Động Phê Duyệt",
-			"description": "Axon Code đã đạt đến giới hạn chi phí tự động phê duyệt là ${{count}}. Bạn có muốn đặt lại chi phí và tiếp tục với nhiệm vụ không?",
+			"description": "Orbital đã đạt đến giới hạn chi phí tự động phê duyệt là ${{count}}. Bạn có muốn đặt lại chi phí và tiếp tục với nhiệm vụ không?",
 			"button": "Đặt lại và Tiếp tục"
 		}
 	},
@@ -403,8 +403,8 @@
 		}
 	},
 	"slashCommand": {
-		"wantsToRun": "Axon Code muốn chạy lệnh slash",
-		"didRun": "Axon Code đã chạy lệnh slash"
+		"wantsToRun": "Orbital muốn chạy lệnh slash",
+		"didRun": "Orbital đã chạy lệnh slash"
 	},
 	"queuedMessages": {
 		"title": "Tin nhắn trong hàng đợi",

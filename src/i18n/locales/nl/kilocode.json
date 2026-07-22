@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Axon Code commit bericht generator geactiveerd",
+		"activated": "Orbital commit bericht generator geactiveerd",
 		"gitNotFound": "⚠️ Git-repository niet gevonden of git niet beschikbaar",
 		"gitInitError": "⚠️ Git-initialisatiefout: {{error}}",
 		"generating": "Axon: Commit bericht genereren...",
@@ -64,7 +64,7 @@
 		"errors": {
 			"noProject": "Geen project beschikbaar",
 			"timeout": "Verzoek is verlopen na 30 seconden",
-			"connectionFailed": "Verbinding maken met Axon Code-extensie mislukt",
+			"connectionFailed": "Verbinding maken met Orbital-extensie mislukt",
 			"invalidResponse": "Ongeldig responsformaat ontvangen van extensie",
 			"missingMessage": "Geen commit-bericht ontvangen van extensie",
 			"noChanges": "Geen wijzigingen gevonden om te committen",
@@ -89,7 +89,7 @@
 			"title": "Commit-bericht genereren",
 			"analyzing": "Wijzigingen analyseren...",
 			"generating": "Commit-bericht genereren...",
-			"connecting": "Verbinding maken met Axon Code..."
+			"connecting": "Verbinding maken met Orbital..."
 		},
 		"ui": {
 			"generateButton": "Commit Bericht Genereren",

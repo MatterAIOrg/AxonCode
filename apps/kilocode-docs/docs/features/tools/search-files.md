@@ -1,6 +1,6 @@
 # search_files
 
-The `search_files` tool performs regex searches across multiple files in your project. It helps Axon Code locate specific code patterns, text, or other content throughout your codebase with contextual results.
+The `search_files` tool performs regex searches across multiple files in your project. It helps Orbital locate specific code patterns, text, or other content throughout your codebase with contextual results.
 
 ## Parameters
 
@@ -16,10 +16,10 @@ This tool searches across files in a specified directory using regular expressio
 
 ## When is it used?
 
-- When Axon Code needs to find where specific functions or variables are used
-- When Axon Code helps with refactoring and needs to understand usage patterns
-- When Axon Code needs to locate all instances of a particular code pattern
-- When Axon Code searches for text across multiple files with filtering capabilities
+- When Orbital needs to find where specific functions or variables are used
+- When Orbital helps with refactoring and needs to understand usage patterns
+- When Orbital needs to locate all instances of a particular code pattern
+- When Orbital searches for text across multiple files with filtering capabilities
 
 ## Key Features
 
@@ -94,10 +94,10 @@ When matches occur close to each other, they're merged into a single block rathe
 
 ## Examples When Used
 
-- When asked to refactor a function, Axon Code first searches for all places the function is used to ensure comprehensive changes.
-- When investigating bugs, Axon Code searches for similar patterns to identify related issues across the codebase.
-- When addressing technical debt, Axon Code locates all TODO comments across the project.
-- When analyzing dependencies, Axon Code finds all imports of a particular module.
+- When asked to refactor a function, Orbital first searches for all places the function is used to ensure comprehensive changes.
+- When investigating bugs, Orbital searches for similar patterns to identify related issues across the codebase.
+- When addressing technical debt, Orbital locates all TODO comments across the project.
+- When analyzing dependencies, Orbital finds all imports of a particular module.
 
 ## Usage Examples
 

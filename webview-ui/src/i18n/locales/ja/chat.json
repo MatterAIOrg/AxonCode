@@ -1,5 +1,5 @@
 {
-	"greeting": "Axon Codeはあなたのために何ができますか？",
+	"greeting": "Orbitalはあなたのために何ができますか？",
 	"task": {
 		"title": "タスク",
 		"expand": "タスクを展開",
@@ -21,7 +21,7 @@
 		"sharePublicly": "公開で共有",
 		"sharePubliclyDescription": "リンクを持つ誰でもアクセスできます",
 		"connectToCloud": "クラウドに接続",
-		"connectToCloudDescription": "タスクを共有するにはAxon Code Cloudにサインイン",
+		"connectToCloudDescription": "タスクを共有するにはOrbital Cloudにサインイン",
 		"sharingDisabledByOrganization": "組織により共有が無効化されています",
 		"shareSuccessOrganization": "組織リンクをクリップボードにコピーしました",
 		"shareSuccessPublic": "公開リンクをクリップボードにコピーしました",
@@ -130,7 +130,7 @@
 		"title": "モード",
 		"marketplace": "モードマーケットプレイス",
 		"settings": "モード設定",
-		"description": "Axon Codeの動作をカスタマイズする専門的なペルソナ。",
+		"description": "Orbitalの動作をカスタマイズする専門的なペルソナ。",
 		"searchPlaceholder": "モードを検索...",
 		"noResults": "結果が見つかりません",
 		"organizationModes": "組織モード"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "編集失敗"
 	},
-	"troubleMessage": "Axon Codeに問題が発生しています...",
+	"troubleMessage": "Orbitalに問題が発生しています...",
 	"powershell": {
 		"issues": "Windows PowerShellに問題があるようです。こちらを参照してください"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "現在のプロファイルは組織の設定と互換性がありません",
 	"shellIntegration": {
 		"title": "コマンド実行警告",
-		"description": "コマンドはVSCodeターミナルシェル統合なしで実行されています。この警告を非表示にするには、<settingsLink>Axon Code設定</settingsLink>の<strong>Terminal</strong>セクションでシェル統合を無効にするか、以下のリンクを使用してVSCodeターミナル統合のトラブルシューティングを行ってください。",
+		"description": "コマンドはVSCodeターミナルシェル統合なしで実行されています。この警告を非表示にするには、<settingsLink>Orbital設定</settingsLink>の<strong>Terminal</strong>セクションでシェル統合を無効にするか、以下のリンクを使用してVSCodeターミナル統合のトラブルシューティングを行ってください。",
 		"troubleshooting": "シェル統合の documentation はこちらをクリック"
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "自動承認リクエスト制限に達しました",
-			"description": "Axon Codeは{{count}}件のAPI自動承認リクエスト制限に達しました。カウントをリセットしてタスクを続行しますか？",
+			"description": "Orbitalは{{count}}件のAPI自動承認リクエスト制限に達しました。カウントをリセットしてタスクを続行しますか？",
 			"button": "リセットして続行"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "自動承認コスト制限に達しました",
-			"description": "Axon Codeは自動承認されたコスト制限の${{count}}に達しました。コストをリセットしてタスクを続行しますか？",
+			"description": "Orbitalは自動承認されたコスト制限の${{count}}に達しました。コストをリセットしてタスクを続行しますか？",
 			"button": "リセットして続行"
 		}
 	},
@@ -404,7 +404,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "スラッシュコマンドを実行",
-		"didRun": "Axon Codeはスラッシュコマンドを実行しました"
+		"didRun": "Orbitalはスラッシュコマンドを実行しました"
 	},
 	"queuedMessages": {
 		"title": "キューメッセージ",

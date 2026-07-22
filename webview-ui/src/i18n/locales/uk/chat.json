@@ -1,5 +1,5 @@
 {
-	"greeting": "Що Axon Code може зробити для тебе?",
+	"greeting": "Що Orbital може зробити для тебе?",
 	"task": {
 		"title": "Завдання",
 		"expand": "Розгорнути завдання",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Поділитися публічно",
 		"sharePubliclyDescription": "Будь-хто з посиланням має доступ",
 		"connectToCloud": "Підключитися до Cloud",
-		"connectToCloudDescription": "Увійдіть до Axon Code Cloud для обміну завданнями",
+		"connectToCloudDescription": "Увійдіть до Orbital Cloud для обміну завданнями",
 		"sharingDisabledByOrganization": "Обмін вимкнено організацією",
 		"shareSuccessOrganization": "Посилання організації скопійовано до буфера обміну",
 		"shareSuccessPublic": "Публічне посилання скопійовано до буфера обміну",
@@ -130,7 +130,7 @@
 		"title": "Режими",
 		"marketplace": "Ринок режимів",
 		"settings": "Налаштування режимів",
-		"description": "Спеціалізовані персони, які налаштовують поведінку Axon Code.",
+		"description": "Спеціалізовані персони, які налаштовують поведінку Orbital.",
 		"searchPlaceholder": "Пошук режимів...",
 		"noResults": "Результатів не знайдено",
 		"organizationModes": "Режими організації"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "Редагування не вдалося"
 	},
-	"troubleMessage": "Axon Code має проблеми...",
+	"troubleMessage": "Orbital має проблеми...",
 	"powershell": {
 		"issues": "Схоже, у тебе проблеми з Windows PowerShell, будь ласка, подивись це"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "Поточний профіль несумісний з налаштуваннями твоєї організації",
 	"shellIntegration": {
 		"title": "Попередження про виконання команди",
-		"description": "Твоя команда виконується без інтеграції оболонки терміналу VSCode. Щоб прибрати це попередження, ти можеш вимкнути інтеграцію оболонки в розділі <strong>Terminal</strong> <settingsLink>налаштувань Axon Code</settingsLink> або усунути проблеми з інтеграцією терміналу VSCode, використовуючи посилання нижче.",
+		"description": "Твоя команда виконується без інтеграції оболонки терміналу VSCode. Щоб прибрати це попередження, ти можеш вимкнути інтеграцію оболонки в розділі <strong>Terminal</strong> <settingsLink>налаштувань Orbital</settingsLink> або усунути проблеми з інтеграцією терміналу VSCode, використовуючи посилання нижче.",
 		"troubleshooting": "Натисни тут для документації з інтеграції оболонки."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Досягнуто ліміт автосхвалених запитів",
-			"description": "Axon Code досяг автосхваленого ліміту {{count}} API запит(ів). Хочеш скинути лічильник і продовжити завдання?",
+			"description": "Orbital досяг автосхваленого ліміту {{count}} API запит(ів). Хочеш скинути лічильник і продовжити завдання?",
 			"button": "Скинути і продовжити"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Досягнуто ліміт автоматично схвалених витрат",
-			"description": "Axon Code досяг ліміту автоматично схвалених витрат ${{count}}. Хочете скинути витрати і продовжити завдання?",
+			"description": "Orbital досяг ліміту автоматично схвалених витрат ${{count}}. Хочете скинути витрати і продовжити завдання?",
 			"button": "Скинути і продовжити"
 		}
 	},
@@ -404,7 +404,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "хоче виконати slash команду",
-		"didRun": "Axon Code виконав slash команду"
+		"didRun": "Orbital виконав slash команду"
 	},
 	"queuedMessages": {
 		"title": "Повідомлення в черзі",

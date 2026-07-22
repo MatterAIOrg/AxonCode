@@ -9,35 +9,35 @@
 <figure style={{ float: 'right', width: '40%', maxWidth: '350px', margin: '0 0 10px 20px' }}>
   <img src="/docs/img/memory-bank/at-work.png" alt="Executing task with the memory bank" style={{ border: '1px solid grey', borderRadius: '5px', width: '100%' }} />
   <figcaption style={{ fontSize: '0.9rem', color: '#666', marginTop: '8px', textAlign: 'center' }}>
-    Axon Code works more efficiently with Memory Bank enabled, instantly understanding project context and technologies.
+    Orbital works more efficiently with Memory Bank enabled, instantly understanding project context and technologies.
   </figcaption>
 </figure>
 
 ### The Problem: AI Memory Loss
 
-AI assistants like Axon Code face a fundamental limitation: they reset completely between sessions. This "memory loss" means that every time you start a new conversation, you need to re-explain your project's architecture, goals, technologies, and current status. This creates a critical efficiency dilemma: AI models either make edits without proper project understanding (leading to errors and misaligned solutions), or must spend significant time and resources analyzing your entire codebase in each session (which is prohibitively expensive and slow for larger projects)
+AI assistants like Orbital face a fundamental limitation: they reset completely between sessions. This "memory loss" means that every time you start a new conversation, you need to re-explain your project's architecture, goals, technologies, and current status. This creates a critical efficiency dilemma: AI models either make edits without proper project understanding (leading to errors and misaligned solutions), or must spend significant time and resources analyzing your entire codebase in each session (which is prohibitively expensive and slow for larger projects)
 
 Without a solution to this memory problem, AI assistants remain powerful but stateless tools that can't truly function as persistent development partners.
 
 ### The Solution: Memory Bank
 
-Memory Bank is a system of structured documentation that enables Axon Code to **better understand your project** and **maintain context across coding sessions**. It transforms your AI assistant from a stateless tool into a persistent development partner with perfect recall of your project details. Axon Code automatically reads your Memory Bank files to rebuild its understanding of your project whenever you start a new session.
+Memory Bank is a system of structured documentation that enables Orbital to **better understand your project** and **maintain context across coding sessions**. It transforms your AI assistant from a stateless tool into a persistent development partner with perfect recall of your project details. Orbital automatically reads your Memory Bank files to rebuild its understanding of your project whenever you start a new session.
 
-When Memory Bank is active, Axon Code begins each task with `[Memory Bank: Active]` and a brief summary of your project context, ensuring consistent understanding without repetitive explanations.
+When Memory Bank is active, Orbital begins each task with `[Memory Bank: Active]` and a brief summary of your project context, ensuring consistent understanding without repetitive explanations.
 
 ## Key Benefits
 
 - **Language Agnostic**: Functions with any programming language or framework
-- **Efficient Project Understanding**: Helps Axon Code understand the purpose and tech stack of a project
+- **Efficient Project Understanding**: Helps Orbital understand the purpose and tech stack of a project
 - **Context Preservation**: Maintain project knowledge across sessions without needing to scan files in every new session
-- **Faster Startup**: Axon Code immediately comprehends your project context when you begin a new session
+- **Faster Startup**: Orbital immediately comprehends your project context when you begin a new session
 - **Self-Documenting Projects**: Create valuable documentation as a byproduct
 
 ## How Memory Bank Works
 
-Memory Bank is built on Axon Code's [Custom Rules](/advanced-usage/custom-rules) feature, providing a specialized framework for project documentation. Memory Bank files are standard markdown files stored in `.orbital/rules/memory-bank` folder within your project repository. They're not hidden or proprietary - they're regular documentation files that both you and Axon Code can access.
+Memory Bank is built on Orbital's [Custom Rules](/advanced-usage/custom-rules) feature, providing a specialized framework for project documentation. Memory Bank files are standard markdown files stored in `.orbital/rules/memory-bank` folder within your project repository. They're not hidden or proprietary - they're regular documentation files that both you and Orbital can access.
 
-At the start of every task, Axon Code reads all Memory Bank files to build a comprehensive understanding of your project. This happens automatically without requiring any action from you. Axon Code then indicates successful Memory Bank activation with `[Memory Bank: Active]` at the beginning of its response, followed by a brief summary of its understanding of your project.
+At the start of every task, Orbital reads all Memory Bank files to build a comprehensive understanding of your project. This happens automatically without requiring any action from you. Orbital then indicates successful Memory Bank activation with `[Memory Bank: Active]` at the beginning of its response, followed by a brief summary of its understanding of your project.
 
 Files are organized in a hierarchical structure that builds a complete picture of your project:
 
@@ -53,7 +53,7 @@ _This file is created and maintained manually by you_
 
 Example: _"Building a React web app for inventory management with barcode scanning. The system needs to support multiple warehouses and integrate with our existing ERP system."_
 
-Note: Axon Code will not edit this file directly but may suggest improvements if it identifies ways to enhance your project brief.
+Note: Orbital will not edit this file directly but may suggest improvements if it identifies ways to enhance your project brief.
 
 ### product.md
 
@@ -125,15 +125,15 @@ Example: Adding support for new AI models, implementing API endpoints, or any ta
 3. Create a file `.orbital/rules/memory-bank-instructions.md` and paste there [this document](pathname:///downloads/memory-bank.md)
 4. Switch to `Architect` mode
 5. Check if a best available AI model is selected, don't use "lightweight" models
-6. Ask Axon Code to "initialize memory bank"
-7. Wait for Axon Code to analyze your project and initialize the Memory Bank files
+6. Ask Orbital to "initialize memory bank"
+7. Wait for Orbital to analyze your project and initialize the Memory Bank files
 8. Verify the content of the files to see if the project is described correctly. Update the files if necessary.
 
 ### Project Brief Tips
 
 - Start simple - it can be as detailed or high-level as you like
 - Focus on what matters most to you
-- Axon Code will help fill in gaps and ask questions
+- Orbital will help fill in gaps and ask questions
 - You can update it as your project evolves
 
 Sample prompt that delivers a reasonably good brief:
@@ -148,7 +148,7 @@ Provide a concise and comprehensive description of this project, highlighting it
 
 #### Memory Bank Initialization
 
-The initialization step is critically important as it establishes the foundation for all future interactions with your project. When you request initialization with the command `initialize memory bank`, Axon Code will:
+The initialization step is critically important as it establishes the foundation for all future interactions with your project. When you request initialization with the command `initialize memory bank`, Orbital will:
 
 1. Perform an exhaustive analysis of your project, including:
     - All source code files and their relationships
@@ -162,26 +162,26 @@ The initialization step is critically important as it establishes the foundation
 4. Ask you to verify the accuracy of the generated files
 
 :::warning Important
-Take time to carefully review and correct the generated files after initialization. Any misunderstandings or missing information at this stage will affect all future interactions. A thorough initialization dramatically improves Axon Code's effectiveness, while a rushed or incomplete initialization will permanently limit its ability to assist you effectively.
+Take time to carefully review and correct the generated files after initialization. Any misunderstandings or missing information at this stage will affect all future interactions. A thorough initialization dramatically improves Orbital's effectiveness, while a rushed or incomplete initialization will permanently limit its ability to assist you effectively.
 :::
 
 #### Memory Bank Updates
 
 Memory Bank updates occur when:
 
-1. Axon Code discovers new project patterns
+1. Orbital discovers new project patterns
 2. After implementing significant changes
 3. When you explicitly request with `update memory bank`
 4. When context needs clarification
 
-To execute a Memory Bank update, Axon Code will:
+To execute a Memory Bank update, Orbital will:
 
 1. Review ALL project files
 2. Document the current state
 3. Document insights and patterns
 4. Update all memory bank files as needed
 
-You can direct Axon Code to focus on specific information sources by using commands like `update memory bank using information from @/Makefile`.
+You can direct Orbital to focus on specific information sources by using commands like `update memory bank using information from @/Makefile`.
 
 #### Regular Task Execution
 
@@ -192,13 +192,13 @@ At the beginning of every task, Orbital:
 3. Provides a brief summary of its understanding of your project
 4. Proceeds with the requested task
 
-At the end of a task, Axon Code may suggest updating the memory bank if significant changes were made, using the phrase: "Would you like me to update memory bank to reflect these changes?"
+At the end of a task, Orbital may suggest updating the memory bank if significant changes were made, using the phrase: "Would you like me to update memory bank to reflect these changes?"
 
 #### Add Task Workflow
 
 When you complete a repetitive task that follows a similar pattern each time, you can document it for future reference. This is particularly useful for tasks like adding features that follow existing patterns
 
-To document a task, use the command `add task` or `store this as a task`. Axon Code will:
+To document a task, use the command `add task` or `store this as a task`. Orbital will:
 
 1. Create or update the `tasks.md` file in the memory bank folder
 2. Document the task using current context:
@@ -208,7 +208,7 @@ To document a task, use the command `add task` or `store this as a task`. Axon C
     - Important considerations
     - Example implementation
 
-When starting a new task, Axon Code will check if it matches any documented tasks and follow the established workflow to ensure no steps are missed.
+When starting a new task, Orbital will check if it matches any documented tasks and follow the established workflow to ensure no steps are missed.
 
 ### Key Commands
 
@@ -218,12 +218,12 @@ When starting a new task, Axon Code will check if it matches any documented task
 
 ### Status Indicators
 
-Axon Code uses status indicators to clearly communicate Memory Bank status:
+Orbital uses status indicators to clearly communicate Memory Bank status:
 
 - `[Memory Bank: Active]` - Indicates Memory Bank files were successfully read and are being used
 - `[Memory Bank: Missing]` - Indicates Memory Bank files could not be found or are empty
 
-These indicators appear at the beginning of Axon Code's responses, providing immediate confirmation of Memory Bank status.
+These indicators appear at the beginning of Orbital's responses, providing immediate confirmation of Memory Bank status.
 
 ### Documentation Updates
 
@@ -236,23 +236,23 @@ Memory Bank updates should automatically occur when:
 
 ## Context Window Management
 
-As you work with Axon Code, your context window will eventually fill up. When you notice responses slowing down or references becoming less accurate:
+As you work with Orbital, your context window will eventually fill up. When you notice responses slowing down or references becoming less accurate:
 
-1. Ask Axon Code to "update memory bank" to document the current state
+1. Ask Orbital to "update memory bank" to document the current state
 2. Start a new conversation/task
-3. Axon Code will automatically access your Memory Bank in the new conversation
+3. Orbital will automatically access your Memory Bank in the new conversation
 
 This process ensures continuity across multiple sessions without losing important context.
 
 ## Handling Inconsistencies
 
-If Axon Code detects inconsistencies between memory bank files:
+If Orbital detects inconsistencies between memory bank files:
 
 1. It will prioritize information from `brief.md` as the source of truth
 2. Note any discrepancies to you
 3. Continue working with the most reliable information available
 
-This ensures that even with imperfect documentation, Axon Code can still function effectively.
+This ensures that even with imperfect documentation, Orbital can still function effectively.
 
 ## Frequently Asked Questions
 
@@ -266,11 +266,11 @@ Update the Memory Bank after significant milestones or changes in direction. For
 
 ### Can I edit memory bank files manually?
 
-Yes! While Axon Code manages most of the files, you can edit any of them manually. The `brief.md` file is specifically designed to be maintained by you. Manual edits to other files will be respected by Axon Code.
+Yes! While Orbital manages most of the files, you can edit any of them manually. The `brief.md` file is specifically designed to be maintained by you. Manual edits to other files will be respected by Orbital.
 
 ### What happens if memory bank files are missing?
 
-If memory bank files are missing, Axon Code will indicate this with `[Memory Bank: Missing]` at the beginning of its response and suggest initializing the memory bank.
+If memory bank files are missing, Orbital will indicate this with `[Memory Bank: Missing]` at the beginning of its response and suggest initializing the memory bank.
 
 ### Does Memory Bank work with all AI models?
 
@@ -278,7 +278,7 @@ Memory Bank works with all AI models, but more powerful models will create more 
 
 ### Can I use Memory Bank with multiple projects?
 
-Yes! Each project has its own Memory Bank in its `.orbital/rules/memory-bank/` folder. Axon Code will automatically use the correct Memory Bank for each project.
+Yes! Each project has its own Memory Bank in its `.orbital/rules/memory-bank/` folder. Orbital will automatically use the correct Memory Bank for each project.
 
 ### Doesn't Memory Bank use up my context window?
 
@@ -295,7 +295,7 @@ Testing shows that while Memory Bank uses more tokens initially, it dramatically
 ### Getting Started
 
 - Start with a basic project brief and let the structure evolve
-- Let Axon Code help create the initial structure
+- Let Orbital help create the initial structure
 - Review and adjust files as needed to match your workflow
 - Verify the accuracy of generated files after initialization
 
@@ -323,4 +323,4 @@ Testing shows that while Memory Bank uses more tokens initially, it dramatically
 
 ## Remember
 
-The Memory Bank is Axon Code's only link to previous work. Its effectiveness depends entirely on maintaining clear, accurate documentation and confirming context preservation in every interaction. When you see `[Memory Bank: Active]` at the beginning of a response, you can be confident that Axon Code has a comprehensive understanding of your project.
+The Memory Bank is Orbital's only link to previous work. Its effectiveness depends entirely on maintaining clear, accurate documentation and confirming context preservation in every interaction. When you see `[Memory Bank: Active]` at the beginning of a response, you can be confident that Orbital has a comprehensive understanding of your project.

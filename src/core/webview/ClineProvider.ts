@@ -1348,7 +1348,7 @@ ${prompt}
 						window.MATERIAL_ICONS_BASE_URI = "${materialIconsUri}"
 						window.KILOCODE_BACKEND_BASE_URL = "${process.env.KILOCODE_BACKEND_BASE_URL ?? ""}"
 					</script>
-					<title>Axon Code</title>
+					<title>Orbital</title>
 				</head>
 				<body>
 					<div id="root"></div>
@@ -1425,7 +1425,7 @@ ${prompt}
 				window.MATERIAL_ICONS_BASE_URI = "${materialIconsUri}"
 				window.KILOCODE_BACKEND_BASE_URL = "${process.env.KILOCODE_BACKEND_BASE_URL ?? ""}"
 			</script>
-            <title>Axon Code</title>
+            <title>Orbital</title>
           </head>
           <body>
             <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -2903,7 +2903,7 @@ ${prompt}
 			return
 		}
 
-		// Logout from Axon Code provider before resetting (same approach as ProfileView logout)
+		// Logout from Orbital provider before resetting (same approach as ProfileView logout)
 		const { apiConfiguration, currentApiConfigName = "default" } = await this.getState()
 		if (apiConfiguration.kilocodeToken) {
 			await this.upsertProviderProfile(currentApiConfigName, {

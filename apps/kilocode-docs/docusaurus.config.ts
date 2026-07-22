@@ -20,8 +20,8 @@ import {
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-	title: "Axon Code Docs",
-	tagline: "Axon Code Documentation",
+	title: "Orbital Docs",
+	tagline: "Orbital Documentation",
 	favicon: "img/favicon.ico",
 
 	// Set the production url of your site here
@@ -179,7 +179,7 @@ const config: Config = {
 		navbar: {
 			title: "Orbital",
 			logo: {
-				alt: "Axon Code Logo",
+				alt: "Orbital Logo",
 				src: "img/matterai-ic.svg",
 				srcDark: "img/matterai-ic.svg",
 				href: "/",

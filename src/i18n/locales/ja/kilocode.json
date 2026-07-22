@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Axon Code コミットメッセージジェネレーターがアクティブになりました",
+		"activated": "Orbital コミットメッセージジェネレーターがアクティブになりました",
 		"gitNotFound": "⚠️ Git リポジトリが見つからないか、git が利用できません",
 		"gitInitError": "⚠️ Git 初期化エラー: {{error}}",
 		"generating": "Axon: コミットメッセージを生成中...",

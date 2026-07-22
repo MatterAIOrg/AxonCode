@@ -2,7 +2,7 @@
 sidebar_label: Fireworks AI
 ---
 
-# Using Fireworks AI With Axon Code
+# Using Fireworks AI With Orbital
 
 Fireworks AI is a high-performance platform for running AI models that offers fast access to a wide range of open-source and proprietary language models. Built for speed and reliability, Fireworks AI provides both serverless and dedicated deployment options with OpenAI-compatible APIs.
 
@@ -21,7 +21,7 @@ Fireworks AI is a high-performance platform for running AI models that offers fa
 
 ## Supported Models
 
-Axon Code supports the following Fireworks AI models:
+Orbital supports the following Fireworks AI models:
 
 - `accounts/fireworks/models/kimi-k2-instruct` - Kimi K2 instruction-tuned model
 - `accounts/fireworks/models/qwen3-235b-a22b-instruct-2507` - Qwen 3 235B instruction-tuned model
@@ -31,9 +31,9 @@ Axon Code supports the following Fireworks AI models:
 
 ---
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
-1. **Open Axon Code Settings:** Click the gear icon (<Codicon name="gear" />) in the Axon Code panel.
+1. **Open Orbital Settings:** Click the gear icon (<Codicon name="gear" />) in the Orbital panel.
 2. **Select Provider:** Choose "Fireworks AI" from the "API Provider" dropdown.
 3. **Enter API Key:** Paste your Fireworks AI API key into the "Fireworks AI API Key" field.
 4. **Select Model:** Choose your desired model from the "Model" dropdown.

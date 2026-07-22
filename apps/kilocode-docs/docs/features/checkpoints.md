@@ -1,6 +1,6 @@
 # Checkpoints
 
-Checkpoints automatically version your workspace files during Axon Code tasks, enabling non-destructive exploration of AI suggestions and easy recovery from unwanted changes.
+Checkpoints automatically version your workspace files during Orbital tasks, enabling non-destructive exploration of AI suggestions and easy recovery from unwanted changes.
 
 Checkpoints let you:
 
@@ -20,16 +20,16 @@ Checkpoints let you:
 
 ## Configuration Options
 
-Access checkpoint settings in Axon Code settings under the "Checkpoints" section:
+Access checkpoint settings in Orbital settings under the "Checkpoints" section:
 
 1. Open Settings by clicking the gear icon <Codicon name="gear" /> → Checkpoints
 2. Check or uncheck the "Enable automatic checkpoints" checkbox
 
- <img src="/docs/img/checkpoints/checkpoints.png" alt="Checkpoint settings in Axon Code configuration" width="500" />
+ <img src="/docs/img/checkpoints/checkpoints.png" alt="Checkpoint settings in Orbital configuration" width="500" />
 
 ## How Checkpoints Work
 
-Axon Code captures snapshots of your project's state using a shadow Git repository, separate from your main version control system. These snapshots, called checkpoints, automatically record changes throughout your AI-assisted workflow—whenever tasks begin, files change, or commands run.
+Orbital captures snapshots of your project's state using a shadow Git repository, separate from your main version control system. These snapshots, called checkpoints, automatically record changes throughout your AI-assisted workflow—whenever tasks begin, files change, or commands run.
 
 Checkpoints are stored as Git commits in the shadow repository, capturing:
 
@@ -85,11 +85,11 @@ To restore a project to a previous checkpoint state:
     - **Restore Files Only** - Reverts only workspace files to checkpoint state without modifying conversation history. Ideal for comparing alternative implementations while maintaining chat context, allowing you to seamlessly switch between different project states. This option does not require confirmation and lets you quickly switch between different implementations.
     - **Restore Files & Task** - Reverts both workspace files AND removes all subsequent conversation messages. Use when you want to completely reset both your code and conversation back to the checkpoint's point in time. This option requires confirmation in a dialog as it cannot be undone.
 
-             <img src="/docs/img/checkpoints/checkpoints-9.png" alt="Confirmation dialog for restoring checkpoint with files & task" width="300" />
+                   <img src="/docs/img/checkpoints/checkpoints-9.png" alt="Confirmation dialog for restoring checkpoint with files & task" width="300" />
 
 ### Limitations and Considerations
 
-- **Scope**: Checkpoints only capture changes made during active Axon Code tasks
+- **Scope**: Checkpoints only capture changes made during active Orbital tasks
 - **External changes**: Modifications made outside of tasks (manual edits, other tools) aren't included
 - **Large files**: Very large binary files may impact performance
 - **Unsaved work**: Restoration will overwrite any unsaved changes in your workspace

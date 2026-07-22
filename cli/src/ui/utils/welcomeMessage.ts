@@ -29,7 +29,7 @@ export function createConfigErrorInstructions(validation: ValidationResult): str
 		"\nTo fix this issue:",
 		`  Run: axoncode login`,
 		"\n",
-		"The CLI will exit now. Please configure your Axon Code and try again.",
+		"The CLI will exit now. Please configure your Orbital and try again.",
 	)
 
 	return instructions

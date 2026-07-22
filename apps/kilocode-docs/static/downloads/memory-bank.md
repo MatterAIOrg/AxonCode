@@ -172,7 +172,7 @@ When the context window fills up during an extended session:
 
 ## Technical Implementation
 
-Memory Bank is built on Axon Code's Custom Rules feature, with files stored as standard markdown documents that both the user and I can access.
+Memory Bank is built on Orbital's Custom Rules feature, with files stored as standard markdown documents that both the user and I can access.
 
 ## Important Notes
 

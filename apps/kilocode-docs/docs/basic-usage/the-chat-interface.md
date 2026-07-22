@@ -1,24 +1,24 @@
 import Image from '@site/src/components/Image';
 
-# Chatting with Axon Code
+# Chatting with Orbital
 
 :::tip
 
-**Bottom line:** Axon Code is an AI coding assistant that lives in VS Code. You chat with it in plain English, and it writes, edits, and explains code for you.
+**Bottom line:** Orbital is an AI coding assistant that lives in VS Code. You chat with it in plain English, and it writes, edits, and explains code for you.
 
 :::
 
 ## Quick Setup
 
-Find the Axon Code icon (<img src="/docs/img/matterai-ic.svg" width="12" />) in VS Code's Primary Side Bar. Click it to open the chat panel.
+Find the Orbital icon (<img src="/docs/img/matterai-ic.svg" width="12" />) in VS Code's Primary Side Bar. Click it to open the chat panel.
 
 **Lost the panel?** Go to View > Open View... and search for "Orbital"
 
-## How to Talk to Axon Code
+## How to Talk to Orbital
 
 **The key insight:** Just type what you want in normal English. No special commands needed.
 
-<Image src="/docs/img/typing-your-requests/typing-your-requests.png" alt="Example of typing a request in Axon Code" width="600" />
+<Image src="/docs/img/typing-your-requests/typing-your-requests.png" alt="Example of typing a request in Orbital" width="600" />
 
 **Good requests:**
 
@@ -81,6 +81,6 @@ find all instances of the variable oldValue in @/src/App.js and replace them wit
 | Multiple unrelated tasks    | Submit one focused request at a time                             |
 | Technical jargon overload   | Clear, straightforward language works best                       |
 
-**Why it matters:** Axon Code works best when you communicate like you're talking to a smart teammate who needs clear direction.
+**Why it matters:** Orbital works best when you communicate like you're talking to a smart teammate who needs clear direction.
 
 Ready to start coding? Open the chat panel and describe what you want to build!

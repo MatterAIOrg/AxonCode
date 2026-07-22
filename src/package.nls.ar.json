@@ -1,5 +1,5 @@
 {
-	"extension.displayName": "Axon Code وكيل ذكاء اصطناعي",
+	"extension.displayName": "Orbital وكيل ذكاء اصطناعي",
 	"extension.description": "وكيل برمجة ذكاء اصطناعي للتخطيط وبناء وإصلاح الكود مع مراجعة الكود بالذكاء الاصطناعي، من MatterAI",
 	"views.contextMenu.label": "Orbital",
 	"views.terminalMenu.label": "Orbital",
@@ -40,8 +40,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "مزود نموذج اللغة (مثال: copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "عائلة نموذج اللغة (مثال: gpt-4)",
 	"settings.customStoragePath.description": "مسار تخزين مخصص. خله فاضي عشان يستخدم المسار الافتراضي. يدعم المسارات المطلقة (مثال: 'D:\\KiloCodeStorage')",
-	"settings.enableCodeActions.description": "فعل الإصلاحات السريعة في Axon Code",
-	"settings.autoImportSettingsPath.description": "مسار ملف تكوين Axon Code للاستيراد التلقائي عند بدء تشغيل الإضافة. يدعم المسارات المطلقة والمسارات النسبية لدليل المنزل (مثل '~/Documents/kilo-code-settings.json'). اتركه فارغًا لتعطيل الاستيراد التلقائي.",
+	"settings.enableCodeActions.description": "فعل الإصلاحات السريعة في Orbital",
+	"settings.autoImportSettingsPath.description": "مسار ملف تكوين Orbital للاستيراد التلقائي عند بدء تشغيل الإضافة. يدعم المسارات المطلقة والمسارات النسبية لدليل المنزل (مثل '~/Documents/kilo-code-settings.json'). اتركه فارغًا لتعطيل الاستيراد التلقائي.",
 	"settings.useAgentRules.description": "تمكين تحميل ملفات AGENTS.md للقواعد الخاصة بالوكيل (انظر https://agent-rules.org/)",
 	"settings.apiRequestTimeout.description": "الحد الأقصى للوقت بالثواني لانتظار استجابات API (0 = بدون مهلة، 1-86400 ثانية، افتراضي: 600 ثانية). القيم الأعلى موصى بها لمقدمي الخدمة المحليين مثل LM Studio و Ollama الذين قد يحتاجون وقت معالجة أكثر.",
 	"settings.newTaskRequireTodos.description": "مطالبة بمعامل todos عند إنشاء مهام جديدة باستخدام أداة new_task",

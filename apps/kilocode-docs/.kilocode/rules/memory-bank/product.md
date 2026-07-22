@@ -1,8 +1,8 @@
 # Product Overview
 
-## What Axon Code Is
+## What Orbital Is
 
-Axon Code is an open source AI agent VS Code extension that transforms how developers write code by providing intelligent, context-aware assistance directly within the VS Code editor. It serves as a persistent development partner that can understand projects, generate code, automate tasks, and provide suggestions.
+Orbital is an open source AI agent VS Code extension that transforms how developers write code by providing intelligent, context-aware assistance directly within the VS Code editor. It serves as a persistent development partner that can understand projects, generate code, automate tasks, and provide suggestions.
 
 ## Problems It Solves
 
@@ -20,11 +20,11 @@ Axon Code is an open source AI agent VS Code extension that transforms how devel
 - **Inefficient Context Gathering**: Without memory, AI must re-analyze entire codebases repeatedly, which is slow and expensive
 - **Inconsistent Understanding**: Lack of persistent context leads to inconsistent suggestions and solutions
 
-## How Axon Code Works
+## How Orbital Works
 
 ### Core Interaction Model
 
-Users interact with Axon Code through a chat interface within VS Code, using natural language to describe what they want to accomplish. Axon Code then uses specialized modes and tools to fulfill requests.
+Users interact with Orbital through a chat interface within VS Code, using natural language to describe what they want to accomplish. Orbital then uses specialized modes and tools to fulfill requests.
 
 ### Mode System
 
@@ -36,7 +36,7 @@ Users interact with Axon Code through a chat interface within VS Code, using nat
 
 ### Tool Ecosystem
 
-Axon Code uses a sophisticated tool system organized into groups:
+Orbital uses a sophisticated tool system organized into groups:
 
 - **Read Tools**: File exploration, code analysis, project understanding
 - **Edit Tools**: Code modification, file creation, precise surgical edits

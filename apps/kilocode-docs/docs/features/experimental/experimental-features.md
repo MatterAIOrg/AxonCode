@@ -1,6 +1,6 @@
 # Experimental Features
 
-Axon Code includes experimental features that are still under development. These features may be unstable, change significantly, or be removed in future versions. Use them with caution and be aware that they may not work as expected.
+Orbital includes experimental features that are still under development. These features may be unstable, change significantly, or be removed in future versions. Use them with caution and be aware that they may not work as expected.
 
 **Warning:** Experimental features may have unexpected behavior, including potential data loss or security vulnerabilities. Enable them at your own risk.
 
@@ -8,7 +8,7 @@ Axon Code includes experimental features that are still under development. These
 
 To enable or disable experimental features:
 
-1.  Open the Axon Code settings (<Codicon name="gear" /> icon in the top right corner).
+1.  Open the Orbital settings (<Codicon name="gear" /> icon in the top right corner).
 2.  Go to the "Advanced Settings" section.
 3.  Find the "Experimental Features" section.
 4.  Check or uncheck the boxes for the features you want to enable or disable.
@@ -28,18 +28,18 @@ It replaces brittle XML-style prompts that risk mixed prose/markup, missing fiel
 
 ## Autocomplete
 
-When enabled, Axon Code will provide inline code suggestions as you type. Currently this requires the Kilo Gateway Provider in order to use it.
+When enabled, Orbital will provide inline code suggestions as you type. Currently this requires the Kilo Gateway Provider in order to use it.
 
 ## Concurrent file edits
 
-When enabled, Axon Code can edit multiple files in a single request. When disabled, Axon Code must edit one file at a time. Disabling this can help when working with less capable models or when you want more control over file modifications.
+When enabled, Orbital can edit multiple files in a single request. When disabled, Orbital must edit one file at a time. Disabling this can help when working with less capable models or when you want more control over file modifications.
 
 ### Power Steering
 
-When enabled, Axon Code will remind the model about the details of its current mode definition more frequently. This will lead to stronger adherence to role definitions and custom instructions, but will use more tokens per message.
+When enabled, Orbital will remind the model about the details of its current mode definition more frequently. This will lead to stronger adherence to role definitions and custom instructions, but will use more tokens per message.
 
 ## Providing Feedback
 
-If you encounter any issues with experimental features, or if you have suggestions for improvements, please report them on the [Axon Code Code GitHub Issues page](https://github.com/MatterAIOrg/Orbital-Extension) or join our [Discord server](https://kilo.love/discord) where we have channels dedciated to many experimental features.
+If you encounter any issues with experimental features, or if you have suggestions for improvements, please report them on the [Orbital Code GitHub Issues page](https://github.com/MatterAIOrg/Orbital-Extension) or join our [Discord server](https://kilo.love/discord) where we have channels dedciated to many experimental features.
 
-Your feedback is valuable and helps us improve Axon Code!
+Your feedback is valuable and helps us improve Orbital!

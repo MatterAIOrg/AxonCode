@@ -115,7 +115,7 @@ export const ImageGenerationSettings = ({
 									}}
 									className="flex-1">
 									<VSCodeOption className="py-2 px-3" value="kilocode">
-										Axon Code
+										Orbital
 									</VSCodeOption>
 									<VSCodeOption className="py-2 px-3" value="openrouter">
 										OpenRouter

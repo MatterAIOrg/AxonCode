@@ -25,7 +25,7 @@ import { generateTerminalCommand } from "../utils/terminalCommandGenerator" // k
 export function getVisibleProviderOrLog(outputChannel: vscode.OutputChannel): ClineProvider | undefined {
 	const visibleProvider = ClineProvider.getVisibleInstance()
 	if (!visibleProvider) {
-		outputChannel.appendLine("Cannot find any visible Axon Code instances.")
+		outputChannel.appendLine("Cannot find any visible Orbital instances.")
 		return undefined
 	}
 	return visibleProvider

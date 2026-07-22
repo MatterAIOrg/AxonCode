@@ -7,11 +7,11 @@ import { getCodeActionCommand } from "../utils/commands"
 import { EditorUtils } from "../integrations/editor/EditorUtils"
 
 export const TITLES: Record<CodeActionName, string> = {
-	EXPLAIN: "Explain with Axon Code",
-	FIX: "Fix with Axon Code",
-	IMPROVE: "Improve with Axon Code",
-	ADD_TO_CONTEXT: "Add to Axon Code",
-	NEW_TASK: "New Axon Code Task",
+	EXPLAIN: "Explain with Orbital",
+	FIX: "Fix with Orbital",
+	IMPROVE: "Improve with Orbital",
+	ADD_TO_CONTEXT: "Add to Orbital",
+	NEW_TASK: "New Orbital Task",
 } as const
 
 export class CodeActionProvider implements vscode.CodeActionProvider {

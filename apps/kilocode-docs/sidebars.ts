@@ -19,7 +19,7 @@ const sidebars: SidebarsConfig = {
 		},
 		{
 			type: "category",
-			label: "Using Axon Code",
+			label: "Using Orbital",
 			items: [
 				"basic-usage/the-chat-interface",
 				"basic-usage/model-selection-guide",
@@ -122,7 +122,7 @@ const sidebars: SidebarsConfig = {
 				"advanced-usage/prompt-engineering",
 				{
 					type: "category",
-					label: "Customizing Axon Code",
+					label: "Customizing Orbital",
 					items: [
 						"advanced-usage/custom-rules",
 						"advanced-usage/custom-instructions",
@@ -160,7 +160,7 @@ const sidebars: SidebarsConfig = {
 		},
 		{
 			type: "category",
-			label: "Extending Axon Code",
+			label: "Extending Orbital",
 			items: [
 				"advanced-usage/local-models",
 				{

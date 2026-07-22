@@ -64,7 +64,7 @@ export class FileEditReviewController implements vscode.Disposable {
 		this._getRepo = getRepo
 		// Old UI (comment thread actions) — kept for reference.
 		//
-		// this.commentController = vscode.comments.createCommentController("axon-code.review", "Axon Code Review")
+		// this.commentController = vscode.comments.createCommentController("axon-code.review", "Orbital Review")
 		// this.commentController.commentingRangeProvider = {
 		// 	provideCommentingRanges: () => [], // Disable manual commenting
 		// }

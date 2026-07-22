@@ -62,7 +62,7 @@
 		},
 		"provider": {
 			"account": "MatterAI Account",
-			"apiKey": "Axon Code API Key",
+			"apiKey": "Orbital API Key",
 			"login": "Log in at MatterAI",
 			"logout": "Log Out",
 			"providerRouting": {
@@ -83,12 +83,12 @@
 					"zdr": "Zero data retention"
 				}
 			},
-			"automaticFetch": "The latest models are automatically available in Axon Code. If you're unsure which model to choose, Axon Code works best with the recommended models listed at the top in <strong>bold face</strong>."
+			"automaticFetch": "The latest models are automatically available in Orbital. If you're unsure which model to choose, Orbital works best with the recommended models listed at the top in <strong>bold face</strong>."
 		},
 		"modelInfo": {
 			"contextWindow": "Context window",
 			"providerBreakdown": "Provider Price and Capability Breakdown",
-			"averageKiloCodeCost": "This is the average actual spent for Axon Code using this model over the last week. It may be lower than the listed price due to prompt cache utilization.",
+			"averageKiloCodeCost": "This is the average actual spent for Orbital using this model over the last week. It may be lower than the listed price due to prompt cache utilization.",
 			"table": {
 				"provider": "Provider",
 				"context": "The endpoint can process this number of tokens (input + output).",
@@ -101,15 +101,15 @@
 		"contextManagement": {
 			"allowVeryLargeReads": {
 				"label": "Allow very large file reads",
-				"description": "When enabled, Axon Code will perform very large file or MCP output reads even if there is a high chance of overflowing the context window (content size >80% of context window)."
+				"description": "When enabled, Orbital will perform very large file or MCP output reads even if there is a high chance of overflowing the context window (content size >80% of context window)."
 			}
 		},
 		"systemNotifications": {
 			"label": "Enable System Notifications",
-			"description": "When enabled, Axon Code will send system notifications for important events like task completion or errors.",
+			"description": "When enabled, Orbital will send system notifications for important events like task completion or errors.",
 			"testButton": "Test Notification",
 			"testTitle": "Orbital",
-			"testMessage": "This is a test notification from Axon Code."
+			"testMessage": "This is a test notification from Orbital."
 		},
 		"terminal": {
 			"commandGenerator": {
@@ -124,7 +124,7 @@
 	},
 	"chat": {
 		"condense": {
-			"wantsToCondense": "Axon Code wants to condense your conversation",
+			"wantsToCondense": "Orbital wants to condense your conversation",
 			"condenseConversation": "Condense Conversation"
 		},
 		"seeNewChanges": "See New Changes",
@@ -155,15 +155,15 @@
 	},
 	"docs": "Docs",
 	"rules": {
-		"tooltip": "Manage Axon Code Rules & Workflows",
-		"ariaLabel": "Axon Code Rules",
+		"tooltip": "Manage Orbital Rules & Workflows",
+		"ariaLabel": "Orbital Rules",
 		"tabs": {
 			"rules": "Rules",
 			"workflows": "Workflows"
 		},
 		"description": {
-			"rules": "Rules allow you to provide Axon Code with instructions it should follow in all modes and for all prompts. They are a persistent way to include context and preferences for all conversations in your workspace or globally.",
-			"workflows": "Workflows are a prepared template for a conversation. Workflows can allow you to define prompts you use frequently, and can include a series of steps to guide Axon Code through repetitive tasks, such as deploying a service or submitting a PR. To invoke a workflow, type",
+			"rules": "Rules allow you to provide Orbital with instructions it should follow in all modes and for all prompts. They are a persistent way to include context and preferences for all conversations in your workspace or globally.",
+			"workflows": "Workflows are a prepared template for a conversation. Workflows can allow you to define prompts you use frequently, and can include a series of steps to guide Orbital through repetitive tasks, such as deploying a service or submitting a PR. To invoke a workflow, type",
 			"workflowsInChat": "in the chat."
 		},
 		"sections": {
@@ -241,11 +241,11 @@
 			"provider": "Provider",
 			"enableAutoTrigger": {
 				"label": "Pause to Complete",
-				"description": "When enabled, Axon Code will automatically trigger Autocomplete when you pause typing. This can be useful for quick fixes and suggestions."
+				"description": "When enabled, Orbital will automatically trigger Autocomplete when you pause typing. This can be useful for quick fixes and suggestions."
 			},
 			"autoTriggerDelay": {
 				"label": "Auto Trigger Delay",
-				"description": "The delay in seconds before Axon Code triggers Autocomplete after you pause typing. A shorter delay means quicker suggestions, but may be more resource-intensive."
+				"description": "The delay in seconds before Orbital triggers Autocomplete after you pause typing. A shorter delay means quicker suggestions, but may be more resource-intensive."
 			},
 			"enableQuickInlineTaskKeybinding": {
 				"label": "Quick Task ({{keybinding}})",

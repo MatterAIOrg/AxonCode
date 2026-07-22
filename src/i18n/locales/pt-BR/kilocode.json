@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Gerador de mensagens de commit Axon Code ativado",
+		"activated": "Gerador de mensagens de commit Orbital ativado",
 		"gitNotFound": "⚠️ Repositório Git não encontrado ou git indisponível",
 		"gitInitError": "⚠️ Erro de inicialização do Git: {{error}}",
 		"generating": "Axon: Gerando mensagem de commit...",
@@ -63,7 +63,7 @@
 		"providerRegistered": "Axon: Provedor de mensagens de commit registrado",
 		"errors": {
 			"noProject": "Nenhum projeto disponível",
-			"connectionFailed": "Falha ao conectar com a extensão Axon Code",
+			"connectionFailed": "Falha ao conectar com a extensão Orbital",
 			"invalidResponse": "Formato de resposta inválido recebido da extensão",
 			"missingMessage": "Nenhuma mensagem de commit recebida da extensão",
 			"timeout": "Solicitação excedeu o tempo limite após 30 segundos",
@@ -88,7 +88,7 @@
 		"progress": {
 			"analyzing": "Analisando mudanças...",
 			"title": "Gerando Mensagem de Commit",
-			"connecting": "Conectando ao Axon Code...",
+			"connecting": "Conectando ao Orbital...",
 			"generating": "Gerando mensagem de commit..."
 		},
 		"ui": {

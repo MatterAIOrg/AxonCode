@@ -1,5 +1,5 @@
 {
-	"greeting": "Axon Code 能为您做什么？",
+	"greeting": "Orbital 能为您做什么？",
 	"task": {
 		"title": "工作",
 		"expand": "展開工作",
@@ -21,7 +21,7 @@
 		"sharePublicly": "公開分享",
 		"sharePubliclyDescription": "任何擁有連結的人都可存取",
 		"connectToCloud": "連線至雲端",
-		"connectToCloudDescription": "登入 Axon Code Cloud 以分享工作",
+		"connectToCloudDescription": "登入 Orbital Cloud 以分享工作",
 		"sharingDisabledByOrganization": "組織已停用分享功能",
 		"shareSuccessOrganization": "組織連結已複製到剪貼簿",
 		"shareSuccessPublic": "公開連結已複製到剪貼簿",
@@ -130,7 +130,7 @@
 		"title": "模式",
 		"marketplace": "模式市集",
 		"settings": "模式設定",
-		"description": "專門量身打造 Axon Code 行為的角色。",
+		"description": "專門量身打造 Orbital 行為的角色。",
 		"searchPlaceholder": "搜尋模式...",
 		"noResults": "沒有找到結果",
 		"organizationModes": "組織模式"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "編輯失敗"
 	},
-	"troubleMessage": "Axon Code 遇到問題...",
+	"troubleMessage": "Orbital 遇到問題...",
 	"powershell": {
 		"issues": "您似乎遇到了 Windows PowerShell 的問題，請參閱此說明文件"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "目前設定檔與您的組織設定不相容",
 	"shellIntegration": {
 		"title": "命令執行警告",
-		"description": "您的命令正在沒有 VSCode 終端機 Shell 整合的情況下執行。若要隱藏此警告，您可以在 <settingsLink>Axon Code 設定</settingsLink> 的<strong>終端機</strong>區塊中停用 Shell 整合，或使用下方的連結來排解 VSCode 終端機整合問題。",
+		"description": "您的命令正在沒有 VSCode 終端機 Shell 整合的情況下執行。若要隱藏此警告，您可以在 <settingsLink>Orbital 設定</settingsLink> 的<strong>終端機</strong>區塊中停用 Shell 整合，或使用下方的連結來排解 VSCode 終端機整合問題。",
 		"troubleshooting": "點選此處查看 Shell 整合文件。"
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "已達自動核准請求上限",
-			"description": "Axon Code 已達到 {{count}} 次 API 請求的自動核准上限。您想重設計數並繼續工作嗎？",
+			"description": "Orbital 已達到 {{count}} 次 API 請求的自動核准上限。您想重設計數並繼續工作嗎？",
 			"button": "重設並繼續"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "已達自動核准費用上限",
-			"description": "Axon Code 已達到 ${{count}} 的自動核准費用上限。您想重設費用並繼續工作嗎？",
+			"description": "Orbital 已達到 ${{count}} 的自動核准費用上限。您想重設費用並繼續工作嗎？",
 			"button": "重設並繼續"
 		}
 	},
@@ -403,8 +403,8 @@
 		}
 	},
 	"slashCommand": {
-		"wantsToRun": "Axon Code 想要執行斜線指令",
-		"didRun": "Axon Code 執行了斜線指令"
+		"wantsToRun": "Orbital 想要執行斜線指令",
+		"didRun": "Orbital 執行了斜線指令"
 	},
 	"queuedMessages": {
 		"title": "佇列中的訊息",

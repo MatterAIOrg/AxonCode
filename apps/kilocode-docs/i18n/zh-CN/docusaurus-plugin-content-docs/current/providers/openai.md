@@ -2,9 +2,9 @@
 sidebar_label: OpenAI
 ---
 
-# 在 Axon Code 中使用 OpenAI
+# 在 Orbital 中使用 OpenAI
 
-Axon Code 支持通过官方 OpenAI API 直接访问模型。
+Orbital 支持通过官方 OpenAI API 直接访问模型。
 
 **官方网站:** [https://openai.com/](https://openai.com/)
 
@@ -17,7 +17,7 @@ Axon Code 支持通过官方 OpenAI API 直接访问模型。
 
 ## 支持的模型
 
-Axon Code 支持多种 OpenAI 模型，包括：
+Orbital 支持多种 OpenAI 模型，包括：
 
 - `o3-mini` (中等推理能力)
 - `o3-mini-high` (高推理能力)
@@ -31,9 +31,9 @@ Axon Code 支持多种 OpenAI 模型，包括：
 
 请参考 [OpenAI 模型文档](https://platform.openai.com/docs/models) 获取最新的模型列表和能力说明。
 
-## 在 Axon Code 中配置
+## 在 Orbital 中配置
 
-1. **打开 Axon Code 设置:** 点击 Axon Code 面板中的齿轮图标 (<Codicon name="gear" />)
+1. **打开 Orbital 设置:** 点击 Orbital 面板中的齿轮图标 (<Codicon name="gear" />)
 2. **选择提供商:** 从 "API Provider" 下拉菜单中选择 "OpenAI"
 3. **输入 API 密钥:** 将你的 OpenAI API 密钥粘贴到 "OpenAI API Key" 字段
 4. **选择模型:** 从 "Model" 下拉菜单中选择你需要的模型

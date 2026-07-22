@@ -1,5 +1,5 @@
 {
-	"greeting": "What can Axon Code do for you?",
+	"greeting": "What can Orbital do for you?",
 	"task": {
 		"title": "Task",
 		"expand": "Expand task",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Share Publicly",
 		"sharePubliclyDescription": "Anyone with the link can access",
 		"connectToCloud": "Connect to Cloud",
-		"connectToCloudDescription": "Sign in to Axon Code Cloud to share tasks",
+		"connectToCloudDescription": "Sign in to Orbital Cloud to share tasks",
 		"sharingDisabledByOrganization": "Sharing disabled by organization",
 		"shareSuccessOrganization": "Organization link copied to clipboard",
 		"shareSuccessPublic": "Public link copied to clipboard",
@@ -134,7 +134,7 @@
 		"title": "Modes",
 		"marketplace": "Mode Marketplace",
 		"settings": "Mode Settings",
-		"description": "Specialized personas that tailor Axon Code's behavior.",
+		"description": "Specialized personas that tailor Orbital's behavior.",
 		"searchPlaceholder": "Search modes...",
 		"noResults": "No results found",
 		"organizationModes": "Organization Modes"
@@ -393,18 +393,18 @@
 	"profileViolationWarning": "The current profile isn't compatible with your organization's settings",
 	"shellIntegration": {
 		"title": "Command Execution Warning",
-		"description": "Your command is being executed without VSCode terminal shell integration. To suppress this warning you can disable shell integration in the <strong>Terminal</strong> section of the <settingsLink>Axon Code settings</settingsLink> or troubleshoot VSCode terminal integration using the link below.",
+		"description": "Your command is being executed without VSCode terminal shell integration. To suppress this warning you can disable shell integration in the <strong>Terminal</strong> section of the <settingsLink>Orbital settings</settingsLink> or troubleshoot VSCode terminal integration using the link below.",
 		"troubleshooting": "Click here for shell integration documentation."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Auto-Approved Request Limit Reached",
-			"description": "Axon Code has reached the auto-approved limit of {{count}} API request(s). Would you like to reset the count and proceed with the task?",
+			"description": "Orbital has reached the auto-approved limit of {{count}} API request(s). Would you like to reset the count and proceed with the task?",
 			"button": "Reset and Continue"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Auto-Approved Cost Limit Reached",
-			"description": "Axon Code has reached the auto-approved cost limit of ${{count}}. Would you like to reset the cost and proceed with the task?",
+			"description": "Orbital has reached the auto-approved cost limit of ${{count}}. Would you like to reset the cost and proceed with the task?",
 			"button": "Reset and Continue"
 		}
 	},
@@ -453,7 +453,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "run a slash command",
-		"didRun": "Axon Code ran a slash command"
+		"didRun": "Orbital ran a slash command"
 	},
 	"queuedMessages": {
 		"title": "Queued Messages",

@@ -1,6 +1,6 @@
-# Axon Code Development Guide
+# Orbital Development Guide
 
-Welcome to the Axon Code development guide! This document will help you set up your development environment and understand how to work with the codebase. Whether you're fixing bugs, adding features, or just exploring the code, this guide will get you started.
+Welcome to the Orbital development guide! This document will help you set up your development environment and understand how to work with the codebase. Whether you're fixing bugs, adding features, or just exploring the code, this guide will get you started.
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ Before you begin, choose one of the following development environment options:
 1. **Fork and Clone the Repository**:
 
     - **Fork the Repository**:
-        - Visit the [Axon Code GitHub repository](https://github.com/MatterAIOrg/Orbital-Extension)
+        - Visit the [Orbital GitHub repository](https://github.com/MatterAIOrg/Orbital-Extension)
         - Click the "Fork" button in the top-right corner to create your own copy.
     - **Clone Your Fork**:
         ```bash
@@ -142,7 +142,7 @@ The project is organized into several key directories:
 To run the extension in development mode:
 
 1. Press `F5` (or select **Run** → **Start Debugging**) in VSCode
-2. This will open a new VSCode window with Axon Code loaded
+2. This will open a new VSCode window with Orbital loaded
 
 ### Hot Reloading
 
@@ -186,7 +186,7 @@ Replace `[version]` with the current version number.
 
 ## Testing
 
-Axon Code uses several types of tests to ensure quality:
+Orbital uses several types of tests to ensure quality:
 
 ### Unit Tests
 
@@ -250,7 +250,7 @@ These hooks help maintain code quality and consistency. If you encounter issues 
 
 ### Testing with Local Backend
 
-To test the extension against a local Axon Code backend:
+To test the extension against a local Orbital backend:
 
 1. **Set up your local backend** at `http://localhost:3000`
 2. **Use the "Run Extension [Local Backend]" launch configuration**:
@@ -262,7 +262,7 @@ This automatically sets the `KILOCODE_BACKEND_BASE_URL` environment variable, ma
 
 ## Contributing
 
-We welcome contributions to Axon Code! Here's how you can help:
+We welcome contributions to Orbital! Here's how you can help:
 
 1. **Report an issue** using [GitHub Issues](https://github.com/MatterAIOrg/Orbital-Extension/issues)
 2. **Find an issue** and submit a Pull Request with your fix

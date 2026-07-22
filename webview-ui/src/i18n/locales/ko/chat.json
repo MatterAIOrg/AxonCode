@@ -1,5 +1,5 @@
 {
-	"greeting": "Axon Code가 무엇을 도와드릴 수 있나요?",
+	"greeting": "Orbital가 무엇을 도와드릴 수 있나요?",
 	"task": {
 		"title": "작업",
 		"expand": "작업 확장",
@@ -21,7 +21,7 @@
 		"sharePublicly": "공개 공유",
 		"sharePubliclyDescription": "링크가 있는 누구나 액세스 가능",
 		"connectToCloud": "클라우드에 연결",
-		"connectToCloudDescription": "작업을 공유하려면 Axon Code Cloud에 로그인",
+		"connectToCloudDescription": "작업을 공유하려면 Orbital Cloud에 로그인",
 		"sharingDisabledByOrganization": "조직에서 공유 비활성화됨",
 		"shareSuccessOrganization": "조직 링크가 클립보드에 복사됨",
 		"shareSuccessPublic": "공개 링크가 클립보드에 복사됨",
@@ -130,7 +130,7 @@
 		"title": "모드",
 		"marketplace": "모드 마켓플레이스",
 		"settings": "모드 설정",
-		"description": "Axon Code의 동작을 맞춤화하는 전문 페르소나.",
+		"description": "Orbital의 동작을 맞춤화하는 전문 페르소나.",
 		"searchPlaceholder": "모드 검색...",
 		"noResults": "결과를 찾을 수 없음",
 		"organizationModes": "조직 모드"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "편집 실패"
 	},
-	"troubleMessage": "Axon Code에 문제가 발생했습니다...",
+	"troubleMessage": "Orbital에 문제가 발생했습니다...",
 	"powershell": {
 		"issues": "Windows PowerShell 문제가 있는 것 같습니다. 이것을 참조하세요"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "현재 프로필이 조직의 설정과 호환되지 않습니다",
 	"shellIntegration": {
 		"title": "명령 실행 경고",
-		"description": "명령이 VSCode 터미널 셸 통합 없이 실행되고 있습니다. 이 경고를 표시하지 않으려면 <settingsLink>Axon Code 설정</settingsLink>의 <strong>터미널</strong> 섹션에서 셸 통합을 비활성화하거나 아래 링크를 사용하여 VSCode 터미널 통합 문제를 해결할 수 있습니다.",
+		"description": "명령이 VSCode 터미널 셸 통합 없이 실행되고 있습니다. 이 경고를 표시하지 않으려면 <settingsLink>Orbital 설정</settingsLink>의 <strong>터미널</strong> 섹션에서 셸 통합을 비활성화하거나 아래 링크를 사용하여 VSCode 터미널 통합 문제를 해결할 수 있습니다.",
 		"troubleshooting": "셸 통합 문서는 여기를 클릭하세요."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "자동 승인 요청 한도 도달",
-			"description": "Axon Code가 {{count}}개 API 요청의 자동 승인 한도에 도달했습니다. 개수를 재설정하고 작업을 계속하시겠습니까?",
+			"description": "Orbital가 {{count}}개 API 요청의 자동 승인 한도에 도달했습니다. 개수를 재설정하고 작업을 계속하시겠습니까?",
 			"button": "재설정 및 계속"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "자동 승인 비용 한도 도달",
-			"description": "Axon Code가 자동 승인 비용 한도 ${{count}}에 도달했습니다. 비용을 재설정하고 작업을 계속하시겠습니까?",
+			"description": "Orbital가 자동 승인 비용 한도 ${{count}}에 도달했습니다. 비용을 재설정하고 작업을 계속하시겠습니까?",
 			"button": "재설정 및 계속"
 		}
 	},
@@ -404,7 +404,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "슬래시 명령 실행",
-		"didRun": "Axon Code가 슬래시 명령을 실행했습니다"
+		"didRun": "Orbital가 슬래시 명령을 실행했습니다"
 	},
 	"queuedMessages": {
 		"title": "대기 중인 메시지",

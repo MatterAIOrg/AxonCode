@@ -2,7 +2,7 @@
 sidebar_label: xAI (Grok)
 ---
 
-# 在 Axon Code 中使用 xAI (Grok)
+# 在 Orbital 中使用 xAI (Grok)
 
 xAI 是 Grok 背后的公司，Grok 是一种大型语言模型，以其对话能力和大型上下文窗口而闻名。Grok 模型旨在提供有用、信息丰富且与上下文相关的响应。
 
@@ -12,12 +12,12 @@ xAI 是 Grok 背后的公司，Grok 是一种大型语言模型，以其对话�
 
 1.  **注册/登录：** 访问 [xAI 控制台](https://console.x.ai/)。创建帐户或登录。
 2.  **导航到 API 密钥：** 转到仪表板中的 API 密钥部分。
-3.  **创建密钥：** 单击以创建新的 API 密钥。为您的密钥指定一个描述性名称（例如，“Axon Code”）。
+3.  **创建密钥：** 单击以创建新的 API 密钥。为您的密钥指定一个描述性名称（例如，“Orbital”）。
 4.  **复制密钥：** **重要提示：** 立即复制 API 密钥。您将无法再次看到它。请妥善保管。
 
 ## 支持的模型
 
-Axon Code 支持以下 xAI Grok 模型：
+Orbital 支持以下 xAI Grok 模型：
 
 ### Grok-3 模型
 
@@ -43,9 +43,9 @@ Axon Code 支持以下 xAI Grok 模型：
 
 - `grok-beta` - xAI 的 Grok Beta 模型（遗留），具有 131K 上下文窗口
 
-## Axon Code 中的配置
+## Orbital 中的配置
 
-1.  **打开 Axon Code 设置：** 单击 Axon Code 面板中的齿轮图标（<Codicon name="gear" />）。
+1.  **打开 Orbital 设置：** 单击 Orbital 面板中的齿轮图标（<Codicon name="gear" />）。
 2.  **选择提供商：** 从“API 提供商”下拉菜单中选择“xAI”。
 3.  **输入 API 密钥：** 将您的 xAI API 密钥粘贴到“xAI API 密钥”字段中。
 4.  **选择模型：** 从“模型”下拉菜单中选择您想要的 Grok 模型。

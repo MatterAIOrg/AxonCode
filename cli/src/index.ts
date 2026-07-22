@@ -23,7 +23,7 @@ const validModes = DEFAULT_MODES.map((mode) => mode.slug)
 
 program
 	.name("axoncode")
-	.description("Axon Code Terminal User Interface - AI-powered coding assistant")
+	.description("Orbital Terminal User Interface - AI-powered coding assistant")
 	.version(Package.version)
 	.option("-m, --mode <mode>", `Set the mode of operation (${validModes.join(", ")})`)
 	.option("-w, --workspace <path>", "Path to the workspace directory", process.cwd())
@@ -104,7 +104,7 @@ program
 		}
 
 		if (!(await configExists())) {
-			console.info("Welcome to the Axon Code CLI! 🎉\n")
+			console.info("Welcome to the Orbital CLI! 🎉\n")
 			console.info("To get you started, please fill out these following questions.")
 			await authWizard()
 		} else {
@@ -159,7 +159,7 @@ program
 
 program
 	.command("auth")
-	.description("Manage authentication for the Axon Code CLI")
+	.description("Manage authentication for the Orbital CLI")
 	.action(async () => {
 		await authWizard()
 	})

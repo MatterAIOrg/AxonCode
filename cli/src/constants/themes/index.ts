@@ -1,5 +1,5 @@
 /**
- * Unified Theme System for Axon Code CLI
+ * Unified Theme System for Orbital CLI
  *
  * This module provides a centralized theme structure that consolidates
  * color usage across all UI components into semantic categories.

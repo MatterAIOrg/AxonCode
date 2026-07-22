@@ -1,5 +1,5 @@
 {
-	"greeting": "Cosa può fare Axon Code per te?",
+	"greeting": "Cosa può fare Orbital per te?",
 	"task": {
 		"title": "Attività",
 		"expand": "Espandi attività",
@@ -21,7 +21,7 @@
 		"sharePublicly": "Condividi pubblicamente",
 		"sharePubliclyDescription": "Chiunque con il link può accedere",
 		"connectToCloud": "Connetti al Cloud",
-		"connectToCloudDescription": "Accedi ad Axon Code Cloud per condividere le attività",
+		"connectToCloudDescription": "Accedi ad Orbital Cloud per condividere le attività",
 		"sharingDisabledByOrganization": "Condivisione disabilitata dall'organizzazione",
 		"shareSuccessOrganization": "Link dell'organizzazione copiato negli appunti",
 		"shareSuccessPublic": "Link pubblico copiato negli appunti",
@@ -130,7 +130,7 @@
 		"title": "Modalità",
 		"marketplace": "Marketplace modalità",
 		"settings": "Impostazioni modalità",
-		"description": "Personalità specializzate che adattano il comportamento di Axon Code.",
+		"description": "Personalità specializzate che adattano il comportamento di Orbital.",
 		"searchPlaceholder": "Cerca modalità...",
 		"noResults": "Nessun risultato trovato",
 		"organizationModes": "Modalità dell'organizzazione"
@@ -280,7 +280,7 @@
 	"diffError": {
 		"title": "Modifica non riuscita"
 	},
-	"troubleMessage": "Axon Code sta avendo problemi...",
+	"troubleMessage": "Orbital sta avendo problemi...",
 	"powershell": {
 		"issues": "Sembra che tu abbia problemi con Windows PowerShell, consulta questo"
 	},
@@ -354,18 +354,18 @@
 	"profileViolationWarning": "Il profilo corrente non è compatibile con le impostazioni della tua organizzazione",
 	"shellIntegration": {
 		"title": "Avviso esecuzione comando",
-		"description": "Il tuo comando viene eseguito senza l'integrazione della shell del terminale VSCode. Per sopprimere questo avviso puoi disabilitare l'integrazione della shell nella sezione <strong>Terminale</strong> delle <settingsLink>impostazioni di Axon Code</settingsLink> o risolvere i problemi di integrazione del terminale VSCode utilizzando il link sottostante.",
+		"description": "Il tuo comando viene eseguito senza l'integrazione della shell del terminale VSCode. Per sopprimere questo avviso puoi disabilitare l'integrazione della shell nella sezione <strong>Terminale</strong> delle <settingsLink>impostazioni di Orbital</settingsLink> o risolvere i problemi di integrazione del terminale VSCode utilizzando il link sottostante.",
 		"troubleshooting": "Fai clic qui per la documentazione sull'integrazione della shell."
 	},
 	"ask": {
 		"autoApprovedRequestLimitReached": {
 			"title": "Limite richieste auto-approvate raggiunto",
-			"description": "Axon Code ha raggiunto il limite auto-approvato di {{count}} richieste API. Vuoi reimpostare il conteggio e procedere con l'attività?",
+			"description": "Orbital ha raggiunto il limite auto-approvato di {{count}} richieste API. Vuoi reimpostare il conteggio e procedere con l'attività?",
 			"button": "Reimposta e continua"
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Limite costi auto-approvati raggiunto",
-			"description": "Axon Code ha raggiunto il limite di costi auto-approvati di ${{count}}. Vuoi reimpostare il costo e procedere con l'attività?",
+			"description": "Orbital ha raggiunto il limite di costi auto-approvati di ${{count}}. Vuoi reimpostare il costo e procedere con l'attività?",
 			"button": "Reimposta e continua"
 		}
 	},
@@ -404,7 +404,7 @@
 	},
 	"slashCommand": {
 		"wantsToRun": "esegui un comando slash",
-		"didRun": "Axon Code ha eseguito un comando slash"
+		"didRun": "Orbital ha eseguito un comando slash"
 	},
 	"queuedMessages": {
 		"title": "Messaggi in coda",

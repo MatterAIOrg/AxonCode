@@ -191,7 +191,7 @@ When you don't know line numbers: use \`search_files\` to locate the code, note 
 
 # execute_command
 
-The \`execute_command\` tool runs CLI commands on the user's system. It allows Axon Code to perform system operations, install dependencies, build projects, start servers, and execute other terminal-based tasks needed to accomplish user objectives.
+The \`execute_command\` tool runs CLI commands on the user's system. It allows Orbital to perform system operations, install dependencies, build projects, start servers, and execute other terminal-based tasks needed to accomplish user objectives.
 
 ## Parameters
 

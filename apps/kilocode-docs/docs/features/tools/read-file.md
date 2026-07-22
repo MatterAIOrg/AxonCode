@@ -1,6 +1,6 @@
 # read_file
 
-The `read_file` tool examines the contents of files in a project. It allows Axon Code to understand code, configuration files, and documentation to provide better assistance.
+The `read_file` tool examines the contents of files in a project. It allows Orbital to understand code, configuration files, and documentation to provide better assistance.
 
 ## Parameters
 
@@ -17,10 +17,10 @@ This tool reads the content of a specified file and returns it with line numbers
 
 ## When is it used?
 
-- When Axon Code needs to understand existing code structure
-- When Axon Code needs to analyze configuration files
-- When Axon Code needs to extract information from text files
-- When Axon Code needs to see code before suggesting changes
+- When Orbital needs to understand existing code structure
+- When Orbital needs to analyze configuration files
+- When Orbital needs to extract information from text files
+- When Orbital needs to see code before suggesting changes
 - When specific line numbers need to be referenced in discussions
 
 ## Key Features
@@ -80,9 +80,9 @@ The tool uses a clear decision hierarchy to determine how to read a file:
 
 ## Examples When Used
 
-- When asked to explain or improve code, Axon Code first reads the relevant files to understand the current implementation.
-- When troubleshooting configuration issues, Axon Code reads config files to identify potential problems.
-- When working with documentation, Axon Code reads existing docs to understand the current content before suggesting improvements.
+- When asked to explain or improve code, Orbital first reads the relevant files to understand the current implementation.
+- When troubleshooting configuration issues, Orbital reads config files to identify potential problems.
+- When working with documentation, Orbital reads existing docs to understand the current content before suggesting improvements.
 
 ## Usage Examples
 

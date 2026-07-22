@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "Axon Code Commit 訊息產生器已啟用",
+		"activated": "Orbital Commit 訊息產生器已啟用",
 		"gitNotFound": "⚠️找不到 Git 儲存庫或 Git 不可用",
 		"gitInitError": "⚠️ Git 初始化錯誤：{{error}}",
 		"generating": "Kilo：正在產生 Commit 訊息...",
@@ -63,7 +63,7 @@
 		"providerRegistered": "Kilo：Commit 訊息提供者已註冊",
 		"errors": {
 			"noProject": "无可用项目",
-			"connectionFailed": "无法连接到 Axon Code 扩展",
+			"connectionFailed": "无法连接到 Orbital 扩展",
 			"timeout": "请求在 30 秒后超时",
 			"noChanges": "没有发现可提交的更改",
 			"invalidResponse": "收到来自扩展程序的无效响应格式",
@@ -88,7 +88,7 @@
 		"progress": {
 			"title": "生成提交消息",
 			"analyzing": "正在分析更改...",
-			"connecting": "连接至 Axon Code...",
+			"connecting": "连接至 Orbital...",
 			"generating": "正在生成提交消息..."
 		},
 		"ui": {

@@ -1,6 +1,6 @@
 # switch_mode
 
-The `switch_mode` tool enables Axon Code to change between different operational modes, each with specialized capabilities for specific types of tasks. This allows seamless transitions between modes like Code, Architect, Ask, or Debug when the current task requires different expertise.
+The `switch_mode` tool enables Orbital to change between different operational modes, each with specialized capabilities for specific types of tasks. This allows seamless transitions between modes like Code, Architect, Ask, or Debug when the current task requires different expertise.
 
 ## Parameters
 
@@ -11,7 +11,7 @@ The tool accepts these parameters:
 
 ## What It Does
 
-This tool requests a mode change when the current task would be better handled by another mode's capabilities. It maintains context while shifting Axon Code's focus and available toolsets to match the requirements of the new task phase.
+This tool requests a mode change when the current task would be better handled by another mode's capabilities. It maintains context while shifting Orbital's focus and available toolsets to match the requirements of the new task phase.
 
 ## When is it used?
 
@@ -115,9 +115,9 @@ Different modes may have specific file type restrictions:
 
 ## Examples When Used
 
-- When discussing a new feature, Axon Code switches from Ask mode to Architect mode to help design the system structure.
-- After completing architecture planning in Architect mode, Axon Code switches to Code mode to implement the designed features.
-- When encountering bugs during development, Axon Code switches from Code mode to Debug mode for systematic troubleshooting.
+- When discussing a new feature, Orbital switches from Ask mode to Architect mode to help design the system structure.
+- After completing architecture planning in Architect mode, Orbital switches to Code mode to implement the designed features.
+- When encountering bugs during development, Orbital switches from Code mode to Debug mode for systematic troubleshooting.
 
 ## Usage Examples
 

@@ -1,6 +1,6 @@
 # use_mcp_tool
 
-The `use_mcp_tool` tool enables interaction with external tools provided by connected Model Context Protocol (MCP) servers. It extends Axon Code's capabilities with domain-specific functionality through a standardized protocol.
+The `use_mcp_tool` tool enables interaction with external tools provided by connected Model Context Protocol (MCP) servers. It extends Orbital's capabilities with domain-specific functionality through a standardized protocol.
 
 ## Parameters
 
@@ -12,7 +12,7 @@ The tool accepts these parameters:
 
 ## What It Does
 
-This tool allows Axon Code to access specialized functionality provided by external MCP servers. Each MCP server can offer multiple tools with unique capabilities, extending Axon Code beyond its built-in functionality. The system validates arguments against schemas, manages server connections, and processes responses of various content types (text, image, resource).
+This tool allows Orbital to access specialized functionality provided by external MCP servers. Each MCP server can offer multiple tools with unique capabilities, extending Orbital beyond its built-in functionality. The system validates arguments against schemas, manages server connections, and processes responses of various content types (text, image, resource).
 
 ## When is it used?
 
@@ -48,7 +48,7 @@ This tool allows Axon Code to access specialized functionality provided by exter
 
 MCP servers can be configured globally or at the project level:
 
-- **Global Configuration**: Managed through the Axon Code extension settings in VS Code. These apply across all projects unless overridden.
+- **Global Configuration**: Managed through the Orbital extension settings in VS Code. These apply across all projects unless overridden.
 - **Project-level Configuration**: Defined in a `.orbital/mcp.json` file within your project's root directory.
 - This allows project-specific server setups.
 - Project-level servers take precedence over global servers if they share the same name.
@@ -82,7 +82,7 @@ When the `use_mcp_tool` tool is invoked, it follows this process:
         - Image content: Binary image data with MIME type information
         - Resource references: URIs to access server resources (works with `access_mcp_resource`)
     - The system checks the `isError` flag to determine if error handling is needed
-    - Results are formatted for display in the Axon Code interface
+    - Results are formatted for display in the Orbital interface
 
 4. **Resource and Error Handling**:
     - The system uses WeakRef patterns to prevent memory leaks

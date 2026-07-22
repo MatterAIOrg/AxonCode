@@ -1,10 +1,10 @@
 # How Tools Work
 
-Axon Code uses tools to interact with your code and environment. These specialized helpers perform specific actions like reading files, making edits, running commands, or searching your codebase. Tools provide automation for common development tasks without requiring manual execution.
+Orbital uses tools to interact with your code and environment. These specialized helpers perform specific actions like reading files, making edits, running commands, or searching your codebase. Tools provide automation for common development tasks without requiring manual execution.
 
 ## Tool Workflow
 
-Describe what you want to accomplish in natural language, and Axon Code will:
+Describe what you want to accomplish in natural language, and Orbital will:
 
 1. Select the appropriate tool based on your request
 2. Present the tool with its parameters for your review

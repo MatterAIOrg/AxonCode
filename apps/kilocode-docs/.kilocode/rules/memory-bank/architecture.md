@@ -2,7 +2,7 @@
 
 ## System Architecture
 
-The Axon Code documentation site is built using Docusaurus 3.8.1, a modern static site generator optimized for documentation websites. The architecture follows a standard Docusaurus pattern with custom enhancements for the Axon Code brand and functionality.
+The Orbital documentation site is built using Docusaurus 3.8.1, a modern static site generator optimized for documentation websites. The architecture follows a standard Docusaurus pattern with custom enhancements for the Orbital brand and functionality.
 
 ## Project Structure
 

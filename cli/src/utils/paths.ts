@@ -3,7 +3,7 @@ import * as path from "path"
 import * as fs from "fs"
 
 /**
- * Centralized path management for Axon Code CLI
+ * Centralized path management for Orbital CLI
  * All configuration and logs are stored in ~/.orbital/
  */
 export class KiloCodePaths {

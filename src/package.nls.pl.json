@@ -1,5 +1,5 @@
 {
-	"extension.displayName": "Axon Code Agent AI",
+	"extension.displayName": "Orbital Agent AI",
 	"extension.description": "Agent kodowania AI do planowania, tworzenia i naprawiania kodu z AI Code Review, od MatterAI",
 	"command.newTask.title": "Nowe Zadanie",
 	"command.explainCode.title": "Wyjaśnij Kod",
@@ -40,8 +40,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "Dostawca modelu językowego (np. copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Rodzina modelu językowego (np. gpt-4)",
 	"settings.customStoragePath.description": "Niestandardowa ścieżka przechowywania. Pozostaw puste, aby użyć domyślnej lokalizacji. Obsługuje ścieżki bezwzględne (np. 'D:\\KiloCodeStorage')",
-	"settings.enableCodeActions.description": "Włącz szybkie poprawki Axon Code.",
-	"settings.autoImportSettingsPath.description": "Ścieżka do pliku konfiguracyjnego Axon Code, który ma być automatycznie importowany podczas uruchamiania rozszerzenia. Obsługuje ścieżki bezwzględne i ścieżki względne do katalogu domowego (np. '~/Documents/kilo-code-settings.json'). Pozostaw puste, aby wyłączyć automatyczne importowanie.",
+	"settings.enableCodeActions.description": "Włącz szybkie poprawki Orbital.",
+	"settings.autoImportSettingsPath.description": "Ścieżka do pliku konfiguracyjnego Orbital, który ma być automatycznie importowany podczas uruchamiania rozszerzenia. Obsługuje ścieżki bezwzględne i ścieżki względne do katalogu domowego (np. '~/Documents/kilo-code-settings.json'). Pozostaw puste, aby wyłączyć automatyczne importowanie.",
 	"settings.useAgentRules.description": "Włącz wczytywanie plików AGENTS.md dla reguł specyficznych dla agenta (zobacz https://agent-rules.org/)",
 	"settings.apiRequestTimeout.description": "Maksymalny czas w sekundach oczekiwania na odpowiedzi API (0 = brak limitu czasu, 1-86400s, domyślnie: 600s). Wyższe wartości są zalecane dla lokalnych dostawców, takich jak LM Studio i Ollama, którzy mogą potrzebować więcej czasu na przetwarzanie.",
 	"settings.newTaskRequireTodos.description": "Wymagaj parametru todos podczas tworzenia nowych zadań za pomocą narzędzia new_task",

@@ -10,7 +10,7 @@ Once you've used any initial free Kilo Credits, you can easily add more:
 
 ## Transparent Pricing
 
-At Axon Code, we believe in complete pricing transparency:
+At Orbital, we believe in complete pricing transparency:
 
 - Our pricing matches the model provider's API rates exactly
 - We don't take any commission or markup.
@@ -20,7 +20,7 @@ At Axon Code, we believe in complete pricing transparency:
 
 ## Future Plans
 
-We're continuously working to improve Axon Code and expand our offerings:
+We're continuously working to improve Orbital and expand our offerings:
 
 - Additional LLM providers will be added in the future
 - More payment options and other plans are under development

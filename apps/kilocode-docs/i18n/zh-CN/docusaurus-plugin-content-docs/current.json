@@ -7,9 +7,9 @@
 		"message": "入门",
 		"description": "The label for category Getting Started in sidebar tutorialSidebar"
 	},
-	"sidebar.tutorialSidebar.category.Using Axon Code": {
-		"message": "使用 Axon Code",
-		"description": "The label for category Using Axon Code in sidebar tutorialSidebar"
+	"sidebar.tutorialSidebar.category.Using Orbital": {
+		"message": "使用 Orbital",
+		"description": "The label for category Using Orbital in sidebar tutorialSidebar"
 	},
 	"sidebar.tutorialSidebar.category.Basic Features": {
 		"message": "基本功能",
@@ -23,9 +23,9 @@
 		"message": "高级用法",
 		"description": "The label for category Advanced Usage in sidebar tutorialSidebar"
 	},
-	"sidebar.tutorialSidebar.category.Customizing Axon Code": {
-		"message": "自定义 Axon Code",
-		"description": "The label for category Customizing Axon Code in sidebar tutorialSidebar"
+	"sidebar.tutorialSidebar.category.Customizing Orbital": {
+		"message": "自定义 Orbital",
+		"description": "The label for category Customizing Orbital in sidebar tutorialSidebar"
 	},
 	"sidebar.tutorialSidebar.category.Advanced Context Features": {
 		"message": "高级上下文功能",
@@ -39,9 +39,9 @@
 		"message": "自定义",
 		"description": "The label for category Customization in sidebar tutorialSidebar"
 	},
-	"sidebar.tutorialSidebar.category.Extending Axon Code": {
-		"message": "扩展 Axon Code",
-		"description": "The label for category Extending Axon Code in sidebar tutorialSidebar"
+	"sidebar.tutorialSidebar.category.Extending Orbital": {
+		"message": "扩展 Orbital",
+		"description": "The label for category Extending Orbital in sidebar tutorialSidebar"
 	},
 	"sidebar.tutorialSidebar.category.Model Providers": {
 		"message": "模型供应商",

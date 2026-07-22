@@ -16,7 +16,7 @@ import { DEFAULT_WRITE_DELAY_MS } from "@roo-code/types"
 import { DecorationController } from "./DecorationController"
 
 export const DIFF_VIEW_URI_SCHEME = "cline-diff"
-export const DIFF_VIEW_LABEL_CHANGES = "Original ↔ Axon Code's Changes"
+export const DIFF_VIEW_LABEL_CHANGES = "Original ↔ Orbital's Changes"
 
 // TODO: https://github.com/cline/cline/pull/3354
 export class DiffViewProvider {

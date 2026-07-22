@@ -121,7 +121,7 @@ class WecoderPlugin : StartupActivity.DumbAware {
         val osArch = System.getProperty("os.arch")
 
         LOG.info(
-            "Initializing Axon Code plugin for project: ${project.name}, " +
+            "Initializing Orbital plugin for project: ${project.name}, " +
                 "OS: $osName $osVersion ($osArch), " +
                 "IDE: ${appInfo.fullApplicationName} (build ${appInfo.build}), " +
                 "Plugin version: $pluginVersion, " +
@@ -141,15 +141,15 @@ class WecoderPlugin : StartupActivity.DumbAware {
             Disposer.register(
                 project,
                 Disposable {
-                    LOG.info("Disposing Axon Code plugin for project: ${project.name}")
+                    LOG.info("Disposing Orbital plugin for project: ${project.name}")
                     pluginService.dispose()
                     // SystemObjectProvider is now project-scoped and will be disposed automatically
                 },
             )
 
-            LOG.info("Axon Code plugin initialized successfully for project: ${project.name}")
+            LOG.info("Orbital plugin initialized successfully for project: ${project.name}")
         } catch (e: Exception) {
-            LOG.error("Failed to initialize Axon Code plugin", e)
+            LOG.error("Failed to initialize Orbital plugin", e)
         }
     }
 }

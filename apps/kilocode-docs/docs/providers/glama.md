@@ -2,7 +2,7 @@
 sidebar_label: Glama
 ---
 
-# Using Glama With Axon Code
+# Using Glama With Orbital
 
 Glama provides access to a variety of language models through a unified API, including models from Anthropic, OpenAI, and others. It offers features like prompt caching and cost tracking.
 
@@ -16,17 +16,17 @@ Glama provides access to a variety of language models through a unified API, inc
 
 ## Supported Models
 
-Axon Code will automatically try to fetch a list of available models from the Glama API. Some models that are commonly available through Glama include:
+Orbital will automatically try to fetch a list of available models from the Glama API. Some models that are commonly available through Glama include:
 
-- **Anthropic Claude models:** (e.g., `anthropic/claude-3-5-sonnet`) These are generally recommended for best performance with Axon Code.
+- **Anthropic Claude models:** (e.g., `anthropic/claude-3-5-sonnet`) These are generally recommended for best performance with Orbital.
 - **OpenAI models:** (e.g., `openai/o3-mini-high`)
 - **Other providers and open-source models**
 
 Refer to the [Glama documentation](https://glama.ai/models) for the most up-to-date list of supported models.
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
-1.  **Open Axon Code Settings:** Click the gear icon (<Codicon name="gear" />) in the Axon Code panel.
+1.  **Open Orbital Settings:** Click the gear icon (<Codicon name="gear" />) in the Orbital panel.
 2.  **Select Provider:** Choose "Glama" from the "API Provider" dropdown.
 3.  **Enter API Key:** Paste your Glama API key into the "Glama API Key" field.
 4.  **Select Model:** Choose your desired model from the "Model" dropdown.

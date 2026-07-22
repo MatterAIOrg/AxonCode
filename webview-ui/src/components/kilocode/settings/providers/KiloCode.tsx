@@ -148,7 +148,7 @@ export const KiloCode = ({
 
 	// Always show all models including axon-code-2-pro
 	// The model will be marked as disabled if betaModelsEnabled is false
-	const models = routerModels?.["kilocode-openrouter"] ?? {}
+	const models = useMemo(() => routerModels?.["kilocode-openrouter"] ?? {}, [routerModels])
 	const profilePlan = profileData?.plan ?? profileData?.tieredUsage?.plan
 	const has400kAccess = canUse400kContext(profilePlan)
 	const availableModels = useMemo(

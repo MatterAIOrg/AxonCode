@@ -1,5 +1,5 @@
 /**
- * Dark theme for Axon Code CLI
+ * Dark theme for Orbital CLI
  *
  * Colors matched to VSCode extension's dark theme for consistency.
  */

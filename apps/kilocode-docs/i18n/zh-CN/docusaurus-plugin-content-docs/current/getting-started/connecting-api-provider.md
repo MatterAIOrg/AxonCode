@@ -4,23 +4,23 @@ sidebar_label: 连接到提供商
 
 # 连接 AI 提供商
 
-Axon Code 需要 AI 模型提供商的 API 密钥才能运行。
+Orbital 需要 AI 模型提供商的 API 密钥才能运行。
 
 我们推荐以下选项来访问强大的 **Claude 4 Sonnet** 模型：
 
-- **Axon Code API 提供商（推荐）：** 以有竞争力的价格提供对 OpenRouter 可用的所有模型的访问权限，并提供免费积分以供入门。 [查看定价](https://matterai.so/pricing)
+- **Orbital API 提供商（推荐）：** 以有竞争力的价格提供对 OpenRouter 可用的所有模型的访问权限，并提供免费积分以供入门。 [查看定价](https://matterai.so/pricing)
 - **OpenRouter：** 通过单个 API 密钥提供对多个 AI 模型的访问权限。 [查看定价](https://openrouter.ai/models?order=pricing-low-to-high)。
 - **Anthropic：** 直接访问 Claude 模型。需要 API 访问批准，并且可能[根据您的层级有速率限制](https://docs.anthropic.com/en/api/rate-limits#requirements-to-advance-tier)。有关详细信息，请参阅 [Anthropic 的定价页面](https://www.anthropic.com/pricing#anthropic-api)。
 
-## 使用 Axon Code 提供商
+## 使用 Orbital 提供商
 
-默认情况下，当您安装 Axon Code 扩展时，系统会提示您在 [Axon Code 提供商](/providers/kilocode)中登录或创建帐户。
+默认情况下，当您安装 Orbital 扩展时，系统会提示您在 [Orbital 提供商](/providers/kilocode)中登录或创建帐户。
 
-这将引导您完成帐户设置并*自动*正确配置 Axon Code 以帮助您入门。如果您更喜欢使用其他提供商，则需要按照以下说明手动获取您的 API 密钥。
+这将引导您完成帐户设置并*自动*正确配置 Orbital 以帮助您入门。如果您更喜欢使用其他提供商，则需要按照以下说明手动获取您的 API 密钥。
 
 ## 使用其他 API 提供商
 
-_即将登陆 Axon Code Teams 和 Enterprise 平台！_
+_即将登陆 Orbital Teams 和 Enterprise 平台！_
 
 ### 获取您的API密钥
 

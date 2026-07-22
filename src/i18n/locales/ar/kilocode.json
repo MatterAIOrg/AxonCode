@@ -51,7 +51,7 @@
 		}
 	},
 	"commitMessage": {
-		"activated": "تم تفعيل منشئ رسائل التزام Axon Code",
+		"activated": "تم تفعيل منشئ رسائل التزام Orbital",
 		"gitNotFound": "⚠️ مستودع Git غير موجود أو Git غير متاح",
 		"gitInitError": "⚠️ خطأ في تهيئة Git: {{error}}",
 		"generating": "Axon: جارٍ إنشاء رسالة الالتزام...",
@@ -62,12 +62,12 @@
 		"analyzingChanges": "Axon: جاري تحليل التعديلات الجاهزة...",
 		"noStagedChangesRepo": "Axon: ما فيه تعديلات مضافة في مستودع git",
 		"noStagedChanges": "Axon: ما فيه تعديلات مضافة لتحليلها",
-		"tokenRequired": "يتطلب توليد الرسالة رمز Axon Code",
+		"tokenRequired": "يتطلب توليد الرسالة رمز Orbital",
 		"activationFailed": "Axon: فشل تفعيل مولّد الرسائل: {{error}}",
 		"providerRegistered": "Axon: تم تسجيل موفر رسائل الاعتماد",
 		"errors": {
 			"noProject": "لا يوجد مشروع متاح",
-			"connectionFailed": "فشل الاتصال بملحق Axon Code",
+			"connectionFailed": "فشل الاتصال بملحق Orbital",
 			"invalidResponse": "تم استلام صيغة استجابة غير صالحة من الملحق",
 			"noChanges": "لا توجد تغييرات للإرسال",
 			"timeout": "انتهت مهلة الطلب بعد 30 ثانية",

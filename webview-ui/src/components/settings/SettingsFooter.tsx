@@ -28,7 +28,7 @@ export const SettingsFooter = ({ version, className, ...props }: SettingsFooterP
 				hi@matterai.so
 			</VSCodeLink>{" "}
 		</p>
-		<p className="italic">Axon Code v{version}</p>
+		<p className="italic">Orbital v{version}</p>
 		<div className="flex justify-between items-center gap-3">
 			<p>Reset all global state and secret storage in the extension.</p>
 			<VSCodeButton

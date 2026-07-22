@@ -2,7 +2,7 @@
 sidebar_label: Anthropic
 ---
 
-# Using Anthropic With Axon Code
+# Using Anthropic With Orbital
 
 Anthropic is an AI safety and research company that builds reliable, interpretable, and steerable AI systems. Their Claude models are known for their strong reasoning abilities, helpfulness, and honesty.
 
@@ -17,7 +17,7 @@ Anthropic is an AI safety and research company that builds reliable, interpretab
 
 ## Supported Models
 
-Axon Code supports the following Anthropic Claude models:
+Orbital supports the following Anthropic Claude models:
 
 - `claude-3-7-sonnet-20250219` (Recommended)
 - `claude-3-7-sonnet-20250219:thinking` (Extended Thinking variant)
@@ -28,9 +28,9 @@ Axon Code supports the following Anthropic Claude models:
 
 See [Anthropic's Model Documentation](https://docs.anthropic.com/en/docs/about-claude/models) for more details on each model's capabilities.
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
-1.  **Open Axon Code Settings:** Click the gear icon (<Codicon name="gear" />) in the Axon Code panel.
+1.  **Open Orbital Settings:** Click the gear icon (<Codicon name="gear" />) in the Orbital panel.
 2.  **Select Provider:** Choose "Anthropic" from the "API Provider" dropdown.
 3.  **Enter API Key:** Paste your Anthropic API key into the "Anthropic API Key" field.
 4.  **Select Model:** Choose your desired Claude model from the "Model" dropdown.

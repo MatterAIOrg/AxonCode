@@ -4,7 +4,7 @@
 
 # 在Kilo Code中使用Ollama
 
-Axon Code 支持通过 Ollama 在本地运行模型。这提供了隐私保护、离线访问能力，并可能降低成本，但需要更多设置且依赖高性能计算机。  
+Orbital 支持通过 Ollama 在本地运行模型。这提供了隐私保护、离线访问能力，并可能降低成本，但需要更多设置且依赖高性能计算机。  
 **官方网站：** [https://ollama.com/](https://ollama.com/)
 
 <img src="/docs/img/providers/ollama-devstral-snake.png" alt="使用 devstral 编写贪吃蛇游戏" width="500" />
@@ -32,13 +32,13 @@ Ollama 支持许多不同的模型。
 选择适合您的用例、在您的硬件配置上运行并达到所需速度的模型需要一些试错。
 以下规则和启发式方法可用于查找模型：
 
-- 必须至少有 32k 的上下文窗口（这是 Axon Code 的要求）。
+- 必须至少有 32k 的上下文窗口（这是 Orbital 的要求）。
 - 列出为支持工具。
 - 参数数量在 7b 到 24b 范围内。
 - 优先选择流行模型。
 - 优先选择较新的模型。
 
-### Axon Code 推荐
+### Orbital 推荐
 
 我们使用以下提示测试了一些模型：
 
@@ -97,7 +97,7 @@ devstral:24b 产生的结果如下：
 </html>
 ```
 
-以下模型看起来是合理的选择，但发现与 Axon Code 的默认配置**不**兼容：
+以下模型看起来是合理的选择，但发现与 Orbital 的默认配置**不**兼容：
 
 | 模型名称       | 失败原因         |
 | -------------- | ---------------- |
@@ -112,7 +112,7 @@ devstral:24b 产生的结果如下：
     OLLAMA_CONTEXT_LENGTH=131072 ollama serve
     ```
 
-2.  **下载模型：** 下载模型后，您可以离线使用 Axon Code 和该模型。要下载模型，请打开终端并运行：
+2.  **下载模型：** 下载模型后，您可以离线使用 Orbital 和该模型。要下载模型，请打开终端并运行：
 
     ```bash
     ollama pull <model_name>
@@ -124,8 +124,8 @@ devstral:24b 产生的结果如下：
     ollama pull devstral:24b
     ```
 
-3.  **配置 Axon Code：**
-    - 打开 Axon Code 侧边栏（<img src="/docs/img/matterai-ic.svg" width="12" /> 图标）。
+3.  **配置 Orbital：**
+    - 打开 Orbital 侧边栏（<img src="/docs/img/matterai-ic.svg" width="12" /> 图标）。
     - 单击设置齿轮图标（<Codicon name="gear" />）。
     - 选择“ollama”作为 API 提供商。
     - 输入模型名称。

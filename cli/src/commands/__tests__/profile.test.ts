@@ -51,7 +51,7 @@ describe("/profile command", () => {
 		})
 
 		it("should have correct description", () => {
-			expect(profileCommand.description).toBe("View your Axon Code profile information")
+			expect(profileCommand.description).toBe("View your Orbital profile information")
 		})
 
 		it("should have correct category", () => {

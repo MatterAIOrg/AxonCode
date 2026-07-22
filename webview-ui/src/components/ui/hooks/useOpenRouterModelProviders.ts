@@ -41,7 +41,7 @@ type KiloCodeModelVariant = Omit<KiloCodeModel, "id" | "name" | "context_length"
 
 const AXON_EIDO_3_CODE_PRO: KiloCodeModelVariant = {
 	description:
-		"Axon Eido 3 Pro is the frontier Axon Code model for coding tasks, long running agents and general intelligence, fine-tuned on open source models.",
+		"Axon Eido 3 Pro is the frontier model for coding tasks, long running agents and general intelligence, fine-tuned on open source models.",
 	input_modalities: ["text", "image"],
 	max_output_length: 64000,
 	output_modalities: ["text"],
@@ -200,7 +200,7 @@ const toOpenRouterModelProvider = (model: KiloCodeModel): OpenRouterModelProvide
 		maxTokens: model.max_output_length,
 		contextWindow: model.context_length,
 		maxThinkingTokens: undefined,
-		supportsImages: model.output_modalities.includes("image"),
+		supportsImages: model.input_modalities.includes("image"),
 		supportsPromptCache: typeof cacheReadsPrice !== "undefined",
 		supportsVerbosity: undefined,
 		supportsReasoningBudget: undefined,

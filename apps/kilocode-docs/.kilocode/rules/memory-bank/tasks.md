@@ -1,6 +1,6 @@
 # Documentation Tasks
 
-This file documents common repetitive tasks and workflows for maintaining the Axon Code documentation site.
+This file documents common repetitive tasks and workflows for maintaining the Orbital documentation site.
 
 ## Add New Provider Documentation
 
@@ -18,7 +18,7 @@ This file documents common repetitive tasks and workflows for maintaining the Ax
     - Introduction and website link
     - Getting an API Key section
     - Supported Models section
-    - Configuration in Axon Code section
+    - Configuration in Orbital section
     - Tips and Notes section
 3. Add provider to the Model Providers section in `sidebars.ts`
 4. Update constants file if new URLs are needed
@@ -32,7 +32,7 @@ This file documents common repetitive tasks and workflows for maintaining the Ax
 sidebar_label: Provider Name
 ---
 
-# Using [Provider Name] With Axon Code
+# Using [Provider Name] With Orbital
 
 Brief description of the provider and their strengths.
 
@@ -46,7 +46,7 @@ Brief description of the provider and their strengths.
 
 [List of supported models]
 
-## Configuration in Axon Code
+## Configuration in Orbital
 
 [Setup instructions]
 

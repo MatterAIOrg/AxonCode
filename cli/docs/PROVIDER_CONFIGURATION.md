@@ -1,13 +1,13 @@
 # Provider Configuration Guide
 
-This guide provides detailed information on how to configure each provider in Axon Code CLI. Each provider has specific configuration requirements and optional settings that can be customized to suit your needs.
+This guide provides detailed information on how to configure each provider in Orbital CLI. Each provider has specific configuration requirements and optional settings that can be customized to suit your needs.
 
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [Configuration Methods](#configuration-methods)
 - [Provider Details](#provider-details)
-    - [Axon Code](#kilocode)
+    - [Orbital](#kilocode)
     - [Anthropic](#anthropic)
     - [OpenAI Native](#openai-native)
     - [OpenRouter](#openrouter)
@@ -48,7 +48,7 @@ This guide provides detailed information on how to configure each provider in Ax
 
 ## Introduction
 
-Axon Code CLI supports multiple AI providers, each with their own configuration requirements. This document details the configuration fields for each provider, including required and optional parameters.
+Orbital CLI supports multiple AI providers, each with their own configuration requirements. This document details the configuration fields for each provider, including required and optional parameters.
 
 ## Configuration Methods
 
@@ -64,13 +64,13 @@ You can configure providers using:
 
 ### kilocode
 
-The official Axon Code provider for accessing Axon Code's managed AI services.
+The official Orbital provider for accessing Orbital's managed AI services.
 
-**Description**: Access Axon Code's managed AI infrastructure with support for multiple models and organizations.
+**Description**: Access Orbital's managed AI infrastructure with support for multiple models and organizations.
 
 **Required Fields**:
 
-- `kilocodeToken` (password): Your Axon Code authentication token
+- `kilocodeToken` (password): Your Orbital authentication token
 - `kilocodeModel` (text): The model to use (default: `axon-code-2`)
 
 **Optional Fields**:
@@ -1324,7 +1324,7 @@ Fake AI provider for testing and development.
 
 ## Additional Resources
 
-- [Axon Code Documentation](https://docs.kilocode.com/)
+- [Orbital Documentation](https://docs.kilocode.com/)
 - [Configuration Schema](../src/config/schema.json)
 
 ## Support
