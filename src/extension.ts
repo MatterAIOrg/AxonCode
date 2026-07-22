@@ -47,6 +47,7 @@ import { initializeI18n } from "./i18n"
 import { registerMainThreadForwardingLogger } from "./utils/fowardingLogger" // kilocode_change
 import { getKiloCodeWrapperProperties } from "./core/kilocode/wrapper" // kilocode_change
 import { isOrbitalIDE } from "./utils/detectOrbitalIDE" // kilocode_change
+import { recoverPendingOrbitalExtensionUpdate } from "./services/orbital/extensionUpdate"
 
 /**
  * Built using https://github.com/microsoft/vscode-webview-ui-toolkit
@@ -105,6 +106,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	outputChannel = vscode.window.createOutputChannel("Axon-Code")
 	context.subscriptions.push(outputChannel)
 	outputChannel.appendLine(`${Package.name} extension activated - ${JSON.stringify(Package)}`)
+
+	if (await recoverPendingOrbitalExtensionUpdate(context)) {
+		outputChannel.appendLine("[Orbital Update] Requested a recovery reload to finish activating the update")
+		return
+	}
 
 	// Migrate old settings to new
 	await migrateSettings(context, outputChannel)

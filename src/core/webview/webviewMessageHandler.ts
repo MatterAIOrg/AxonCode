@@ -1208,7 +1208,7 @@ export const webviewMessageHandler = async (
 					type: "orbitalUpdateStatus",
 					values: { status: "installing", latestVersion: update.latestVersion },
 				})
-				await installOrbitalExtensionUpdate()
+				await installOrbitalExtensionUpdate(provider.context, update.latestVersion)
 				await provider.postMessageToWebview({
 					type: "orbitalUpdateStatus",
 					values: { status: "restarting", latestVersion: update.latestVersion },

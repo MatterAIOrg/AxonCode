@@ -4,6 +4,7 @@ import * as vscode from "vscode"
 import { Package } from "../../shared/package"
 
 const OPEN_VSX_HOST = "open-vsx.org"
+export const PENDING_ORBITAL_UPDATE_KEY = "orbital.pendingExtensionUpdate"
 
 interface OpenVsxExtensionMetadata {
 	namespace: string
@@ -21,6 +22,11 @@ interface ParsedVersion {
 	minor: number
 	patch: number
 	prerelease?: string
+}
+
+interface PendingOrbitalUpdate {
+	targetVersion: string
+	recoveryReloadAttempted: boolean
 }
 
 function parseVersion(version: string): ParsedVersion | undefined {
@@ -67,6 +73,10 @@ export function isOrbitalIde(): boolean {
 	return vscode.env.appName.trim().toLowerCase() === "orbital" || vscode.env.uriScheme === "orbital"
 }
 
+function normalizeVersion(version: string): string {
+	return version.startsWith("v") ? version.slice(1) : version
+}
+
 export async function checkForOrbitalExtensionUpdate(): Promise<OrbitalExtensionUpdate | undefined> {
 	if (!isOrbitalIde()) {
 		return undefined
@@ -90,11 +100,70 @@ export async function checkForOrbitalExtensionUpdate(): Promise<OrbitalExtension
 	}
 }
 
-export async function installOrbitalExtensionUpdate(): Promise<void> {
+export async function installOrbitalExtensionUpdate(
+	context: vscode.ExtensionContext,
+	targetVersion: string,
+): Promise<void> {
 	if (!isOrbitalIde()) {
 		throw new Error("Extension updates are only supported in Orbital")
 	}
+	if (!parseVersion(targetVersion)) {
+		throw new Error(`Invalid Orbital extension version: ${targetVersion}`)
+	}
 
 	const extensionId = `${Package.publisher}.${Package.name}`
-	await vscode.commands.executeCommand("workbench.extensions.installExtension", extensionId)
+	const normalizedTargetVersion = normalizeVersion(targetVersion)
+	await context.globalState.update(PENDING_ORBITAL_UPDATE_KEY, {
+		targetVersion: normalizedTargetVersion,
+		recoveryReloadAttempted: false,
+	} satisfies PendingOrbitalUpdate)
+
+	try {
+		// Pin the version discovered through Open VSX. An unversioned install can
+		// resolve against stale gallery metadata and report success without
+		// installing the release shown in the banner.
+		await vscode.commands.executeCommand(
+			"workbench.extensions.installExtension",
+			`${extensionId}@${normalizedTargetVersion}`,
+		)
+	} catch (error) {
+		await context.globalState.update(PENDING_ORBITAL_UPDATE_KEY, undefined)
+		throw error
+	}
+}
+
+/**
+ * Completes a self-update when installing this extension interrupted the
+ * original install-and-reload continuation. Returns true when activation
+ * should stop because a recovery reload was requested.
+ */
+export async function recoverPendingOrbitalExtensionUpdate(context: vscode.ExtensionContext): Promise<boolean> {
+	const pending = context.globalState.get<PendingOrbitalUpdate>(PENDING_ORBITAL_UPDATE_KEY)
+	if (!pending || !isOrbitalIde()) {
+		return false
+	}
+
+	if (!isNewerVersion(pending.targetVersion, Package.version)) {
+		await context.globalState.update(PENDING_ORBITAL_UPDATE_KEY, undefined)
+		return false
+	}
+
+	if (pending.recoveryReloadAttempted) {
+		// Never enter a reload loop if the target could not be activated.
+		await context.globalState.update(PENDING_ORBITAL_UPDATE_KEY, undefined)
+		return false
+	}
+
+	await context.globalState.update(PENDING_ORBITAL_UPDATE_KEY, {
+		...pending,
+		recoveryReloadAttempted: true,
+	} satisfies PendingOrbitalUpdate)
+	try {
+		await vscode.commands.executeCommand("workbench.action.reloadWindow")
+		return true
+	} catch {
+		// Keep normal activation usable if the host refuses the recovery reload.
+		await context.globalState.update(PENDING_ORBITAL_UPDATE_KEY, undefined)
+		return false
+	}
 }
