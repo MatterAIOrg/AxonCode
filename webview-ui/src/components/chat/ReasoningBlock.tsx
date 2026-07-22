@@ -11,11 +11,20 @@ interface ReasoningBlockProps {
 	ts: number
 	isStreaming: boolean
 	_isLast: boolean
+	disableAutoExpand?: boolean
 	partial?: boolean
 	metadata?: any
 }
 
-export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, metadata }: ReasoningBlockProps) => {
+export const ReasoningBlock = ({
+	content,
+	ts,
+	isStreaming,
+	_isLast,
+	disableAutoExpand = false,
+	partial,
+	metadata,
+}: ReasoningBlockProps) => {
 	const { t } = useTranslation()
 	const { reasoningBlockCollapsed } = useExtensionState()
 
@@ -36,6 +45,11 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 	// Expand while streaming for the current (last) reasoning block only
 	// Collapse with a delay when streaming completes
 	useEffect(() => {
+		if (disableAutoExpand) {
+			wasLastRef.current = false
+			return
+		}
+
 		// Only auto-expand if this is the last reasoning block and streaming is active
 		if (isStreaming && _isLast) {
 			wasLastRef.current = true
@@ -59,7 +73,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 				clearTimeout(collapseTimeoutRef.current)
 			}
 		}
-	}, [isStreaming, _isLast])
+	}, [disableAutoExpand, isStreaming, _isLast])
 
 	useEffect(() => {
 		if (partial) {
@@ -94,19 +108,20 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 	}
 
 	const timeLabel = formatTime(totalSeconds)
-	// Brief (sub-2s) reasoning keeps its standalone phrasing; otherwise show the
-	// base label ("Thinking"/"Thought") and break the duration out into a pill.
-	const isBrief = displayElapsed > 0 && totalSeconds < 2
+	// Do not render known sub-2s reasoning. A live block appears only after it
+	// crosses the threshold; historical blocks without duration metadata remain
+	// visible because they cannot be classified safely.
+	const hasKnownDuration = partial || storedDuration !== undefined || displayElapsed > 0
+	const isBrief = hasKnownDuration && totalSeconds < 2
 	const baseLabel = partial ? t("chat:reasoning.thinking") : t("chat:reasoning.thought")
-	const briefLabel = partial ? t("chat:reasoning.thinkingBriefly") : t("chat:reasoning.thoughtBriefly")
-	const labelText = isBrief ? briefLabel : baseLabel
-	const showTime = !isBrief && totalSeconds >= 1
+	const showTime = totalSeconds >= 1
 
 	const handleToggle = () => {
 		setIsCollapsed(!isCollapsed)
 	}
 
 	const hasContent = (content?.trim()?.length ?? 0) > 0
+	if (isBrief) return null
 
 	return (
 		<div className="group/reasoning">
@@ -114,7 +129,7 @@ export const ReasoningBlock = ({ content, ts, isStreaming, _isLast, partial, met
 			<div
 				className="flex w-fit cursor-pointer select-none items-center gap-2 rounded-md pr-1.5 text-vscode-descriptionForeground transition-colors hover:text-vscode-foreground"
 				onClick={handleToggle}>
-				<span className={cn("text-sm font-medium", partial && "animate-shimmer")}>{labelText}</span>
+				<span className={cn("text-sm font-medium", partial && "animate-shimmer")}>{baseLabel}</span>
 				{showTime && (
 					<span className="font-mono text-[11px] tabular-nums text-vscode-descriptionForeground/60">
 						{timeLabel}

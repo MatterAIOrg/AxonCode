@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
 import type { ExtensionMessage } from "@roo/ExtensionMessage"
+import { MatterProgressIndicator } from "./ProgressIndicator"
 
 type UpdateStatus = "hidden" | "current" | "available" | "downloading" | "installing" | "restarting" | "error"
 
@@ -96,9 +97,11 @@ const OrbitalUpdateBanner = () => {
 			className="mx-4 mb-2 flex items-center gap-3 rounded-xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-vscode-editor-background px-3 py-2 text-xs text-[var(--vscode-notifications-foreground)]"
 			role="status"
 			title={update.error}>
-			<span
-				className={`codicon ${isWorking ? "codicon-loading codicon-modifier-spin" : "codicon-cloud-download"}`}
-			/>
+			{isWorking ? (
+				<MatterProgressIndicator className="shrink-0 text-vscode-descriptionForeground" />
+			) : (
+				<span className="codicon codicon-cloud-download" />
+			)}
 			<div className="min-w-0 flex-1">
 				<div className="font-medium">{label}</div>
 				{update.status === "available" && (

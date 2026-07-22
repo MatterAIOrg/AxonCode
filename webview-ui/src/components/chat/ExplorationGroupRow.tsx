@@ -428,23 +428,23 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 		return () => clearInterval(intervalId)
 	}, [isExploring, startTime, endTime])
 
-	const wasExploringRef = useRef(isExploring)
+	const wasLastRef = useRef(isLast)
 
-	// Auto-collapse when exploration completes (isExploring changes from true to false)
-	// Only collapse when transitioning FROM exploring TO not exploring, not on initial mount
+	// A streaming pause between tool calls does not end the group. Keep the local
+	// expansion state until another, non-group row is appended after this one.
 	useEffect(() => {
-		if (wasExploringRef.current && !isExploring) {
+		if (wasLastRef.current && !isLast) {
 			setLocalExpanded(false)
 		}
-		wasExploringRef.current = isExploring
-	}, [isExploring])
+		wasLastRef.current = isLast
+	}, [isLast])
 
-	// Use local expanded state while exploring, controlled state otherwise
-	const expanded = isExploring ? localExpanded : isExpanded
+	// The last group owns its expansion state across all of its entries. Once a
+	// row outside the group arrives, fall back to the persisted/manual state.
+	const expanded = isLast ? localExpanded : isExpanded
 
 	// Keep a pending command approval visible even when its exploration group
 	// would otherwise collapse.
-	const autoExpandedForCommandRef = useRef(false)
 	const hasPendingCommandAsk = useMemo(() => {
 		const lastMessage = messages[messages.length - 1]
 		return enableButtons && isLast && lastMessage?.type === "ask" && lastMessage.ask === "command"
@@ -453,21 +453,13 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 	useEffect(() => {
 		if (hasPendingCommandAsk) {
 			if (!expanded) {
-				if (isExploring) setLocalExpanded(true)
-				else if (messages[0]) onToggleExpand(messages[0].ts)
+				setLocalExpanded(true)
 			}
-			autoExpandedForCommandRef.current = true
-		} else {
-			if (autoExpandedForCommandRef.current && expanded) {
-				if (isExploring) setLocalExpanded(false)
-				else if (messages[0]) onToggleExpand(messages[0].ts)
-			}
-			autoExpandedForCommandRef.current = false
 		}
-	}, [hasPendingCommandAsk, expanded, isExploring, messages, onToggleExpand])
+	}, [hasPendingCommandAsk, expanded])
 
 	const handleToggle = useCallback(() => {
-		if (isExploring) {
+		if (isLast) {
 			setLocalExpanded((prev) => !prev)
 		} else {
 			// Use the timestamp of the first message for the expanded state
@@ -475,7 +467,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 				onToggleExpand(messages[0].ts)
 			}
 		}
-	}, [isExploring, onToggleExpand, messages])
+	}, [isLast, onToggleExpand, messages])
 
 	// Generate summary text with elapsed time
 	const summary = useMemo(() => getGroupSummary(messages, t, elapsedTime), [messages, t, elapsedTime])
@@ -521,6 +513,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 							isLast={isLast && idx === messages.length - 1}
 							onHeightChange={onHeightChange}
 							isStreaming={isStreaming}
+							disableReasoningAutoExpand
 							onSuggestionClick={handleSuggestionClickInRow}
 							onBatchFileResponse={handleBatchFileResponse}
 							highlighted={highlightedMessageIndex !== null && highlightedMessageIndex === idx}
