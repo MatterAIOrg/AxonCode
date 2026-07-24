@@ -268,10 +268,17 @@ type ReplacerScanResult = {
 	sawMatch: boolean
 	/** A match existed but was not unique (and replaceAll was false). */
 	sawAmbiguousMatch: boolean
+	/** Details for the highest-priority ambiguous candidate. */
+	ambiguousMatch?: {
+		occurrences: number
+		lineNumbers: number[]
+	}
 }
 
 /**
  * Run a set of replacers and apply the first unique match found.
+ * Stops at the first ambiguous candidate so a looser strategy cannot guess
+ * which occurrence the caller intended.
  * Does not throw — reports what it observed so the caller can decide how to
  * proceed (apply, fail loudly, or escalate to a different replacer set).
  */
@@ -318,6 +325,11 @@ function scanReplacers(
 			}
 
 			sawAmbiguousMatch = true
+			return {
+				sawMatch,
+				sawAmbiguousMatch,
+				ambiguousMatch: getMatchDiagnostics(content, candidate),
+			}
 		}
 	}
 
@@ -343,7 +355,23 @@ export function performReplacement(
 		return safe.result
 	}
 	if (safe.sawAmbiguousMatch && !replaceAll) {
-		throw new Error("old_string matched multiple locations. Provide more context or set replace_all to true.")
+		const occurrences = safe.ambiguousMatch?.occurrences
+		const lineNumbers = safe.ambiguousMatch?.lineNumbers ?? []
+		const uniqueLineNumbers = Array.from(new Set(lineNumbers))
+		const count = occurrences === undefined ? "multiple" : String(occurrences)
+		const hasMoreMatches = occurrences !== undefined && occurrences > lineNumbers.length
+		const lines =
+			uniqueLineNumbers.length > 0
+				? ` Matches start at line${uniqueLineNumbers.length === 1 ? "" : "s"} ${uniqueLineNumbers.join(", ")}${
+						hasMoreMatches ? ` (first ${lineNumbers.length} of ${occurrences} locations shown)` : ""
+					}.`
+				: ""
+		throw new Error(
+			`old_string matched ${count} locations.${lines}\n` +
+				"No edit was applied. DO NOT guess or invent a longer old_string, and DO NOT set replace_all merely to bypass this error. " +
+				"Re-read the file around the intended target, then copy a verbatim snippet with enough unchanged surrounding context to match exactly once. " +
+				"Use replace_all only when the requested change intentionally applies to every occurrence.",
+		)
 	}
 
 	// Phase 2 — ESCAPE-FUZZY detection. If old_string can ONLY be located by
@@ -368,7 +396,8 @@ export function performReplacement(
 	throw new Error(
 		`old_string not found in file content.\n` +
 			`Searched for (${oldString.length} chars): ${JSON.stringify(preview)}\n` +
-			`File starts with: ${JSON.stringify(contentPreview)}`,
+			`File starts with: ${JSON.stringify(contentPreview)}\n` +
+			"No edit was applied. DO NOT guess or invent a corrected old_string. Re-read the intended target and copy the exact current text before retrying.",
 	)
 }
 
@@ -384,6 +413,47 @@ function countOccurrences(haystack: string, needle: string): number {
 		index += needle.length
 	}
 	return count
+}
+
+/**
+ * Collect diagnostics for every possible match start, including overlaps.
+ * Line numbers are capped for concise errors, while the full occurrence count
+ * is retained. The scan counts newlines incrementally without allocating
+ * prefixes or arrays for each match.
+ */
+function getMatchDiagnostics(
+	haystack: string,
+	needle: string,
+	lineNumberLimit = 5,
+): { occurrences: number; lineNumbers: number[] } {
+	if (!needle) {
+		return { occurrences: 0, lineNumbers: [] }
+	}
+
+	const lineNumbers: number[] = []
+	let occurrences = 0
+	let searchIndex = 0
+	let lineScanIndex = 0
+	let currentLine = 1
+	let matchIndex: number
+
+	while ((matchIndex = haystack.indexOf(needle, searchIndex)) !== -1) {
+		for (let index = lineScanIndex; index < matchIndex; index++) {
+			if (haystack.charCodeAt(index) === 10) {
+				currentLine++
+			}
+		}
+
+		occurrences++
+		if (lineNumbers.length < lineNumberLimit) {
+			lineNumbers.push(currentLine)
+		}
+
+		lineScanIndex = matchIndex
+		searchIndex = matchIndex + 1
+	}
+
+	return { occurrences, lineNumbers }
 }
 
 function* simpleReplacer(content: string, find: string): Generator<string, void, undefined> {

@@ -15,7 +15,9 @@ export function getFileEditDescription(): string {
 4. \`replace_all\` (optional, default false) — Set to true to replace every occurrence of the matched text. Leave false to replace only a single uniquely identified match.
 
 **Guidance**:
-- Prefer multi-line snippets for \`old_string\` to help the tool locate the correct section.
-- If multiple matches exist, either refine \`old_string\` or set \`replace_all\` to true when you intend to change every occurrence.
+- Read the current target region immediately before editing, then copy \`old_string\` verbatim from that result. Never invent, reconstruct, or guess file content, indentation, whitespace, or escaping.
+- Include enough unchanged surrounding lines in \`old_string\` to identify exactly one location. Prefer a multi-line snippet when a short string is repeated.
+- A missing or multiple-match error means no edit was applied. Re-read the intended target and build a new \`old_string\` from exact file content; do not guess a longer string.
+- Set \`replace_all\` to true only when the requested change intentionally applies to every occurrence. Never use it merely to bypass a multiple-match error.
 - The tool shows a diff before applying changes so you can confirm the result.`
 }

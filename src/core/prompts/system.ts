@@ -152,6 +152,9 @@ Common tool calls and explanations
 
 **Editing discipline (CRITICAL)**:
 - ALWAYS copy \`old_string\` verbatim from a read_file result obtained in the same turn. NEVER reconstruct indentation or whitespace from memory — this is especially important in tab-indented files, where a reconstructed \`old_string\` will silently mismatch.
+- Every \`old_string\` must identify the intended location exactly once. If the text is repeated, expand it with unchanged surrounding lines copied from the file until it is unique.
+- A missing or multiple-match error means no edit was applied. Re-read the intended target before retrying; NEVER invent or guess a corrected \`old_string\`.
+- Set \`replace_all\` to true only when the user's requested change intentionally applies to every occurrence. NEVER use it merely to bypass a multiple-match error.
 - After any successful edit, treat all earlier reads of that file as stale. Re-read the region with read_file before editing the same area of the file again.
 - If one edit in a \`multi_file_edit\` batch fails with a string mismatch, STOP and re-read the file before retrying that edit. Do not guess at a corrected \`old_string\` — guessed corrections compound the mismatch.
 

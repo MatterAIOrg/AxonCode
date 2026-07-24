@@ -1,5 +1,22 @@
 # Changelog
 
+## [v6.6.8] - 2026-07-24
+
+### Changed
+
+- **File-edit tools reject ambiguous and guessed matches.** `file_edit` and `multi_file_edit` now require `old_string` to be copied verbatim from a current read of the file and to identify exactly one location. The XML and native JSON tool descriptions, parameter descriptions, and the system-prompt editing discipline section were rewritten to forbid inventing, reconstructing, or guessing file content, indentation, whitespace, or escaping, and to direct the model to re-read the intended target and retry with exact surrounding context on a missing or multiple-match error.
+- **`replace_all` is intentional-only.** The `replace_all` parameter description now states it must be set to true only after verifying the requested change should apply to every occurrence, never merely to bypass a multiple-match error.
+- **Clearer ambiguous-match errors.** `performReplacement` now reports the match count and the line numbers where matches start (capped at five, deduplicated, with a "first N of M" suffix when truncated) instead of a generic "matched multiple locations" message, and stops at the first ambiguous candidate so a looser strategy cannot guess which occurrence was intended.
+- **Clearer not-found errors.** The not-found error now appends guidance that no edit was applied, that the model must not guess or invent a corrected `old_string`, and that it should re-read the intended target and copy the exact current text before retrying.
+
+### Added
+
+- **`getMatchDiagnostics` in `fileEditTool.ts`.** New helper that counts every match start (including overlaps) incrementally without allocating per-match prefixes or arrays, and returns the occurrence count plus a capped, deduplicated list of starting line numbers for concise error messages.
+- **File-edit safety spec.** New `src/core/prompts/tools/__tests__/file-edit-safety.spec.ts` asserts the text and native tool descriptions require verbatim unique matches and forbid bypassing ambiguity errors.
+- **Ambiguous-match tests.** New cases in `performReplacement.spec.ts` cover rejecting ambiguous exact matches, same-line duplicate line-number formatting, overlapping match locations, and allowing repeated matches only when `replace_all` is intentional.
+
+---
+
 ## [v6.6.7] - 2026-07-22
 
 ### Added
