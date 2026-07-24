@@ -5,7 +5,7 @@ export default {
 	function: {
 		name: "file_edit",
 		description:
-			"Make exactly ONE text replacement in ONE file. DO NOT call this tool multiple times in sequence — if you have 2 or more edits, you MUST use multi_file_edit instead. Provide the current text (`old_string`) and the desired text (`new_string`). By default only a single uniquely matched occurrence is replaced; set `replace_all` to true to update every matching occurrence. old_string and new_string cannot be the same.",
+			"Make exactly ONE text replacement in ONE file. DO NOT call this tool multiple times in sequence — if you have 2 or more edits, you MUST use multi_file_edit instead. `old_string` must be copied verbatim from a current read of the file and must identify exactly one location. Never invent, reconstruct, or guess file content. If a match is ambiguous or missing, no edit is applied: re-read the target region and retry with more exact surrounding context. Use `replace_all` only when the requested change intentionally applies to every occurrence, never merely to bypass an ambiguity error. old_string and new_string cannot be the same.",
 		strict: true,
 		parameters: {
 			type: "object",
@@ -17,7 +17,7 @@ export default {
 				old_string: {
 					type: "string",
 					description:
-						"Exact text to replace. Provide enough context for a unique match. Use an empty string to replace the entire file.",
+						"Exact text to replace. MUST be copied verbatim from the latest read of this file, including its actual whitespace and escaping. Include enough unchanged surrounding context to match exactly once; never guess or reconstruct it from memory. Use an empty string only when intentionally replacing the entire file.",
 				},
 				new_string: {
 					type: "string",
@@ -27,7 +27,7 @@ export default {
 				replace_all: {
 					type: "boolean",
 					description:
-						"Set to true to replace every occurrence of the matched text. Defaults to false (replace a single uniquely identified occurrence).",
+						"Set to true only after verifying that the requested change should apply to every occurrence of old_string. Never set it merely to bypass a multiple-match error. Defaults to false.",
 				},
 			},
 			required: ["file_path", "old_string", "new_string"],

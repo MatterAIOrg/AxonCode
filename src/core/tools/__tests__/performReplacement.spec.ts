@@ -35,7 +35,9 @@ describe("performReplacement — escape safety", () => {
 
 	it("still reports a clear 'not found' error when nothing matches at all", () => {
 		const content = "alpha\nbeta\n"
-		expect(() => performReplacement(content, "this text is absent", "x", false)).toThrow(/not found/i)
+		expect(() => performReplacement(content, "this text is absent", "x", false)).toThrow(
+			/not found[\s\S]*No edit was applied[\s\S]*DO NOT guess[\s\S]*Re-read the intended target/i,
+		)
 	})
 
 	it("does not corrupt: escape-mismatched edits never silently write literal \\n", () => {
@@ -47,5 +49,37 @@ describe("performReplacement — escape safety", () => {
 		expect(() => performReplacement(content, corruptOld, corruptNew, false)).toThrow(
 			/normalizing escape sequences/i,
 		)
+	})
+
+	it("rejects ambiguous exact matches instead of guessing via a unique fuzzy candidate", () => {
+		const content = "  target\n\ttarget\n"
+
+		expect(() => performReplacement(content, "target", "replacement", false)).toThrow(
+			/matched 2 locations\. Matches start at lines 1, 2\.[\s\S]*No edit was applied\.[\s\S]*DO NOT guess[\s\S]*DO NOT set replace_all[\s\S]*Re-read the file/i,
+		)
+	})
+
+	it("formats same-line ambiguous matches without duplicate line numbers", () => {
+		const content = "const x = target + target;\n"
+
+		expect(() => performReplacement(content, "target", "replacement", false)).toThrow(
+			/matched 2 locations\. Matches start at line 1\./,
+		)
+	})
+
+	it("reports overlapping match locations consistently", () => {
+		expect(() => performReplacement("aaaa", "aaa", "replacement", false)).toThrow(
+			/matched 2 locations\. Matches start at line 1\./,
+		)
+	})
+
+	it("allows repeated matches only when replace_all is intentional", () => {
+		const content = "target\nmiddle\ntarget\n"
+		const result = performReplacement(content, "target", "replacement", true)
+
+		expect(result).toEqual({
+			content: "replacement\nmiddle\nreplacement\n",
+			replacements: 2,
+		})
 	})
 })
