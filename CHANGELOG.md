@@ -1,5 +1,13 @@
 # Changelog
 
+## [v6.6.9] - 2026-07-25
+
+### Changed
+
+- **Remove free tag from Axon Eido 3 Flash.** Removed `(free)` suffix from the Axon Eido 3 Flash model display name.
+
+---
+
 ## [v6.6.8] - 2026-07-24
 
 ### Changed
