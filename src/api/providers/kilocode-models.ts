@@ -97,7 +97,7 @@ const AXON_EIDO_3_CODE_MINI: KiloCodeModelVariant = {
 export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 	"axon-eido-3-flash": {
 		id: "axon-eido-3-flash",
-		name: "Axon Eido 3 Flash (free)",
+		name: "Axon Eido 3 Flash",
 		description: "Axon Eido is a fast and low cost general purpose model for low-effort day-to-day tasks",
 		input_modalities: ["text", "image"],
 		context_length: 200000,
