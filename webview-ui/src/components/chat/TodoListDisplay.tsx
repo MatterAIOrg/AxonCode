@@ -34,7 +34,7 @@ export function TodoListDisplay({ todos }: { todos: any[] }) {
 				width: "96%",
 				borderRadius: 6,
 				background: "var(--vscode-editor-background, transparent)",
-				border: "1px solid var(--color-matterai-border)",
+				border: "1px solid var(--vscode-button-background)",
 			}}>
 			<div
 				style={{
