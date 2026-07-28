@@ -105,6 +105,39 @@ const AXON_EIDO_3_CODE_MINI: KiloCodeModelVariant = {
 	},
 }
 
+const AXON_LUMOS_4_CODE: KiloCodeModelVariant = {
+	description:
+		"Axon Lumos 4 is the ultra-intelligent frontier model for complex agentic coding tasks and general intelligence.",
+	input_modalities: ["text", "image"],
+	max_output_length: 128000,
+	output_modalities: ["text"],
+	supported_sampling_parameters: [
+		"temperature",
+		"top_p",
+		"top_k",
+		"repetition_penalty",
+		"frequency_penalty",
+		"presence_penalty",
+		"seed",
+		"stop",
+	],
+	supported_features: ["tools", "structured_outputs", "web_search"],
+	openrouter: {
+		slug: "matterai/axon",
+	},
+	datacenters: [{ country_code: "US" }],
+	created: 1750426201,
+	owned_by: "matterai",
+	pricing: {
+		prompt: "0.000005",
+		completion: "0.000025",
+		image: "0",
+		request: "0",
+		input_cache_reads: "0",
+		input_cache_writes: "0",
+	},
+}
+
 const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 	"axon-eido-3-flash": {
 		id: "axon-eido-3-flash",
@@ -162,6 +195,18 @@ const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		...AXON_EIDO_3_CODE_MINI,
 		id: "axon-eido-3-code-mini",
 		name: "Axon Eido 3 Mini (400K context)",
+		context_length: 400000,
+	},
+	"axon-lumos-4-code-200k": {
+		...AXON_LUMOS_4_CODE,
+		id: "axon-lumos-4-code",
+		name: "Axon Lumos 4 (200K context)",
+		context_length: 200000,
+	},
+	"axon-lumos-4-code-400k": {
+		...AXON_LUMOS_4_CODE,
+		id: "axon-lumos-4-code",
+		name: "Axon Lumos 4 (400K context)",
 		context_length: 400000,
 	},
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Axon Lumos 4 model support.** Added support for `axon-lumos-4-code` in 200K and 400K context variants (`axon-lumos-4-code-200k` and `axon-lumos-4-code-400k`). Lumos models are available on Pro Plus and Ultra plans.
+
 ## [v6.6.9] - 2026-07-25
 
 ### Changed
