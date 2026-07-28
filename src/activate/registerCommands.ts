@@ -34,6 +34,8 @@ export function getVisibleProviderOrLog(outputChannel: vscode.OutputChannel): Cl
 // Store panel references in both modes
 let sidebarPanel: vscode.WebviewView | undefined = undefined
 let tabPanel: vscode.WebviewPanel | undefined = undefined
+let settingsPanel: vscode.WebviewPanel | undefined = undefined
+let settingsProvider: ClineProvider | undefined = undefined
 
 /**
  * Get the currently active panel
@@ -108,16 +110,9 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 		if (!visibleProvider) return
 		visibleProvider.postMessageToWebview({ type: "action", action: "memoriesButtonClicked" })
 	},
-	mcpButtonClicked: () => {
-		const visibleProvider = getVisibleProviderOrLog(outputChannel)
-
-		if (!visibleProvider) {
-			return
-		}
-
+	mcpButtonClicked: async () => {
 		TelemetryService.instance.captureTitleButtonClicked("mcp")
-
-		visibleProvider.postMessageToWebview({ type: "action", action: "mcpButtonClicked" })
+		await openSettingsEditor({ context, outputChannel }, "mcp")
 	},
 	promptsButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
@@ -138,37 +133,13 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 			outputChannel.appendLine(`Error opening Orbital sidebar: ${error}`)
 		}
 	},
-	settingsButtonClicked: () => {
-		const visibleProvider = getVisibleProviderOrLog(outputChannel)
-
-		if (!visibleProvider) {
-			return
-		}
-
+	settingsButtonClicked: async () => {
 		TelemetryService.instance.captureTitleButtonClicked("settings")
-
-		visibleProvider.postMessageToWebview({ type: "action", action: "settingsButtonClicked" })
-		// Also explicitly post the visibility message to trigger scroll reliably
-		visibleProvider.postMessageToWebview({ type: "action", action: "didBecomeVisible" })
+		await openSettingsEditor({ context, outputChannel })
 	},
-	settingsFocus: (targetSection?: string) => {
-		const visibleProvider = getVisibleProviderOrLog(outputChannel)
-
-		if (!visibleProvider) {
-			return
-		}
-
+	settingsFocus: async (targetSection?: string) => {
 		TelemetryService.instance.captureTitleButtonClicked("settings")
-
-		visibleProvider.postMessageToWebview({ type: "action", action: "settingsButtonClicked" })
-		// Send the target section to scroll to
-		visibleProvider.postMessageToWebview({
-			type: "action",
-			action: "settingsFocus",
-			targetSection,
-		})
-		// Also explicitly post the visibility message to trigger scroll reliably
-		visibleProvider.postMessageToWebview({ type: "action", action: "didBecomeVisible" })
+		await openSettingsEditor({ context, outputChannel }, targetSection)
 	},
 	historyButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
@@ -201,10 +172,8 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 		visibleProvider.postMessageToWebview({ type: "action", action: "marketplaceButtonClicked" })
 	},
 	// kilocode_change: Skills marketplace (claude-plugins-official)
-	skillsMarketplaceButtonClicked: () => {
-		const visibleProvider = getVisibleProviderOrLog(outputChannel)
-		if (!visibleProvider) return
-		visibleProvider.postMessageToWebview({ type: "action", action: "skillsMarketplaceButtonClicked" })
+	skillsMarketplaceButtonClicked: async () => {
+		await openSettingsEditor({ context, outputChannel }, "plugins")
 	},
 	showHumanRelayDialog: (params: { requestId: string; promptText: string }) => {
 		const panel = getPanel()
@@ -323,6 +292,70 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 		})
 	},
 })
+
+export const openSettingsEditor = async (
+	{ context, outputChannel }: Omit<RegisterCommandOptions, "provider">,
+	targetSection?: string,
+) => {
+	if (settingsPanel && settingsProvider) {
+		settingsPanel.reveal(settingsPanel.viewColumn, false)
+		await settingsProvider.postMessageToWebview({
+			type: "action",
+			action: "settingsFocus",
+			targetSection,
+		})
+		await settingsProvider.postMessageToWebview({ type: "action", action: "didBecomeVisible" })
+		return settingsProvider
+	}
+
+	const contextProxy = await ContextProxy.getInstance(context)
+
+	let mdmService: MdmService | undefined
+	try {
+		mdmService = MdmService.getInstance()
+	} catch {
+		mdmService = undefined
+	}
+
+	settingsProvider = new ClineProvider(
+		context,
+		outputChannel,
+		"editor",
+		contextProxy,
+		mdmService,
+		"settings",
+		targetSection,
+	)
+
+	settingsPanel = vscode.window.createWebviewPanel(
+		ClineProvider.settingsPanelId,
+		"Orbital Settings",
+		vscode.ViewColumn.Active,
+		{
+			enableScripts: true,
+			retainContextWhenHidden: true,
+			localResourceRoots: [context.extensionUri],
+		},
+	)
+
+	settingsPanel.iconPath = {
+		light: vscode.Uri.joinPath(context.extensionUri, "assets", "icons", "matterai-ic.png"),
+		dark: vscode.Uri.joinPath(context.extensionUri, "assets", "icons", "matterai-ic.png"),
+	}
+
+	const panel = settingsPanel
+	const provider = settingsProvider
+	await provider.resolveWebviewView(panel)
+
+	panel.onDidDispose(() => {
+		if (settingsPanel === panel) {
+			settingsPanel = undefined
+			settingsProvider = undefined
+		}
+	})
+
+	return provider
+}
 
 export const openClineInNewTab = async ({ context, outputChannel }: Omit<RegisterCommandOptions, "provider">) => {
 	// (This example uses webviewProvider activation event which is necessary to

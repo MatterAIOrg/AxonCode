@@ -141,7 +141,9 @@ export class ClineProvider
 	// break existing instances of the extension.
 	public static readonly sideBarId = `${Package.name}.SidebarProvider`
 	public static readonly tabPanelId = `${Package.name}.TabPanelProvider`
+	public static readonly settingsPanelId = `${Package.name}.SettingsPanelProvider`
 	private static activeInstances: Set<ClineProvider> = new Set()
+	private static isLoggedInContext: boolean | undefined
 	private disposables: vscode.Disposable[] = []
 	private webviewDisposables: vscode.Disposable[] = []
 	private view?: vscode.WebviewView | vscode.WebviewPanel
@@ -158,6 +160,7 @@ export class ClineProvider
 	private taskEventListeners: WeakMap<Task, Array<() => void>> = new WeakMap()
 	private currentWorkspacePath: string | undefined
 	private gitHeadWatcher?: vscode.FileSystemWatcher // kilocode_change: watch for git branch changes
+	private settingsStateSyncTimer?: NodeJS.Timeout
 
 	private recentTasksCache?: string[]
 	private pendingOperations: Map<string, PendingEditOperation> = new Map()
@@ -175,11 +178,15 @@ export class ClineProvider
 		private readonly renderContext: "sidebar" | "editor" = "sidebar",
 		public readonly contextProxy: ContextProxy,
 		mdmService?: MdmService,
+		private readonly viewPurpose: "main" | "settings" = "main",
+		private readonly initialSettingsSection?: string,
 	) {
 		super()
 		this.currentWorkspacePath = getWorkspacePath()
 
-		ClineProvider.activeInstances.add(this)
+		if (this.viewPurpose === "main") {
+			ClineProvider.activeInstances.add(this)
+		}
 
 		this.mdmService = mdmService
 		this.updateGlobalState("codebaseIndexModels", EMBEDDING_MODEL_PROFILES)
@@ -189,7 +196,9 @@ export class ClineProvider
 
 		// Register this provider with the telemetry service to enable it to add
 		// properties like mode and provider.
-		TelemetryService.instance.setProvider(this)
+		if (this.viewPurpose === "main") {
+			TelemetryService.instance.setProvider(this)
+		}
 
 		this._workspaceTracker = new WorkspaceTracker(this)
 
@@ -763,6 +772,10 @@ export class ClineProvider
 
 		// Clear all pending edit operations to prevent memory leaks
 		this.clearAllPendingEditOperations()
+		if (this.settingsStateSyncTimer) {
+			clearTimeout(this.settingsStateSyncTimer)
+			this.settingsStateSyncTimer = undefined
+		}
 		this.log("Cleared pending operations")
 
 		if (this.view && "dispose" in this.view) {
@@ -795,7 +808,9 @@ export class ClineProvider
 		this.marketplaceManager?.cleanup()
 		this.skillsMarketplaceManager?.clearCache() // kilocode_change: Skills marketplace
 		this.customModesManager?.dispose()
-		this.contextProxy?.dispose()
+		if (this.viewPurpose === "main") {
+			this.contextProxy?.dispose()
+		}
 		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 
@@ -943,9 +958,9 @@ ${prompt}
 		// Set panel reference according to webview type
 		const inTabMode = "onDidChangeViewState" in webviewView
 
-		if (inTabMode) {
+		if (inTabMode && this.viewPurpose === "main") {
 			setPanel(webviewView, "tab")
-		} else if ("onDidChangeVisibility" in webviewView) {
+		} else if ("onDidChangeVisibility" in webviewView && this.viewPurpose === "main") {
 			setPanel(webviewView, "sidebar")
 		}
 		// forked_change end
@@ -1347,6 +1362,8 @@ ${prompt}
 						window.AUDIO_BASE_URI = "${audioUri}"
 						window.MATERIAL_ICONS_BASE_URI = "${materialIconsUri}"
 						window.KILOCODE_BACKEND_BASE_URL = "${process.env.KILOCODE_BACKEND_BASE_URL ?? ""}"
+						window.MATTERCODE_INITIAL_VIEW = ${JSON.stringify(this.viewPurpose)}
+						window.MATTERCODE_INITIAL_SETTINGS_SECTION = ${JSON.stringify(this.initialSettingsSection ?? null).replace(/</g, "\\u003c")}
 					</script>
 					<title>Orbital</title>
 				</head>
@@ -1424,6 +1441,8 @@ ${prompt}
 				window.AUDIO_BASE_URI = "${audioUri}"
 				window.MATERIAL_ICONS_BASE_URI = "${materialIconsUri}"
 				window.KILOCODE_BACKEND_BASE_URL = "${process.env.KILOCODE_BACKEND_BASE_URL ?? ""}"
+				window.MATTERCODE_INITIAL_VIEW = ${JSON.stringify(this.viewPurpose)}
+				window.MATTERCODE_INITIAL_SETTINGS_SECTION = ${JSON.stringify(this.initialSettingsSection ?? null).replace(/</g, "\\u003c")}
 			</script>
             <title>Orbital</title>
           </head>
@@ -1987,6 +2006,26 @@ ${prompt}
 	async postStateToWebview() {
 		const state = await this.getStateToPostToWebview()
 		this.postMessageToWebview({ type: "state", state })
+
+		const isLoggedIn = Boolean(this.contextProxy.getProviderSettings().kilocodeToken)
+		if (ClineProvider.isLoggedInContext !== isLoggedIn) {
+			ClineProvider.isLoggedInContext = isLoggedIn
+			await vscode.commands.executeCommand("setContext", "axon:isLoggedIn", isLoggedIn)
+		}
+
+		// Settings live in a separate editor webview. Keep the chat/sidebar
+		// webviews in sync after settings messages update shared extension state.
+		if (this.viewPurpose === "settings") {
+			if (this.settingsStateSyncTimer) {
+				clearTimeout(this.settingsStateSyncTimer)
+			}
+			this.settingsStateSyncTimer = setTimeout(() => {
+				this.settingsStateSyncTimer = undefined
+				void Promise.all(
+					Array.from(ClineProvider.activeInstances).map((instance) => instance.postStateToWebview()),
+				).catch((error) => this.log(`Failed to sync settings state to main webviews: ${error}`))
+			}, 50)
+		}
 
 		// Check MDM compliance and send user to account tab if not compliant
 		// Only redirect if there's an actual MDM policy requiring authentication

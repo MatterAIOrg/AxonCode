@@ -11,7 +11,6 @@ import ChatView, { ChatViewRef } from "./components/chat/ChatView"
 import HistoryView from "./components/history/HistoryView"
 import ProfileView from "./components/kilocode/profile/ProfileView" // kilocode_change
 import WelcomeView from "./components/kilocode/welcome/WelcomeView" // kilocode_change
-import McpView from "./components/mcp/McpView"
 import MemoriesView from "./components/memories/MemoriesView"
 import SettingsView, { SettingsViewRef } from "./components/settings/SettingsView"
 import { ExtensionStateContextProvider, useExtensionState } from "./context/ExtensionStateContext"
@@ -27,7 +26,6 @@ import BottomControls from "./components/kilocode/BottomControls" // kilocode_ch
 import ModesView from "./components/modes/ModesView"
 import { AgentManagerView } from "./components/agent/AgentManagerView"
 import { MemoryService } from "./services/MemoryService" // kilocode_change
-import { SkillsMarketplaceView } from "./components/skills/SkillsMarketplaceView" // kilocode_change: Skills marketplace
 // import { AccountView } from "./components/account/AccountView" // kilocode_change: we have our own profile view
 // import { CloudView } from "./components/cloud/CloudView" // kilocode_change: not rendering this
 import { useAddNonInteractiveClickListener } from "./components/ui/hooks/useNonInteractiveClick"
@@ -37,17 +35,7 @@ import { TooltipProvider } from "./components/ui/tooltip"
 import { MemoryWarningBanner } from "./kilocode/MemoryWarningBanner"
 import { useKiloIdentity } from "./utils/kilocode/useKiloIdentity"
 
-type Tab =
-	| "settings"
-	| "history"
-	| "mcp"
-	| "modes"
-	| "chat"
-	| "account"
-	| "profile"
-	| "memories"
-	| "marketplace"
-	| "skillsMarketplace"
+type Tab = "settings" | "history" | "modes" | "chat" | "account" | "profile" | "memories" | "marketplace"
 
 interface HumanRelayDialogState {
 	isOpen: boolean
@@ -82,17 +70,20 @@ const tabsByMessageAction: Partial<Record<NonNullable<ExtensionMessage["action"]
 	chatButtonClicked: "chat",
 	settingsButtonClicked: "settings",
 	promptsButtonClicked: "modes",
-	mcpButtonClicked: "mcp",
 	historyButtonClicked: "history",
 	profileButtonClicked: "profile",
 	memoriesButtonClicked: "memories",
 	settingsFocus: "settings",
 	// marketplaceButtonClicked: "marketplace",
-	skillsMarketplaceButtonClicked: "skillsMarketplace", // kilocode_change: Skills marketplace
 	// cloudButtonClicked: "cloud", // kilocode_change: no cloud
 }
 
 const App = () => {
+	const initialView = (window as any).MATTERCODE_INITIAL_VIEW as "main" | "settings" | undefined
+	const initialSettingsSection =
+		((window as any).MATTERCODE_INITIAL_SETTINGS_SECTION as string | undefined) || undefined
+	const isSettingsEditor = initialView === "settings"
+
 	const {
 		didHydrateState,
 		showWelcome,
@@ -118,8 +109,10 @@ const App = () => {
 	// const marketplaceStateManager = useMemo(() => new MarketplaceViewStateManager(), [])
 
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
-	const [tab, setTab] = useState<Tab>("chat")
+	const [tab, setTab] = useState<Tab>(isSettingsEditor ? "settings" : "chat")
 	const [isAgentManagerOpen, setIsAgentManagerOpen] = useState(false)
+	const [currentSection, setCurrentSection] = useState<string | undefined>(initialSettingsSection)
+	const [_currentMarketplaceTab, setCurrentMarketplaceTab] = useState<string | undefined>(undefined)
 
 	// Lifted state for ChatTextArea to persist across Agent/Agent Manager mode switches
 	const [chatInputValue, setChatInputValue] = useState("")
@@ -173,14 +166,33 @@ const App = () => {
 		[mdmCompliant],
 	)
 
-	const [currentSection, setCurrentSection] = useState<string | undefined>(undefined)
-	const [_currentMarketplaceTab, setCurrentMarketplaceTab] = useState<string | undefined>(undefined)
-
 	const onMessage = useCallback(
 		(e: MessageEvent) => {
 			const message: ExtensionMessage = e.data
 
 			if (message.type === "action" && message.action) {
+				const requestedSection = (message.values?.section as string | undefined) || message.targetSection
+
+				if (
+					!isSettingsEditor &&
+					(message.action === "settingsButtonClicked" ||
+						message.action === "settingsFocus" ||
+						message.action === "mcpButtonClicked" ||
+						message.action === "skillsMarketplaceButtonClicked" ||
+						(message.action === "switchTab" && message.tab === "settings"))
+				) {
+					vscode.postMessage({
+						type: "openSettings",
+						targetSection:
+							message.action === "mcpButtonClicked"
+								? "mcp"
+								: message.action === "skillsMarketplaceButtonClicked"
+									? "plugins"
+									: requestedSection,
+					})
+					return
+				}
+
 				// kilocode_change begin
 				if (message.action === "focusChatInput") {
 					if (tab !== "chat") {
@@ -252,7 +264,7 @@ const App = () => {
 			}
 		},
 		// kilocode_change: add tab and showToast
-		[tab, switchTab, showToast],
+		[isSettingsEditor, tab, switchTab, showToast],
 	)
 
 	useEvent("message", onMessage)
@@ -361,6 +373,10 @@ const App = () => {
 		return null
 	}
 
+	if (isSettingsEditor) {
+		return <SettingsView ref={settingsRef} onDone={() => undefined} targetSection={currentSection} standalone />
+	}
+
 	// Do not conditionally load ChatView, it's expensive and there's state we
 	// don't want to lose (user input, disableInput, askResponse promise, etc.)
 	// Allow settings access even when showWelcome is true
@@ -377,10 +393,8 @@ const App = () => {
 			{/* kilocode_change: add MemoryWarningBanner */}
 			<MemoryWarningBanner />
 			{tab === "modes" && <ModesView onDone={() => switchTab("chat")} />}
-			{tab === "mcp" && <McpView onDone={() => switchTab("chat")} />}
 			{tab === "history" && <HistoryView onDone={() => switchTab("chat")} />}
 			{tab === "memories" && <MemoriesView onDone={() => switchTab("chat")} />}
-			{tab === "skillsMarketplace" && <SkillsMarketplaceView onDone={() => switchTab("chat")} />}
 			{tab === "settings" && (
 				<SettingsView ref={settingsRef} onDone={() => switchTab("chat")} targetSection={currentSection} /> // kilocode_change
 			)}
@@ -526,7 +540,7 @@ const App = () => {
 			)}
 			{/* kilocode_change */}
 			{/* Chat, modes and history view contain their own bottom controls */}
-			{!["chat", "modes", "history", "skillsMarketplace"].includes(tab) && (
+			{!["chat", "modes", "history"].includes(tab) && (
 				<div className="fixed inset-0 top-auto">
 					<BottomControls />
 				</div>

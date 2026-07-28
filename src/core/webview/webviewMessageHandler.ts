@@ -2026,7 +2026,7 @@ ${comment.suggestion}
 			break
 		case "openSettings":
 			// Open the settings view with a specific section
-			vscode.commands.executeCommand("axon-code.settingsFocus", message.targetSection)
+			await vscode.commands.executeCommand("axon-code.settingsFocus", message.targetSection)
 			break
 		case "checkpointDiff":
 			const result = checkoutDiffPayloadSchema.safeParse(message.payload)
@@ -5001,6 +5001,17 @@ ${comment.suggestion}
 				// Capture tab shown event for all switchTab messages (which are user-initiated)
 				if (TelemetryService.hasInstance()) {
 					TelemetryService.instance.captureTabShown(message.tab)
+				}
+
+				if (["settings", "mcp", "skillsMarketplace"].includes(message.tab)) {
+					const targetSection =
+						message.tab === "mcp"
+							? "mcp"
+							: message.tab === "skillsMarketplace"
+								? "plugins"
+								: (message.values?.section as string | undefined)
+					await vscode.commands.executeCommand("axon-code.settingsFocus", targetSection)
+					break
 				}
 
 				await provider.postMessageToWebview({
