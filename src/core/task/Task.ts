@@ -1026,6 +1026,29 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			await this.providerRef.deref()?.postStateToWebview()
 		}
 	}
+
+	/**
+	 * Change the latest tool row between its in-progress and settled states
+	 * without creating another chat message or entering the ask/response flow.
+	 * The timestamp stays stable so React updates the existing row in place.
+	 */
+	async setLastToolAskMessagePartial(text: string, partial: boolean): Promise<boolean> {
+		const lastMessage = this.clineMessages.at(-1)
+
+		if (!lastMessage || lastMessage.type !== "ask" || lastMessage.ask !== "tool") {
+			return false
+		}
+
+		lastMessage.text = text
+		lastMessage.partial = partial
+
+		if (!partial) {
+			await this.saveClineMessages()
+		}
+
+		this.updateClineMessage(lastMessage)
+		return true
+	}
 	// forked_change end
 
 	// Note that `partial` has three valid states true (partial message),

@@ -296,6 +296,14 @@ export async function fileWriteTool(
 			return
 		}
 
+		// Keep the approval/streaming row alive as the single in-progress row
+		// while the file is actually written. Updating it in place avoids the
+		// duplicate "Create File" + "Creating File" messages.
+		const reusedToolRow = await cline.setLastToolAskMessagePartial(completeMessage, true)
+		if (!reusedToolRow) {
+			await cline.ask("tool", completeMessage, true).catch(() => {})
+		}
+
 		// Set up diffViewProvider properties
 		cline.diffViewProvider.editType = fileExists ? "modify" : "create"
 		cline.diffViewProvider.originalContent = originalContent
@@ -306,8 +314,6 @@ export async function fileWriteTool(
 		} else {
 			// Original behavior with diff view
 			if (!cline.diffViewProvider.isEditing) {
-				const partialMessage = JSON.stringify(sharedMessageProps)
-				await cline.ask("tool", partialMessage, true).catch(() => {})
 				await cline.diffViewProvider.open(filePath)
 			}
 
@@ -321,6 +327,10 @@ export async function fileWriteTool(
 
 			await cline.diffViewProvider.saveChanges(diagnosticsEnabled, writeDelayMs)
 		}
+
+		// The write itself is complete. Settle the same row before ancillary
+		// tracking/result work so the loader cannot outlive the file operation.
+		await cline.setLastToolAskMessagePartial(completeMessage, false)
 
 		// Add to file edit review controller so it shows in AcceptRejectButtons
 		cline.fileEditReviewController.addEdit({
