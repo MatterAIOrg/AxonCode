@@ -203,7 +203,7 @@ export const BottomApiConfig = () => {
 												Current Plan
 											</div>
 											<div className="text-xs text-[var(--vscode-descriptionForeground)]">
-												{profileData?.plan?.toUpperCase()}
+												{profileData?.plan?.replace("_", " ")?.toUpperCase()}
 											</div>
 										</div>
 
