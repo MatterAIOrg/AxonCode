@@ -12,9 +12,9 @@ describe("400k Axon model plan access", () => {
 	it("identifies Axon 400k variants", () => {
 		expect(is400kAxonModel("axon-eido-3-code-mini-400k")).toBe(true)
 		expect(is400kAxonModel("axon-eido-3-code-pro-400k")).toBe(true)
-		expect(is400kAxonModel("axon-lumos-4-code-400k")).toBe(true)
+		expect(is400kAxonModel("axon-lumen-4-code-400k")).toBe(true)
 		expect(is400kAxonModel("axon-eido-3-code-mini-200k")).toBe(false)
-		expect(is400kAxonModel("axon-lumos-4-code-200k")).toBe(false)
+		expect(is400kAxonModel("axon-lumen-4-code-200k")).toBe(false)
 		expect(is400kAxonModel("third-party-model-400k")).toBe(false)
 	})
 
