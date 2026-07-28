@@ -3,11 +3,15 @@ import React, { HTMLAttributes, useCallback, forwardRef } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 
-type TabProps = HTMLAttributes<HTMLDivElement>
+type TabProps = HTMLAttributes<HTMLDivElement> & {
+	embedded?: boolean
+}
 
-export const Tab = ({ className, children, ...props }: TabProps) => (
+export const Tab = ({ className, children, embedded = false, ...props }: TabProps) => (
 	// kilocode_change
-	<div className={cn("fixed inset-0 bottom-9 flex flex-col", className)} {...props}>
+	<div
+		className={cn(embedded ? "relative flex flex-col" : "fixed inset-0 bottom-9 flex flex-col", className)}
+		{...props}>
 		{children}
 	</div>
 )
@@ -18,34 +22,40 @@ export const TabHeader = ({ className, children, ...props }: TabProps) => (
 	</div>
 )
 
-export const TabContent = forwardRef<HTMLDivElement, TabProps>(({ className, children, ...props }, ref) => {
-	const { renderContext } = useExtensionState()
+export const TabContent = forwardRef<HTMLDivElement, TabProps>(
+	({ className, children, embedded = false, ...props }, ref) => {
+		const { renderContext } = useExtensionState()
 
-	const onWheel = useCallback(
-		(e: React.WheelEvent<HTMLDivElement>) => {
-			if (renderContext !== "editor") {
-				return
-			}
+		const onWheel = useCallback(
+			(e: React.WheelEvent<HTMLDivElement>) => {
+				if (renderContext !== "editor") {
+					return
+				}
 
-			const target = e.target as HTMLElement
+				const target = e.target as HTMLElement
 
-			// Prevent scrolling if the target is a listbox or option
-			// (e.g. selects, dropdowns, etc).
-			if (target.role === "listbox" || target.role === "option") {
-				return
-			}
+				// Prevent scrolling if the target is a listbox or option
+				// (e.g. selects, dropdowns, etc).
+				if (target.role === "listbox" || target.role === "option") {
+					return
+				}
 
-			e.currentTarget.scrollTop += e.deltaY
-		},
-		[renderContext],
-	)
+				e.currentTarget.scrollTop += e.deltaY
+			},
+			[renderContext],
+		)
 
-	return (
-		<div ref={ref} className={cn("flex-1 overflow-auto p-5", className)} onWheel={onWheel} {...props}>
-			{children}
-		</div>
-	)
-})
+		return (
+			<div
+				ref={ref}
+				className={cn("flex-1", embedded ? "overflow-visible p-0" : "overflow-auto p-5", className)}
+				onWheel={onWheel}
+				{...props}>
+				{children}
+			</div>
+		)
+	},
+)
 TabContent.displayName = "TabContent"
 
 export const TabList = forwardRef<
