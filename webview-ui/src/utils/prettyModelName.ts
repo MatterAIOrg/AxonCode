@@ -88,6 +88,35 @@ export const prettyModelName = (modelId: string): string => {
 	return formattedName + formattedTag
 }
 
+export const removeAxonPrefix = (text: string): string => {
+	if (!text) return ""
+	return text
+		.replace(/^axon[\s-/_]*/i, "")
+		.replace(/\bAxon\b\s*/gi, "")
+		.trim()
+}
+
+/**
+ * Removes context window suffixes like "(200k context)", "(400k context)", "200k context", etc.
+ */
+export const removeContextSuffix = (text: string): string => {
+	if (!text) return ""
+	return text.replace(/\s*\(?(?:200k|400k)(?:\s*context)?\)?/gi, "").trim()
+}
+
+/**
+ * Formats model label for displaying as selected model in ChatTextArea.
+ * Removes "Axon" prefix. Hides 200k context, but appends 400k context if is400k is true.
+ */
+export const formatSelectedModelLabel = (text: string, is400k?: boolean): string => {
+	if (!text) return ""
+	let result = removeContextSuffix(removeAxonPrefix(text))
+	if (is400k) {
+		result += " (400k context)"
+	}
+	return result
+}
+
 // Function to get credits for Axon models
 export const getModelCredits = (modelId: string): string | null => {
 	return AXON_MODEL_CREDITS[modelId]

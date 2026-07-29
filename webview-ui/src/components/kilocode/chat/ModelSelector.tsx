@@ -15,7 +15,12 @@ import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
 import { useMemo, useCallback, useEffect } from "react"
-import { prettyModelName, AXON_MODEL_TOOLTIPS } from "../../../utils/prettyModelName"
+import {
+	prettyModelName,
+	removeContextSuffix,
+	formatSelectedModelLabel,
+	AXON_MODEL_TOOLTIPS,
+} from "../../../utils/prettyModelName"
 import { useProviderModels } from "../hooks/useProviderModels"
 import { getModelIdKey, getSelectedModelId } from "../hooks/useSelectedModel"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -218,7 +223,7 @@ export const ModelSelector = ({
 					: [selectedModelId]
 		const allOptions = missingModelIds.concat(modelsIds).map((modelId) => {
 			const baseLabel = providerModels[modelId]?.displayName ?? prettyModelName(modelId)
-			const label = baseLabel
+			const label = removeContextSuffix(baseLabel)
 			const isProModel = proModelIds?.includes(modelId)
 			const isProModelDisabled = isProModel && !proModelsEnabled
 			const isExtendedContextDisabled = is400kAxonModel(modelId) && !has400kAccess
@@ -552,7 +557,14 @@ export const ModelSelector = ({
 	}
 
 	if (isError || options.length <= 0) {
-		return <span className="text-xs text-vscode-descriptionForeground opacity-70 truncate">{fallbackText}</span>
+		const is400k = selectedModelId
+			? providerModels[selectedModelId]?.contextWindow === 400000 || is400kAxonModel(selectedModelId)
+			: false
+		return (
+			<span className="text-xs text-vscode-descriptionForeground opacity-70 truncate">
+				{formatSelectedModelLabel(fallbackText, is400k)}
+			</span>
+		)
 	}
 
 	return (
@@ -569,7 +581,10 @@ export const ModelSelector = ({
 			triggerIcon={false}
 			itemClassName="group"
 			renderItem={renderItem}
-			renderValue={(option) => <ModelLabel label={option.label} />}
+			renderValue={(option) => {
+				const is400k = providerModels[option.value]?.contextWindow === 400000 || is400kAxonModel(option.value)
+				return <ModelLabel label={formatSelectedModelLabel(option.label, is400k)} />
+			}}
 			onRefresh={handleRefreshModels} // Always show refresh since matterai3p is always enabled
 		/>
 	)
