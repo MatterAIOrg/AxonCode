@@ -1,4 +1,5 @@
 import type { AxonCodeWeeklyResetAvailability } from "@roo/WebviewMessage"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 
 const WEEKLY_RESET_PLANS = new Set(["pro", "pro_plus", "ultra"])
 
@@ -36,15 +37,15 @@ export const WeeklyResetButton = ({ plan, availability, isResetting, error, onRe
 
 	return (
 		<div className="flex flex-col items-start gap-1">
-			<button
-				type="button"
+			<VSCodeButton
+				appearance="primary"
 				disabled={!available || isResetting}
 				onClick={onReset}
-				className="inline-flex w-auto cursor-pointer items-center rounded px-2 py-0.5 text-[10px] leading-4 text-[var(--vscode-button-foreground)] bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] disabled:cursor-not-allowed disabled:opacity-50">
+				className="inline-flex w-auto cursor-pointer items-center rounded text-xs h-5 py-0 px-2 leading-4 text-[var(--vscode-button-foreground)] bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] disabled:cursor-not-allowed disabled:opacity-50">
 				{isResetting ? "Resetting…" : `Reset Weekly Limit, ${available ? "1/1" : "0/1"} Remaining`}
-			</button>
+			</VSCodeButton>
 			{!available && availability?.nextAvailableAt && (
-				<div className="text-[10px] text-[var(--vscode-descriptionForeground)]">
+				<div className="text-[10px] ml-2 text-[var(--vscode-descriptionForeground)]">
 					Available again {formatRelativeTime(availability.nextAvailableAt)}
 				</div>
 			)}

@@ -338,5 +338,61 @@ describe("presentAssistantMessage", () => {
 
 		// The tool should NOT have been executed
 		expect(readFileTool).not.toHaveBeenCalled()
+
+		// Even an early repetition return must clear the streaming tool preview,
+		// otherwise its loader remains visible forever.
+		expect(cline.removeStalePartialToolAskMessage).toHaveBeenCalledTimes(1)
+	})
+
+	it("clears the loader and advances when complete-tool setup throws", async () => {
+		const cline = {
+			abort: false,
+			taskId: "task-1",
+			instanceId: "instance-1",
+			presentAssistantMessageLocked: false,
+			presentAssistantMessageHasPendingUpdates: false,
+			currentStreamingContentIndex: 0,
+			assistantMessageContent: [
+				{
+					type: "tool_use",
+					name: "file_write",
+					params: { file_path: "created.md", content: "done", line_count: "1" },
+					partial: false,
+					toolUseId: "file_write:0",
+				},
+			],
+			didCompleteReadingStream: true,
+			userMessageContentReady: false,
+			userMessageContent: [],
+			didRejectTool: false,
+			didAlreadyUseTool: false,
+			currentStreamingDidCheckpoint: false,
+			providerRef: {
+				deref: () => ({
+					getState: vi.fn().mockRejectedValue(new Error("state unavailable")),
+				}),
+			},
+			say: vi.fn().mockResolvedValue(undefined),
+			removeStalePartialToolAskMessage: vi.fn().mockResolvedValue(undefined),
+		} as any
+
+		await presentAssistantMessage(cline)
+
+		expect(cline.removeStalePartialToolAskMessage).toHaveBeenCalledTimes(1)
+		expect(cline.userMessageContent).toEqual([
+			{
+				type: "tool_result",
+				tool_use_id: "file_write:0",
+				content: [
+					{
+						type: "text",
+						text: expect.stringContaining("did not produce a result"),
+					},
+				],
+			},
+		])
+		expect(cline.currentStreamingContentIndex).toBe(1)
+		expect(cline.userMessageContentReady).toBe(true)
+		expect(cline.presentAssistantMessageLocked).toBe(false)
 	})
 })

@@ -424,7 +424,7 @@
 		"updateAndRestart": "Update & Restart",
 		"downloading": "Downloading update…",
 		"installing": "Installing update…",
-		"restarting": "Reloading Orbital…",
+		"restarting": "Installing...",
 		"failed": "Update failed",
 		"retry": "Retry"
 	},

@@ -40,6 +40,7 @@ import type { ExtensionMessage } from "@roo/ExtensionMessage"
 type McpViewProps = {
 	onDone: () => void
 	hideHeader?: boolean // kilocode_change
+	embedded?: boolean
 }
 
 // Small ghost icon button used for the per-server row actions. Inherits the
@@ -69,7 +70,7 @@ const RowIconButton = ({
 	</button>
 )
 
-const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
+const McpView = ({ onDone, hideHeader = false, embedded = false }: McpViewProps) => {
 	const {
 		mcpServers: servers,
 		alwaysAllowMcp,
@@ -121,7 +122,7 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 
 	return (
 		// kilocode_change: add relative className
-		<Tab className="relative">
+		<Tab className="relative" embedded={embedded}>
 			{/*  kilocode_change: display header conditionally */}
 			<TabHeader style={{ display: hideHeader ? "none" : "flex" }} className="flex justify-between items-center">
 				<h3 className="text-vscode-foreground m-0">{t("mcp:title")}</h3>
@@ -130,7 +131,7 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 				</VSCodeButton>
 			</TabHeader>
 
-			<TabContent>
+			<TabContent embedded={embedded}>
 				<p className="mt-1 mb-4 text-sm leading-relaxed text-vscode-descriptionForeground">
 					<Trans i18nKey="mcp:description">
 						<VSCodeLink
@@ -197,7 +198,7 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 								))}
 							</div>
 						) : (
-							<div className="rounded-xl border border-dashed border-vscode-panel-border bg-vscode-editor-background px-4 py-8 text-center">
+							<div className="rounded-2xl border border-dashed border-vscode-panel-border bg-vscode-editor-background px-4 py-8 text-center">
 								<span className="codicon codicon-server mb-2 block text-2xl text-vscode-descriptionForeground opacity-60" />
 								<p className="m-0 text-sm text-vscode-descriptionForeground">
 									{t("mcp:serversSection.empty")}
@@ -247,7 +248,7 @@ const McpView = ({ onDone, hideHeader = false }: McpViewProps) => {
 						</div>
 
 						{/* Suggested Plugins Marketplace */}
-						<div className="mt-6 rounded-xl border border-vscode-panel-border bg-vscode-editor-background overflow-hidden">
+						<div className="mt-6 rounded-2xl border border-vscode-panel-border bg-vscode-editor-background overflow-hidden">
 							<SuggestedPluginsView />
 						</div>
 					</>
@@ -371,7 +372,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 	return (
 		<div
 			className={cn(
-				"group rounded-xl border border-vscode-panel-border bg-vscode-editor-background transition-colors",
+				"group rounded-2xl border border-vscode-panel-border bg-vscode-editor-background transition-colors",
 				isExpandable && "hover:border-vscode-focusBorder",
 				isExpanded && "border-vscode-focusBorder",
 				server.disabled && "opacity-60",

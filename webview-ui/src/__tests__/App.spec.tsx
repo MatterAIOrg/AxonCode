@@ -4,6 +4,7 @@ import React from "react"
 import { render, screen, act, cleanup } from "@/utils/test-utils"
 
 import AppWithProviders from "../App"
+import { vscode } from "@src/utils/vscode"
 
 vi.mock("@src/utils/vscode", () => ({
 	vscode: {
@@ -38,9 +39,21 @@ vi.mock("@src/components/chat/ChatView", () => ({
 
 vi.mock("@src/components/settings/SettingsView", () => ({
 	__esModule: true,
-	default: function SettingsView({ onDone }: { onDone: () => void }) {
+	default: function SettingsView({
+		onDone,
+		standalone,
+		targetSection,
+	}: {
+		onDone: () => void
+		standalone?: boolean
+		targetSection?: string
+	}) {
 		return (
-			<div data-testid="settings-view" onClick={onDone}>
+			<div
+				data-testid="settings-view"
+				data-standalone={standalone}
+				data-target-section={targetSection}
+				onClick={onDone}>
 				Settings View
 			</div>
 		)
@@ -195,6 +208,8 @@ describe("App", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		window.removeEventListener("message", () => {})
+		delete (window as any).MATTERCODE_INITIAL_VIEW
+		delete (window as any).MATTERCODE_INITIAL_SETTINGS_SECTION
 
 		// Set up default mock return value
 		mockUseExtensionState.mockReturnValue({
@@ -229,18 +244,37 @@ describe("App", () => {
 		expect(chatView.getAttribute("data-hidden")).toBe("false")
 	})
 
-	it("switches to settings view when receiving settingsButtonClicked action", async () => {
+	it("opens settings in a dedicated editor when receiving settingsButtonClicked", () => {
 		render(<AppWithProviders />)
 
 		act(() => {
 			triggerMessage("settingsButtonClicked")
 		})
 
-		const settingsView = await screen.findByTestId("settings-view")
-		expect(settingsView).toBeInTheDocument()
-
 		const chatView = screen.getByTestId("chat-view")
-		expect(chatView.getAttribute("data-hidden")).toBe("true")
+		expect(chatView.getAttribute("data-hidden")).toBe("false")
+		expect(screen.queryByTestId("settings-view")).not.toBeInTheDocument()
+		expect(vscode.postMessage).toHaveBeenCalledWith({
+			type: "openSettings",
+			targetSection: undefined,
+		})
+	})
+
+	it.each([
+		["mcpButtonClicked", "mcp"],
+		["skillsMarketplaceButtonClicked", "plugins"],
+	])("opens %s in its Orbital Settings section", (action, targetSection) => {
+		render(<AppWithProviders />)
+
+		act(() => {
+			triggerMessage(action)
+		})
+
+		expect(screen.queryByTestId("settings-view")).not.toBeInTheDocument()
+		expect(vscode.postMessage).toHaveBeenCalledWith({
+			type: "openSettings",
+			targetSection,
+		})
 	})
 
 	it("switches to history view when receiving historyButtonClicked action", async () => {
@@ -271,22 +305,16 @@ describe("App", () => {
 		expect(chatView.getAttribute("data-hidden")).toBe("true")
 	})
 
-	it("returns to chat view when clicking done in settings view", async () => {
+	it("renders only settings in a dedicated settings editor", () => {
+		;(window as any).MATTERCODE_INITIAL_VIEW = "settings"
+		;(window as any).MATTERCODE_INITIAL_SETTINGS_SECTION = "terminal"
+
 		render(<AppWithProviders />)
 
-		act(() => {
-			triggerMessage("settingsButtonClicked")
-		})
-
-		const settingsView = await screen.findByTestId("settings-view")
-
-		act(() => {
-			settingsView.click()
-		})
-
-		const chatView = screen.getByTestId("chat-view")
-		expect(chatView.getAttribute("data-hidden")).toBe("false")
-		expect(screen.queryByTestId("settings-view")).not.toBeInTheDocument()
+		const settingsView = screen.getByTestId("settings-view")
+		expect(settingsView).toHaveAttribute("data-standalone", "true")
+		expect(settingsView).toHaveAttribute("data-target-section", "terminal")
+		expect(screen.queryByTestId("chat-view")).not.toBeInTheDocument()
 	})
 
 	it.each(["history", "prompts"])("returns to chat view when clicking done in %s view", async (view) => {

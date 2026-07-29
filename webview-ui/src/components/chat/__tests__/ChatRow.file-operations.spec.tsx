@@ -105,3 +105,42 @@ describe("ChatRow search files", () => {
 		expect(filePattern.parentElement).toHaveTextContent("chat:directoryOperations.wantsToSearch·*.ts")
 	})
 })
+
+describe("ChatRow long file names", () => {
+	const longFileName =
+		"rate-limiting-and-backpressure-token-bucket-vs-leaky-bucket-distributed-rate-limiters-with-redis.md"
+
+	it("truncates a created file name while keeping its diff stats visible", () => {
+		const { getByText } = renderFileOperation(
+			{
+				tool: "newFileCreated",
+				path: `docs/${longFileName}`,
+				content: "first line\nsecond line",
+			},
+			false,
+		)
+
+		const fileName = getByText(longFileName)
+		expect(fileName).toHaveClass("min-w-0", "flex-1", "truncate")
+		expect(fileName.parentElement).toHaveClass("flex-1", "min-w-0")
+		expect(getByText("+2").parentElement).toHaveClass("shrink-0")
+		expect(fileName.closest(".animate-fade-up")).toHaveClass("min-w-0")
+	})
+
+	it("truncates a read file name within the available row width", () => {
+		const { getByLabelText } = renderFileOperation(
+			{
+				tool: "readFile",
+				path: `docs/${longFileName}`,
+				offset: 1,
+				limit: 200,
+			},
+			false,
+		)
+
+		const fileName = getByLabelText(`docs/${longFileName}`)
+		expect(fileName).toHaveClass("min-w-0", "truncate")
+		expect(fileName.parentElement).toHaveClass("w-full", "min-w-0")
+		expect(fileName.parentElement?.parentElement?.parentElement).toHaveClass("flex-1", "min-w-0")
+	})
+})

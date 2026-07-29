@@ -567,7 +567,7 @@ export const ChatRowContent = ({
 					<>
 						<div
 							className={cn(
-								"animate-fade-up flex flex-row gap-1 w-full cursor-pointer",
+								"animate-fade-up flex flex-row gap-1 w-full min-w-0 cursor-pointer",
 								message.partial ? "items-center" : "items-start",
 							)}
 							onClick={handleToggleExpand}>
@@ -599,12 +599,12 @@ export const ChatRowContent = ({
 							</div>
 							<div
 								className={cn(
-									"flex items-center gap-2 w-fit",
+									"flex flex-1 items-center gap-2 min-w-0",
 									message.partial ? "relative -top-px" : "-mt-[1px]",
 								)}>
 								{tool.path ? (
 									<span
-										className="cursor-pointer hover:underline text-vscode-descriptionForeground"
+										className="cursor-pointer hover:underline text-vscode-descriptionForeground min-w-0 flex-1 truncate"
 										role="button"
 										tabIndex={0}
 										title={tool.path + (editLineNumber ? `:${editLineNumber}` : "")}
@@ -624,7 +624,7 @@ export const ChatRowContent = ({
 									</span>
 								) : null}
 								{diffStats ? (
-									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0 mt-[1px]">
+									<span className="text-xs text-vscode-descriptionForeground flex shrink-0 gap-1 ml-0 mt-[1px]">
 										<span style={{ color: "#3fa266" }}>+{diffStats.added}</span>
 										<span style={{ color: "#fc6b83" }}>-{diffStats.removed}</span>
 									</span>
@@ -772,7 +772,7 @@ export const ChatRowContent = ({
 					<>
 						<div
 							className={cn(
-								"animate-fade-up flex flex-row gap-1 w-full cursor-pointer",
+								"animate-fade-up flex flex-row gap-1 w-full min-w-0 cursor-pointer",
 								message.partial ? "items-center" : "items-start",
 							)}
 							onClick={handleToggleExpand}>
@@ -804,12 +804,12 @@ export const ChatRowContent = ({
 							</div>
 							<div
 								className={cn(
-									"flex items-center gap-2 w-fit",
+									"flex flex-1 items-center gap-2 min-w-0",
 									message.partial ? "relative -top-px" : "-mt-[1px]",
 								)}>
 								{tool.path ? (
 									<span
-										className="cursor-pointer hover:underline text-vscode-descriptionForeground"
+										className="cursor-pointer hover:underline text-vscode-descriptionForeground min-w-0 flex-1 truncate"
 										role="button"
 										tabIndex={0}
 										title={tool.path}
@@ -829,7 +829,7 @@ export const ChatRowContent = ({
 									</span>
 								) : null}
 								{newFileDiffStats ? (
-									<span className="text-xs text-vscode-descriptionForeground flex gap-1 ml-0 mt-[1px]">
+									<span className="text-xs text-vscode-descriptionForeground flex shrink-0 gap-1 ml-0 mt-[1px]">
 										<span style={{ color: "#3fa266" }}>+{newFileDiffStats.added}</span>
 										<span style={{ color: "#fc6b83" }}>-{newFileDiffStats.removed}</span>
 									</span>
@@ -903,7 +903,7 @@ export const ChatRowContent = ({
 
 				// Regular single file read request
 				return (
-					<div className="flex gap-1">
+					<div className="flex items-center gap-1 min-w-0">
 						<div style={headerStyle}>
 							{/* <FileCode2 className="w-3 h-3 shrink-0" aria-label="Read file icon" /> */}
 							<span style={{}}>
@@ -918,11 +918,14 @@ export const ChatRowContent = ({
 									: t("chat:fileOperations.didRead")}
 							</span>
 						</div>
-						<div className="">
+						<div className="flex-1 min-w-0">
 							<ToolUseBlock>
-								<ToolUseBlockHeader className="group" onClick={openReadFile}>
+								<ToolUseBlockHeader className="group w-full min-w-0" onClick={openReadFile}>
 									{tool.path?.startsWith(".") && <span>.</span>}
-									<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left rtl">
+									<span
+										className="min-w-0 truncate text-left rtl"
+										title={tool.path}
+										aria-label={tool.path}>
 										{fileName}
 										{tool.offset !== undefined && tool.limit !== undefined
 											? `#L${tool.offset}-${tool.offset + tool.limit - 1}`

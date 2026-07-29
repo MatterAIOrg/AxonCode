@@ -1,14 +1,15 @@
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import {
 	canUse400kContext,
-	get200kAxonFallback,
 	getAppUrl,
-	is400kAxonModel,
+	getAxonPlanFallback,
+	isPlanRestrictedAxonModel,
 	type OrganizationAllowList,
 	type ProviderSettings,
 } from "@roo-code/types"
 import type { RouterModels } from "@roo/api"
 import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
+import { MatterProgressIndicator } from "@src/components/chat/ProgressIndicator"
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
@@ -66,6 +67,7 @@ export const KiloCode = ({
 
 	// Profile data state for usage info
 	const [profileData, setProfileData] = useState<ProfileData | null>(null)
+	const [isProfileLoading, setIsProfileLoading] = useState(Boolean(apiConfiguration?.kilocodeToken))
 	const [isResettingWeekly, setIsResettingWeekly] = useState(false)
 	const [weeklyResetError, setWeeklyResetError] = useState<string | null>(null)
 	const previousMessagesRef = useRef<string>("")
@@ -73,7 +75,12 @@ export const KiloCode = ({
 	// Fetch profile data on mount if token exists
 	useEffect(() => {
 		if (apiConfiguration?.kilocodeToken) {
+			setProfileData(null)
+			setIsProfileLoading(true)
 			vscode.postMessage({ type: "fetchProfileDataRequest" })
+		} else {
+			setProfileData(null)
+			setIsProfileLoading(false)
 		}
 	}, [apiConfiguration?.kilocodeToken])
 
@@ -83,6 +90,7 @@ export const KiloCode = ({
 			const message = event.data
 			if (message.type === "profileDataResponse") {
 				const payload = message.payload as any
+				setIsProfileLoading(false)
 				if (payload?.success && payload.data) {
 					setProfileData(payload.data)
 				}
@@ -132,6 +140,7 @@ export const KiloCode = ({
 			)
 
 			if (hasNewAssistantResponse && previousMessagesRef.current !== "") {
+				setIsProfileLoading(true)
 				vscode.postMessage({ type: "fetchProfileDataRequest" })
 			}
 
@@ -155,15 +164,15 @@ export const KiloCode = ({
 		() =>
 			has400kAccess
 				? models
-				: Object.fromEntries(Object.entries(models).filter(([modelId]) => !is400kAxonModel(modelId))),
+				: Object.fromEntries(Object.entries(models).filter(([modelId]) => !isPlanRestrictedAxonModel(modelId))),
 		[models, has400kAccess],
 	)
 
 	useEffect(() => {
 		const selectedModelId = apiConfiguration.kilocodeModel
-		if (!profilePlan || has400kAccess || !selectedModelId || !is400kAxonModel(selectedModelId)) return
+		if (!profilePlan || has400kAccess || !selectedModelId || !isPlanRestrictedAxonModel(selectedModelId)) return
 
-		const fallbackId = get200kAxonFallback(selectedModelId)
+		const fallbackId = getAxonPlanFallback(selectedModelId)
 		if (models[fallbackId]) setApiConfigurationField("kilocodeModel", fallbackId)
 	}, [apiConfiguration.kilocodeModel, profilePlan, has400kAccess, models, setApiConfigurationField])
 
@@ -198,8 +207,16 @@ export const KiloCode = ({
 		<>
 			<div>
 				<label className="block font-bold text-lg">{t("kilocode:settings.provider.account")}</label>
-				{profileData?.email && (
-					<div className="text-sm text-[var(--vscode-descriptionForeground)] mt-1">{profileData.email}</div>
+				{isProfileLoading && !profileData ? (
+					<div className="mt-1 text-sm text-[var(--vscode-descriptionForeground)]">
+						<MatterProgressIndicator />
+					</div>
+				) : (
+					profileData?.email && (
+						<div className="text-sm text-[var(--vscode-descriptionForeground)] mt-1">
+							{profileData.email}
+						</div>
+					)
 				)}
 			</div>
 			{!hideKiloCodeButton &&
@@ -213,54 +230,54 @@ export const KiloCode = ({
 										Current Plan
 									</div>
 									<div className="mt-1 text-md text-[var(--vscode-descriptionForeground)]">
-										{profileData.plan?.toLocaleUpperCase()}
+										{profileData.plan?.replace("_", " ")?.toUpperCase()}
 									</div>
 								</div>
 								{/* Tiered usage windows (weekly / monthly) */}
-								{profileData.tieredUsage && (
-									<div className="space-y-3 pt-2">
-										{(["weekly", "monthly"] as const).map((key) => {
-											const w = profileData.tieredUsage![key]
-											const pct = Math.max(0, Math.min(100, w.percentage || 0))
-											const exhausted = (w.remaining || 0) <= 0
-											const labelMap: Record<typeof key, string> = {
-												weekly: "Weekly Window",
-												monthly: "Monthly Window",
-											}
-											const relative = formatRelativeTime(w.resetsAt)
-											return (
-												<div className="space-y-1" key={key}>
-													<div className="text-md font-medium text-[var(--vscode-foreground)]">
+								{profileData?.tieredUsage &&
+									(["weekly", "monthly"] as const).map((key) => {
+										const w = profileData.tieredUsage![key]
+										const pct = Math.max(0, Math.min(100, w.percentage || 0))
+										const labelMap: Record<typeof key, string> = {
+											weekly: "Weekly",
+											monthly: "Monthly",
+										}
+										const relative = formatRelativeTime(w.resetsAt)
+										return (
+											<div className="space-y-1" key={key}>
+												<div className="flex justify-between items-center">
+													<div className="text-xs font-medium text-[var(--vscode-foreground)]">
 														{labelMap[key]}
 													</div>
-													<div
-														className="w-full h-2 rounded-full overflow-hidden"
-														style={{
-															backgroundColor:
-																"color-mix(in srgb, var(--vscode-input-background), black 20%)",
-														}}>
-														<div
-															className="h-full transition-all duration-300"
-															style={{
-																width: `${pct}%`,
-																backgroundColor: exhausted
-																	? "var(--vscode-errorForeground)"
-																	: pct >= 80
-																		? "var(--vscode-editorWarning-foreground)"
-																		: "var(--vscode-button-background)",
-															}}
-														/>
-													</div>
-													<div className="flex justify-between items-center">
-														<div className="text-xs text-[var(--vscode-descriptionForeground)]">
-															Resets {relative}
-														</div>
+													<div className="text-[10px] text-[var(--vscode-descriptionForeground)]">
+														{pct.toFixed(0)}%
 													</div>
 												</div>
-											)
-										})}
-									</div>
-								)}
+												<div
+													className="w-full h-1.5 rounded-full overflow-hidden"
+													style={{
+														backgroundColor:
+															"color-mix(in srgb, var(--vscode-input-background), black 20%)",
+													}}>
+													<div
+														className="h-full transition-all duration-300"
+														style={{
+															width: `${pct}%`,
+															backgroundColor:
+																pct >= 80
+																	? "var(--vscode-errorForeground)"
+																	: pct > 50
+																		? "var(--vscode-editorWarning-foreground)"
+																		: "var(--vscode-descriptionForeground)",
+														}}
+													/>
+												</div>
+												<div className="text-[10px] text-[var(--vscode-descriptionForeground)]">
+													Resets {relative}
+												</div>
+											</div>
+										)
+									})}
 								<WeeklyResetButton
 									plan={profileData?.plan}
 									availability={profileData?.weeklyReset}

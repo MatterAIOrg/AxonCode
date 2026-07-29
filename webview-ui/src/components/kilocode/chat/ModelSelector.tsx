@@ -4,8 +4,10 @@ import { useThirdPartyModels } from "@/components/ui/hooks/useOllamaModels"
 import { Alert02Icon, BulbIcon } from "@/utils/customIcons"
 import {
 	canUse400kContext,
-	get200kAxonFallback,
+	getAxonPlanFallback,
 	is400kAxonModel,
+	isLumenAxonModel,
+	isPlanRestrictedAxonModel,
 	OPENROUTER_DEFAULT_PROVIDER_NAME,
 	type ProviderSettings,
 } from "@roo-code/types"
@@ -220,14 +222,16 @@ export const ModelSelector = ({
 			const isProModel = proModelIds?.includes(modelId)
 			const isProModelDisabled = isProModel && !proModelsEnabled
 			const isExtendedContextDisabled = is400kAxonModel(modelId) && !has400kAccess
+			const isLumenModelDisabled = isLumenAxonModel(modelId) && !has400kAccess
 
 			return {
 				value: modelId,
 				label,
 				type: DropdownOptionType.ITEM,
-				disabled: isProModelDisabled || isExtendedContextDisabled,
+				disabled: isProModelDisabled || isExtendedContextDisabled || isLumenModelDisabled,
 				isProModelDisabled,
 				isExtendedContextDisabled,
+				isLumenModelDisabled,
 			}
 		})
 		const groupedContextWindows = [200000, 400000]
@@ -245,6 +249,7 @@ export const ModelSelector = ({
 							disabled: true,
 							isProModelDisabled: false,
 							isExtendedContextDisabled: false,
+							isLumenModelDisabled: false,
 						},
 						...modelsInGroup,
 					]
@@ -325,7 +330,7 @@ export const ModelSelector = ({
 	)
 
 	const onChange = (value: string) => {
-		if (is400kAxonModel(value) && !has400kAccess) return
+		if (isPlanRestrictedAxonModel(value) && !has400kAccess) return
 
 		// Handle "Configure Models" option
 		if (value === "__configure_models__") {
@@ -399,14 +404,18 @@ export const ModelSelector = ({
 	}
 
 	useEffect(() => {
-		if (!profilePlan || has400kAccess || !is400kAxonModel(selectedModelId)) return
+		if (!profilePlan || has400kAccess || !isPlanRestrictedAxonModel(selectedModelId)) return
 
-		const fallbackId = get200kAxonFallback(selectedModelId)
+		const fallbackId = getAxonPlanFallback(selectedModelId)
 		if (providerModels[fallbackId]) selectAxonModel(fallbackId)
 	}, [profilePlan, has400kAccess, selectedModelId, providerModels, selectAxonModel])
 
 	const renderItem = (
-		option: DropdownOption & { isProModelDisabled?: boolean; isExtendedContextDisabled?: boolean },
+		option: DropdownOption & {
+			isProModelDisabled?: boolean
+			isExtendedContextDisabled?: boolean
+			isLumenModelDisabled?: boolean
+		},
 	) => {
 		const isConfigureOption = option.value === "__configure_models__"
 		const isThirdPartyModel =
@@ -467,6 +476,31 @@ export const ModelSelector = ({
 							<div className="flex flex-col gap-2 text-[13px] p-2">
 								<span className="font-semibold">
 									400k context is available on Pro Plus and Ultra plans
+								</span>
+								<button
+									className="text-[var(--vscode-button-background)] hover:underline text-left"
+									onClick={(e) => {
+										e.stopPropagation()
+										vscode.postMessage({
+											type: "openExternal",
+											url: "https://app.matterai.so/ai-coding-agent",
+										})
+									}}>
+									Upgrade your plan here →
+								</button>
+							</div>
+						}>
+						<span className="flex items-center">
+							<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+						</span>
+					</StandardTooltip>
+				)}
+				{option.isLumenModelDisabled && (
+					<StandardTooltip
+						content={
+							<div className="flex flex-col gap-2 text-[13px] p-2">
+								<span className="font-semibold">
+									Lumen models are available on Pro Plus and Ultra plans
 								</span>
 								<button
 									className="text-[var(--vscode-button-background)] hover:underline text-left"

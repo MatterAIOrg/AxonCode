@@ -1,17 +1,15 @@
 import {
 	AlertTriangle,
-	Bell, // kilocode_change
+	Blocks,
 	CheckCheck,
 	CircleUserRound,
 	Database,
-	GitPullRequest,
+	// GitPullRequest,
 	// Info, // kilocode_change: hidden for now
 	Languages,
 	LucideIcon,
-	// Server, // kilocode_change: hidden for now
 	Plug,
-	SquareMousePointer,
-	SquareTerminal,
+	Server,
 	Wrench,
 } from "lucide-react"
 import React, {
@@ -52,7 +50,7 @@ import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
 
-import { Tab, TabContent, TabHeader, TabList, TabTrigger } from "../common/Tab"
+import { Tab, TabContent, TabList, TabTrigger } from "../common/Tab"
 import { SetCachedStateField } from "./types"
 // import ApiConfigManager from "./ApiConfigManager"
 import deepEqual from "fast-deep-equal" // kilocode_change
@@ -60,28 +58,30 @@ import deepEqual from "fast-deep-equal" // kilocode_change
 // import { About } from "./About" // kilocode_change: hidden for now
 import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
-import { BrowserSettings } from "./BrowserSettings"
+// import { BrowserSettings } from "./BrowserSettings"
 // import { CheckpointSettings } from "./CheckpointSettings"
 import { CodeIndexSettings } from "./CodeIndexSettings"
-import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewSettings"
+// import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewSettings"
 // import { ContextManagementSettings } from "./ContextManagementSettings"
 // import { DisplaySettings } from "./DisplaySettings" // kilocode_change
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { About } from "./About"
 import { LanguageSettings } from "./LanguageSettings"
-import { NotificationSettings } from "./NotificationSettings"
+// import { NotificationSettings } from "./NotificationSettings"
 import { SlashCommandsSettings } from "./SlashCommandsSettings"
-import { TerminalSettings } from "./TerminalSettings"
-import { UISettings } from "./UISettings"
+// import { TerminalSettings } from "./TerminalSettings"
+import McpView from "../mcp/McpView"
+import { SkillsMarketplaceView } from "../skills/SkillsMarketplaceView"
 import { ThirdPartyProviders } from "./ThirdPartyProviders"
+import { UISettings } from "./UISettings"
 
 export const settingsTabsContainer =
-	"flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden bg-vscode-editor-background"
-export const settingsTabList = "flex-shrink-0 flex flex-col overflow-y-auto overflow-x-hidden flex-1"
+	"flex flex-1 min-h-0 overflow-hidden [&.narrow_.tab-label]:hidden bg-vscode-editor-background"
+export const settingsTabList = "min-h-0 flex-1 flex flex-col overflow-y-auto overflow-x-hidden"
 export const settingsTabTrigger =
-	"whitespace-nowrap overflow-hidden min-w-0 h-8 px-3 mb-0.5 mx-2 box-border flex items-center border border-transparent rounded-md text-vscode-foreground opacity-80 hover:bg-vscode-list-hoverBackground hover:opacity-100 data-[compact=true]:w-8 data-[compact=true]:px-0 data-[compact=true]:mx-auto data-[compact=true]:justify-center cursor-pointer text-sm transition-colors"
+	"whitespace-nowrap overflow-hidden min-w-0 h-10 px-3 mb-1 mx-4 box-border flex items-center border border-transparent rounded-lg text-vscode-foreground opacity-80 hover:bg-vscode-list-hoverBackground hover:opacity-100 data-[compact=true]:w-10 data-[compact=true]:px-0 data-[compact=true]:mx-auto data-[compact=true]:justify-center cursor-pointer text-sm transition-colors"
 export const settingsTabTriggerActive =
-	"opacity-100 bg-vscode-list-inactiveSelectionBackground text-vscode-list-inactiveSelectionForeground hover:bg-vscode-list-inactiveSelectionBackground font-medium cursor-default"
+	"opacity-100 bg-vscode-list-inactiveSelectionBackground text-vscode-list-inactiveSelectionForeground hover:bg-vscode-list-inactiveSelectionBackground font-semibold cursor-default"
 
 export interface SettingsViewRef {
 	checkUnsaveChanges: (then: () => void) => void
@@ -91,30 +91,38 @@ const sectionNames = [
 	"thirdPartyProviders",
 	"autoApprove",
 	"slashCommands",
-	"browser",
+	// "browser",
 	// "checkpoints",
 	// "display", // kilocode_change
-	"notifications",
+	// "notifications",
 	// "contextManagement",
-	"terminal",
+	// "terminal",
 	"prompts",
 	"ui",
 	"experimental",
 	"language",
-	// "mcp", // kilocode_change: hidden for now
+	"mcp",
+	"plugins",
 	"codeIndex", // kilocode_change
-	"codeReview", // kilocode_change
+	// "codeReview", // kilocode_change
 	"developerTools", // kilocode_change: renamed from about
 ] as const
 
 type SectionName = (typeof sectionNames)[number] // kilocode_change
 
+const normalizeSectionName = (section?: string): SectionName | undefined => {
+	const normalized = section === "about" ? "developerTools" : section
+	return sectionNames.includes(normalized as SectionName) ? (normalized as SectionName) : undefined
+}
+
 type SettingsViewProps = {
 	onDone: () => void
 	targetSection?: string
+	standalone?: boolean
 }
 
-const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, targetSection }, ref) => {
+const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>((props, ref) => {
+	const { onDone, targetSection, standalone = false } = props
 	const { t } = useAppTranslation()
 
 	const extensionState = useExtensionState()
@@ -128,10 +136,14 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const [isDiscardDialogShow, setDiscardDialogShow] = useState(false)
 	const [isChangeDetected, setChangeDetected] = useState(false)
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
-	const [activeTab, setActiveTab] = useState<SectionName>(
-		targetSection && sectionNames.includes(targetSection as SectionName)
-			? (targetSection as SectionName)
-			: "providers",
+	const [activeTab, setActiveTab] = useState<SectionName>(normalizeSectionName(targetSection) ?? "providers")
+	const getSectionLabel = useCallback(
+		(section: SectionName) => {
+			if (section === "mcp") return t("mcp:title")
+			if (section === "plugins") return t("marketplace:skillsMarketplace.title")
+			return t(`settings:sections.${section}`)
+		},
+		[t],
 	)
 
 	const scrollPositions = useRef<Record<SectionName, number>>(
@@ -143,27 +155,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const confirmDialogHandler = useRef<() => void>()
 
 	const [cachedState, setCachedState] = useState(() => extensionState)
-
-	// Fetch Profile Data
-	const [profileEmail, setProfileEmail] = useState<string>("loading...")
-	const [profilePlan, setProfilePlan] = useState<string>("Free Plan")
-
-	useEffect(() => {
-		vscode.postMessage({ type: "fetchProfileDataRequest" })
-		const handleProfileResponse = (event: MessageEvent) => {
-			const message = event.data
-			if (message.type === "profileDataResponse" && message.payload?.success) {
-				if (message.payload.data?.email) {
-					setProfileEmail(message.payload.data.email)
-				}
-				if (message.payload.data?.plan) {
-					setProfilePlan(message.payload.data.plan)
-				}
-			}
-		}
-		window.addEventListener("message", handleProfileResponse)
-		return () => window.removeEventListener("message", handleProfileResponse)
-	}, [])
 
 	// kilocode_change begin
 	useEffect(() => {
@@ -587,8 +578,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 		const observer = new ResizeObserver((entries) => {
 			for (const entry of entries) {
-				// If container width is less than 500px, switch to compact mode
-				setIsCompactMode(entry.contentRect.width < 500)
+				setIsCompactMode(entry.contentRect.width < 700)
 			}
 		})
 
@@ -602,30 +592,34 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const sections: { id: SectionName; icon: LucideIcon }[] = useMemo(
 		() => [
 			{ id: "providers", icon: CircleUserRound },
-			{ id: "thirdPartyProviders", icon: Plug },
-			{ id: "codeReview", icon: GitPullRequest },
+			{ id: "plugins", icon: Blocks },
+
+			// { id: "codeReview", icon: GitPullRequest },
 			{ id: "autoApprove", icon: CheckCheck },
 			// { id: "slashCommands", icon: SquareSlash }, // kilocode_change: needs work to be re-introduced
-			{ id: "browser", icon: SquareMousePointer },
+			// { id: "browser", icon: SquareMousePointer },
 			// { id: "checkpoints", icon: MapPinCheck },
 			// { id: "display", icon: Monitor }, // kilocode_change
-			{ id: "notifications", icon: Bell },
+			// { id: "notifications", icon: Bell },
 			// { id: "contextManagement", icon: Database },
-			{ id: "terminal", icon: SquareTerminal },
+			// { id: "terminal", icon: SquareTerminal },
 			// { id: "prompts", icon: MessageSquare },
 			// { id: "ui", icon: Glasses }, // kilocode_change: we have our own display section
 			// { id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Languages },
-			// { id: "mcp", icon: Server }, // kilocode_change: hidden for now
+			{ id: "mcp", icon: Server },
 			{ id: "codeIndex", icon: Database }, // kilocode_change
+			{ id: "thirdPartyProviders", icon: Plug },
+
 			{ id: "developerTools", icon: Wrench }, // kilocode_change: renamed from about with wrench icon
 		],
 		[], // kilocode_change
 	)
 	// Update target section logic to set active tab
 	useEffect(() => {
-		if (targetSection && sectionNames.includes(targetSection as SectionName)) {
-			setActiveTab(targetSection as SectionName)
+		const normalizedSection = normalizeSectionName(targetSection)
+		if (normalizedSection) {
+			setActiveTab(normalizedSection)
 		}
 	}, [targetSection]) // kilocode_change
 
@@ -663,72 +657,24 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	}, [scrollToActiveTab])
 
 	return (
-		<Tab className="flex flex-col h-full bg-vscode-editor-background">
-			<TabHeader className="flex justify-between items-center gap-2 border-b border-vscode-widget-border px-4 py-3 shrink-0">
-				<div className="flex items-center gap-1">
-					<h3 className="text-vscode-foreground m-0 text-lg font-medium">{t("settings:header.title")}</h3>
-				</div>
-				<div className="flex gap-2">
-					<StandardTooltip
-						content={
-							!isSettingValid
-								? errorMessage
-								: isChangeDetected
-									? t("settings:header.saveButtonTooltip")
-									: t("settings:header.nothingChangedTooltip")
-						}>
-						<VSCodeButton
-							appearance={isSettingValid ? "primary" : "secondary"}
-							className={!isSettingValid ? "!border-vscode-errorForeground" : ""}
-							onClick={handleSubmit}
-							disabled={!isChangeDetected || !isSettingValid}
-							data-testid="save-button">
-							{t("settings:common.save")}
-						</VSCodeButton>
-					</StandardTooltip>
-					<StandardTooltip content={t("settings:header.doneButtonTooltip")}>
-						<Button variant="secondary" onClick={() => checkUnsaveChanges(onDone)}>
-							{t("settings:common.done")}
-						</Button>
-					</StandardTooltip>
-				</div>
-			</TabHeader>
-
-			{/* Vertical tabs layout */}
+		<Tab
+			className="flex flex-col h-full bg-vscode-editor-background [&_[role=combobox]]:rounded-md [&_input]:rounded-md"
+			data-testid="settings-view"
+			data-standalone={standalone}>
 			<div ref={containerRef} className={cn(settingsTabsContainer, isCompactMode && "narrow")}>
-				{/* Modern Sidebar layout wrapper */}
 				<div
 					className={cn(
-						"w-60 data-[compact=true]:w-16 flex-shrink-0 flex flex-col border-r border-vscode-widget-border bg-vscode-sideBar-background",
+						"w-[264px] data-[compact=true]:w-[72px] flex-shrink-0 flex flex-col border-r border-vscode-widget-border bg-vscode-editor-background",
 					)}
 					data-compact={isCompactMode}>
-					{/* Profile Section */}
-					<div className="pt-6 pb-3 px-4 flex items-center gap-3">
-						<div className="w-8 h-8 rounded-full bg-vscode-editor-inactiveSelectionBackground text-vscode-foreground flex items-center justify-center font-medium shadow-sm border border-vscode-widget-border shrink-0">
-							{profileEmail ? profileEmail.charAt(0).toUpperCase() : "S"}
-						</div>
-						{!isCompactMode && (
-							<div className="flex flex-col min-w-0 overflow-hidden flex-1">
-								<span className="text-vscode-foreground font-medium truncate text-sm">
-									{profileEmail !== "loading..." ? profileEmail : "support@matterai.so"}
-								</span>
-								<span className="text-vscode-descriptionForeground text-xs truncate">
-									{profilePlan}
-								</span>
-							</div>
-						)}
+					<div className="h-20 px-6 flex items-center">
+						<img
+							src={`${(window as any).ICONS_BASE_URI || ""}/matterai-ic.svg`}
+							alt="Mattercode"
+							className="w-7 h-7 object-contain"
+						/>
 					</div>
 
-					{/* Search Bar */}
-					{!isCompactMode && (
-						<div className="px-3 pb-4">
-							<div className="flex items-center bg-vscode-input-background border border-vscode-input-border rounded w-full h-8 px-2.5 text-vscode-input-placeholderForeground opacity-60">
-								<span className="text-sm truncate">Search settings ⌘F</span>
-							</div>
-						</div>
-					)}
-
-					{/* Tab sidebar */}
 					<TabList
 						value={activeTab}
 						onValueChange={(value) => handleTabChange(value as SectionName)}
@@ -754,9 +700,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 									)}
 									data-testid={`tab-${id}`}
 									data-compact={isCompactMode}>
-									<div className={cn("flex items-center gap-2", isCompactMode && "justify-center")}>
-										<Icon className="w-4 h-4" />
-										<span className="tab-label">{t(`settings:sections.${id}`)}</span>
+									<div className={cn("flex items-center gap-3", isCompactMode && "justify-center")}>
+										<Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.8} />
+										<span className="tab-label">{getSectionLabel(id)}</span>
 									</div>
 								</TabTrigger>
 							)
@@ -771,7 +717,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 												{React.cloneElement(triggerComponent)}
 											</TooltipTrigger>
 											<TooltipContent side="right" className="text-base">
-												<p className="m-0">{t(`settings:sections.${id}`)}</p>
+												<p className="m-0">{getSectionLabel(id)}</p>
 											</TooltipContent>
 										</Tooltip>
 									</TooltipProvider>
@@ -783,57 +729,53 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							}
 						})}
 					</TabList>
-
-					<div className={cn("pb-6 mt-8 flex", isCompactMode ? "px-2 justify-center" : "px-4")}>
-						<button
-							className={cn(
-								"flex items-center justify-center gap-2 text-red-500 hover:bg-red-500/20 rounded-md transition-colors border border-transparent hover:border-red-500/30 cursor-pointer",
-								isCompactMode ? "w-10 h-10 p-0" : "w-full py-2 px-4 bg-red-500/10",
-							)}
-							onClick={() => {
-								vscode.postMessage({ type: "rooCloudSignOut" })
-							}}
-							title="Log out">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								className="lucide lucide-log-out">
-								<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-								<polyline points="16 17 21 12 16 7" />
-								<line x1="21" x2="9" y1="12" y2="12" />
-							</svg>
-							{!isCompactMode && <span className="font-medium">Log Out</span>}
-						</button>
-					</div>
 				</div>
 
-				{/* Content area */}
-				<TabContent ref={contentRef} className="p-0 flex-1 overflow-auto bg-vscode-editor-background">
-					<div className="max-w-4xl mx-auto p-2 content-wrapper">
-						<div className="mb-1 ml-2 mt-2">
-							<h2 className="text-xl font-bold text-vscode-foreground m-0 p-0">
-								{t(`settings:sections.${activeTab}`)}
-							</h2>
+				<TabContent ref={contentRef} className="p-0 min-w-0 flex-1 overflow-auto bg-vscode-editor-background">
+					<div className="max-w-[1080px] mx-auto px-8 py-12 lg:px-14 content-wrapper">
+						<div className="mb-10 flex items-start justify-between gap-6">
+							<div>
+								<h1 className="text-[30px] leading-tight font-semibold tracking-[-0.02em] text-vscode-foreground m-0">
+									{getSectionLabel(activeTab)}
+								</h1>
+								<p className="mt-2 mb-0 text-sm text-vscode-descriptionForeground">
+									Configure how Mattercode works for you.
+								</p>
+							</div>
+							<div className="flex items-center gap-2 shrink-0">
+								{!["mcp", "plugins"].includes(activeTab) && (
+									<StandardTooltip
+										content={
+											!isSettingValid
+												? errorMessage
+												: isChangeDetected
+													? t("settings:header.saveButtonTooltip")
+													: t("settings:header.nothingChangedTooltip")
+										}>
+										<VSCodeButton
+											appearance={isSettingValid ? "primary" : "secondary"}
+											className={!isSettingValid ? "!border-vscode-errorForeground" : ""}
+											onClick={handleSubmit}
+											disabled={!isChangeDetected || !isSettingValid}
+											data-testid="save-button">
+											{t("settings:common.save")}
+										</VSCodeButton>
+									</StandardTooltip>
+								)}
+								{!standalone && (
+									<StandardTooltip content={t("settings:header.doneButtonTooltip")}>
+										<Button variant="secondary" onClick={() => checkUnsaveChanges(onDone)}>
+											{t("settings:common.done")}
+										</Button>
+									</StandardTooltip>
+								)}
+							</div>
 						</div>
 
 						{/* Providers Section */}
 						{activeTab === "providers" && (
-							<div className="flex flex-col gap-2">
-								<div className="ml-1 mt-2">
-									<h3 className="text-sm font-medium text-vscode-foreground flex items-center gap-2 m-0 px-1">
-										<CircleUserRound className="w-4" />
-										<span>{t("settings:sections.providers")}</span>
-									</h3>
-								</div>
-
-								<div className="p-4 bg-vscode-settings-focusedRowBackground border border-vscode-settings-focusedRowBorder rounded-md">
+							<div className="flex flex-col gap-3">
+								<div className="p-5 bg-vscode-editorWidget-background border border-vscode-widget-border rounded-2xl">
 									<ApiOptions
 										uriScheme={uriScheme}
 										apiConfiguration={apiConfiguration}
@@ -848,14 +790,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 						{/* Third Party Providers Section */}
 						{activeTab === "thirdPartyProviders" && (
-							<div className="flex flex-col gap-2">
-								<div className="ml-1 mt-2">
-									<h3 className="text-sm font-medium text-vscode-foreground flex items-center gap-2 m-0 px-1">
-										<Plug className="w-4" />
-										<span>{t("settings:sections.thirdPartyProviders")}</span>
-									</h3>
-								</div>
-
+							<div className="flex flex-col gap-3">
 								<ThirdPartyProviders
 									apiConfiguration={apiConfiguration}
 									setApiConfigurationField={setApiConfigurationField}
@@ -895,7 +830,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						{activeTab === "slashCommands" && <SlashCommandsSettings />}
 
 						{/* Browser Section */}
-						{activeTab === "browser" && (
+						{/* {activeTab === "browser" && (
 							<BrowserSettings
 								browserToolEnabled={browserToolEnabled}
 								browserViewportSize={browserViewportSize}
@@ -904,7 +839,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 								remoteBrowserEnabled={remoteBrowserEnabled}
 								setCachedStateField={setCachedStateField}
 							/>
-						)}
+						)} */}
 
 						{/* Checkpoints Section */}
 						{/* {activeTab === "checkpoints" && (
@@ -926,7 +861,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						{/* forked_change end display section */}
 
 						{/* Notifications Section */}
-						{activeTab === "notifications" && (
+						{/* {activeTab === "notifications" && (
 							<NotificationSettings
 								ttsEnabled={ttsEnabled}
 								ttsSpeed={ttsSpeed}
@@ -936,7 +871,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 								areSettingsCommitted={!isChangeDetected}
 								setCachedStateField={setCachedStateField}
 							/>
-						)}
+						)} */}
 
 						{/* Context Management Section */}
 						{/* {activeTab === "contextManagement" && (
@@ -961,7 +896,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					)} */}
 
 						{/* Terminal Section */}
-						{activeTab === "terminal" && (
+						{/* {activeTab === "terminal" && (
 							<TerminalSettings
 								terminalOutputLineLimit={terminalOutputLineLimit}
 								terminalOutputCharacterLimit={terminalOutputCharacterLimit}
@@ -977,7 +912,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 								terminalCommandApiConfigId={terminalCommandApiConfigId} // kilocode_change
 								setCachedStateField={setCachedStateField}
 							/>
-						)}
+						)} */}
 
 						{/* Prompts Section */}
 						{/* {activeTab === "prompts" && (
@@ -1028,20 +963,22 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							<LanguageSettings language={language || "en"} setCachedStateField={setCachedStateField} />
 						)}
 
-						{/* kilocode_change */}
-						{/* MCP Section - hidden for now */}
-						{/* {activeTab === "mcp" && <McpView />} */}
+						{/* MCP Servers */}
+						{activeTab === "mcp" && <McpView onDone={() => undefined} hideHeader embedded />}
+
+						{/* Plugins Marketplace */}
+						{activeTab === "plugins" && <SkillsMarketplaceView embedded />}
 
 						{/* Code Index Section */}
 						{activeTab === "codeIndex" && <CodeIndexSettings />}
 
 						{/* Code Review Section */}
-						{activeTab === "codeReview" && (
+						{/* {activeTab === "codeReview" && (
 							<CodeReviewSettingsComponent
 								codeReviewSettings={codeReviewSettings || {}}
 								setCachedStateField={setCachedStateField}
 							/>
-						)}
+						)} */}
 
 						{/* Developer Tools Section */}
 						{activeTab === "developerTools" && (

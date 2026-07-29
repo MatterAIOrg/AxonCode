@@ -1213,6 +1213,9 @@ export const webviewMessageHandler = async (
 					type: "orbitalUpdateStatus",
 					values: { status: "restarting", latestVersion: update.latestVersion },
 				})
+				// Give the user 45s before the window reloads so they can finish
+				// reading or copy anything they need.
+				await new Promise((resolve) => setTimeout(resolve, 45_000))
 				await vscode.commands.executeCommand("workbench.action.reloadWindow")
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)
@@ -2026,7 +2029,7 @@ ${comment.suggestion}
 			break
 		case "openSettings":
 			// Open the settings view with a specific section
-			vscode.commands.executeCommand("axon-code.settingsFocus", message.targetSection)
+			await vscode.commands.executeCommand("axon-code.settingsFocus", message.targetSection)
 			break
 		case "checkpointDiff":
 			const result = checkoutDiffPayloadSchema.safeParse(message.payload)
@@ -5001,6 +5004,17 @@ ${comment.suggestion}
 				// Capture tab shown event for all switchTab messages (which are user-initiated)
 				if (TelemetryService.hasInstance()) {
 					TelemetryService.instance.captureTabShown(message.tab)
+				}
+
+				if (["settings", "mcp", "skillsMarketplace"].includes(message.tab)) {
+					const targetSection =
+						message.tab === "mcp"
+							? "mcp"
+							: message.tab === "skillsMarketplace"
+								? "plugins"
+								: (message.values?.section as string | undefined)
+					await vscode.commands.executeCommand("axon-code.settingsFocus", targetSection)
+					break
 				}
 
 				await provider.postMessageToWebview({

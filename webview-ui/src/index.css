@@ -32,6 +32,7 @@
 		--vscode-button-padding: 4px 9px !important;
 		padding: 0 !important;
 		font-size: calc(var(--vscode-font-size) * 0.95) !important;
+		border-radius: var(--matter-radius-control) !important;
 	}
 
 	vscode-button::part(control),
@@ -44,6 +45,7 @@
 		height: auto !important;
 		font-size: calc(var(--vscode-font-size) * 0.95) !important;
 		line-height: 1.35 !important;
+		border-radius: var(--matter-radius-control) !important;
 	}
 
 	/* VSCodeButton Global Overrides */
@@ -52,7 +54,7 @@
 	vscode-button[appearance="primary"]:hover,
 	vscode-button[appearance="primary"]:hover::part(control) {
 		color: var(--vscode-button-foreground) !important;
-		border-radius: 7px !important;
+		border-radius: var(--matter-radius-control) !important;
 		border: none !important;
 		background: var(--vscode-button-background) !important;
 	}
@@ -60,6 +62,7 @@
 	vscode-button[appearance="icon"]::part(control) {
 		color: var(--vscode-button-secondaryForeground) !important;
 		background: var(--vscode-button-secondaryBackground) !important;
+		border-radius: var(--matter-radius-compact) !important;
 	}
 
 	/* Secondary buttons are intentionally subtle: default text + a single faint
@@ -72,7 +75,7 @@
 	}
 
 	vscode-button[appearance="secondary"]::part(control) {
-		border-radius: 6px !important;
+		border-radius: var(--matter-radius-control) !important;
 		color: var(--vscode-foreground) !important;
 		/* Border drawn as an inset shadow so it doesn't add to the box height,
 		   keeping secondary buttons the same size as borderless primary buttons. */
@@ -90,7 +93,7 @@
 	vscode-button.code-review-btn,
 	vscode-button.code-review-btn::part(control) {
 		border: 0.5px solid var(--vscode-panel-border) !important;
-		border-radius: 25px !important;
+		border-radius: var(--matter-radius-control) !important;
 	}
 
 	/* DangerButton Custom Style */
@@ -100,7 +103,7 @@
 	vscode-button[data-variant="danger"]:hover::part(control) {
 		background: var(--vscode-errorForeground) !important;
 		color: var(--vscode-foreground) !important;
-		border-radius: 6px !important;
+		border-radius: var(--matter-radius-control) !important;
 		border: none !important;
 	}
 
@@ -114,7 +117,7 @@
 		) !important;
 		color: #000000 !important;
 		font-weight: 600 !important;
-		border-radius: 8px !important;
+		border-radius: var(--matter-radius-control) !important;
 		border: none !important;
 		padding: 12px 24px !important;
 		transition: all 0.2s ease-in-out !important;
@@ -131,7 +134,7 @@
 		background: transparent !important;
 		color: var(--color-matterai-subheading, #a3a3a3) !important;
 		font-weight: 500 !important;
-		border-radius: 8px !important;
+		border-radius: var(--matter-radius-control) !important;
 		border: 1px solid var(--color-matterai-border-subtle, #262626) !important;
 		padding: 12px 24px !important;
 		transition: all 0.2s ease-in-out !important;
@@ -176,9 +179,13 @@
 	--color-chart-3: var(--chart-3);
 	--color-chart-4: var(--chart-4);
 	--color-chart-5: var(--chart-5);
-	--radius-lg: var(--radius);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-sm: calc(var(--radius) - 4px);
+	--radius-xs: calc(var(--matter-radius-compact) - 2px);
+	--radius-sm: var(--matter-radius-compact);
+	--radius-md: var(--matter-radius-control);
+	--radius-lg: var(--matter-radius-control);
+	--radius-xl: 18px;
+	--radius-2xl: var(--matter-radius-surface);
+	--radius-3xl: 28px;
 
 	/**
 	 * Allow VSCode colors to be used with Tailwind.
@@ -314,7 +321,10 @@
 		--chart-3: var(--color-matterai-yellow);
 		--chart-4: var(--vscode-charts-orange);
 		--chart-5: var(--vscode-charts-green);
-		--radius: 0.5rem;
+		--matter-radius-surface: 24px;
+		--matter-radius-control: 14px;
+		--matter-radius-compact: 10px;
+		--radius: var(--matter-radius-control);
 	}
 
 	/* Higher specififty than VSCode's theme and root. */
@@ -508,21 +518,29 @@ body:focus-within .code-block-scrollable {
 
 /* Fix scrollbar in dropdown */
 
+vscode-dropdown,
+vscode-dropdown::part(control) {
+	border-radius: var(--matter-radius-control) !important;
+}
+
 vscode-dropdown::part(listbox) {
+	border-radius: 18px !important;
 	border-color: var(--vscode-scrollbarSlider-background);
 	transition: none;
 	scrollbar-color: var(--vscode-scrollbarSlider-background) transparent;
 }
 
-vscode-text-field {
+vscode-text-field,
+vscode-text-area {
 	--border-width: 1px;
-	--corner-radius-round: 12;
-	border-radius: 12px;
+	--corner-radius-round: 14;
+	border-radius: var(--matter-radius-control);
 }
 
 vscode-text-field::part(control),
-vscode-text-field::part(input) {
-	border-radius: 8px !important;
+vscode-text-field::part(input),
+vscode-text-area::part(control) {
+	border-radius: var(--matter-radius-control) !important;
 	border: 1px solid var(--vscode-input-border);
 }
 

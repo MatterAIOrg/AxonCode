@@ -180,6 +180,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 
 	const contextProxy = await ContextProxy.getInstance(context)
+	await vscode.commands.executeCommand(
+		"setContext",
+		"axon:isLoggedIn",
+		Boolean(contextProxy.getProviderSettings().kilocodeToken),
+	)
 
 	// Create code index managers now, but defer initialization until after startup settles.
 	if (vscode.workspace.workspaceFolders) {

@@ -3,7 +3,7 @@ import { serializeError } from "serialize-error"
 
 import type { AssistantMessageContent } from "./parseAssistantMessage"
 import { TelemetryService } from "@roo-code/telemetry"
-import type { ClineAsk, ToolName, ToolProgressStatus } from "@roo-code/types"
+import type { ClineAsk, ModeConfig, ToolName, ToolProgressStatus } from "@roo-code/types"
 
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import type { ToolParamName, ToolResponse } from "../../shared/tools"
@@ -305,15 +305,18 @@ export async function presentAssistantMessage(cline: Task) {
 				toolResultPushed = true
 			}
 
-			// forked_change: hoist provider state lookup out of the try below so
-			// `customModes` stays in the same lexical scope as `toolDescription`
-			// (which captures it via closure) and so the safety net in the finally
-			// can still see it if needed. We accept a small risk of error here —
-			// the call is wrapped in `?? {}` and is typically safe.
-			const { mode: _mode_kilocode, customModes: _customModes_kilocode } =
-				(await cline.providerRef.deref()?.getState()) ?? {}
-			const mode = _mode_kilocode
-			const customModes = _customModes_kilocode
+			// These stay in the same lexical scope as toolDescription, while their
+			// asynchronous lookup happens inside the guarded processing block below.
+			let mode: string | undefined
+			let customModes: ModeConfig[] | undefined
+
+			const removeStaleToolPreview = async () => {
+				try {
+					await cline.removeStalePartialToolAskMessage()
+				} catch (error) {
+					console.error("[presentAssistantMessage] Failed to remove stale tool preview:", error)
+				}
+			}
 
 			// forked_change start: Wrap the entire tool_use processing body in a
 			// try/catch/finally. Any throw from cline.ask, validateToolUse, the
@@ -322,6 +325,23 @@ export async function presentAssistantMessage(cline: Task) {
 			// leaving the assistant tool_use unmatched.
 			try {
 				// forked_change end
+
+				// A complete tool block supersedes any streaming preview. Do this
+				// before state lookup, duplicate checks, validation, checkpointing,
+				// or execution: each can fail or return early, and leaving the
+				// preview behind makes the UI spinner run forever. Cleanup is
+				// best-effort so a persistence/UI refresh error cannot stop the tool.
+				//
+				// file_write deliberately keeps its preview through execution and
+				// settles that same row in place. Its finally block below removes
+				// the preview only when execution exits before it can be settled.
+				if (!block.partial && block.name !== "file_write") {
+					await removeStaleToolPreview()
+				}
+
+				const state = await cline.providerRef.deref()?.getState()
+				mode = state?.mode
+				customModes = state?.customModes
 
 				if (cline.didRejectTool) {
 					// Ignore any tool content after user has rejected tool once.
@@ -597,18 +617,6 @@ export async function presentAssistantMessage(cline: Task) {
 
 				await checkpointSaveAndMark(cline) // kilocode_change: moved out of switch
 
-				// forked_change start: Clean up stale partial tool ask message from
-				// native tool call streaming before the complete tool handler runs.
-				// During streaming, a partial ask("tool", ..., true) is created to
-				// show a spinner. Some tool handlers (e.g., file_edit) use
-				// say("tool", ...) for the complete version, which doesn't update
-				// the partial ask — causing duplicate messages. This removes the
-				// stale partial so only the complete message is shown.
-				if (!block.partial && block.toolUseId) {
-					await cline.removeStalePartialToolAskMessage()
-				}
-				// forked_change end
-
 				// forked_change start: Check if context condensation is needed before executing tools
 				// that may add significant content to the context window.
 				// This prevents context window overflow when the LLM requests to read files
@@ -839,6 +847,10 @@ export async function presentAssistantMessage(cline: Task) {
 					// best-effort; never let the error reporter itself break the loop
 				}
 			} finally {
+				if (!block.partial && block.name === "file_write") {
+					await removeStaleToolPreview()
+				}
+
 				// CRITICAL: every non-partial tool_use with a toolUseId MUST have a
 				// matching tool_result pushed, even on failure. The assistant message
 				// already contains the tool_use block, so without a paired tool_result

@@ -15,6 +15,8 @@ export const AXON_MODEL_TOOLTIPS: Record<string, [string, string]> = {
 	"axon-eido-3-code-mini-400k": ["High intelligence frontier model", "for high-effort day-to-day tasks"],
 	"axon-eido-3-code-pro-200k": ["Frontier model", "for coding tasks and long-running agents"],
 	"axon-eido-3-code-pro-400k": ["Frontier model", "for coding tasks and long-running agents"],
+	"axon-lumen-4-code-200k": ["Ultra-intelligence frontier model", "for complex agentic coding tasks"],
+	"axon-lumen-4-code-400k": ["Ultra-intelligence frontier model", "for complex agentic coding tasks"],
 }
 
 /**

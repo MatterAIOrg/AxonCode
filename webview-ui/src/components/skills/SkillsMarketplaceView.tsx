@@ -13,9 +13,11 @@ import { useAppTranslation } from "@/i18n/TranslationContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { vscode } from "@/utils/vscode"
 import { cn } from "@/lib/utils"
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 
 interface SkillsMarketplaceViewProps {
 	onDone?: () => void
+	embedded?: boolean
 }
 
 type PluginItem = Extract<MarketplaceItem, { type: "plugin" }>
@@ -55,7 +57,7 @@ function PluginCard({ item, installed, inventory, busy, onInstall, onRemove }: P
 	].filter((badge): badge is string => Boolean(badge))
 
 	return (
-		<div className="flex flex-col gap-2 rounded-lg border border-vscode-panel-border bg-vscode-editor-background p-3 transition-colors hover:border-vscode-focusBorder">
+		<div className="flex flex-col gap-2 rounded-2xl border border-vscode-panel-border bg-vscode-editor-background p-4 transition-colors hover:border-vscode-focusBorder">
 			<div className="flex items-start justify-between gap-2">
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2">
@@ -68,18 +70,17 @@ function PluginCard({ item, installed, inventory, busy, onInstall, onRemove }: P
 						</span>
 					</p>
 				</div>
-				<Button
-					size="sm"
-					variant={installed ? "secondary" : "default"}
+				<VSCodeButton
+					appearance={installed ? "secondary" : "primary"}
+					className="text-xs h-5 py-0 px-2"
 					disabled={busy}
-					onClick={installed ? onRemove : onInstall}
-					className="h-6 shrink-0 px-2 text-xs">
+					onClick={installed ? onRemove : onInstall}>
 					{busy
 						? t("marketplace:skillsMarketplace.working")
 						: installed
 							? t("marketplace:skillsMarketplace.remove")
 							: t("marketplace:skillsMarketplace.install")}
-				</Button>
+				</VSCodeButton>
 			</div>
 
 			{item.description && (
@@ -128,7 +129,7 @@ function PluginCard({ item, installed, inventory, busy, onInstall, onRemove }: P
 	)
 }
 
-export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
+export function SkillsMarketplaceView({ onDone, embedded = false }: SkillsMarketplaceViewProps) {
 	const { t } = useAppTranslation()
 	const { cwd } = useExtensionState()
 	const [items, setItems] = useState<PluginItem[]>([])
@@ -213,15 +214,17 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 	}, [])
 
 	return (
-		<Tab className="relative">
-			<TabHeader className="flex flex-col gap-2">
+		<Tab className="relative" embedded={embedded}>
+			<TabHeader className={cn("flex flex-col gap-3", embedded && "border-0 p-0")}>
 				<div className="flex items-center justify-between gap-2">
-					<div className="flex items-center gap-2">
-						<Package className="size-4 text-vscode-foreground" />
-						<h3 className="m-0 text-sm font-bold text-vscode-foreground">
-							{t("marketplace:skillsMarketplace.title")}
-						</h3>
-					</div>
+					{!embedded && (
+						<div className="flex items-center gap-2">
+							<Package className="size-4 text-vscode-foreground" />
+							<h3 className="m-0 text-sm font-bold text-vscode-foreground">
+								{t("marketplace:skillsMarketplace.title")}
+							</h3>
+						</div>
+					)}
 					<div className="flex items-center gap-1">
 						<Button
 							size="sm"
@@ -265,7 +268,7 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 				</div>
 			</TabHeader>
 
-			<TabContent className="p-3">
+			<TabContent className={embedded ? "pt-4" : "p-3"} embedded={embedded}>
 				{isLoading && items.length === 0 && (
 					<div className="flex flex-col items-center justify-center gap-2 py-12 text-vscode-descriptionForeground">
 						<MatterProgressIndicator />
@@ -273,7 +276,7 @@ export function SkillsMarketplaceView({ onDone }: SkillsMarketplaceViewProps) {
 					</div>
 				)}
 				{!isLoading && error && items.length === 0 && (
-					<div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-vscode-panel-border bg-vscode-editor-background p-6 text-center">
+					<div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-vscode-panel-border bg-vscode-editor-background p-6 text-center">
 						<p className="m-0 text-sm font-semibold text-vscode-errorForeground">
 							{t("marketplace:skillsMarketplace.errorTitle")}
 						</p>
