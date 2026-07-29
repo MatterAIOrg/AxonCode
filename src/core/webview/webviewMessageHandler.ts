@@ -1213,6 +1213,9 @@ export const webviewMessageHandler = async (
 					type: "orbitalUpdateStatus",
 					values: { status: "restarting", latestVersion: update.latestVersion },
 				})
+				// Give the user 45s before the window reloads so they can finish
+				// reading or copy anything they need.
+				await new Promise((resolve) => setTimeout(resolve, 45_000))
 				await vscode.commands.executeCommand("workbench.action.reloadWindow")
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)

@@ -1,9 +1,9 @@
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import {
 	canUse400kContext,
-	get200kAxonFallback,
 	getAppUrl,
-	is400kAxonModel,
+	getAxonPlanFallback,
+	isPlanRestrictedAxonModel,
 	type OrganizationAllowList,
 	type ProviderSettings,
 } from "@roo-code/types"
@@ -164,15 +164,15 @@ export const KiloCode = ({
 		() =>
 			has400kAccess
 				? models
-				: Object.fromEntries(Object.entries(models).filter(([modelId]) => !is400kAxonModel(modelId))),
+				: Object.fromEntries(Object.entries(models).filter(([modelId]) => !isPlanRestrictedAxonModel(modelId))),
 		[models, has400kAccess],
 	)
 
 	useEffect(() => {
 		const selectedModelId = apiConfiguration.kilocodeModel
-		if (!profilePlan || has400kAccess || !selectedModelId || !is400kAxonModel(selectedModelId)) return
+		if (!profilePlan || has400kAccess || !selectedModelId || !isPlanRestrictedAxonModel(selectedModelId)) return
 
-		const fallbackId = get200kAxonFallback(selectedModelId)
+		const fallbackId = getAxonPlanFallback(selectedModelId)
 		if (models[fallbackId]) setApiConfigurationField("kilocodeModel", fallbackId)
 	}, [apiConfiguration.kilocodeModel, profilePlan, has400kAccess, models, setApiConfigurationField])
 
