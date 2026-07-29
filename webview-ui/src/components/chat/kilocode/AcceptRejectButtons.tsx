@@ -216,6 +216,7 @@ export const AcceptRejectButtons = ({ onDismiss }: { onDismiss?: () => void }) =
 						style={{
 							background: "#1f932f",
 							color: "#ffffff",
+							border: "none",
 							fontWeight: 600,
 						}}>
 						Accept all
