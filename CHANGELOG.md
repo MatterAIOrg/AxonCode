@@ -1,16 +1,19 @@
 # Changelog
 
-## [Unreleased]
+## [v6.7.2] - 2026-07-31
 
 ### Added
 
+- **Organization usage metrics.** Orbital now reports metadata-only user-message events, accepted agent line counts with model/client/IDE dimensions, and newly observed Git commit line totals for AI-share, active-user, leaderboard, conversation, and client-version analytics. Prompt content and file contents are never included.
 - **Axon Lumen 4 model support.** Added support for `axon-lumen-4-code` in 200K and 400K context variants (`axon-lumen-4-code-200k` and `axon-lumen-4-code-400k`). Lumen models are available on Pro Plus and Ultra plans.
 - **Plan gating for Lumen models.** Lumen models now show the same warning icon and upgrade tooltip as 400k context variants for users on plans below Pro Plus, are disabled in the chat model selector, hidden from the settings model picker, and fall back to `axon-eido-3-code-pro-200k` when a restricted Lumen model is selected.
 
 ### Changed
 
 - **Flash model display name.** Axon Eido 3 Flash now shows `(200K context)` in its display name, consistent with the other Axon model variants.
-- **Orbital update restart delay.** The "Update & Restart" action now waits 45 seconds after the update finishes installing before reloading the window, showing an "Installing..." state with the MatterAI progress animation during the wait.
+- **Orbital update restart sequence.** The "Update & Restart" action now waits one minute after the update finishes installing, then restarts all extensions, reloads the window, and restarts all extensions again. The MatterAI progress animation remains visible during the wait.
+
+---
 
 ## [v6.6.9] - 2026-07-25
 

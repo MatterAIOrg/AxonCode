@@ -109,6 +109,7 @@ import { isValidKilocodeModel } from "../../api/providers/kilocode-models"
 import { getKiloCodeWrapperProperties } from "../../core/kilocode/wrapper"
 import { getKiloUrlFromToken } from "@roo-code/types" // kilocode_change
 import { getKilocodeConfig, getWorkspaceProjectId, KilocodeConfig } from "../../utils/kilo-config-file" // kilocode_change
+import { detectGitRepo, observeGitCommits, reportUsageEvent } from "../../services/usage-metrics/usageMetrics"
 
 export type ClineProviderState = Awaited<ReturnType<ClineProvider["getState"]>>
 // forked_change end
@@ -160,6 +161,10 @@ export class ClineProvider
 	private taskEventListeners: WeakMap<Task, Array<() => void>> = new WeakMap()
 	private currentWorkspacePath: string | undefined
 	private gitHeadWatcher?: vscode.FileSystemWatcher // kilocode_change: watch for git branch changes
+	private usageGitRefsWatcher?: vscode.FileSystemWatcher
+	private usageGitPoller?: NodeJS.Timeout
+	private usageGitHead?: string
+	private usageGitReportInFlight = false
 	private settingsStateSyncTimer?: NodeJS.Timeout
 
 	private recentTasksCache?: string[]
@@ -420,6 +425,79 @@ export class ClineProvider
 		})
 
 		this.disposables.push(this.gitHeadWatcher)
+
+		if (this.viewPurpose !== "main") return
+
+		const storedHeads = this.context.globalState.get<Record<string, string>>("axonUsageGitHeads", {})
+		this.usageGitHead = storedHeads[workspaceRoot]
+		const gitRefsPattern = new vscode.RelativePattern(workspaceRoot, ".git/refs/heads/**")
+		this.usageGitRefsWatcher = vscode.workspace.createFileSystemWatcher(gitRefsPattern)
+		const reportCommitUsage = () => {
+			void this.reportWorkspaceCommitUsage(workspaceRoot)
+		}
+		this.usageGitRefsWatcher.onDidChange(reportCommitUsage)
+		this.usageGitRefsWatcher.onDidCreate(reportCommitUsage)
+		this.usageGitRefsWatcher.onDidDelete(reportCommitUsage)
+		this.disposables.push(this.usageGitRefsWatcher)
+
+		// The ref watcher handles normal commits; polling also covers packed refs,
+		// worktrees and file-system watcher misses.
+		this.usageGitPoller = setInterval(reportCommitUsage, 60_000)
+		this.usageGitPoller.unref?.()
+		void this.reportWorkspaceCommitUsage(workspaceRoot)
+	}
+
+	private async persistUsageGitHead(workspaceRoot: string, head: string): Promise<void> {
+		const storedHeads = this.context.globalState.get<Record<string, string>>("axonUsageGitHeads", {})
+		await this.context.globalState.update("axonUsageGitHeads", {
+			...storedHeads,
+			[workspaceRoot]: head,
+		})
+	}
+
+	private async reportWorkspaceCommitUsage(workspaceRoot: string): Promise<void> {
+		if (this.usageGitReportInFlight) return
+		this.usageGitReportInFlight = true
+		try {
+			const previousHead = this.usageGitHead
+			const observed = observeGitCommits(workspaceRoot, previousHead)
+			if (!observed.head) return
+
+			if (!previousHead || observed.commits.length === 0) {
+				this.usageGitHead = observed.head
+				await this.persistUsageGitHead(workspaceRoot, observed.head)
+				return
+			}
+
+			const state = await this.getState()
+			const token = state.apiConfiguration?.kilocodeToken
+			if (!token) return
+
+			const repo = await detectGitRepo(workspaceRoot)
+			const task = this.getCurrentTask()
+			const model = task?.api.getModel().id || state.apiConfiguration?.kilocodeModel || ""
+			await Promise.all(
+				observed.commits.map((commit) =>
+					reportUsageEvent(token, workspaceRoot, {
+						eventId: `commit:${commit.hash}:${repo}`,
+						eventType: "committed_code",
+						taskId: task?.taskId,
+						model,
+						repo,
+						linesAdded: commit.linesAdded,
+						linesDeleted: commit.linesDeleted,
+						commitHash: commit.hash,
+						timestamp: commit.timestamp,
+					}),
+				),
+			)
+			this.usageGitHead = observed.head
+			await this.persistUsageGitHead(workspaceRoot, observed.head)
+		} catch (error) {
+			this.log(`Failed to report Git usage metrics: ${error}`)
+		} finally {
+			this.usageGitReportInFlight = false
+		}
 	}
 
 	/**
@@ -803,6 +881,10 @@ export class ClineProvider
 		// kilocode_change: dispose git HEAD watcher
 		this.gitHeadWatcher?.dispose()
 		this.gitHeadWatcher = undefined
+		this.usageGitRefsWatcher?.dispose()
+		this.usageGitRefsWatcher = undefined
+		if (this.usageGitPoller) clearInterval(this.usageGitPoller)
+		this.usageGitPoller = undefined
 		await this.mcpHub?.unregisterClient()
 		this.mcpHub = undefined
 		this.marketplaceManager?.cleanup()

@@ -126,6 +126,7 @@ export async function attemptCompletionTool(
 					)
 
 					TelemetryService.instance.captureTaskCompleted(cline.taskId)
+					cline.captureCommittedCodeUsage()
 					cline.emit(RooCodeEventName.TaskCompleted, cline.taskId, cline.getTokenUsage(), cline.toolUsage)
 
 					// Save completion as chat memory
@@ -162,6 +163,7 @@ export async function attemptCompletionTool(
 				await getClineMessageOptions(cline), //kilocode_change
 			)
 			TelemetryService.instance.captureTaskCompleted(cline.taskId)
+			cline.captureCommittedCodeUsage()
 			cline.emit(RooCodeEventName.TaskCompleted, cline.taskId, cline.getTokenUsage(), cline.toolUsage)
 
 			// Save completion as chat memory

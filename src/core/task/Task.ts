@@ -64,6 +64,12 @@ import { BrowserSession } from "../../services/browser/BrowserSession"
 import { McpHub } from "../../services/mcp/McpHub"
 import { McpServerManager } from "../../services/mcp/McpServerManager"
 import { RepoPerTaskCheckpointService } from "../../services/checkpoints"
+import {
+	detectGitRepo,
+	getGitHead,
+	observeGitCommits,
+	reportUsageEvent,
+} from "../../services/usage-metrics/usageMetrics"
 import { PlanMemoryManager } from "../kilocode/PlanMemoryManager"
 
 // integrations
@@ -437,6 +443,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	// source of truth) so they stay shown in the UI until they are actually sent.
 	// This flag just guards against reentrant draining of that queue.
 	private isProcessingManualMessages = false
+	private lastUsageGitHead?: string
 
 	// Tool Use
 	consecutiveMistakeCount: number = 0
@@ -535,6 +542,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.workspacePath = parentTask
 			? parentTask.workspacePath
 			: (workspacePath ?? getWorkspacePath(path.join(os.homedir(), "Documents"))) // kilocode_change: use Documents instead of Desktop as default
+		this.lastUsageGitHead = getGitHead(this.cwd)
 
 		this.instanceId = crypto.randomUUID().slice(0, 8)
 		this.taskNumber = -1
@@ -566,11 +574,15 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			return state?.apiConfiguration?.kilocodeToken
 		}
 		const getRepo = async () => {
-			const gitInfo = await getGitRepositoryInfo(this.cwd)
-			return gitInfo.repositoryUrl || path.basename(this.cwd)
+			return detectGitRepo(this.cwd)
 		}
 
-		this.fileEditReviewController = new FileEditReviewController(this.cwd, getToken, getRepo)
+		this.fileEditReviewController = new FileEditReviewController(
+			this.cwd,
+			getToken,
+			getRepo,
+			() => this.api.getModel().id,
+		)
 		this.fileEditReviewController.setTaskId(this.taskId)
 		this.enableCheckpoints = enableCheckpoints
 		this.enableBridge = enableBridge
@@ -1192,7 +1204,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						const autoAnswer = firstSuggestion.answer || firstSuggestion
 
 						// Immediately set the response as if the user clicked the first suggestion
-						this.handleWebviewAskResponse("messageResponse", autoAnswer, undefined)
+						this.handleWebviewAskResponse("messageResponse", autoAnswer, undefined, true)
 
 						// Return immediately with the auto-selected answer
 						const result = { response: this.askResponse!, text: autoAnswer, images: undefined }
@@ -1322,10 +1334,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.handleWebviewAskResponse("messageResponse", text, images)
 	}
 
-	handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[]) {
-		if (!this.isWaitingForAskResponse && askResponse === "messageResponse") {
+	handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[], isAutomatic = false) {
+		if (!this.isWaitingForAskResponse && askResponse === "messageResponse" && !isAutomatic) {
 			void this.enqueueManualUserMessage(text, images)
 			return
+		}
+
+		if (askResponse === "messageResponse" && !isAutomatic) {
+			this.reportUserMessageUsage()
 		}
 
 		// If user rejects a tool/command with feedback text, enqueue it as a new message
@@ -1465,6 +1481,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		} catch (error) {
 			console.error("Failed to append manual user message to conversation:", error)
 		}
+		this.reportUserMessageUsage()
 
 		this.emit(RooCodeEventName.TaskUserMessage, this.taskId)
 
@@ -1758,6 +1775,55 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	// Lifecycle
 	// Start / Resume / Abort / Dispose
 
+	private reportUserMessageUsage(): void {
+		void (async () => {
+			try {
+				await this.reportCommittedCodeUsage()
+				const state = await this.providerRef.deref()?.getState()
+				const token = state?.apiConfiguration?.kilocodeToken
+				await reportUsageEvent(token, this.cwd, {
+					eventType: "user_message",
+					taskId: this.taskId,
+					model: this.api.getModel().id,
+				})
+			} catch {
+				// Usage reporting is best-effort and must not affect the task.
+			}
+		})()
+	}
+
+	private async reportCommittedCodeUsage(): Promise<void> {
+		const observed = observeGitCommits(this.cwd, this.lastUsageGitHead)
+		this.lastUsageGitHead = observed.head
+		if (observed.commits.length === 0) return
+
+		const state = await this.providerRef.deref()?.getState()
+		const token = state?.apiConfiguration?.kilocodeToken
+		if (!token) return
+		const repo = await detectGitRepo(this.cwd)
+		const model = this.api.getModel().id
+
+		await Promise.all(
+			observed.commits.map((commit) =>
+				reportUsageEvent(token, this.cwd, {
+					eventId: `commit:${commit.hash}:${repo}`,
+					eventType: "committed_code",
+					taskId: this.taskId,
+					model,
+					repo,
+					linesAdded: commit.linesAdded,
+					linesDeleted: commit.linesDeleted,
+					commitHash: commit.hash,
+					timestamp: commit.timestamp,
+				}),
+			),
+		)
+	}
+
+	public captureCommittedCodeUsage(): void {
+		void this.reportCommittedCodeUsage().catch(() => {})
+	}
+
 	private async startTask(task?: string, images?: string[]): Promise<void> {
 		if (this.enableBridge) {
 			try {
@@ -1784,6 +1850,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		await this.providerRef.deref()?.postStateToWebview()
 
 		await this.say("text", task, images)
+		if (!this.parentTask) this.reportUserMessageUsage()
 		this.isInitialized = true
 
 		let imageBlocks: Anthropic.ImageBlockParam[] = formatResponse.imageBlocks(images)
@@ -2090,6 +2157,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 	public dispose(): void {
 		console.log(`[Task#dispose] disposing task ${this.taskId}.${this.instanceId}`)
+		this.captureCommittedCodeUsage()
 
 		// Reset context window usage
 		this.contextWindowUsage = undefined
