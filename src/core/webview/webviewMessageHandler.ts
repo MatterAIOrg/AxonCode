@@ -46,7 +46,11 @@ import { changeLanguage, t } from "../../i18n"
 import { Package } from "../../shared/package"
 import { type RouterName, type ModelRecord, toRouterName } from "../../shared/api"
 import { MessageEnhancer } from "./messageEnhancer"
-import { checkForOrbitalExtensionUpdate, installOrbitalExtensionUpdate } from "../../services/orbital/extensionUpdate"
+import {
+	checkForOrbitalExtensionUpdate,
+	installOrbitalExtensionUpdate,
+	restartOrbitalExtensionsAndWindow,
+} from "../../services/orbital/extensionUpdate"
 
 import {
 	type WebviewMessage,
@@ -1213,10 +1217,10 @@ export const webviewMessageHandler = async (
 					type: "orbitalUpdateStatus",
 					values: { status: "restarting", latestVersion: update.latestVersion },
 				})
-				// Give the user 45s before the window reloads so they can finish
+				// Give the user one minute before the restart sequence so they can finish
 				// reading or copy anything they need.
-				await new Promise((resolve) => setTimeout(resolve, 45_000))
-				await vscode.commands.executeCommand("workbench.action.reloadWindow")
+				await new Promise((resolve) => setTimeout(resolve, 60_000))
+				await restartOrbitalExtensionsAndWindow()
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)
 				provider.log(`[Orbital Update] Failed to install update: ${errorMessage}`)

@@ -17,6 +17,12 @@ export interface OrbitalExtensionUpdate {
 	latestVersion: string
 }
 
+const ORBITAL_UPDATE_RESTART_COMMANDS = [
+	"workbench.action.restartExtensionHost",
+	"workbench.action.reloadWindow",
+	"workbench.action.restartExtensionHost",
+]
+
 interface ParsedVersion {
 	major: number
 	minor: number
@@ -130,6 +136,14 @@ export async function installOrbitalExtensionUpdate(
 		await context.globalState.update(PENDING_ORBITAL_UPDATE_KEY, undefined)
 		throw error
 	}
+}
+
+export async function restartOrbitalExtensionsAndWindow(): Promise<void> {
+	// Run the sequence in the workbench so restarting this extension's host
+	// does not interrupt the remaining commands.
+	await vscode.commands.executeCommand("runCommands", {
+		commands: ORBITAL_UPDATE_RESTART_COMMANDS,
+	})
 }
 
 /**

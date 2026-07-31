@@ -4,6 +4,7 @@ import * as path from "path"
 
 import { getReadablePath } from "../../utils/path"
 import { myersDiff } from "../../services/continuedev/core/diff/myers"
+import { reportAcceptedLineMetrics } from "../../services/usage-metrics/usageMetrics"
 import { computeDifferenceLineNumbers, findAdjacentChangeLine } from "./fileEditReviewNavigation"
 
 type PendingFileEdit = {
@@ -41,6 +42,7 @@ export class FileEditReviewController implements vscode.Disposable {
 	private _taskId: string | undefined
 	private _getToken: (() => Promise<string | undefined>) | undefined
 	private _getRepo: (() => Promise<string | undefined>) | undefined
+	private _getModel: (() => string | undefined) | undefined
 
 	private static readonly controllers = new Map<string, FileEditReviewController>()
 	private static commandsRegistered = false
@@ -59,9 +61,11 @@ export class FileEditReviewController implements vscode.Disposable {
 		private cwd: string,
 		getToken?: () => Promise<string | undefined>,
 		getRepo?: () => Promise<string | undefined>,
+		getModel?: () => string | undefined,
 	) {
 		this._getToken = getToken
 		this._getRepo = getRepo
+		this._getModel = getModel
 		// Old UI (comment thread actions) — kept for reference.
 		//
 		// this.commentController = vscode.comments.createCommentController("axon-code.review", "Orbital Review")
@@ -449,30 +453,15 @@ export class FileEditReviewController implements vscode.Disposable {
 		// Get repo info
 		const repo = (await this._getRepo?.()) || path.basename(this.cwd)
 
-		try {
-			const url = `https://api.matterai.so/axoncode/meta/${taskId}/lines`
-			const response = await fetch(url, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${kilocodeToken}`,
-					"X-AXON-REPO": repo,
-				},
-				body: JSON.stringify({
-					language,
-					linesAdded: metrics.linesAdded,
-					linesUpdated: metrics.linesUpdated,
-					linesDeleted: metrics.linesDeleted,
-				}),
-			})
-
-			if (!response.ok) {
-				console.error(`[FileEditReviewController] Failed to report metrics: ${response.statusText}`)
-			} else {
-			}
-		} catch (error) {
-			console.error("[FileEditReviewController] Error reporting metrics:", error)
-		}
+		await reportAcceptedLineMetrics(kilocodeToken, {
+			taskId,
+			model: this._getModel?.(),
+			repo,
+			language,
+			linesAdded: metrics.linesAdded,
+			linesModified: metrics.linesUpdated,
+			linesDeleted: metrics.linesDeleted,
+		})
 	}
 
 	async handleReject(arg?: any, index?: number) {

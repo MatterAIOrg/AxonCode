@@ -4,6 +4,7 @@ import {
 	installOrbitalExtensionUpdate,
 	PENDING_ORBITAL_UPDATE_KEY,
 	recoverPendingOrbitalExtensionUpdate,
+	restartOrbitalExtensionsAndWindow,
 } from "../extensionUpdate"
 
 vi.mock("vscode", () => ({
@@ -60,6 +61,18 @@ describe("Orbital extension updates", () => {
 		await expect(installOrbitalExtensionUpdate(context, "6.6.6")).rejects.toThrow("install failed")
 
 		expect(getState()).toBeUndefined()
+	})
+
+	it("restarts extensions before and after reloading the window", async () => {
+		await restartOrbitalExtensionsAndWindow()
+
+		expect(vscode.commands.executeCommand).toHaveBeenCalledWith("runCommands", {
+			commands: [
+				"workbench.action.restartExtensionHost",
+				"workbench.action.reloadWindow",
+				"workbench.action.restartExtensionHost",
+			],
+		})
 	})
 
 	it("requests one recovery reload when the old version activates again", async () => {
