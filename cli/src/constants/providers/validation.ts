@@ -27,7 +27,6 @@ export const PROVIDER_REQUIRED_FIELDS: Record<ProviderName, string[]> = {
 	doubao: ["doubaoApiKey", "apiModelId"],
 	chutes: ["chutesApiKey", "apiModelId"],
 	sambanova: ["sambaNovaApiKey", "apiModelId"],
-	fireworks: ["fireworksApiKey", "apiModelId"],
 	featherless: ["featherlessApiKey", "apiModelId"],
 	deepinfra: ["deepInfraApiKey", "deepInfraModelId"],
 	"io-intelligence": ["ioIntelligenceApiKey", "ioIntelligenceModelId"],

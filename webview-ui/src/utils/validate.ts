@@ -143,11 +143,6 @@ function validateModelsAndKeysProvided(apiConfiguration: ProviderSettings): stri
 				return i18next.t("settings:validation.apiKey")
 			}
 			break
-		case "fireworks":
-			if (!apiConfiguration.fireworksApiKey) {
-				return i18next.t("settings:validation.apiKey")
-			}
-			break
 		// forked_change start
 		case "synthetic":
 			if (!apiConfiguration.syntheticApiKey) {

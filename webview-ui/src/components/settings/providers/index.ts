@@ -31,7 +31,6 @@ export { VirtualQuotaFallbackProvider } from "./VirtualQuotaFallbackProvider"
 // forked_change end
 export { ZAi } from "./ZAi"
 export { LiteLLM } from "./LiteLLM"
-export { Fireworks } from "./Fireworks"
 export { Synthetic } from "./Synthetic" // kilocode_change
 export { Featherless } from "./Featherless"
 export { VercelAiGateway } from "./VercelAiGateway"

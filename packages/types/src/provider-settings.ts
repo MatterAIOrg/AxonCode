@@ -11,7 +11,6 @@ import {
 	deepSeekModels,
 	doubaoModels,
 	featherlessModels,
-	fireworksModels,
 	// forked_change start
 	syntheticModels,
 	// geminiModels,
@@ -135,7 +134,6 @@ export const providerNames = [
 	"doubao",
 	"deepseek",
 	"featherless",
-	"fireworks",
 	"gemini",
 	"gemini-cli",
 	"groq",
@@ -429,7 +427,7 @@ const kilocodeSchema = baseProviderSettingsSchema.extend({
 	kilocodeTesterWarningsDisabledUntil: z.number().optional(), // Timestamp for disabling KILOCODE-TESTER warnings
 })
 
-// Third-party provider settings for Ollama, OpenCode, and Fireworks
+// Third-party provider settings for Ollama and OpenCode
 const thirdPartyProviderSettingsSchema = z.object({
 	enabled: z.boolean().optional(),
 	apiKey: z.string().optional(),
@@ -439,7 +437,6 @@ const thirdPartyProvidersSchema = z
 	.object({
 		ollama: thirdPartyProviderSettingsSchema.optional(),
 		opencode: thirdPartyProviderSettingsSchema.optional(),
-		fireworks: thirdPartyProviderSettingsSchema.optional(),
 	})
 	.optional()
 
@@ -476,10 +473,6 @@ export type ZaiApiLine = z.infer<typeof zaiApiLineSchema>
 const zaiSchema = apiModelIdProviderModelSchema.extend({
 	zaiApiKey: z.string().optional(),
 	zaiApiLine: zaiApiLineSchema.optional(),
-})
-
-const fireworksSchema = apiModelIdProviderModelSchema.extend({
-	fireworksApiKey: z.string().optional(),
 })
 
 // forked_change start
@@ -551,7 +544,6 @@ export const providerSettingsSchemaDiscriminated = z.discriminatedUnion("apiProv
 	cerebrasSchema.merge(z.object({ apiProvider: z.literal("cerebras") })),
 	sambaNovaSchema.merge(z.object({ apiProvider: z.literal("sambanova") })),
 	zaiSchema.merge(z.object({ apiProvider: z.literal("zai") })),
-	fireworksSchema.merge(z.object({ apiProvider: z.literal("fireworks") })),
 	featherlessSchema.merge(z.object({ apiProvider: z.literal("featherless") })),
 	ioIntelligenceSchema.merge(z.object({ apiProvider: z.literal("io-intelligence") })),
 	qwenCodeSchema.merge(z.object({ apiProvider: z.literal("qwen-code") })),
@@ -597,7 +589,6 @@ export const providerSettingsSchema = z.object({
 	...cerebrasSchema.shape,
 	...sambaNovaSchema.shape,
 	...zaiSchema.shape,
-	...fireworksSchema.shape,
 	...featherlessSchema.shape,
 	...ioIntelligenceSchema.shape,
 	...qwenCodeSchema.shape,
@@ -693,7 +684,6 @@ export const modelIdKeysByProvider: Record<TypicalProvider, ModelIdKey> = {
 	cerebras: "apiModelId",
 	sambanova: "apiModelId",
 	zai: "apiModelId",
-	fireworks: "apiModelId",
 	synthetic: "apiModelId", // kilocode_change
 	featherless: "apiModelId",
 	"io-intelligence": "ioIntelligenceModelId",
@@ -767,11 +757,6 @@ export const MODELS_BY_PROVIDER: Record<
 		id: "featherless",
 		label: "Featherless",
 		models: Object.keys(featherlessModels),
-	},
-	fireworks: {
-		id: "fireworks",
-		label: "Fireworks",
-		models: Object.keys(fireworksModels),
 	},
 	// forked_change start
 	synthetic: {

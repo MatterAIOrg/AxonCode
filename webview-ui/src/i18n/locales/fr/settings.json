@@ -288,8 +288,7 @@
 		"getCerebrasApiKey": "Obtenir la clé API Cerebras",
 		"chutesApiKey": "Clé API Chutes",
 		"getChutesApiKey": "Obtenir la clé API Chutes",
-		"fireworksApiKey": "Clé API Fireworks",
-		"getFireworksApiKey": "Obtenir la clé API Fireworks",
+
 		"syntheticApiKey": "Clé API Synthetic",
 		"getSyntheticApiKey": "Obtenir la clé API Synthetic",
 		"featherlessApiKey": "Clé API Featherless",

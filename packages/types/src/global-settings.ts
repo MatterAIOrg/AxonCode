@@ -246,7 +246,6 @@ export const SECRET_STATE_KEYS = [
 	"huggingFaceApiKey",
 	"sambaNovaApiKey",
 	"zaiApiKey",
-	"fireworksApiKey",
 	"featherlessApiKey",
 	"ioIntelligenceApiKey",
 	"vercelAiGatewayApiKey",

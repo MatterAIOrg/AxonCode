@@ -31,7 +31,6 @@ This guide provides detailed information on how to configure each provider in Or
     - [Doubao](#doubao)
     - [Chutes](#chutes)
     - [SambaNova](#sambanova)
-    - [Fireworks](#fireworks)
     - [Featherless](#featherless)
     - [DeepInfra](#deepinfra)
     - [IO Intelligence](#io-intelligence)
@@ -857,37 +856,6 @@ SambaNova AI inference platform.
 ```
 
 **Default Model**: `Meta-Llama-3.1-70B-Instruct`
-
----
-
-### fireworks
-
-Fireworks AI platform.
-
-**Description**: Access models through Fireworks AI's fast inference platform.
-
-**Required Fields**:
-
-- `fireworksApiKey` (password): Your Fireworks API key
-- `apiModelId` (text): The model to use (default: `accounts/fireworks/models/kimi-k2-instruct-0905`)
-
-**Example Configuration**:
-
-```json
-{
-	"id": "default",
-	"provider": "fireworks",
-	"fireworksApiKey": "...",
-	"apiModelId": "accounts/fireworks/models/kimi-k2-instruct-0905"
-}
-```
-
-**Default Model**: `accounts/fireworks/models/kimi-k2-instruct-0905`
-
-**Notes**:
-
-- Get your API key from https://fireworks.ai/
-- Known for fast inference speeds
 
 ---
 

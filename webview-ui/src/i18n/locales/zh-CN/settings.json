@@ -288,8 +288,7 @@
 		"getCerebrasApiKey": "获取 Cerebras API 密钥",
 		"chutesApiKey": "Chutes API 密钥",
 		"getChutesApiKey": "获取 Chutes API 密钥",
-		"fireworksApiKey": "Fireworks API 密钥",
-		"getFireworksApiKey": "获取 Fireworks API 密钥",
+
 		"syntheticApiKey": "Synthetic API 密钥",
 		"getSyntheticApiKey": "获取 Synthetic API 密钥",
 		"featherlessApiKey": "Featherless API 密钥",

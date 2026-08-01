@@ -40,7 +40,6 @@ import {
 	IOIntelligenceHandler,
 	DoubaoHandler,
 	ZAiHandler,
-	FireworksHandler,
 	SyntheticHandler, // kilocode_change
 	RooHandler,
 	FeatherlessHandler,
@@ -130,7 +129,6 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			matterai3p: "https://api2.matterai.so/v1",
 			ollama: "http://localhost:11434/v1",
 			opencode: "https://opencode.ai/zen/go/v1",
-			fireworks: "https://api.fireworks.ai/inference/v1",
 		}
 
 		const baseUrl = providerBaseUrls[provider]
@@ -139,8 +137,6 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			let apiKey: string | undefined
 			if (provider === "opencode") {
 				apiKey = options.thirdPartyProviders?.opencode?.apiKey
-			} else if (provider === "fireworks") {
-				apiKey = options.thirdPartyProviders?.fireworks?.apiKey
 			} else if (provider === "matterai3p") {
 				// Use kilocodeToken for matterai3p authentication
 				apiKey = options.kilocodeToken
@@ -229,8 +225,6 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			return new SambaNovaHandler(options)
 		case "zai":
 			return new ZAiHandler(options)
-		case "fireworks":
-			return new FireworksHandler(options)
 		// forked_change start
 		case "synthetic":
 			return new SyntheticHandler(options)

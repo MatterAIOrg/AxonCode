@@ -1,5 +1,13 @@
 # Changelog
 
+## [v6.8.0] - 2026-08-01
+
+### Removed
+
+- **Fireworks AI provider.** Removed the Fireworks third-party provider (handler, settings schema, model fetcher entry, model selector, settings UI, docs, icon, CLI registry, JSON-schema entries, and `fireworksApiKey` / `getFireworksApiKey` i18n strings across all 22 locales). Existing `fireworksApiKey` values in stored profiles are no longer recognized; users will be prompted to pick a different provider on next launch.
+
+---
+
 ## [v6.7.2] - 2026-07-31
 
 ### Added

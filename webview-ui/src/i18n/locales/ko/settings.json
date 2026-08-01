@@ -288,8 +288,7 @@
 		"getCerebrasApiKey": "Cerebras API 키 가져오기",
 		"chutesApiKey": "Chutes API 키",
 		"getChutesApiKey": "Chutes API 키 받기",
-		"fireworksApiKey": "Fireworks API 키",
-		"getFireworksApiKey": "Fireworks API 키 받기",
+
 		"syntheticApiKey": "Synthetic API 키",
 		"getSyntheticApiKey": "Synthetic API 키 받기",
 		"featherlessApiKey": "Featherless API 키",

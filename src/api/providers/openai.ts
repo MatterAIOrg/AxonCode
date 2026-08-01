@@ -174,28 +174,10 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			addNativeToolCallsToParams(requestOptions, this.options, metadata)
 			// forked_change end
 
-			// Fireworks doesn't support reasoning fields in messages - strip them
-			const isFireworks = this.options.openAiBaseUrl?.includes("fireworks.ai")
-			const messagesToSend = isFireworks
-				? convertedMessages.map((msg) => {
-						const { reasoning, reasoning_content, ...rest } =
-							msg as OpenAI.Chat.Completions.ChatCompletionMessageParam & {
-								reasoning?: unknown
-								reasoning_content?: unknown
-							}
-						return rest
-					})
-				: convertedMessages
-
-			const requestParams = {
-				...requestOptions,
-				messages: messagesToSend,
-			}
-
 			let stream
 			try {
 				stream = await this.client.chat.completions.create(
-					requestParams,
+					requestOptions,
 					isAzureAiInference ? { path: OPENAI_AZURE_AI_INFERENCE_PATH } : this.customRequestOptions(metadata),
 				)
 			} catch (error) {

@@ -21,7 +21,6 @@ import {
 	sambaNovaModels,
 	doubaoModels,
 	internationalZAiModels,
-	fireworksModels,
 	syntheticModels, // kilocode_change
 	rooModels,
 	featherlessModels,
@@ -48,7 +47,6 @@ export const MODELS_BY_PROVIDER: Partial<Record<ProviderName, Record<string, Mod
 	// chutes: chutesModels, // kilocode_change
 	sambanova: sambaNovaModels,
 	zai: internationalZAiModels,
-	fireworks: fireworksModels,
 	synthetic: syntheticModels, // kilocode_change
 	roo: rooModels,
 	featherless: featherlessModels,
@@ -89,7 +87,6 @@ export const PROVIDERS = [
 	{ value: "litellm", label: "LiteLLM" },
 	{ value: "sambanova", label: "SambaNova" },
 	{ value: "zai", label: "Z AI" },
-	{ value: "fireworks", label: "Fireworks AI" },
 	{ value: "synthetic", label: "Synthetic" }, // kilocode_change
 	{ value: "featherless", label: "Featherless AI" },
 	{ value: "io-intelligence", label: "IO Intelligence" },

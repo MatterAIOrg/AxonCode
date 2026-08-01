@@ -126,7 +126,6 @@ export const HuggingFace = ({ apiConfiguration, setApiConfigurationField }: Hugg
 	const formatProviderName = (provider: string) => {
 		const nameMap: Record<string, string> = {
 			sambanova: "SambaNova",
-			"fireworks-ai": "Fireworks",
 			together: "Together AI",
 			nebius: "Nebius AI Studio",
 			hyperbolic: "Hyperbolic",

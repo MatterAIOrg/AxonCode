@@ -3317,7 +3317,6 @@ ${comment.suggestion}
 						cerebras: "apiModelId",
 						sambanova: "apiModelId",
 						zai: "apiModelId",
-						fireworks: "apiModelId",
 						synthetic: "apiModelId",
 						featherless: "apiModelId",
 						"qwen-code": "apiModelId",

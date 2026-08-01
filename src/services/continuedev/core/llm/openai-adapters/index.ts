@@ -119,8 +119,6 @@ export function constructLlmApi(config: LLMConfig): BaseLlmApi | undefined {
 			return openAICompatible("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/", config)
 		case "scaleway":
 			return openAICompatible("https://api.scaleway.ai/v1/", config)
-		case "fireworks":
-			return openAICompatible("https://api.fireworks.ai/inference/v1/", config)
 		case "together":
 			return openAICompatible("https://api.together.xyz/v1/", config)
 		case "ncompass":

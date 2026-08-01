@@ -250,7 +250,6 @@
 						"doubao",
 						"chutes",
 						"sambanova",
-						"fireworks",
 						"featherless",
 						"deepinfra",
 						"io-intelligence",
@@ -1374,51 +1373,6 @@
 					"if": {
 						"properties": {
 							"provider": { "const": "sambanova" },
-							"apiModelId": { "type": "string", "minLength": 1 }
-						},
-						"required": ["apiModelId"]
-					},
-					"then": {
-						"properties": {
-							"apiModelId": { "minLength": 1 }
-						}
-					}
-				},
-				{
-					"if": {
-						"properties": { "provider": { "const": "fireworks" } }
-					},
-					"then": {
-						"properties": {
-							"fireworksApiKey": {
-								"type": "string",
-								"description": "Fireworks API key"
-							},
-							"apiModelId": {
-								"type": "string",
-								"description": "Fireworks model ID"
-							}
-						}
-					}
-				},
-				{
-					"if": {
-						"properties": {
-							"provider": { "const": "fireworks" },
-							"fireworksApiKey": { "type": "string", "minLength": 1 }
-						},
-						"required": ["fireworksApiKey"]
-					},
-					"then": {
-						"properties": {
-							"fireworksApiKey": { "minLength": 10 }
-						}
-					}
-				},
-				{
-					"if": {
-						"properties": {
-							"provider": { "const": "fireworks" },
 							"apiModelId": { "type": "string", "minLength": 1 }
 						},
 						"required": ["apiModelId"]
