@@ -3,7 +3,13 @@
  */
 
 import type { Command, ArgumentProviderContext } from "./core/types.js"
-import { canUse400kContext, is400kAxonModel } from "@roo-code/types"
+import {
+	canAccessAxonModel,
+	is400kAxonModel,
+	isEido3ProModel,
+	isLumenAxonModel,
+	isPlanRestrictedAxonModel,
+} from "@roo-code/types"
 import {
 	getModelsByProvider,
 	getCurrentModelId,
@@ -287,11 +293,23 @@ async function selectModel(context: any, modelId: string): Promise<void> {
 	}
 
 	const plan = profileData?.plan ?? profileData?.tieredUsage?.plan
-	if (currentProvider.provider === "kilocode" && is400kAxonModel(modelId) && !canUse400kContext(plan)) {
+	if (
+		currentProvider.provider === "kilocode" &&
+		isPlanRestrictedAxonModel(modelId) &&
+		!canAccessAxonModel(modelId, plan)
+	) {
+		let message = "This model is not available on your current plan."
+		if (isLumenAxonModel(modelId)) {
+			message = "Lumen models are only available on Pro Plus and Ultra plans."
+		} else if (is400kAxonModel(modelId)) {
+			message = "400k context is only available on Pro Plus and Ultra plans."
+		} else if (isEido3ProModel(modelId)) {
+			message = "Axon Eido 3 Pro is only available on Pro, Pro Plus, and Ultra plans."
+		}
 		addMessage({
 			id: Date.now().toString(),
 			type: "error",
-			content: "400k context is only available on Pro Plus and Ultra plans.",
+			content: message,
 			ts: Date.now(),
 		})
 		return
@@ -362,8 +380,8 @@ async function listModels(context: any, filter?: string): Promise<void> {
 
 	let modelIds = filter ? fuzzyFilterModels(models, filter) : Object.keys(models)
 	const plan = profileData?.plan ?? profileData?.tieredUsage?.plan
-	if (currentProvider.provider === "kilocode" && !canUse400kContext(plan)) {
-		modelIds = modelIds.filter((modelId) => !is400kAxonModel(modelId))
+	if (currentProvider.provider === "kilocode") {
+		modelIds = modelIds.filter((modelId) => canAccessAxonModel(modelId, plan))
 	}
 	modelIds = sortModelsByPreference(
 		modelIds.reduce(
@@ -454,7 +472,7 @@ async function modelAutocompleteProvider(context: ArgumentProviderContext) {
 
 	const plan = profileData?.plan ?? profileData?.tieredUsage?.plan
 	const sortedModelIds = sortModelsByPreference(models).filter(
-		(modelId) => currentProvider.provider !== "kilocode" || canUse400kContext(plan) || !is400kAxonModel(modelId),
+		(modelId) => currentProvider.provider !== "kilocode" || canAccessAxonModel(modelId, plan),
 	)
 
 	return sortedModelIds

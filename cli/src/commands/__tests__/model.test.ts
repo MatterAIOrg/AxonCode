@@ -307,6 +307,80 @@ describe("/model command", () => {
 
 			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3-code-mini-400k")
 		})
+
+		it("should allow Eido 3 Pro 200k on Pro plan", async () => {
+			mockContext.currentProvider = {
+				id: "test-provider",
+				provider: "kilocode",
+				kilocodeModel: "axon-eido-3-code-mini-200k",
+			}
+			mockContext.routerModels!["kilocode-openrouter"] = {
+				"axon-eido-3-code-mini-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-pro-200k": { contextWindow: 200000 },
+			}
+			mockContext.args = ["select", "axon-eido-3-code-pro-200k"]
+			mockContext.profileData = { plan: "Pro" }
+
+			await modelCommand.handler(mockContext)
+
+			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3-code-pro-200k")
+		})
+
+		it("should reject Eido 3 Pro 200k on free plan", async () => {
+			mockContext.currentProvider = {
+				id: "test-provider",
+				provider: "kilocode",
+				kilocodeModel: "axon-eido-3-code-mini-200k",
+			}
+			mockContext.routerModels!["kilocode-openrouter"] = {
+				"axon-eido-3-code-mini-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-pro-200k": { contextWindow: 200000 },
+			}
+			mockContext.args = ["select", "axon-eido-3-code-pro-200k"]
+			mockContext.profileData = { plan: "free" }
+
+			await modelCommand.handler(mockContext)
+
+			expect(updateProviderModelMock).not.toHaveBeenCalled()
+			expect(addMessageMock.mock.calls[0][0].content).toContain("Pro, Pro Plus, and Ultra")
+		})
+
+		it("should reject Eido 3 Pro 400k on Pro plan", async () => {
+			mockContext.currentProvider = {
+				id: "test-provider",
+				provider: "kilocode",
+				kilocodeModel: "axon-eido-3-code-pro-200k",
+			}
+			mockContext.routerModels!["kilocode-openrouter"] = {
+				"axon-eido-3-code-pro-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-pro-400k": { contextWindow: 400000 },
+			}
+			mockContext.args = ["select", "axon-eido-3-code-pro-400k"]
+			mockContext.profileData = { plan: "Pro" }
+
+			await modelCommand.handler(mockContext)
+
+			expect(updateProviderModelMock).not.toHaveBeenCalled()
+			expect(addMessageMock.mock.calls[0][0].content).toContain("Pro Plus and Ultra")
+		})
+
+		it("should allow Eido 3 Pro 400k on Pro Plus plan", async () => {
+			mockContext.currentProvider = {
+				id: "test-provider",
+				provider: "kilocode",
+				kilocodeModel: "axon-eido-3-code-pro-200k",
+			}
+			mockContext.routerModels!["kilocode-openrouter"] = {
+				"axon-eido-3-code-pro-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-pro-400k": { contextWindow: 400000 },
+			}
+			mockContext.args = ["select", "axon-eido-3-code-pro-400k"]
+			mockContext.profileData = { plan: "pro_plus" }
+
+			await modelCommand.handler(mockContext)
+
+			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3-code-pro-400k")
+		})
 	})
 
 	describe("Model list subcommand", () => {
