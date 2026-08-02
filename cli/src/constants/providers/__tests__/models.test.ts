@@ -42,7 +42,6 @@ describe("Static Provider Models", () => {
 			"cerebras",
 			"sambanova",
 			"zai",
-			"fireworks",
 			"featherless",
 			"roo",
 			"claude-code",

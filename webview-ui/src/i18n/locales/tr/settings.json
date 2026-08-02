@@ -289,8 +289,7 @@
 		"getCerebrasApiKey": "Cerebras API Anahtarını Al",
 		"chutesApiKey": "Chutes API Anahtarı",
 		"getChutesApiKey": "Chutes API Anahtarı Al",
-		"fireworksApiKey": "Fireworks API Anahtarı",
-		"getFireworksApiKey": "Fireworks API Anahtarı Al",
+
 		"syntheticApiKey": "Synthetic API Anahtarı",
 		"getSyntheticApiKey": "Synthetic API Anahtarı Al",
 		"featherlessApiKey": "Featherless API Anahtarı",

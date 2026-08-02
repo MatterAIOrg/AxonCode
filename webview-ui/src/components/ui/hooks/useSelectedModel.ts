@@ -48,8 +48,6 @@ import {
 	mainlandZAiDefaultModelId,
 	internationalZAiModels,
 	mainlandZAiModels,
-	fireworksModels,
-	fireworksDefaultModelId,
 	syntheticModels, // kilocode_change
 	syntheticDefaultModelId, // kilocode_change
 	featherlessModels,
@@ -398,11 +396,6 @@ function getSelectedModel({
 		case "sambanova": {
 			const id = apiConfiguration.apiModelId ?? sambaNovaDefaultModelId
 			const info = sambaNovaModels[id as keyof typeof sambaNovaModels]
-			return { id, info }
-		}
-		case "fireworks": {
-			const id = apiConfiguration.apiModelId ?? fireworksDefaultModelId
-			const info = fireworksModels[id as keyof typeof fireworksModels]
 			return { id, info }
 		}
 		// forked_change start

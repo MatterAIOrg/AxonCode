@@ -18,11 +18,10 @@ export const ThirdPartyProviders = ({ apiConfiguration, setApiConfigurationField
 	// Provider enable states
 	const ollamaEnabled = apiConfiguration?.thirdPartyProviders?.ollama?.enabled || false
 	const opencodeEnabled = apiConfiguration?.thirdPartyProviders?.opencode?.enabled || false
-	const fireworksEnabled = apiConfiguration?.thirdPartyProviders?.fireworks?.enabled || false
 
 	// Handle third-party provider configuration changes
 	const updateThirdPartyProvider = useCallback(
-		(provider: "ollama" | "opencode" | "fireworks", updates: { enabled?: boolean; apiKey?: string }) => {
+		(provider: "ollama" | "opencode", updates: { enabled?: boolean; apiKey?: string }) => {
 			const currentProviders = apiConfiguration?.thirdPartyProviders || {}
 			const updatedProviders = {
 				...currentProviders,
@@ -38,7 +37,7 @@ export const ThirdPartyProviders = ({ apiConfiguration, setApiConfigurationField
 
 	// Handle provider toggle
 	const handleProviderToggle = useCallback(
-		(provider: "ollama" | "opencode" | "fireworks", enabled: boolean) => {
+		(provider: "ollama" | "opencode", enabled: boolean) => {
 			updateThirdPartyProvider(provider, { enabled })
 		},
 		[updateThirdPartyProvider],
@@ -48,14 +47,6 @@ export const ThirdPartyProviders = ({ apiConfiguration, setApiConfigurationField
 	const handleOpencodeApiKeyChange = useCallback(
 		(value: string) => {
 			updateThirdPartyProvider("opencode", { apiKey: value })
-		},
-		[updateThirdPartyProvider],
-	)
-
-	// Handle API key change for Fireworks
-	const handleFireworksApiKeyChange = useCallback(
-		(value: string) => {
-			updateThirdPartyProvider("fireworks", { apiKey: value })
 		},
 		[updateThirdPartyProvider],
 	)
@@ -114,49 +105,6 @@ export const ThirdPartyProviders = ({ apiConfiguration, setApiConfigurationField
 								type="password"
 								onInput={(e: any) => handleOpencodeApiKeyChange(e.target.value)}
 								placeholder="Enter OpenCode API Key"
-								className="w-full h-7"
-							/>
-						</div>
-					</SettingsRow>
-				)}
-
-				{/* Fireworks Fire Pass Provider */}
-				<SettingsRow
-					title={
-						<div className="flex items-center gap-2">
-							<img
-								src={iconsBaseUri + "/fireworks-ic.png"}
-								alt="Fireworks"
-								className="w-5 h-5 rounded-sm"
-							/>
-							<span>Fireworks Fire Pass</span>
-						</div>
-					}
-					description={
-						!fireworksEnabled && (
-							<a
-								href="https://app.fireworks.ai/fire-pass"
-								className="text-vscode-textLink-foreground hover:underline"
-								target="_blank"
-								rel="noopener noreferrer">
-								Activate Fire Pass
-							</a>
-						)
-					}>
-					<SettingsSwitch
-						checked={fireworksEnabled}
-						onChange={(checked) => handleProviderToggle("fireworks", checked)}
-					/>
-				</SettingsRow>
-
-				{fireworksEnabled && (
-					<SettingsRow title={<span className="font-normal text-sm pl-7">API Key</span>}>
-						<div className="flex items-center gap-2 w-[300px]">
-							<VSCodeTextField
-								value={apiConfiguration?.thirdPartyProviders?.fireworks?.apiKey || ""}
-								type="password"
-								onInput={(e: any) => handleFireworksApiKeyChange(e.target.value)}
-								placeholder="Enter Fireworks API Key"
 								className="w-full h-7"
 							/>
 						</div>

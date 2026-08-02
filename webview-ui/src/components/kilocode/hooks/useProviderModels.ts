@@ -35,8 +35,6 @@ import {
 	claudeCodeDefaultModelId,
 	doubaoModels,
 	doubaoDefaultModelId,
-	fireworksModels,
-	fireworksDefaultModelId,
 	syntheticModels, // kilocode_change
 	syntheticDefaultModelId, // kilocode_change
 	ioIntelligenceDefaultModelId,
@@ -233,12 +231,6 @@ export const getModelsByProvider = ({
 			return {
 				models: doubaoModels,
 				defaultModel: doubaoDefaultModelId,
-			}
-		}
-		case "fireworks": {
-			return {
-				models: fireworksModels,
-				defaultModel: fireworksDefaultModelId,
 			}
 		}
 		// forked_change start

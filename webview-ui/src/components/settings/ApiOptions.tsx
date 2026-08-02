@@ -286,7 +286,6 @@ const ApiOptions = ({
 	// 						? mainlandZAiDefaultModelId
 	// 						: internationalZAiDefaultModelId,
 	// 			},
-	// 			fireworks: { field: "apiModelId", default: fireworksDefaultModelId },
 	// 			synthetic: { field: "apiModelId", default: syntheticDefaultModelId }, // kilocode_change
 	// 			featherless: { field: "apiModelId", default: featherlessDefaultModelId },
 	// 			ovhcloud: { field: "ovhCloudAiEndpointsModelId", default: ovhCloudAiEndpointsDefaultModelId }, // kilocode_change

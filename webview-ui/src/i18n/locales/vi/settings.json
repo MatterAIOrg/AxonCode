@@ -288,8 +288,7 @@
 		"getCerebrasApiKey": "Lấy khóa API Cerebras",
 		"chutesApiKey": "Khóa API Chutes",
 		"getChutesApiKey": "Lấy khóa API Chutes",
-		"fireworksApiKey": "Khóa API Fireworks",
-		"getFireworksApiKey": "Lấy khóa API Fireworks",
+
 		"syntheticApiKey": "Khóa API Synthetic",
 		"getSyntheticApiKey": "Lấy khóa API Synthetic",
 		"featherlessApiKey": "Khóa API Featherless",

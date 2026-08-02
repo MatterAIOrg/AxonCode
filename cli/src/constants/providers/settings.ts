@@ -341,13 +341,6 @@ export const FIELD_REGISTRY: Record<string, FieldMetadata> = {
 		placeholder: "Enter SambaNova API key...",
 	},
 
-	// Fireworks fields
-	fireworksApiKey: {
-		label: "API Key",
-		type: "password",
-		placeholder: "Enter Fireworks API key...",
-	},
-
 	// Featherless fields
 	featherlessApiKey: {
 		label: "API Key",
@@ -594,7 +587,6 @@ export const PROVIDER_DEFAULT_MODELS: Record<ProviderName, string> = {
 	doubao: "ep-20241022-******",
 	chutes: "gpt-4o",
 	sambanova: "Meta-Llama-3.1-70B-Instruct",
-	fireworks: "accounts/fireworks/models/llama-v3p1-70b-instruct",
 	featherless: "meta-llama/Llama-3.1-70B-Instruct",
 	deepinfra: "meta-llama/Meta-Llama-3.1-70B-Instruct",
 	"io-intelligence": "gpt-4o",

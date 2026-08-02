@@ -35,8 +35,6 @@ import {
 	sambaNovaDefaultModelId,
 	internationalZAiModels,
 	internationalZAiDefaultModelId,
-	fireworksModels,
-	fireworksDefaultModelId,
 	featherlessModels,
 	featherlessDefaultModelId,
 	rooModels,
@@ -126,7 +124,6 @@ export const PROVIDER_TO_ROUTER_NAME: Record<ProviderName, RouterName | null> = 
 	cerebras: null,
 	sambanova: null,
 	zai: null,
-	fireworks: null,
 	featherless: null,
 	roo: null,
 	"claude-code": null,
@@ -171,7 +168,6 @@ export const PROVIDER_MODEL_FIELD: Record<ProviderName, string | null> = {
 	cerebras: null,
 	sambanova: null,
 	zai: null,
-	fireworks: null,
 	featherless: null,
 	roo: null,
 	"claude-code": null,
@@ -233,7 +229,6 @@ export const DEFAULT_MODEL_IDS: Partial<Record<ProviderName, string>> = {
 	"qwen-code": qwenCodeDefaultModelId,
 	"claude-code": claudeCodeDefaultModelId,
 	doubao: doubaoDefaultModelId,
-	fireworks: fireworksDefaultModelId,
 	"io-intelligence": "deepseek-ai/DeepSeek-R1-0528",
 	moonshot: moonshotDefaultModelId,
 	sambanova: sambaNovaDefaultModelId,
@@ -346,11 +341,6 @@ export function getModelsByProvider(params: {
 			return {
 				models: internationalZAiModels as ModelRecord,
 				defaultModel: internationalZAiDefaultModelId,
-			}
-		case "fireworks":
-			return {
-				models: fireworksModels as ModelRecord,
-				defaultModel: fireworksDefaultModelId,
 			}
 		case "featherless":
 			return {
@@ -571,8 +561,8 @@ export function prettyModelName(modelId: string): string {
 		return ""
 	}
 
-	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:", "fireworks:")
-	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode|fireworks):/, "")
+	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:")
+	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode):/, "")
 
 	const [mainId, tag] = withoutProviderPrefix.split(":")
 
@@ -618,7 +608,6 @@ export function prettyModelName(modelId: string): string {
 	// Remove common prefixes for simple names
 	let name = (mainId || "")
 		.replace(/^anthropic\./, "")
-		.replace(/^accounts\/fireworks\/models\//, "")
 		.replace(/^deepseek-ai\//, "")
 		.replace(/^meta-llama\//, "")
 

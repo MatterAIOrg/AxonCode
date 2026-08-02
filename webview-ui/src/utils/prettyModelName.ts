@@ -32,8 +32,8 @@ export const prettyModelName = (modelId: string): string => {
 		return ""
 	}
 
-	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:", "fireworks:")
-	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode|fireworks):/, "")
+	// Remove provider prefix if present (e.g., "matterai3p:", "ollama:", "opencode:")
+	const withoutProviderPrefix = modelId.replace(/^(matterai3p|ollama|opencode):/, "")
 
 	const [mainId, tag] = withoutProviderPrefix.split(":")
 

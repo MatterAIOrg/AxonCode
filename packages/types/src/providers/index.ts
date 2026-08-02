@@ -6,7 +6,6 @@ export * from "./claude-code.js"
 export * from "./deepseek.js"
 export * from "./doubao.js"
 export * from "./featherless.js"
-export * from "./fireworks.js"
 export * from "./gemini.js"
 // forked_change start
 export * from "./gemini-cli.js"

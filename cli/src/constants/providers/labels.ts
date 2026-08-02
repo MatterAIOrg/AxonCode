@@ -29,7 +29,6 @@ export const PROVIDER_LABELS: Record<ProviderName, string> = {
 	doubao: "Doubao",
 	chutes: "Chutes AI",
 	sambanova: "SambaNova",
-	fireworks: "Fireworks",
 	featherless: "Featherless",
 	deepinfra: "DeepInfra",
 	"io-intelligence": "IO Intelligence",

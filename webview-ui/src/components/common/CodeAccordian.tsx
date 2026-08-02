@@ -1,5 +1,6 @@
 import { memo, type ReactNode, useMemo } from "react"
 import { type ToolProgressStatus } from "@roo-code/types"
+import { cn } from "@/lib/utils"
 import { getLanguageFromPath } from "@src/utils/getLanguageFromPath"
 import { removeLeadingNonAlphanumeric } from "@src/utils/removeLeadingNonAlphanumeric"
 
@@ -33,6 +34,7 @@ interface CodeAccordianProps {
 	onToggleExpand: () => void
 	header?: string
 	headerContent?: ReactNode
+	headerClassName?: string
 	onJumpToFile?: (line?: number) => void
 }
 
@@ -47,6 +49,7 @@ const CodeAccordian = ({
 	onToggleExpand,
 	header,
 	headerContent,
+	headerClassName,
 	onJumpToFile,
 }: CodeAccordianProps) => {
 	const inferredLanguage = useMemo(() => language ?? (path ? getLanguageFromPath(path) : "txt"), [path, language])
@@ -58,7 +61,7 @@ const CodeAccordian = ({
 	return (
 		<ToolUseBlock>
 			{hasHeader && (
-				<ToolUseBlockHeader onClick={onToggleExpand} className="group">
+				<ToolUseBlockHeader onClick={onToggleExpand} className={cn("group", headerClassName)}>
 					{isLoading && <MatterProgressIndicator className="mr-2" />}
 					{headerContent ? (
 						headerContent

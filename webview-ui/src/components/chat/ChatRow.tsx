@@ -1040,7 +1040,8 @@ export const ChatRowContent = ({
 				)
 			case "listFilesTopLevel":
 				return (
-					<>
+					<div
+						className={`flex ${isExpanded ? "flex-col items-start" : "flex-row items-center"} gap-1 min-w-0`}>
 						<div style={headerStyle}>
 							{/* <ListTree className="w-4 shrink-0" aria-label="List files icon" /> */}
 							<span style={{}}>
@@ -1053,8 +1054,9 @@ export const ChatRowContent = ({
 										: t("chat:directoryOperations.didViewTopLevel")}
 							</span>
 						</div>
-						<div className="">
+						<div className="flex-1 min-w-0">
 							<CodeAccordian
+								headerClassName="w-full min-w-0"
 								path={tool.path}
 								code={tool.content}
 								language="shell-session"
@@ -1062,11 +1064,12 @@ export const ChatRowContent = ({
 								onToggleExpand={handleToggleExpand}
 							/>
 						</div>
-					</>
+					</div>
 				)
 			case "listFilesRecursive":
 				return (
-					<>
+					<div
+						className={`flex ${isExpanded ? "flex-col items-start" : "flex-row items-center"} gap-1 min-w-0`}>
 						<div style={headerStyle}>
 							{/* <FolderTree className="w-4 shrink-0" aria-label="Folder tree icon" /> */}
 							<span style={{}}>
@@ -1079,8 +1082,9 @@ export const ChatRowContent = ({
 										: t("chat:directoryOperations.didViewRecursive")}
 							</span>
 						</div>
-						<div className="">
+						<div className="flex-1 min-w-0">
 							<CodeAccordian
+								headerClassName="w-full min-w-0"
 								path={tool.path}
 								code={tool.content}
 								language="shellsession"
@@ -1088,11 +1092,12 @@ export const ChatRowContent = ({
 								onToggleExpand={handleToggleExpand}
 							/>
 						</div>
-					</>
+					</div>
 				)
 			case "listCodeDefinitionNames":
 				return (
-					<>
+					<div
+						className={`flex ${isExpanded ? "flex-col items-start" : "flex-row items-center"} gap-1 min-w-0`}>
 						<div style={headerStyle}>
 							{toolIcon("file-code")}
 							<span style={{}}>
@@ -1105,8 +1110,9 @@ export const ChatRowContent = ({
 										: t("chat:directoryOperations.didViewDefinitions")}
 							</span>
 						</div>
-						<div className="">
+						<div className="flex-1 min-w-0">
 							<CodeAccordian
+								headerClassName="w-full min-w-0"
 								path={tool.path}
 								code={tool.content}
 								language="markdown"
@@ -1114,14 +1120,14 @@ export const ChatRowContent = ({
 								onToggleExpand={handleToggleExpand}
 							/>
 						</div>
-					</>
+					</div>
 				)
 			case "searchFiles":
 				return (
-					<div className={`flex ${isExpanded ? "flex-col" : "flex-row"} gap-1`}>
-						<div style={headerStyle}>
+					<div className={`flex ${isExpanded ? "flex-col" : "flex-row"} gap-1 min-w-0`}>
+						<div style={{ ...headerStyle, flexShrink: 1, minWidth: 0 }}>
 							{/* <Search className="w-3 h-3 shrink-0" aria-label="Search icon" /> */}
-							<span style={{}}>
+							<span style={{ minWidth: 0 }}>
 								{message.type === "ask" ? (
 									<Trans
 										i18nKey={
@@ -1154,8 +1160,9 @@ export const ChatRowContent = ({
 								)}
 							</span>
 						</div>
-						<div className="">
+						<div className="flex-1 min-w-0">
 							<CodeAccordian
+								headerClassName="w-full min-w-0"
 								path={tool.path!}
 								code={tool.content}
 								language="shellsession"
@@ -1167,9 +1174,9 @@ export const ChatRowContent = ({
 				)
 			case "lsp":
 				return (
-					<div className={`flex ${isExpanded ? "flex-col" : "flex-row"} gap-1`}>
-						<div style={headerStyle}>
-							<span style={{}}>
+					<div className={`flex ${isExpanded ? "flex-col" : "flex-row"} gap-1 min-w-0`}>
+						<div style={{ ...headerStyle, flexShrink: 1, minWidth: 0 }}>
+							<span style={{ minWidth: 0 }}>
 								{message.type === "ask" ? (
 									<Trans
 										i18nKey="chat:lsp.wantsToUse"
@@ -1185,8 +1192,9 @@ export const ChatRowContent = ({
 								)}
 							</span>
 						</div>
-						<div className="">
+						<div className="flex-1 min-w-0">
 							<CodeAccordian
+								headerClassName="w-full min-w-0"
 								path={tool.path}
 								code={tool.content}
 								language="markdown"

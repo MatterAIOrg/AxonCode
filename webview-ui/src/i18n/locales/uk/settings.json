@@ -307,8 +307,7 @@
 		"getDeepSeekApiKey": "Отримати ключ API DeepSeek",
 		"featherlessApiKey": "Ключ API Featherless",
 		"getFeatherlessApiKey": "Отримати ключ API Featherless",
-		"fireworksApiKey": "Ключ API Fireworks",
-		"getFireworksApiKey": "Отримати ключ API Fireworks",
+
 		"syntheticApiKey": "Ключ API Synthetic",
 		"getSyntheticApiKey": "Отримати ключ API Synthetic",
 		"moonshotApiKey": "Ключ API Moonshot",

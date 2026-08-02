@@ -3,9 +3,12 @@ import { usePreferredModels } from "@/components/ui/hooks/kilocode/usePreferredM
 import { useThirdPartyModels } from "@/components/ui/hooks/useOllamaModels"
 import { Alert02Icon, BulbIcon } from "@/utils/customIcons"
 import {
+	canAccessAxonModel,
 	canUse400kContext,
+	canUseEido3Pro,
 	getAxonPlanFallback,
 	is400kAxonModel,
+	isEido3ProModel,
 	isLumenAxonModel,
 	isPlanRestrictedAxonModel,
 	OPENROUTER_DEFAULT_PROVIDER_NAME,
@@ -32,20 +35,10 @@ import { Settings } from "lucide-react"
  * Examples:
  * - matterai3p:@cf/moonshotai/kimi-k2.5 → "Kimi K2.5 (Moonshotai)"
  * - ollama:llama3.2:latest → "Llama3.2 (Latest)"
- * - fireworks:accounts/fireworks/routers/kimi-k2p5-turbo → "Kimi K2.5 Turbo (Fireworks)"
  */
 const sanitizeModelLabel = (modelId: string, provider: string): string => {
 	// Use the centralized prettyModelName function for consistent formatting
 	const baseName = prettyModelName(modelId)
-
-	// For Fireworks, add provider suffix if not already present
-	if (provider === "fireworks" && !baseName.includes("(Fireworks)")) {
-		// Check for special case model names
-		if (modelId.includes("kimi-k2p5-turbo")) {
-			return "Kimi K2.5 Turbo (Fireworks)"
-		}
-		return `${baseName} (Fireworks)`
-	}
 
 	// For other third-party providers, add provider suffix if not already present
 	if (["ollama", "opencode"].includes(provider) && !baseName.includes("(")) {
@@ -57,6 +50,15 @@ const sanitizeModelLabel = (modelId: string, provider: string): string => {
 }
 
 const MODEL_QUALIFIER_PATTERN = /\s*(\((?:200k context|400k context|free)\))$/i
+
+// Sort priority for Axon models within a context window group: Flash, Mini, Pro, Lumen
+const getModelSortPriority = (modelId: string): number => {
+	if (modelId.includes("flash")) return 0
+	if (modelId.includes("mini")) return 1
+	if (modelId.includes("pro")) return 2
+	if (modelId.includes("lumen")) return 3
+	return 4
+}
 
 const ModelLabel = ({ label }: { label: string }) => {
 	const match = label.match(MODEL_QUALIFIER_PATTERN)
@@ -103,23 +105,19 @@ export const ModelSelector = ({
 		})
 	const modelIdKey = getModelIdKey({ provider })
 	const has400kAccess = canUse400kContext(profilePlan)
+	const hasProAccess = canUseEido3Pro(profilePlan)
 
 	const modelsIds = usePreferredModels(providerModels)
 
 	// Get third-party provider settings
 	const ollamaEnabled = apiConfiguration?.thirdPartyProviders?.ollama?.enabled || false
 	const opencodeEnabled = apiConfiguration?.thirdPartyProviders?.opencode?.enabled || false
-	const fireworksEnabled = apiConfiguration?.thirdPartyProviders?.fireworks?.enabled || false
 
 	// Fetch third-party models using hooks
 	// matterai3p is always enabled (no settings required)
 	const { data: matterai3pModels, refetch: refetchMatterai3pModels } = useThirdPartyModels("matterai3p", true)
 	const { data: ollamaModels, refetch: refetchOllamaModels } = useThirdPartyModels("ollama", ollamaEnabled)
 	const { data: opencodeModels, refetch: refetchOpencodeModels } = useThirdPartyModels("opencode", opencodeEnabled)
-	const { data: fireworksModels, refetch: refetchFireworksModels } = useThirdPartyModels(
-		"fireworks",
-		fireworksEnabled,
-	)
 
 	// Refresh all third-party models
 	const handleRefreshModels = useCallback(() => {
@@ -130,18 +128,7 @@ export const ModelSelector = ({
 		if (opencodeEnabled) {
 			refetchOpencodeModels()
 		}
-		if (fireworksEnabled) {
-			refetchFireworksModels()
-		}
-	}, [
-		ollamaEnabled,
-		opencodeEnabled,
-		fireworksEnabled,
-		refetchMatterai3pModels,
-		refetchOllamaModels,
-		refetchOpencodeModels,
-		refetchFireworksModels,
-	])
+	}, [ollamaEnabled, opencodeEnabled, refetchMatterai3pModels, refetchOllamaModels, refetchOpencodeModels])
 
 	// Separate matterai3p models (always shown after Axon models)
 	const matterai3pOptions = useMemo(() => {
@@ -190,29 +177,15 @@ export const ModelSelector = ({
 			}
 		}
 
-		// Add Fireworks models
-		if (fireworksEnabled && fireworksModels) {
-			for (const [modelId, _modelInfo] of Object.entries(fireworksModels)) {
-				// Add fireworks: prefix to the model ID for consistent identification
-				const fullModelId = modelId.startsWith("fireworks:") ? modelId : `fireworks:${modelId}`
-				// Always sanitize the label for consistent display
-				models[fullModelId] = {
-					label: sanitizeModelLabel(modelId, "fireworks"),
-					provider: "fireworks",
-				}
-			}
-		}
-
 		return models
-	}, [ollamaEnabled, opencodeEnabled, fireworksEnabled, ollamaModels, opencodeModels, fireworksModels])
+	}, [ollamaEnabled, opencodeEnabled, ollamaModels, opencodeModels])
 
 	const options = useMemo(() => {
 		// Check if selected model is a third-party model
 		const isSelectedThirdParty =
 			selectedModelId?.startsWith("ollama:") ||
 			selectedModelId?.startsWith("opencode:") ||
-			selectedModelId?.startsWith("matterai3p:") ||
-			selectedModelId?.startsWith("fireworks:")
+			selectedModelId?.startsWith("matterai3p:")
 
 		// Only add to missingModelIds if it's not a third-party model and not already in the list
 		const missingModelIds =
@@ -228,22 +201,24 @@ export const ModelSelector = ({
 			const isProModelDisabled = isProModel && !proModelsEnabled
 			const isExtendedContextDisabled = is400kAxonModel(modelId) && !has400kAccess
 			const isLumenModelDisabled = isLumenAxonModel(modelId) && !has400kAccess
+			const isEidoProDisabled = isEido3ProModel(modelId) && !is400kAxonModel(modelId) && !hasProAccess
 
 			return {
 				value: modelId,
 				label,
 				type: DropdownOptionType.ITEM,
-				disabled: isProModelDisabled || isExtendedContextDisabled || isLumenModelDisabled,
+				disabled: isProModelDisabled || isExtendedContextDisabled || isLumenModelDisabled || isEidoProDisabled,
 				isProModelDisabled,
 				isExtendedContextDisabled,
 				isLumenModelDisabled,
+				isEidoProDisabled,
 			}
 		})
 		const groupedContextWindows = [200000, 400000]
 		const contextOptions = groupedContextWindows.flatMap((contextWindow) => {
-			const modelsInGroup = allOptions.filter(
-				(option) => providerModels[option.value]?.contextWindow === contextWindow,
-			)
+			const modelsInGroup = allOptions
+				.filter((option) => providerModels[option.value]?.contextWindow === contextWindow)
+				.sort((a, b) => getModelSortPriority(a.value) - getModelSortPriority(b.value))
 
 			return modelsInGroup.length > 0
 				? [
@@ -306,6 +281,7 @@ export const ModelSelector = ({
 		matterai3pOptions,
 		thirdPartyModels,
 		has400kAccess,
+		hasProAccess,
 	])
 
 	const disabled = isLoading || isError
@@ -335,7 +311,7 @@ export const ModelSelector = ({
 	)
 
 	const onChange = (value: string) => {
-		if (isPlanRestrictedAxonModel(value) && !has400kAccess) return
+		if (isPlanRestrictedAxonModel(value) && !canAccessAxonModel(value, profilePlan)) return
 
 		// Handle "Configure Models" option
 		if (value === "__configure_models__") {
@@ -348,12 +324,7 @@ export const ModelSelector = ({
 
 		// Handle third-party provider models
 		// Third-party models use OpenAI-compatible API with custom base URL
-		if (
-			value.startsWith("ollama:") ||
-			value.startsWith("opencode:") ||
-			value.startsWith("matterai3p:") ||
-			value.startsWith("fireworks:")
-		) {
+		if (value.startsWith("ollama:") || value.startsWith("opencode:") || value.startsWith("matterai3p:")) {
 			const [_provider, ...modelParts] = value.split(":")
 			const modelId = modelParts.join(":") // Handle model IDs that might contain colons
 
@@ -410,8 +381,9 @@ export const ModelSelector = ({
 
 	useEffect(() => {
 		if (!profilePlan || has400kAccess || !isPlanRestrictedAxonModel(selectedModelId)) return
+		if (canAccessAxonModel(selectedModelId, profilePlan)) return
 
-		const fallbackId = getAxonPlanFallback(selectedModelId)
+		const fallbackId = getAxonPlanFallback(selectedModelId, profilePlan)
 		if (providerModels[fallbackId]) selectAxonModel(fallbackId)
 	}, [profilePlan, has400kAccess, selectedModelId, providerModels, selectAxonModel])
 
@@ -420,14 +392,14 @@ export const ModelSelector = ({
 			isProModelDisabled?: boolean
 			isExtendedContextDisabled?: boolean
 			isLumenModelDisabled?: boolean
+			isEidoProDisabled?: boolean
 		},
 	) => {
 		const isConfigureOption = option.value === "__configure_models__"
 		const isThirdPartyModel =
 			option.value.startsWith("ollama:") ||
 			option.value.startsWith("opencode:") ||
-			option.value.startsWith("matterai3p:") ||
-			option.value.startsWith("fireworks:")
+			option.value.startsWith("matterai3p:")
 		const axonTooltip = AXON_MODEL_TOOLTIPS[option.value]
 		const axonDescription = providerModels[option.value]?.description
 		const isSelected = option.value === selectedModelId
@@ -475,12 +447,12 @@ export const ModelSelector = ({
 						</span>
 					</StandardTooltip>
 				)}
-				{option.isExtendedContextDisabled && (
+				{option.isExtendedContextDisabled && option.isLumenModelDisabled ? (
 					<StandardTooltip
 						content={
 							<div className="flex flex-col gap-2 text-[13px] p-2">
 								<span className="font-semibold">
-									400k context is available on Pro Plus and Ultra plans
+									Lumen models with 400k context are available on Pro Plus and Ultra plans
 								</span>
 								<button
 									className="text-[var(--vscode-button-background)] hover:underline text-left"
@@ -499,13 +471,66 @@ export const ModelSelector = ({
 							<Alert02Icon className="size-4 ml-1 text-yellow-500" />
 						</span>
 					</StandardTooltip>
+				) : (
+					<>
+						{option.isExtendedContextDisabled && (
+							<StandardTooltip
+								content={
+									<div className="flex flex-col gap-2 text-[13px] p-2">
+										<span className="font-semibold">
+											400k context is available on Pro Plus and Ultra plans
+										</span>
+										<button
+											className="text-[var(--vscode-button-background)] hover:underline text-left"
+											onClick={(e) => {
+												e.stopPropagation()
+												vscode.postMessage({
+													type: "openExternal",
+													url: "https://app.matterai.so/ai-coding-agent",
+												})
+											}}>
+											Upgrade your plan here →
+										</button>
+									</div>
+								}>
+								<span className="flex items-center">
+									<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+								</span>
+							</StandardTooltip>
+						)}
+						{option.isLumenModelDisabled && (
+							<StandardTooltip
+								content={
+									<div className="flex flex-col gap-2 text-[13px] p-2">
+										<span className="font-semibold">
+											Lumen models are available on Pro Plus and Ultra plans
+										</span>
+										<button
+											className="text-[var(--vscode-button-background)] hover:underline text-left"
+											onClick={(e) => {
+												e.stopPropagation()
+												vscode.postMessage({
+													type: "openExternal",
+													url: "https://app.matterai.so/ai-coding-agent",
+												})
+											}}>
+											Upgrade your plan here →
+										</button>
+									</div>
+								}>
+								<span className="flex items-center">
+									<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+								</span>
+							</StandardTooltip>
+						)}
+					</>
 				)}
-				{option.isLumenModelDisabled && (
+				{option.isEidoProDisabled && (
 					<StandardTooltip
 						content={
 							<div className="flex flex-col gap-2 text-[13px] p-2">
 								<span className="font-semibold">
-									Lumen models are available on Pro Plus and Ultra plans
+									Axon Eido 3 Pro is available on Pro, Pro Plus, and Ultra plans
 								</span>
 								<button
 									className="text-[var(--vscode-button-background)] hover:underline text-left"

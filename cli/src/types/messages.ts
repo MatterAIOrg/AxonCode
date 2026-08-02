@@ -98,7 +98,6 @@ export type ProviderName =
 	| "cerebras"
 	| "sambanova"
 	| "zai"
-	| "fireworks"
 	| "featherless"
 	| "io-intelligence"
 	| "roo"
@@ -302,9 +301,6 @@ export interface ProviderSettings {
 	// ZAI
 	zaiApiKey?: string
 	zaiApiLine?: "international_coding" | "international" | "china_coding" | "china"
-
-	// Fireworks
-	fireworksApiKey?: string
 
 	// Featherless
 	featherlessApiKey?: string
