@@ -1,6 +1,6 @@
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import {
-	canUse400kContext,
+	canAccessAxonModel,
 	getAppUrl,
 	getAxonPlanFallback,
 	isPlanRestrictedAxonModel,
@@ -159,22 +159,20 @@ export const KiloCode = ({
 	// The model will be marked as disabled if betaModelsEnabled is false
 	const models = useMemo(() => routerModels?.["kilocode-openrouter"] ?? {}, [routerModels])
 	const profilePlan = profileData?.plan ?? profileData?.tieredUsage?.plan
-	const has400kAccess = canUse400kContext(profilePlan)
 	const availableModels = useMemo(
 		() =>
-			has400kAccess
-				? models
-				: Object.fromEntries(Object.entries(models).filter(([modelId]) => !isPlanRestrictedAxonModel(modelId))),
-		[models, has400kAccess],
+			Object.fromEntries(Object.entries(models).filter(([modelId]) => canAccessAxonModel(modelId, profilePlan))),
+		[models, profilePlan],
 	)
 
 	useEffect(() => {
 		const selectedModelId = apiConfiguration.kilocodeModel
-		if (!profilePlan || has400kAccess || !selectedModelId || !isPlanRestrictedAxonModel(selectedModelId)) return
+		if (!profilePlan || !selectedModelId || !isPlanRestrictedAxonModel(selectedModelId)) return
+		if (canAccessAxonModel(selectedModelId, profilePlan)) return
 
-		const fallbackId = getAxonPlanFallback(selectedModelId)
+		const fallbackId = getAxonPlanFallback(selectedModelId, profilePlan)
 		if (models[fallbackId]) setApiConfigurationField("kilocodeModel", fallbackId)
-	}, [apiConfiguration.kilocodeModel, profilePlan, has400kAccess, models, setApiConfigurationField])
+	}, [apiConfiguration.kilocodeModel, profilePlan, models, setApiConfigurationField])
 
 	// List of pro model IDs which require paid plan
 	const proModelIds = ["axon-code-2-pro"]

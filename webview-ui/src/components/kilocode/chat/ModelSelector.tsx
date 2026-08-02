@@ -3,9 +3,12 @@ import { usePreferredModels } from "@/components/ui/hooks/kilocode/usePreferredM
 import { useThirdPartyModels } from "@/components/ui/hooks/useOllamaModels"
 import { Alert02Icon, BulbIcon } from "@/utils/customIcons"
 import {
+	canAccessAxonModel,
 	canUse400kContext,
+	canUseEido3Pro,
 	getAxonPlanFallback,
 	is400kAxonModel,
+	isEido3ProModel,
 	isLumenAxonModel,
 	isPlanRestrictedAxonModel,
 	OPENROUTER_DEFAULT_PROVIDER_NAME,
@@ -47,6 +50,15 @@ const sanitizeModelLabel = (modelId: string, provider: string): string => {
 }
 
 const MODEL_QUALIFIER_PATTERN = /\s*(\((?:200k context|400k context|free)\))$/i
+
+// Sort priority for Axon models within a context window group: Flash, Mini, Pro, Lumen
+const getModelSortPriority = (modelId: string): number => {
+	if (modelId.includes("flash")) return 0
+	if (modelId.includes("mini")) return 1
+	if (modelId.includes("pro")) return 2
+	if (modelId.includes("lumen")) return 3
+	return 4
+}
 
 const ModelLabel = ({ label }: { label: string }) => {
 	const match = label.match(MODEL_QUALIFIER_PATTERN)
@@ -93,6 +105,7 @@ export const ModelSelector = ({
 		})
 	const modelIdKey = getModelIdKey({ provider })
 	const has400kAccess = canUse400kContext(profilePlan)
+	const hasProAccess = canUseEido3Pro(profilePlan)
 
 	const modelsIds = usePreferredModels(providerModels)
 
@@ -188,22 +201,24 @@ export const ModelSelector = ({
 			const isProModelDisabled = isProModel && !proModelsEnabled
 			const isExtendedContextDisabled = is400kAxonModel(modelId) && !has400kAccess
 			const isLumenModelDisabled = isLumenAxonModel(modelId) && !has400kAccess
+			const isEidoProDisabled = isEido3ProModel(modelId) && !is400kAxonModel(modelId) && !hasProAccess
 
 			return {
 				value: modelId,
 				label,
 				type: DropdownOptionType.ITEM,
-				disabled: isProModelDisabled || isExtendedContextDisabled || isLumenModelDisabled,
+				disabled: isProModelDisabled || isExtendedContextDisabled || isLumenModelDisabled || isEidoProDisabled,
 				isProModelDisabled,
 				isExtendedContextDisabled,
 				isLumenModelDisabled,
+				isEidoProDisabled,
 			}
 		})
 		const groupedContextWindows = [200000, 400000]
 		const contextOptions = groupedContextWindows.flatMap((contextWindow) => {
-			const modelsInGroup = allOptions.filter(
-				(option) => providerModels[option.value]?.contextWindow === contextWindow,
-			)
+			const modelsInGroup = allOptions
+				.filter((option) => providerModels[option.value]?.contextWindow === contextWindow)
+				.sort((a, b) => getModelSortPriority(a.value) - getModelSortPriority(b.value))
 
 			return modelsInGroup.length > 0
 				? [
@@ -266,6 +281,7 @@ export const ModelSelector = ({
 		matterai3pOptions,
 		thirdPartyModels,
 		has400kAccess,
+		hasProAccess,
 	])
 
 	const disabled = isLoading || isError
@@ -295,7 +311,7 @@ export const ModelSelector = ({
 	)
 
 	const onChange = (value: string) => {
-		if (isPlanRestrictedAxonModel(value) && !has400kAccess) return
+		if (isPlanRestrictedAxonModel(value) && !canAccessAxonModel(value, profilePlan)) return
 
 		// Handle "Configure Models" option
 		if (value === "__configure_models__") {
@@ -365,8 +381,9 @@ export const ModelSelector = ({
 
 	useEffect(() => {
 		if (!profilePlan || has400kAccess || !isPlanRestrictedAxonModel(selectedModelId)) return
+		if (canAccessAxonModel(selectedModelId, profilePlan)) return
 
-		const fallbackId = getAxonPlanFallback(selectedModelId)
+		const fallbackId = getAxonPlanFallback(selectedModelId, profilePlan)
 		if (providerModels[fallbackId]) selectAxonModel(fallbackId)
 	}, [profilePlan, has400kAccess, selectedModelId, providerModels, selectAxonModel])
 
@@ -375,6 +392,7 @@ export const ModelSelector = ({
 			isProModelDisabled?: boolean
 			isExtendedContextDisabled?: boolean
 			isLumenModelDisabled?: boolean
+			isEidoProDisabled?: boolean
 		},
 	) => {
 		const isConfigureOption = option.value === "__configure_models__"
@@ -429,12 +447,12 @@ export const ModelSelector = ({
 						</span>
 					</StandardTooltip>
 				)}
-				{option.isExtendedContextDisabled && (
+				{option.isExtendedContextDisabled && option.isLumenModelDisabled ? (
 					<StandardTooltip
 						content={
 							<div className="flex flex-col gap-2 text-[13px] p-2">
 								<span className="font-semibold">
-									400k context is available on Pro Plus and Ultra plans
+									Lumen models with 400k context are available on Pro Plus and Ultra plans
 								</span>
 								<button
 									className="text-[var(--vscode-button-background)] hover:underline text-left"
@@ -453,13 +471,66 @@ export const ModelSelector = ({
 							<Alert02Icon className="size-4 ml-1 text-yellow-500" />
 						</span>
 					</StandardTooltip>
+				) : (
+					<>
+						{option.isExtendedContextDisabled && (
+							<StandardTooltip
+								content={
+									<div className="flex flex-col gap-2 text-[13px] p-2">
+										<span className="font-semibold">
+											400k context is available on Pro Plus and Ultra plans
+										</span>
+										<button
+											className="text-[var(--vscode-button-background)] hover:underline text-left"
+											onClick={(e) => {
+												e.stopPropagation()
+												vscode.postMessage({
+													type: "openExternal",
+													url: "https://app.matterai.so/ai-coding-agent",
+												})
+											}}>
+											Upgrade your plan here →
+										</button>
+									</div>
+								}>
+								<span className="flex items-center">
+									<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+								</span>
+							</StandardTooltip>
+						)}
+						{option.isLumenModelDisabled && (
+							<StandardTooltip
+								content={
+									<div className="flex flex-col gap-2 text-[13px] p-2">
+										<span className="font-semibold">
+											Lumen models are available on Pro Plus and Ultra plans
+										</span>
+										<button
+											className="text-[var(--vscode-button-background)] hover:underline text-left"
+											onClick={(e) => {
+												e.stopPropagation()
+												vscode.postMessage({
+													type: "openExternal",
+													url: "https://app.matterai.so/ai-coding-agent",
+												})
+											}}>
+											Upgrade your plan here →
+										</button>
+									</div>
+								}>
+								<span className="flex items-center">
+									<Alert02Icon className="size-4 ml-1 text-yellow-500" />
+								</span>
+							</StandardTooltip>
+						)}
+					</>
 				)}
-				{option.isLumenModelDisabled && (
+				{option.isEidoProDisabled && (
 					<StandardTooltip
 						content={
 							<div className="flex flex-col gap-2 text-[13px] p-2">
 								<span className="font-semibold">
-									Lumen models are available on Pro Plus and Ultra plans
+									Axon Eido 3 Pro is available on Pro, Pro Plus, and Ultra plans
 								</span>
 								<button
 									className="text-[var(--vscode-button-background)] hover:underline text-left"
