@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { vscode } from "@src/utils/vscode"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
-import { getModelIdKey } from "../hooks/useSelectedModel"
-import { OPENROUTER_DEFAULT_PROVIDER_NAME } from "@roo-code/types"
 import { AxonCodeTieredUsage, AxonCodeWindowUsage, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
-
-const FREE_MODEL_ID = "axon-eido-3-flash"
 
 function formatResetDate(iso?: string): string | null {
 	if (!iso) return null
@@ -70,7 +66,7 @@ type OutOfCreditsBannerProps = {
 }
 
 export const OutOfCreditsBanner = ({ creditsResetDate, tieredUsage, className }: OutOfCreditsBannerProps) => {
-	const { apiConfiguration, currentApiConfigName, currentTaskItem } = useExtensionState()
+	const { apiConfiguration } = useExtensionState()
 	const [fetchedProfile, setFetchedProfile] = useState<{
 		creditsResetDate?: string
 		tieredUsage?: AxonCodeTieredUsage
@@ -109,37 +105,6 @@ export const OutOfCreditsBanner = ({ creditsResetDate, tieredUsage, className }:
 		[creditsResetDate, tieredUsage, fetchedProfile],
 	)
 
-	const handleContinueWithFreeModel = () => {
-		const provider = apiConfiguration?.apiProvider
-		if (!provider) {
-			return
-		}
-		const modelIdKey = getModelIdKey({ provider })
-
-		// If there's an active task, update task-local configuration for isolation.
-		if (currentTaskItem) {
-			vscode.postMessage({
-				type: "updateTaskModel",
-				apiProvider: provider,
-				apiModelId: FREE_MODEL_ID,
-				thirdPartySelectedModel: undefined,
-			})
-			return
-		}
-
-		// Otherwise, update the global/default configuration.
-		vscode.postMessage({
-			type: "upsertApiConfiguration",
-			text: currentApiConfigName ?? "default",
-			apiConfiguration: {
-				...apiConfiguration,
-				[modelIdKey]: FREE_MODEL_ID,
-				openRouterSpecificProvider: OPENROUTER_DEFAULT_PROVIDER_NAME,
-				thirdPartySelectedModel: undefined,
-			},
-		})
-	}
-
 	return (
 		<div className={className ?? "w-full min-w-0 my-2 pr-1"}>
 			<div className="flex flex-col rounded-2xl gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
@@ -149,7 +114,7 @@ export const OutOfCreditsBanner = ({ creditsResetDate, tieredUsage, className }:
 							You are out of Orbital Credits
 						</span>
 						<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">
-							To continue using Orbital, upgrade your plan or switch to the Free model.
+							To continue using Orbital, upgrade your plan or enable Overage.
 						</span>
 						{formattedResetDate && (
 							<span className="text-xs mt-0.5 font-bold text-[var(--vscode-descriptionForeground)]">
@@ -164,16 +129,28 @@ export const OutOfCreditsBanner = ({ creditsResetDate, tieredUsage, className }:
 							onClick={() =>
 								vscode.postMessage({
 									type: "openExternal",
-									url: "https://app.matterai.so/orbital",
+									url: "https://app.matterai.so/orbital?tab=plans",
 								})
 							}>
 							Upgrade
 						</button>
+
 						<button
+							className="flex items-center justify-center gap-1 px-2.5 py-0.5 rounded-full border border-[var(--vscode-button-border,transparent)] bg-[var(--vscode-button-secondaryBackground)] hover:bg-[var(--vscode-button-secondaryHoverBackground)] text-[var(--vscode-button-secondaryForeground)] text-md font-medium transition-all duration-200"
+							style={{ lineHeight: 1.2 }}
+							onClick={() =>
+								vscode.postMessage({
+									type: "openExternal",
+									url: "https://app.matterai.so/orbital?tab=overage",
+								})
+							}>
+							Enable Overage
+						</button>
+						{/* <button
 							className="flex items-center justify-center gap-1 px-2.5 py-0.5 rounded-full border border-[var(--vscode-button-border,transparent)] bg-[var(--vscode-button-secondaryBackground)] hover:bg-[var(--vscode-button-secondaryHoverBackground)] text-[var(--vscode-button-secondaryForeground)] text-md font-medium transition-all duration-200"
 							onClick={handleContinueWithFreeModel}>
 							Continue with Free model
-						</button>
+						</button> */}
 					</div>
 				</div>
 			</div>

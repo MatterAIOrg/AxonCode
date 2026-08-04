@@ -35,12 +35,14 @@ import { CommandExecution } from "./CommandExecution"
 import { CommandExecutionError } from "./CommandExecutionError"
 import { FollowUpSuggest } from "./FollowUpSuggest"
 import { Markdown } from "./Markdown"
+import { FILE_TYPE_LABELS, formatBytes } from "./FilePreviewModal"
 import { MatterProgressIndicator, ProgressIndicator } from "./ProgressIndicator"
 import { ReadOnlyChatText } from "./ReadOnlyChatText"
 import ReportBugPreview from "./ReportBugPreview"
 
 import { cn } from "@/lib/utils"
 import { FigmaIcon, Globe02Icon, PlayIcon } from "@/utils/customIcons"
+import { getIconForFilePath, getIconUrlByName } from "vscode-material-icons"
 import { appendImages, normalizeImages } from "@src/utils/imageUtils"
 import { InvalidModelWarning } from "../kilocode/chat/InvalidModelWarning" // kilocode_change
 import { NewTaskPreview } from "../kilocode/chat/NewTaskPreview" // kilocode_change
@@ -254,6 +256,16 @@ export const ChatRowContent = ({
 	const [editedContent, setEditedContent] = useState("")
 	const [editMode, setEditMode] = useState<Mode>(mode || "code")
 	const [editImages, setEditImages] = useState<ImageAttachment[]>([])
+
+	// Material icon theme base URI, injected by the extension host. Used to
+	// resolve file-type icons for the generate_file chat row (same library as
+	// mention chips and the context menu).
+	const [materialIconsBaseUri, setMaterialIconsBaseUri] = useState("")
+	useEffect(() => {
+		if (typeof window !== "undefined" && (window as any).MATERIAL_ICONS_BASE_URI) {
+			setMaterialIconsBaseUri((window as any).MATERIAL_ICONS_BASE_URI)
+		}
+	}, [])
 
 	const streamingWords = useMemo(() => ["Working"], [])
 	const [currentWordIndex, setCurrentWordIndex] = useState(() => Math.floor(Math.random() * streamingWords.length))
@@ -1473,6 +1485,151 @@ export const ChatRowContent = ({
 						</div>
 					</div>
 				)
+			case "generateFile": {
+				const fileType = tool.fileType?.toUpperCase() || "FILE"
+				const fileName = tool.path?.split("/").pop() || tool.path || "file"
+				const fileTypeLower = (tool.fileType || "").toLowerCase()
+				const fileIconUrl =
+					materialIconsBaseUri && fileTypeLower
+						? getIconUrlByName(getIconForFilePath(`${fileName}`), materialIconsBaseUri)
+						: ""
+				const fileIconEl = tool.isProtected ? (
+					<span
+						className="codicon codicon-lock"
+						style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
+					/>
+				) : fileIconUrl ? (
+					<img
+						src={fileIconUrl}
+						alt=""
+						style={{ width: 16, height: 16, marginBottom: "-1.5px", flexShrink: 0 }}
+					/>
+				) : (
+					toolIcon("new-file")
+				)
+				const sizeLabel = tool.bytes ? formatBytes(tool.bytes) : ""
+				const typeLabel = FILE_TYPE_LABELS[fileTypeLower] || fileType
+				return (
+					<>
+						<div style={{ ...headerStyle, marginBottom: "8px", display: "flex", gap: "4px" }}>
+							{fileIconEl}
+							<span style={{}}>
+								{message.type === "ask"
+									? tool.isProtected
+										? t("chat:fileOperations.wantsToGenerateFileProtected", { fileType })
+										: tool.isOutsideWorkspace
+											? t("chat:fileOperations.wantsToGenerateFileOutsideWorkspace", { fileType })
+											: t("chat:fileOperations.wantsToGenerateFile", { fileType })
+									: t("chat:fileOperations.didGenerateFile", { fileType })}
+							</span>
+						</div>
+						{message.type === "ask" && (
+							<div className="">
+								<CodeAccordian
+									path={tool.path}
+									code={tool.content}
+									language="text"
+									isExpanded={isExpanded}
+									onToggleExpand={handleToggleExpand}
+								/>
+							</div>
+						)}
+						{message.type === "say" && tool.fileData && (
+							<div
+								className=""
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: "12px",
+									padding: "12px 16px",
+									borderRadius: "8px",
+									border: "1px solid var(--vscode-commandCenter-inactiveBorder)",
+									backgroundColor: "var(--vscode-editor-background)",
+									maxWidth: "520px",
+									marginTop: "4px",
+								}}>
+								{/* File icon */}
+								<div
+									style={{
+										width: 40,
+										height: 40,
+										borderRadius: "8px",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										backgroundColor: "var(--vscode-badge-background)",
+										flexShrink: 0,
+									}}>
+									{fileIconUrl ? (
+										<img src={fileIconUrl} alt="" style={{ width: 24, height: 24 }} />
+									) : (
+										<span className="codicon codicon-file" style={{ fontSize: 20 }} />
+									)}
+								</div>
+								{/* File info */}
+								<div style={{ flex: 1, minWidth: 0 }}>
+									<div
+										style={{
+											fontWeight: 600,
+											fontSize: "13px",
+											color: "var(--vscode-foreground)",
+											whiteSpace: "nowrap",
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+										}}>
+										{fileName}
+									</div>
+									<div
+										style={{
+											fontSize: "11px",
+											color: "var(--vscode-descriptionForeground)",
+											textTransform: "uppercase",
+											letterSpacing: "0.05em",
+											marginTop: "2px",
+										}}>
+										{typeLabel}
+										{sizeLabel && ` \u00b7 ${sizeLabel}`}
+									</div>
+								</div>
+								{/* Buttons */}
+								<div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+									<VSCodeButton
+										onClick={() =>
+											vscode.postMessage({
+												type: "viewFile",
+												values: {
+													fileData: tool.fileData,
+													fileType: fileTypeLower,
+													defaultFileName: fileName,
+													content: tool.content,
+													mimeType: tool.mimeType,
+													bytes: tool.bytes,
+												},
+											})
+										}
+										appearance="primary">
+										{t("chat:fileOperations.viewFile")}
+									</VSCodeButton>
+									<VSCodeButton
+										onClick={() =>
+											vscode.postMessage({
+												type: "saveFile",
+												values: {
+													fileData: tool.fileData,
+													defaultFileName: fileName,
+													mimeType: tool.mimeType,
+												},
+											})
+										}
+										appearance="secondary">
+										{t("chat:fileOperations.saveFile")}
+									</VSCodeButton>
+								</div>
+							</div>
+						)}
+					</>
+				)
+			}
 			default:
 				return null
 		}

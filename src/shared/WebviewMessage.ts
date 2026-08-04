@@ -105,6 +105,8 @@ export interface WebviewMessage {
 		| "openImage"
 		| "saveImage"
 		| "openFile"
+		| "viewFile"
+		| "saveFile"
 		| "openMention"
 		| "cancelTask"
 		| "updateVSCodeSetting"

@@ -110,6 +110,9 @@ async function main() {
 						buildDir,
 					)
 
+					// Copy vendor scripts (PDF.js, marked.js) to dist directory
+					copyPaths([["assets/vendor", "assets/vendor"]], srcDir, distDir)
+
 					// Copy walkthrough files to dist directory
 					copyPaths([["walkthrough", "walkthrough"]], srcDir, distDir)
 

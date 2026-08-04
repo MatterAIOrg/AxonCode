@@ -89,6 +89,7 @@ export const toolParamNames = [
 	"image",
 	"workspace",
 	"skill_name",
+	"file_type",
 ] as const
 
 export type ToolParamName = (typeof toolParamNames)[number]
@@ -220,6 +221,12 @@ export interface GenerateImageToolUse extends ToolUse {
 	params: Partial<Pick<Record<ToolParamName, string>, "prompt" | "path" | "image">>
 }
 
+export interface GenerateFileToolUse extends ToolUse {
+	name: "generate_file"
+	params: Required<Pick<Record<ToolParamName, string>, "file_type" | "title" | "content">> &
+		Partial<Pick<Record<ToolParamName, string>, "path">>
+}
+
 export interface UseSkillToolUse extends ToolUse {
 	name: "use_skill"
 	params: Required<Pick<Record<ToolParamName, string>, "skill_name">>
@@ -262,6 +269,7 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	web_fetch: "fetch web content",
 	web_search: "search the web",
 	figma_fetch: "fetch Figma design data",
+	generate_file: "generate files",
 } as const
 
 // Define available tool groups.
@@ -289,6 +297,7 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 			"file_write",
 			"new_rule", // kilocode_change
 			"generate_image",
+			"generate_file",
 		],
 	},
 	browser: {

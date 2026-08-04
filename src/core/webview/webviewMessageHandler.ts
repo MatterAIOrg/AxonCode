@@ -100,6 +100,7 @@ import { MarketplaceManager, MarketplaceItemType } from "../../services/marketpl
 import { setPendingTodoList } from "../tools/updateTodoListTool"
 import { UsageTracker } from "../../utils/usage-tracker"
 import { seeNewChanges } from "../checkpoints/kilocode/seeNewChanges" // kilocode_change
+import { openFilePreviewPanel } from "./filePreviewPanel" // kilocode_change
 import { getTaskHistory } from "../../shared/kilocode/getTaskHistory" // kilocode_change
 import { getCheckpointService } from "../checkpoints" // kilocode_change
 import { fetchAndRefreshOrganizationModesOnStartup, refreshOrganizationModes } from "./kiloWebviewMessgeHandlerHelpers"
@@ -1217,9 +1218,9 @@ export const webviewMessageHandler = async (
 					type: "orbitalUpdateStatus",
 					values: { status: "restarting", latestVersion: update.latestVersion },
 				})
-				// Give the user one minute before the restart sequence so they can finish
+				// Give the user two minute before the restart sequence so they can finish
 				// reading or copy anything they need.
-				await new Promise((resolve) => setTimeout(resolve, 60_000))
+				await new Promise((resolve) => setTimeout(resolve, 120000))
 				await restartOrbitalExtensionsAndWindow()
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)
@@ -2023,6 +2024,68 @@ ${comment.suggestion}
 			}
 			openFile(filePath, message.values as { create?: boolean; content?: string; line?: number })
 			break
+		case "viewFile": {
+			const fileData = (message.values as { fileData?: string } | undefined)?.fileData
+			const fileType = (message.values as { fileType?: string } | undefined)?.fileType || ""
+			const defaultFileName =
+				(message.values as { defaultFileName?: string } | undefined)?.defaultFileName || "generated_file"
+			const content = (message.values as { content?: string } | undefined)?.content
+			const mimeType = (message.values as { mimeType?: string } | undefined)?.mimeType
+			const bytes = (message.values as { bytes?: number } | undefined)?.bytes
+			if (!fileData) {
+				vscode.window.showErrorMessage("No file data available to view.")
+				break
+			}
+			try {
+				await openFilePreviewPanel(
+					provider.context,
+					fileType,
+					defaultFileName,
+					fileData,
+					content,
+					mimeType,
+					bytes,
+				)
+			} catch (error) {
+				vscode.window.showErrorMessage(`Failed to open file: ${error}`)
+			}
+			break
+		}
+		case "saveFile": {
+			const fileData = (message.values as { fileData?: string } | undefined)?.fileData
+			const defaultFileName =
+				(message.values as { defaultFileName?: string } | undefined)?.defaultFileName || "generated_file"
+			if (!fileData) {
+				vscode.window.showErrorMessage("No file data available to save.")
+				break
+			}
+			try {
+				const buffer = Buffer.from(fileData, "base64")
+				// Save into the user's Downloads folder (cross-platform via
+				// vscode.env.downloadsUri). If the API isn't available, fall
+				// back to the OS home directory + "Downloads".
+				let downloadsDir: vscode.Uri
+				try {
+					const dl = (vscode.env as any).downloadsUri
+					downloadsDir = dl ? (dl as vscode.Uri) : vscode.Uri.file(path.join(os.homedir(), "Downloads"))
+				} catch {
+					downloadsDir = vscode.Uri.file(path.join(os.homedir(), "Downloads"))
+				}
+				const saveUri = vscode.Uri.file(path.join(downloadsDir.fsPath, defaultFileName))
+				await vscode.workspace.fs.writeFile(saveUri, buffer)
+				vscode.window.showInformationMessage(`Saved to ${saveUri.fsPath}`)
+				// Open the Downloads folder in the OS default file browser so
+				// the user can see the saved file immediately.
+				try {
+					await vscode.env.openExternal(downloadsDir)
+				} catch {
+					// Non-fatal: the file is saved, the user can navigate manually.
+				}
+			} catch (error) {
+				vscode.window.showErrorMessage(`Failed to save file: ${error}`)
+			}
+			break
+		}
 		case "openMention":
 			openMention(getCurrentCwd(), message.text)
 			break

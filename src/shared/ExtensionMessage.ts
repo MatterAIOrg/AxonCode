@@ -587,6 +587,7 @@ export interface ClineSayTool {
 		| "multiFileEdit"
 		| "generateImage"
 		| "imageGenerated"
+		| "generateFile"
 		| "runSlashCommand"
 		| "codeReview" // kilocode_change: AI Code Review
 		| "checkPastChatMemories" // Chat memories feature
@@ -643,6 +644,12 @@ export interface ClineSayTool {
 	}>
 	question?: string
 	imageData?: string // Base64 encoded image data for generated images
+	// Properties for generate_file tool
+	fileType?: string
+	absolutePath?: string
+	mimeType?: string
+	bytes?: number
+	fileData?: string // Base64-encoded file data, held in memory until user clicks View/Save
 	// Properties for runSlashCommand tool
 	command?: string
 	args?: string

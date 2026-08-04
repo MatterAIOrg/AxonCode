@@ -70,6 +70,9 @@ assets/docs/**
 !assets/icons/**
 !assets/images/**
 
+# Include vendor scripts (PDF.js, marked.js) for file preview
+!assets/vendor/**
+
 # Include .env file for telemetry
 !.env
 
