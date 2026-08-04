@@ -47,6 +47,7 @@ export const toolNames = [
 	"web_fetch",
 	"web_search",
 	"figma_fetch",
+	"generate_file",
 ] as const
 
 export const toolNamesSchema = z.enum(toolNames)

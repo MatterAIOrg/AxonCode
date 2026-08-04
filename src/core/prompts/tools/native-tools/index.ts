@@ -17,6 +17,7 @@ import useSkill from "./use_skill"
 import figmaFetch from "./figma_fetch"
 import webFetch from "./web_fetch"
 import webSearch from "./web_search"
+import generateFile from "./generate_file"
 
 export const nativeTools = [
 	fileEdit,
@@ -37,4 +38,5 @@ export const nativeTools = [
 	figmaFetch,
 	webFetch,
 	webSearch,
+	generateFile,
 ] satisfies OpenAI.Chat.ChatCompletionTool[]

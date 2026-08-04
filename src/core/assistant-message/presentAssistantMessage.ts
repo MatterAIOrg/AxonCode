@@ -26,6 +26,7 @@ import { useMcpToolTool } from "../tools/useMcpToolTool"
 import { mcpAuthenticateTool } from "../tools/mcpAuthenticateTool"
 
 import { generateImageTool } from "../tools/generateImageTool"
+import { generateFileTool } from "../tools/generateFileTool"
 import { lspTool } from "../tools/lspTool"
 import { runSlashCommandTool } from "../tools/runSlashCommandTool"
 import { updateTodoListTool } from "../tools/updateTodoListTool"
@@ -815,6 +816,9 @@ export async function presentAssistantMessage(cline: Task) {
 							pushToolResult,
 							removeClosingTag,
 						)
+						break
+					case "generate_file":
+						await generateFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 						break
 					case "use_skill":
 						await useSkillTool(cline, block, handleError, pushToolResult)

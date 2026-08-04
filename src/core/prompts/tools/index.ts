@@ -34,6 +34,7 @@ import { getUseSkillDescription } from "./use-skill"
 import { getWebFetchDescription } from "./web-fetch"
 import { getWebSearchDescription } from "./web-search"
 import { getFigmaFetchDescription } from "./figma-fetch"
+import { getGenerateFileDescription } from "./generate-file"
 import { CodeIndexManager } from "../../../services/code-index/manager"
 import { type ClineProviderState } from "../../webview/ClineProvider"
 
@@ -64,6 +65,7 @@ const toolDescriptionMap: Record<string, (args: ToolArgs) => string | undefined 
 	web_fetch: (args) => getWebFetchDescription(args),
 	web_search: (args) => getWebSearchDescription(args),
 	figma_fetch: (args) => getFigmaFetchDescription(args),
+	generate_file: (args) => getGenerateFileDescription(args),
 }
 
 export async function getToolDescriptionsForMode(
@@ -193,4 +195,5 @@ export {
 	getWebFetchDescription,
 	getWebSearchDescription,
 	getFigmaFetchDescription,
+	getGenerateFileDescription,
 }
