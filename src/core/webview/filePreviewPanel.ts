@@ -8,10 +8,6 @@ const FILE_TYPE_LABELS: Record<string, string> = {
 	docx: "Word Document",
 	pptx: "PowerPoint",
 	xlsx: "Excel Spreadsheet",
-	csv: "CSV File",
-	md: "Markdown",
-	txt: "Text File",
-	html: "HTML File",
 }
 
 function formatBytes(bytes: number): string {
@@ -272,7 +268,7 @@ export async function openFilePreviewPanel(
 	let textContent = ""
 	if (content) {
 		textContent = content
-	} else if (fileData && ["md", "txt", "csv", "html", "pptx", "docx", "xlsx"].includes(ft)) {
+	} else if (fileData && ["pptx", "docx", "xlsx"].includes(ft)) {
 		try {
 			textContent = Buffer.from(fileData, "base64").toString("utf-8")
 		} catch {

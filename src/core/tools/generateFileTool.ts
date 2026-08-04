@@ -9,7 +9,7 @@ import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
 import { getKiloUrlFromToken } from "@roo-code/types"
 
-const SUPPORTED_FILE_TYPES = ["pdf", "docx", "pptx", "xlsx", "csv", "md", "txt", "html"] as const
+const SUPPORTED_FILE_TYPES = ["pdf", "docx", "pptx", "xlsx"] as const
 type SupportedFileType = (typeof SUPPORTED_FILE_TYPES)[number]
 
 const EXTENSION_BY_TYPE: Record<SupportedFileType, string> = {
@@ -17,10 +17,6 @@ const EXTENSION_BY_TYPE: Record<SupportedFileType, string> = {
 	docx: "docx",
 	pptx: "pptx",
 	xlsx: "xlsx",
-	csv: "csv",
-	md: "md",
-	txt: "txt",
-	html: "html",
 }
 
 const MIME_BY_TYPE: Record<SupportedFileType, string> = {
@@ -28,10 +24,6 @@ const MIME_BY_TYPE: Record<SupportedFileType, string> = {
 	docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 	pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 	xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-	csv: "text/csv",
-	md: "text/markdown",
-	txt: "text/plain",
-	html: "text/html",
 }
 
 interface GenerateFileResponse {
