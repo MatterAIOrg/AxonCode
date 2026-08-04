@@ -94,7 +94,7 @@ const OrbitalUpdateBanner = () => {
 
 	return (
 		<div
-			className="mx-4 mb-2 flex items-center gap-3 rounded-xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-vscode-editor-background px-3 py-2 text-xs text-[var(--vscode-notifications-foreground)]"
+			className="mx-5 mb-2 flex items-center gap-3 rounded-md border border-[var(--vscode-commandCenter-inactiveBorder)] bg-vscode-editor-background px-3 py-2 text-xs text-[var(--vscode-notifications-foreground)]"
 			role="status"
 			title={update.error}>
 			{isWorking ? (
