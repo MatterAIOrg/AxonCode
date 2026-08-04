@@ -1,5 +1,13 @@
 # Changelog
 
+## [v6.9.0] - 2026-08-04
+
+### Added
+
+- **`generate_file` native tool.** Orbital can now produce real file artifacts (PDF, DOCX, PPTX, XLSX, CSV, MD, TXT, HTML) directly from the chat. The tool delegates to the MatterAI backend (`/axoncode/generateFile`, Bearer-token auth) and holds the resulting binary in memory as base64 — no files are written to disk until the user explicitly saves. The chat row renders a file card with a type-specific icon, file name, type label, file size, and two text buttons: **View File** opens a dedicated editor-tab webview panel (`ViewColumn.Beside`) that renders each type natively — PDF via PDF.js canvas rendering (no browser plugin, avoids the VS Code webview sandbox restriction), HTML as live rendered content, Markdown via marked.js, PPTX presentation decks parsed from Marp-style slide markdown with accent colors and structured cards, CSV as an HTML table, TXT/DOCX/XLSX as formatted text — and **Save File** writes the binary to the OS Downloads folder. The tool is public (no experiment flag) and lives in the `edit` tool group alongside `file_write` and `generate_image`.
+
+---
+
 ## [v6.8.0] - 2026-08-01
 
 ### Removed
