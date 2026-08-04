@@ -482,6 +482,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								case "editedExistingFile":
 								case "newFileCreated":
 								case "generateImage":
+								case "generateFile":
 									setPrimaryButtonText(t("chat:save.title"))
 									setSecondaryButtonText(t("chat:reject.title"))
 									break
@@ -1475,7 +1476,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			const tool = JSON.parse(message.text)
 
-			return ["editedExistingFile", "newFileCreated", "generateImage"].includes(tool.tool)
+			return ["editedExistingFile", "newFileCreated", "generateImage", "generateFile"].includes(tool.tool)
 		}
 
 		return false
