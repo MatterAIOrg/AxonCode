@@ -346,29 +346,32 @@ export const ChatRowContent = ({
 	}, [message.text, message.images, mode])
 
 	// Handle save edit
-	const handleSaveEdit = useCallback(() => {
-		setIsEditing(false)
-		// Send edited message to backend with current model configuration
-		// This ensures model changes during edit are preserved
-		// For vscode-lm provider, we need to construct the model ID from the selector
-		let apiModelId: string | undefined
-		if (apiConfiguration?.apiProvider === "vscode-lm" && apiConfiguration?.vsCodeLmModelSelector) {
-			apiModelId = `${apiConfiguration.vsCodeLmModelSelector.vendor}/${apiConfiguration.vsCodeLmModelSelector.family}`
-		} else if (modelIdKey) {
-			apiModelId = apiConfiguration?.[modelIdKey] as string | undefined
-		}
-		// Convert ImageAttachment[] back to string[] for backend compatibility
-		const imageDataUrls = editImages.map((img) => img.dataUrl)
-		vscode.postMessage({
-			type: "submitEditedMessage",
-			value: message.ts,
-			editedMessageContent: editedContent,
-			images: imageDataUrls,
-			apiProvider: apiConfiguration?.apiProvider,
-			apiModelId,
-			thirdPartySelectedModel: apiConfiguration?.thirdPartySelectedModel,
-		})
-	}, [message.ts, editedContent, editImages, apiConfiguration, modelIdKey])
+	const handleSaveEdit = useCallback(
+		(content?: string) => {
+			setIsEditing(false)
+			// Send edited message to backend with current model configuration
+			// This ensures model changes during edit are preserved
+			// For vscode-lm provider, we need to construct the model ID from the selector
+			let apiModelId: string | undefined
+			if (apiConfiguration?.apiProvider === "vscode-lm" && apiConfiguration?.vsCodeLmModelSelector) {
+				apiModelId = `${apiConfiguration.vsCodeLmModelSelector.vendor}/${apiConfiguration.vsCodeLmModelSelector.family}`
+			} else if (modelIdKey) {
+				apiModelId = apiConfiguration?.[modelIdKey] as string | undefined
+			}
+			// Convert ImageAttachment[] back to string[] for backend compatibility
+			const imageDataUrls = editImages.map((img) => img.dataUrl)
+			vscode.postMessage({
+				type: "submitEditedMessage",
+				value: message.ts,
+				editedMessageContent: content ?? editedContent,
+				images: imageDataUrls,
+				apiProvider: apiConfiguration?.apiProvider,
+				apiModelId,
+				thirdPartySelectedModel: apiConfiguration?.thirdPartySelectedModel,
+			})
+		},
+		[message.ts, editedContent, editImages, apiConfiguration, modelIdKey],
+	)
 
 	// Handle image selection for editing
 	const handleSelectImages = useCallback(() => {

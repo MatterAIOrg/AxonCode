@@ -2615,7 +2615,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									setSelectedImages={setSelectedImages}
 									selectedDocuments={selectedDocuments}
 									setSelectedDocuments={setSelectedDocuments}
-									onSend={() => handleSendMessage(inputValue, selectedImages)}
+									onSend={(text?: string) => handleSendMessage(text ?? inputValue, selectedImages)}
 									onSelectImages={selectAttachments}
 									shouldDisableImages={shouldDisableImages}
 									onHeightChange={() => {
@@ -3082,7 +3082,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								setSelectedImages={setSelectedImages}
 								selectedDocuments={selectedDocuments}
 								setSelectedDocuments={setSelectedDocuments}
-								onSend={() => handleSendMessage(inputValue, selectedImages)}
+								onSend={(text?: string) => handleSendMessage(text ?? inputValue, selectedImages)}
 								onSelectImages={selectAttachments}
 								shouldDisableImages={shouldDisableImages}
 								onHeightChange={() => {

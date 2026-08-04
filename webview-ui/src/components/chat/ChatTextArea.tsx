@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { renderMentionChip, renderSlashCommandChip } from "@/utils/chat-render"
 import { MessageSquareX, VolumeX } from "lucide-react"
 import DocumentAttachments from "../common/DocumentAttachments"
+import PasteChips, { PasteChip } from "../common/PasteChips"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import { ModelSelector } from "../kilocode/chat/ModelSelector"
 import { useSelectedModel } from "../ui/hooks/useSelectedModel"
@@ -53,6 +54,32 @@ import {
 const IMAGE_PATH_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"]
 const DOCUMENT_PATH_EXTENSIONS = [".csv", ".docx", ".json", ".md", ".pdf", ".text", ".txt", ".tsv", ".xlsx"]
 const ATTACHMENT_PATH_EXTENSIONS = [...IMAGE_PATH_EXTENSIONS, ...DOCUMENT_PATH_EXTENSIONS]
+
+// Pastes at least this long are collapsed into a paste chip in the attachment
+// strip below the chat input. The full text is stored in the chip and merged
+// back into the message at the chip's cursor position when the message is sent.
+const PASTE_CHIP_THRESHOLD = 500
+
+// Two newlines separate a merged chip's text from the surrounding prompt text.
+const PASTE_CHIP_SEPARATOR = "\n\n"
+
+// Merge paste chips back into the message text at their recorded cursor
+// positions, as if the text had been pasted there directly. Chips are inserted
+// from the end backwards so earlier positions stay valid. Each chip is padded
+// with two newlines on any side that has neighboring text, so the pasted
+// content never butts up against the surrounding prompt.
+export const mergePasteChips = (text: string, chips: PasteChip[]): string => {
+	const sorted = [...chips].sort((a, b) => b.insertPosition - a.insertPosition)
+	let result = text
+	for (const chip of sorted) {
+		const position = Math.max(0, Math.min(chip.insertPosition, result.length))
+		const content = chip.text.trim()
+		const prefix = position > 0 ? PASTE_CHIP_SEPARATOR : ""
+		const suffix = position < result.length ? PASTE_CHIP_SEPARATOR : ""
+		result = result.slice(0, position) + prefix + content + suffix + result.slice(position)
+	}
+	return result
+}
 
 // MIME types for document attachments that arrive as File blobs when a file is
 // copied directly (e.g. from Finder/Explorer). Maps MIME -> file extension so we
@@ -132,7 +159,7 @@ interface ChatTextAreaProps {
 	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 	selectedDocuments?: DocumentAttachment[]
 	setSelectedDocuments?: React.Dispatch<React.SetStateAction<DocumentAttachment[]>>
-	onSend: () => void
+	onSend: (text?: string) => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
 	onHeightChange?: (height: number) => void
@@ -219,11 +246,18 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		// kilocode_change begin: remove button from chat when it gets to small
 		const [containerWidth, setContainerWidth] = useState<number>(300) // Default to a value larger than our threshold
 
+		// Pasted-text chips waiting to be merged into the message on send. Each
+		// chip remembers the cursor position of its paste so the full text is
+		// re-inserted exactly where it was pasted.
+		const [pasteChips, setPasteChips] = useState<PasteChip[]>([])
+
 		const containerRef = useRef<HTMLDivElement>(null)
 
 		// Map of short mention display text -> full path for file/folder mentions
 		// Format in textarea: @[filename.ext] -> expands to @/full/path/filename.ext
 		const mentionMapRef = useRef<Map<string, string>>(new Map())
+
+		const nextPasteIdRef = useRef(0)
 
 		// Expand short mentions @filename to full paths @/full/path before sending
 		const expandMentions = useCallback((text: string): string => {
@@ -238,7 +272,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			})
 		}, [])
 
-		// Wrapper for onSend that expands mentions first
+		// Wrapper for onSend that merges paste chips and expands mentions first
 		const handleSend = useCallback(() => {
 			if (inputValue.trim().startsWith("/resume")) {
 				vscode.postMessage({ type: "switchTab", tab: "history" })
@@ -246,17 +280,27 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				return
 			}
 
-			const expandedValue = expandMentions(inputValue)
+			// Merge any pasted-text chips into the message at their recorded
+			// positions, as if the text had been pasted there directly, then clear
+			// the strip (the text is now part of the outgoing value).
+			const mergedValue = mergePasteChips(inputValue, pasteChips)
+			if (pasteChips.length > 0) {
+				setPasteChips([])
+			}
+
+			const expandedValue = expandMentions(mergedValue)
 			if (expandedValue !== inputValue) {
 				setInputValue(expandedValue)
-				// Give React time to update, then send
-				setTimeout(() => {
-					onSend()
-				}, 0)
-			} else {
-				onSend()
 			}
-		}, [inputValue, setInputValue, expandMentions, onSend])
+
+			// Pass the final text through onSend directly so the parent never
+			// reads a stale inputValue from an earlier render.
+			onSend(expandedValue)
+		}, [inputValue, pasteChips, setInputValue, expandMentions, onSend])
+
+		const handleRemovePasteChip = useCallback((id: string) => {
+			setPasteChips((prev) => prev.filter((chip) => chip.id !== id))
+		}, [])
 
 		useEffect(() => {
 			if (!containerRef.current) return
@@ -747,6 +791,23 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					intendedCursorPositionRef.current = newCursorPosition
 					setShowContextMenu(false)
 
+					return
+				}
+
+				// Collapse large text pastes (>= 500 chars) into a single paste chip in
+				// the attachment strip below the input. The full text is kept in the chip
+				// and merged back into the message at this exact cursor position when the
+				// message is sent (see mergePasteChips).
+				if (pastedText.length >= PASTE_CHIP_THRESHOLD) {
+					e.preventDefault()
+					const pasteId = String(nextPasteIdRef.current++)
+					setPasteChips((prev) => [
+						...prev,
+						{ id: pasteId, text: pastedText, insertPosition: selectionStart },
+					])
+					setCursorPosition(selectionStart)
+					intendedCursorPositionRef.current = selectionStart
+					setShowContextMenu(false)
 					return
 				}
 
@@ -2210,7 +2271,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					</div>
 				</div>
 
-				{(selectedImages.length > 0 || selectedDocuments.length > 0) && (
+				{(selectedImages.length > 0 || selectedDocuments.length > 0 || pasteChips.length > 0) && (
 					<div
 						style={{
 							display: "flex",
@@ -2231,6 +2292,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							materialIconsBaseUri={materialIconsBaseUri}
 							inline
 						/>
+						<PasteChips chips={pasteChips} onRemove={handleRemovePasteChip} inline />
 					</div>
 				)}
 			</div>
