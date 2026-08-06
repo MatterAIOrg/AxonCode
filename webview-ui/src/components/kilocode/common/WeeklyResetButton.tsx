@@ -41,7 +41,7 @@ export const WeeklyResetButton = ({ plan, availability, isResetting, error, onRe
 				appearance="primary"
 				disabled={!available || isResetting}
 				onClick={onReset}
-				className="inline-flex w-auto cursor-pointer items-center rounded text-xs h-5 py-0 px-2 leading-4 text-[var(--vscode-button-foreground)] bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] disabled:cursor-not-allowed disabled:opacity-50">
+				className="inline-flex w-auto cursor-pointer items-center rounded text-xs py-0 px-2 leading-4 text-[var(--vscode-button-foreground)] bg-[var(--vscode-button-background)] hover:bg-[var(--vscode-button-hoverBackground)] disabled:cursor-not-allowed disabled:opacity-50">
 				{isResetting ? "Resetting…" : `Reset Weekly Limit, ${available ? "1/1" : "0/1"} Remaining`}
 			</VSCodeButton>
 			{!available && availability?.nextAvailableAt && (

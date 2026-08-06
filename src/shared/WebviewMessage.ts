@@ -303,6 +303,7 @@ export interface WebviewMessage {
 		| "fetchMarketplaceData"
 		| "installSuggestedPlugin"
 		| "switchTab"
+		| "kilocodeLogout" // kilocode_change: clear KiloCode credentials from the Account settings page
 		| "profileThresholds"
 		| "editMessage" // kilocode_change
 		| "systemNotificationsEnabled" // kilocode_change
@@ -512,6 +513,24 @@ export type ProfileData = {
 	// as a fraction of the user's monthly plan limit.
 	tieredUsage?: AxonCodeTieredUsage
 	weeklyReset?: AxonCodeWeeklyResetAvailability
+	// Overage lets the plan keep running on shared org API credits once the
+	// plan windows hit 98%. `enabled` is true only when the org has turned
+	// overage on AND this user is covered by the access selection.
+	overage?: AxonCodeOverage
+}
+
+export interface AxonCodeOverageUsage {
+	spent: number
+	budget: number | null
+	remaining: number | null
+	percentage: number | null
+	periodStart: string
+	resetsAt: string
+}
+
+export interface AxonCodeOverage {
+	enabled: boolean
+	usage?: AxonCodeOverageUsage | null
 }
 
 export interface AxonCodeWeeklyResetAvailability {

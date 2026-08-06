@@ -41,8 +41,24 @@ export const condenseTool = async (
 
 				const { contextTokens: prevContextTokens } = cline.getTokenUsage()
 
+				// Show an in-progress indicator while the summarization call runs
+				await cline.say(
+					"condense_context",
+					undefined /* text */,
+					undefined /* images */,
+					true /* partial */,
+					undefined /* checkpoint */,
+					undefined /* progressStatus */,
+					{ isNonInteractive: true } /* options */,
+				)
+
 				// Use summarizeConversation to create a condensed version of the conversation
-				const summarizedMessages = await summarizeConversation(
+				const {
+					messages,
+					summary,
+					cost,
+					newContextTokens = 0,
+				} = await summarizeConversation(
 					cline.apiConversationHistory,
 					cline.api,
 					await cline.getSystemPrompt(),
@@ -51,11 +67,47 @@ export const condenseTool = async (
 				)
 
 				// Overwrite the apiConversationHistory with the summarized messages
-				await cline.overwriteApiConversationHistory(summarizedMessages.messages)
+				await cline.overwriteApiConversationHistory(messages)
+
+				if (summary) {
+					await cline.say(
+						"condense_context",
+						undefined /* text */,
+						undefined /* images */,
+						false /* partial */,
+						undefined /* checkpoint */,
+						undefined /* progressStatus */,
+						{ isNonInteractive: true } /* options */,
+						{ summary, cost, newContextTokens, prevContextTokens },
+					)
+				} else {
+					// Summarization failed; finalize the in-progress row so the indicator clears
+					await cline.say(
+						"condense_context",
+						undefined /* text */,
+						undefined /* images */,
+						false /* partial */,
+						undefined /* checkpoint */,
+						undefined /* progressStatus */,
+						{ isNonInteractive: true } /* options */,
+					)
+				}
 			}
 			return
 		}
 	} catch (error) {
+		// Clear the in-progress indicator if the summarization failed
+		await cline
+			.say(
+				"condense_context",
+				undefined /* text */,
+				undefined /* images */,
+				false /* partial */,
+				undefined /* checkpoint */,
+				undefined /* progressStatus */,
+				{ isNonInteractive: true } /* options */,
+			)
+			.catch(() => {})
 		await handleError("condensing context window", error)
 		return
 	}

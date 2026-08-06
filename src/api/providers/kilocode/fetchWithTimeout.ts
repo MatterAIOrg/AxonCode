@@ -6,6 +6,10 @@ export function fetchWithTimeout(timeoutMs: number, headers?: Record<string, str
 	const agent = new undici.EnvHttpProxyAgent({
 		headersTimeout: timeoutMs,
 		bodyTimeout: timeoutMs,
+		// kilocode_change: Happy Eyeballs (RFC 8305) — race IPv4/IPv6 on connect so
+		// a broken address-family path falls back to the other family instead of
+		// hanging. undici has no Happy Eyeballs by default, unlike curl.
+		connect: { autoSelectFamily: true, autoSelectFamilyAttemptTimeout: 250 },
 	})
 	return (input, init) => {
 		const requestInit: undici.RequestInit = {

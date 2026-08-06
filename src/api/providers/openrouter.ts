@@ -1,5 +1,6 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import OpenAI from "openai"
+import * as undici from "undici"
 
 import { getActiveToolUseStyle, openRouterDefaultModelId, openRouterDefaultModelInfo } from "@roo-code/types"
 
@@ -37,6 +38,19 @@ import { safeJsonParse } from "../../shared/safeJsonParse"
 // forked_change end
 
 import { handleOpenAIError } from "./utils/openai-error-handler"
+
+// kilocode_change: Happy Eyeballs (RFC 8305) — race IPv4/IPv6 on connect so a
+// broken address-family path (e.g. a carrier DNS64-synthesized IPv6 that
+// doesn't actually route on a mobile hotspot) falls back to the other family
+// instead of hanging. undici has no Happy Eyeballs by default, unlike curl.
+const happyEyeballsAgent = new undici.Agent({
+	connect: { autoSelectFamily: true, autoSelectFamilyAttemptTimeout: 250 },
+})
+const happyEyeballsFetch: typeof fetch = (input, init) =>
+	undici.fetch(input as undici.RequestInfo, {
+		...(init as undici.RequestInit),
+		dispatcher: happyEyeballsAgent,
+	}) as unknown as Promise<Response>
 
 function stripThinkingTokens(text: string): string {
 	// Remove <think>...</think> blocks entirely, including nested ones
@@ -143,7 +157,14 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		const baseURL = this.options.openRouterBaseUrl || "https://api2.matterai.so/v1/web"
 		const apiKey = this.options.openRouterApiKey ?? "not-provided"
 
-		this.client = new OpenAI({ baseURL, apiKey, defaultHeaders: DEFAULT_HEADERS })
+		this.client = new OpenAI({
+			baseURL,
+			apiKey,
+			defaultHeaders: DEFAULT_HEADERS,
+			// kilocode_change: route through the Happy Eyeballs agent so connect
+			// falls back across address families instead of sticking on the first.
+			fetch: happyEyeballsFetch,
+		})
 	}
 
 	// forked_change start

@@ -206,7 +206,13 @@ const App = () => {
 				// Handle switchTab action with tab parameter
 				if (message.action === "switchTab" && message.tab) {
 					const targetTab = message.tab as Tab
-					switchTab(targetTab)
+					if (message.values?.fromLogout) {
+						// Logout flow: credentials were already cleared by the extension, so skip the
+						// unsaved-changes check (the settings cached state is stale after the account is gone)
+						setTab(targetTab)
+					} else {
+						switchTab(targetTab)
+					}
 					// Extract targetSection from values if provided
 					const targetSection = message.values?.section as string | undefined
 					setCurrentSection(targetSection)

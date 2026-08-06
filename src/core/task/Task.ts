@@ -1590,6 +1590,17 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		const { contextTokens: prevContextTokens } = this.getTokenUsage()
 
+		// Show an in-progress indicator while the summarization call runs
+		await this.say(
+			"condense_context",
+			undefined /* text */,
+			undefined /* images */,
+			true /* partial */,
+			undefined /* checkpoint */,
+			undefined /* progressStatus */,
+			{ isNonInteractive: true } /* options */,
+		)
+
 		const {
 			messages,
 			summary,
@@ -1607,6 +1618,16 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			condensingApiHandler, // Specific handler for condensing
 		)
 		if (error) {
+			// Finalize the in-progress row (renders nothing since there is no result)
+			await this.say(
+				"condense_context",
+				undefined /* text */,
+				undefined /* images */,
+				false /* partial */,
+				undefined /* checkpoint */,
+				undefined /* progressStatus */,
+				{ isNonInteractive: true } /* options */,
+			)
 			this.say(
 				"condense_context_error",
 				error,
@@ -3834,6 +3855,17 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			settings: this.apiConfiguration,
 		})
 
+		// Show an in-progress indicator while the condense/summarize call runs
+		await this.say(
+			"condense_context",
+			undefined /* text */,
+			undefined /* images */,
+			true /* partial */,
+			undefined /* checkpoint */,
+			undefined /* progressStatus */,
+			{ isNonInteractive: true } /* options */,
+		)
+
 		const truncateResult = await truncateConversationIfNeeded({
 			messages: this.apiConversationHistory,
 			totalTokens: contextTokens || 0,
@@ -3871,6 +3903,18 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this.skipPrevResponseIdOnce = true
 			return true
 		}
+
+		// Condensation did not produce a summary (e.g., too few messages or an
+		// error). Finalize the in-progress row so the indicator clears.
+		await this.say(
+			"condense_context",
+			undefined /* text */,
+			undefined /* images */,
+			false /* partial */,
+			undefined /* checkpoint */,
+			undefined /* progressStatus */,
+			{ isNonInteractive: true } /* options */,
+		)
 
 		return false
 	}
