@@ -67,6 +67,8 @@ describe("fetchWithTimeout - header precedence and timeout wiring", () => {
 		expect(hoisted.mockAgentConstructor).toHaveBeenCalledWith({
 			headersTimeout: timeoutMs,
 			bodyTimeout: timeoutMs,
+			// kilocode_change: Happy Eyeballs — race IPv4/IPv6 on connect
+			connect: { autoSelectFamily: true, autoSelectFamilyAttemptTimeout: 250 },
 		})
 
 		// Fetch called with merged headers where persistent wins

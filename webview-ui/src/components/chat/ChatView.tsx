@@ -82,6 +82,7 @@ import { X } from "lucide-react"
 import { useOptionalAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilocode_change
+import { OverageActiveBanner } from "../kilocode/chat/OverageActiveBanner" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
 import { SourceControlPanel } from "./SourceControlPanel" // kilocode_change
@@ -3027,13 +3028,19 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						</div>
 					)}
 
-					{/* kilocode_change: Show notification when monthly limit is exhausted */}
-					{isUsageExhausted && !task && (
+					{/* kilocode_change: Show notification when monthly limit is exhausted.
+				    When overage is enabled for the user, the plan keeps running on API
+				    credits, so we show an "overage active" banner instead of the
+				    out-of-credits banner. */}
+					{isUsageExhausted && !task && !profileData?.overage?.enabled && (
 						<OutOfCreditsBanner
 							className="w-full min-w-0 px-4 mb-4"
 							creditsResetDate={profileData?.creditsResetDate}
 							tieredUsage={profileData?.tieredUsage}
 						/>
+					)}
+					{isUsageExhausted && !task && profileData?.overage?.enabled && (
+						<OverageActiveBanner className="w-full min-w-0 px-4 mb-4" usage={profileData?.overage?.usage} />
 					)}
 
 					{/* {!task && (

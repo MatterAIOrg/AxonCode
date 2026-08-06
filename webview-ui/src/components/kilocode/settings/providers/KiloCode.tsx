@@ -10,6 +10,7 @@ import {
 import type { RouterModels } from "@roo/api"
 import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 import { MatterProgressIndicator } from "@src/components/chat/ProgressIndicator"
+import { Button } from "@src/components/ui"
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
@@ -40,7 +41,6 @@ function formatRelativeTime(isoStr?: string): string {
 type KiloCodeProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	currentApiConfigName?: string
 	hideKiloCodeButton?: boolean
 	routerModels?: RouterModels
 	organizationAllowList: OrganizationAllowList
@@ -53,7 +53,6 @@ type KiloCodeProps = {
 export const KiloCode = ({
 	apiConfiguration,
 	setApiConfigurationField,
-	// currentApiConfigName,
 	hideKiloCodeButton,
 	routerModels,
 	organizationAllowList,
@@ -153,6 +152,11 @@ export const KiloCode = ({
 		setWeeklyResetError(null)
 		setIsResettingWeekly(true)
 		vscode.postMessage({ type: "resetWeeklyUsageRequest" })
+	}
+
+	const handleLogout = () => {
+		// The extension clears the KiloCode credentials and navigates back to the login page
+		vscode.postMessage({ type: "kilocodeLogout" })
 	}
 
 	// Always show all models including axon-code-2-pro
@@ -276,13 +280,18 @@ export const KiloCode = ({
 											</div>
 										)
 									})}
-								<WeeklyResetButton
-									plan={profileData?.plan}
-									availability={profileData?.weeklyReset}
-									isResetting={isResettingWeekly}
-									error={weeklyResetError}
-									onReset={handleWeeklyReset}
-								/>
+								<div className="flex gap-2 items-center">
+									<VSCodeButtonLink href="https://app.matterai.so/orbital?tab=my" variant="secondary">
+										{t("kilocode:settings.provider.viewAnalytics")}
+									</VSCodeButtonLink>
+									<WeeklyResetButton
+										plan={profileData?.plan}
+										availability={profileData?.weeklyReset}
+										isResetting={isResettingWeekly}
+										error={weeklyResetError}
+										onReset={handleWeeklyReset}
+									/>
+								</div>
 							</div>
 						)}
 					</div>
@@ -319,6 +328,12 @@ export const KiloCode = ({
 				proModelIds={proModelIds}
 				proModelsEnabled={betaModelsEnabled}
 			/>
+
+			{!hideKiloCodeButton && apiConfiguration.kilocodeToken && (
+				<Button variant="secondary" onClick={handleLogout} className="mt-4">
+					{t("kilocode:settings.provider.logout")}
+				</Button>
+			)}
 		</>
 	)
 }

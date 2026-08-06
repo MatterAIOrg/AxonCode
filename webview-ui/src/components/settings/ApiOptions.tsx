@@ -46,7 +46,6 @@ const ApiOptions = ({
 	errorMessage,
 	setErrorMessage,
 	hideKiloCodeButton = false,
-	currentApiConfigName, // kilocode_change
 }: ApiOptionsProps) => {
 	// const { t } = useAppTranslation()
 	const {
@@ -392,7 +391,6 @@ const ApiOptions = ({
 					apiConfiguration={apiConfiguration}
 					setApiConfigurationField={setApiConfigurationField}
 					hideKiloCodeButton={hideKiloCodeButton}
-					currentApiConfigName={currentApiConfigName}
 					routerModels={routerModels}
 					organizationAllowList={organizationAllowList}
 					uriScheme={uriScheme}

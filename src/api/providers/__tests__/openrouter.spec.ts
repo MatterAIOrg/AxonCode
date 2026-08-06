@@ -66,6 +66,7 @@ describe("OpenRouterHandler", () => {
 				"X-AxonCode-Version": Package.version,
 				"User-Agent": `Kilo-Code/${Package.version}`,
 			},
+			fetch: expect.any(Function), // kilocode_change: Happy Eyeballs agent
 		})
 	})
 

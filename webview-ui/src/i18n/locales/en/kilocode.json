@@ -65,6 +65,7 @@
 			"apiKey": "Orbital API Key",
 			"login": "Log in at MatterAI",
 			"logout": "Log Out",
+			"viewAnalytics": "View My Analytics",
 			"providerRouting": {
 				"title": "Provider Routing",
 				"managedByOrganization": "Manage Organization-level Provider Routing",

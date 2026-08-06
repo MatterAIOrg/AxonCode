@@ -3343,6 +3343,24 @@ ${comment.suggestion}
 			}
 			// forked_change end: check for kilocodeToken change to remove organizationId and fetch organization modes
 			break
+		case "kilocodeLogout": {
+			// kilocode_change: clear KiloCode credentials from the Account settings page and return to the login page
+			const { apiConfiguration, currentApiConfigName = "default" } = await provider.getState()
+			await provider.upsertProviderProfile(currentApiConfigName, {
+				...apiConfiguration,
+				kilocodeToken: undefined,
+				kilocodeOrganizationId: undefined,
+				kilocodeModel: undefined,
+			})
+			// Navigate away from settings so the WelcomeView (login) renders once credentials are cleared.
+			await provider.postMessageToWebview({
+				type: "action",
+				action: "switchTab",
+				tab: "chat",
+				values: { fromLogout: true },
+			})
+			break
+		}
 		case "updateTaskModel":
 			// Task-local model update for isolation
 			// When there's an active task, only update the task's model to prevent affecting other tasks
