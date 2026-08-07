@@ -1,10 +1,10 @@
 import { ApiHandlerOptions, ModelRecord } from "../../shared/api"
 import * as vscode from "vscode"
-import { CompletionUsage, OpenRouterHandler } from "./openrouter"
+import { CompletionUsage, OpenRouterHandler, inferenceFailoverFetch } from "./openrouter"
 import { getModelParams } from "../transform/model-params"
 import { getModels } from "./fetchers/modelCache"
 import { DEEP_SEEK_DEFAULT_TEMPERATURE, openRouterDefaultModelId, openRouterDefaultModelInfo } from "@roo-code/types"
-import { getKiloUrlFromToken } from "@roo-code/types"
+import { getKiloBaseUriFromToken } from "@roo-code/types"
 import { ApiHandlerCreateMessageMetadata } from ".."
 import { getKilocodeApiModelId } from "./kilocode-models"
 // import { getModelEndpoints } from "./fetchers/modelEndpointCache"
@@ -43,10 +43,24 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 		return "KiloCode" as const
 	}
 
+	// forked_change: route inference through the api2 → api circuit-breaker fetch
+	// so a hard api2 outage (GCP VM down) fails over to api.matterai.so for 5m.
+	protected override get inferenceFetch(): typeof fetch {
+		return inferenceFailoverFetch
+	}
+
 	constructor(options: ApiHandlerOptions) {
+		// forked_change: inference must always hit api2.matterai.so in production.
+		// getKiloUrlFromToken swaps the host to api.matterai.so (the default backend),
+		// which silently bypasses api2 — so resolve the dev/prod host explicitly and
+		// only borrow the localhost override for development tokens.
+		const baseUri = getKiloBaseUriFromToken(options.kilocodeToken ?? "")
+		const openRouterBaseUrl = baseUri.includes("localhost")
+			? `${baseUri}/v1/web/`
+			: "https://api2.matterai.so/v1/web/"
 		options = {
 			...options,
-			openRouterBaseUrl: getKiloUrlFromToken("https://api2.matterai.so/v1/web/", options.kilocodeToken ?? ""),
+			openRouterBaseUrl,
 			openRouterApiKey: options.kilocodeToken,
 		}
 
