@@ -20,8 +20,14 @@ import { mergeJson } from "../util/merge.js"
 import { renderChatMessage } from "../util/messageContent.js"
 import { TokensBatchingService } from "../util/TokensBatchingService.js"
 
-import { DEFAULT_CONTEXT_LENGTH, DEFAULT_MAX_TOKENS } from "./constants.js"
-import { compileChatMessages, countTokens, pruneRawPromptFromTop } from "./countTokens.js"
+import { DEFAULT_CONTEXT_LENGTH, DEFAULT_MAX_TOKENS, DEFAULT_PRUNING_LENGTH } from "./constants.js"
+import {
+	assertChatMessagesFit,
+	compileChatMessages,
+	countTokens,
+	pruneFimPrompt,
+	pruneRawPromptFromTop,
+} from "./countTokens.js"
 import {
 	fromChatCompletionChunk,
 	fromChatResponse,
@@ -145,6 +151,10 @@ export abstract class BaseLLM implements ILLM {
 
 	get contextLength() {
 		return this._contextLength ?? DEFAULT_CONTEXT_LENGTH
+	}
+
+	private get chatContextLength() {
+		return this._contextLength ?? DEFAULT_PRUNING_LENGTH
 	}
 
 	protected createOpenAiAdapter() {
@@ -271,6 +281,15 @@ export abstract class BaseLLM implements ILLM {
 		const { completionOptions, logEnabled } = this.parseCompletionOptions(options)
 		const interaction = logEnabled ? this.logger?.createInteractionLog() : undefined
 		let status: InteractionStatus = "in_progress"
+		const prunedFim = pruneFimPrompt({
+			modelName: completionOptions.model,
+			contextLength: this.contextLength,
+			prefix,
+			suffix,
+			tokensForCompletion: completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
+		})
+		prefix = prunedFim.prefix
+		suffix = prunedFim.suffix
 
 		const fimLog = `Prefix: ${prefix}\nSuffix: ${suffix}`
 		if (logEnabled) {
@@ -358,6 +377,12 @@ export abstract class BaseLLM implements ILLM {
 
 		if (!raw) {
 			prompt = this._templatePromptLikeMessages(prompt)
+			prompt = pruneRawPromptFromTop(
+				completionOptions.model,
+				this.contextLength,
+				prompt,
+				completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
+			)
 		}
 
 		if (logEnabled) {
@@ -457,7 +482,7 @@ export abstract class BaseLLM implements ILLM {
 		return compileChatMessages({
 			modelName: completionOptions.model,
 			msgs: message,
-			knownContextLength: this._contextLength,
+			knownContextLength: this.chatContextLength,
 			maxTokens: completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
 		})
 	}
@@ -491,6 +516,7 @@ export abstract class BaseLLM implements ILLM {
 		let status: InteractionStatus = "in_progress"
 
 		completionOptions = this._modifyCompletionOptions(completionOptions)
+		const chatContextLength = this.chatContextLength
 
 		let messages = _messages
 
@@ -499,14 +525,28 @@ export abstract class BaseLLM implements ILLM {
 			const { compiledChatMessages } = compileChatMessages({
 				modelName: completionOptions.model,
 				msgs: _messages,
-				knownContextLength: this._contextLength,
+				knownContextLength: chatContextLength,
 				maxTokens: completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
 			})
 
 			messages = compiledChatMessages
 		}
 
-		const prompt = this.templateMessages ? this.templateMessages(messages) : this.formatChatMessages(messages)
+		assertChatMessagesFit({
+			modelName: completionOptions.model,
+			msgs: messages,
+			contextLength: chatContextLength,
+			maxTokens: completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
+		})
+
+		const prompt = this.templateMessages
+			? pruneRawPromptFromTop(
+					completionOptions.model,
+					chatContextLength,
+					this.templateMessages(messages),
+					completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
+				)
+			: this.formatChatMessages(messages)
 		if (logEnabled) {
 			interaction?.logItem({
 				kind: "startChat",

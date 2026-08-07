@@ -169,7 +169,33 @@ export function getTokenCountingBufferSafety(contextLength: number) {
 	return Math.min(MAX_TOKEN_SAFETY_BUFFER, contextLength * TOKEN_SAFETY_PROPORTION)
 }
 
-const MIN_RESPONSE_TOKENS = 1000
+function getInputTokenBudget(contextLength: number, tokensForCompletion: number): number {
+	if (!Number.isFinite(contextLength) || contextLength <= 0) {
+		throw new Error(`Invalid model context length: ${contextLength}. No LLM call was made.`)
+	}
+
+	if (!Number.isFinite(tokensForCompletion) || tokensForCompletion < 0) {
+		throw new Error(`Invalid maximum output token count: ${tokensForCompletion}. No LLM call was made.`)
+	}
+
+	return Math.floor(contextLength - tokensForCompletion - getTokenCountingBufferSafety(contextLength))
+}
+
+function contextWindowError({
+	contextLength,
+	tokensForCompletion,
+	inputTokens,
+}: {
+	contextLength: number
+	tokensForCompletion: number
+	inputTokens: number
+}): Error {
+	return new Error(
+		`Context window guard stopped an unsafe request. ` +
+			`The request needs approximately ${inputTokens} input tokens plus ${tokensForCompletion} output tokens, ` +
+			`but the model context window is ${contextLength} tokens. No LLM call was made.`,
+	)
+}
 
 function pruneRawPromptFromTop(
 	modelName: string,
@@ -177,8 +203,79 @@ function pruneRawPromptFromTop(
 	prompt: string,
 	tokensForCompletion: number,
 ): string {
-	const maxTokens = contextLength - tokensForCompletion - getTokenCountingBufferSafety(contextLength)
+	const maxTokens = getInputTokenBudget(contextLength, tokensForCompletion)
+	if (maxTokens < 0) {
+		throw contextWindowError({
+			contextLength,
+			tokensForCompletion,
+			inputTokens: countTokens(prompt, modelName),
+		})
+	}
 	return pruneStringFromTop(modelName, maxTokens, prompt)
+}
+
+function pruneFimPrompt({
+	modelName,
+	contextLength,
+	prefix,
+	suffix,
+	tokensForCompletion,
+}: {
+	modelName: string
+	contextLength: number
+	prefix: string
+	suffix: string
+	tokensForCompletion: number
+}): { prefix: string; suffix: string } {
+	const inputTokenBudget = getInputTokenBudget(contextLength, tokensForCompletion)
+	const prefixTokens = countTokens(prefix, modelName)
+	const suffixTokens = countTokens(suffix, modelName)
+	const inputTokens = prefixTokens + suffixTokens
+
+	if (inputTokens <= inputTokenBudget) {
+		return { prefix, suffix }
+	}
+
+	if (inputTokenBudget < 0) {
+		throw contextWindowError({ contextLength, tokensForCompletion, inputTokens })
+	}
+
+	// Prefer recent prefix context while retaining the beginning of the suffix.
+	let prefixBudget = Math.floor(inputTokenBudget * 0.75)
+	let suffixBudget = inputTokenBudget - prefixBudget
+	if (prefixTokens < prefixBudget) {
+		suffixBudget += prefixBudget - prefixTokens
+		prefixBudget = prefixTokens
+	}
+	if (suffixTokens < suffixBudget) {
+		prefixBudget += suffixBudget - suffixTokens
+		suffixBudget = suffixTokens
+	}
+
+	const prunedSuffix = pruneStringFromBottom(modelName, suffixBudget, suffix)
+	const actualSuffixTokens = countTokens(prunedSuffix, modelName)
+	const prunedPrefix = pruneStringFromTop(modelName, inputTokenBudget - actualSuffixTokens, prefix)
+
+	return { prefix: prunedPrefix, suffix: prunedSuffix }
+}
+
+function assertChatMessagesFit({
+	modelName,
+	msgs,
+	contextLength,
+	maxTokens,
+}: {
+	modelName: string
+	msgs: ChatMessage[]
+	contextLength: number
+	maxTokens: number
+}): void {
+	const inputTokenBudget = getInputTokenBudget(contextLength, maxTokens)
+	const inputTokens = msgs.reduce((total, message) => total + countChatMessageTokens(modelName, message), 0)
+
+	if (inputTokenBudget < 0 || inputTokens > inputTokenBudget) {
+		throw contextWindowError({ contextLength, tokensForCompletion: maxTokens, inputTokens })
+	}
 }
 
 /**
@@ -250,28 +347,25 @@ function compileChatMessages({
 
 	const contextLength = knownContextLength ?? DEFAULT_PRUNING_LENGTH
 	const countingSafetyBuffer = getTokenCountingBufferSafety(contextLength)
-	const minOutputTokens = Math.min(MIN_RESPONSE_TOKENS, maxTokens)
+	const inputTokenBudget = getInputTokenBudget(contextLength, maxTokens)
 
-	let inputTokensAvailable = contextLength
-
-	// Leave space for output/safety
-	inputTokensAvailable -= countingSafetyBuffer
-	inputTokensAvailable -= minOutputTokens
+	let inputTokensAvailable = inputTokenBudget
 
 	// Non-negotiable messages
 	inputTokensAvailable -= systemMsgTokens
 	inputTokensAvailable -= lastMessagesTokens
 
 	// Make sure there's enough context for the non-excludable items
-	if (knownContextLength !== undefined && inputTokensAvailable < 0) {
+	if (inputTokensAvailable < 0) {
 		throw new Error(
 			`Not enough context available to include the system message, last user message, and tools.
-        There must be at least ${minOutputTokens} tokens remaining for output.
+        There must be ${maxTokens} tokens remaining for output.
         Request had the following token counts:
-        - contextLength: ${knownContextLength}
+        - contextLength: ${contextLength}
         - counting safety buffer: ${countingSafetyBuffer}
         - system message: ~${systemMsgTokens}
-        - max output tokens: ${maxTokens}`,
+        - max output tokens: ${maxTokens}
+        No LLM call was made.`,
 		)
 	}
 
@@ -301,7 +395,7 @@ function compileChatMessages({
 	reassembled.push(...toolSequence)
 
 	const inputTokens = currentTotal + systemMsgTokens + lastMessagesTokens
-	const availableTokens = contextLength - countingSafetyBuffer - minOutputTokens
+	const availableTokens = inputTokenBudget
 	const contextPercentage = inputTokens / availableTokens
 	return {
 		compiledChatMessages: reassembled,
@@ -311,8 +405,10 @@ function compileChatMessages({
 }
 
 export {
+	assertChatMessagesFit,
 	compileChatMessages,
 	countTokens,
+	pruneFimPrompt,
 	pruneLinesFromBottom,
 	pruneLinesFromTop,
 	pruneRawPromptFromTop,
