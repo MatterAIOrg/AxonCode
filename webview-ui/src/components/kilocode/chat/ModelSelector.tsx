@@ -51,13 +51,14 @@ const sanitizeModelLabel = (modelId: string, provider: string): string => {
 
 const MODEL_QUALIFIER_PATTERN = /\s*(\((?:200k context|400k context|free)\))$/i
 
-// Sort priority for Axon models within a context window group: Flash, Mini, Pro, Lumen
+// Sort priority for Axon models within a context window group: Auto, Flash, Mini, Pro, Lumen
 const getModelSortPriority = (modelId: string): number => {
-	if (modelId.includes("flash")) return 0
-	if (modelId.includes("mini")) return 1
-	if (modelId.includes("pro")) return 2
-	if (modelId.includes("lumen")) return 3
-	return 4
+	if (modelId.startsWith("axon-auto-")) return 0
+	if (modelId.includes("flash")) return 1
+	if (modelId.includes("mini")) return 2
+	if (modelId.includes("pro")) return 3
+	if (modelId.includes("lumen")) return 4
+	return 5
 }
 
 const ModelLabel = ({ label }: { label: string }) => {

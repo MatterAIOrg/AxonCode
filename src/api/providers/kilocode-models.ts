@@ -17,6 +17,8 @@ export type KiloCodeModel = {
 	created: number
 	owned_by: string
 	pricing: {
+		type?: "dynamic"
+		display?: string
 		prompt?: string
 		completion?: string
 		image?: string
@@ -27,6 +29,39 @@ export type KiloCodeModel = {
 }
 
 type KiloCodeModelVariant = Omit<KiloCodeModel, "id" | "name" | "context_length">
+
+const AXON_AUTO: KiloCodeModelVariant = {
+	description:
+		"Axon Auto starts with Eido 3 Code Flash and dynamically selects Flash, Mini, or Pro as the task evolves. Pricing is dynamic and follows the model used for each request.",
+	input_modalities: ["text", "image"],
+	max_output_length: 64000,
+	output_modalities: ["text"],
+	supported_sampling_parameters: [
+		"temperature",
+		"top_p",
+		"top_k",
+		"repetition_penalty",
+		"frequency_penalty",
+		"presence_penalty",
+		"seed",
+		"stop",
+	],
+	supported_features: ["tools", "structured_outputs", "web_search"],
+	openrouter: {
+		slug: "matterai/axon",
+	},
+	datacenters: [{ country_code: "US" }],
+	created: 1750426201,
+	owned_by: "matterai",
+	pricing: {
+		type: "dynamic",
+		display: "dynamic pricing",
+		image: "0",
+		request: "0",
+		input_cache_reads: "0",
+		input_cache_writes: "0",
+	},
+}
 
 const AXON_EIDO_3_CODE_PRO: KiloCodeModelVariant = {
 	description:
@@ -128,6 +163,18 @@ const AXON_LUMEN_4_CODE: KiloCodeModelVariant = {
 }
 
 export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
+	"axon-auto-200k": {
+		...AXON_AUTO,
+		id: "axon-auto",
+		name: "Axon Auto (200K context)",
+		context_length: 200000,
+	},
+	"axon-auto-400k": {
+		...AXON_AUTO,
+		id: "axon-auto",
+		name: "Axon Auto (400K context)",
+		context_length: 400000,
+	},
 	"axon-eido-3-flash": {
 		id: "axon-eido-3-flash",
 		name: "Axon Eido 3 Flash (200K context)",
