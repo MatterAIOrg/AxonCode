@@ -2,7 +2,7 @@
 
 import * as vscode from "vscode"
 
-import { parseMentions } from "../index"
+import { MAX_MENTION_EXPANSION_CHARACTERS, parseMentions, truncateMentionContent } from "../index"
 import { UrlContentFetcher } from "../../../services/browser/UrlContentFetcher"
 
 // Mock vscode
@@ -15,6 +15,10 @@ vi.mock("vscode", () => ({
 // Mock i18n
 vi.mock("../../../i18n", () => ({
 	t: vi.fn((key: string) => key),
+}))
+
+vi.mock("../../../integrations/misc/extract-text", () => ({
+	extractTextFromFile: vi.fn(),
 }))
 
 describe("parseMentions - URL error handling", () => {
@@ -155,5 +159,23 @@ describe("parseMentions - URL error handling", () => {
 		expect(result).toContain("# First Site")
 		expect(result).toContain('<url_content url="https://example2.com">')
 		expect(result).toContain("Error fetching content: timeout")
+	})
+
+	it("caps total content expanded by mentions", async () => {
+		vi.mocked(mockUrlContentFetcher.urlToMarkdown).mockResolvedValue("x".repeat(750_000))
+
+		const result = await parseMentions("Check @https://example.com", "/test", mockUrlContentFetcher)
+
+		expect(result).toContain("mention content truncated")
+		expect(result.length).toBeLessThan(MAX_MENTION_EXPANSION_CHARACTERS + 1_000)
+	})
+
+	it("preserves both ends when truncating mention content", () => {
+		const result = truncateMentionContent(`BEGIN-${"x".repeat(1_000)}-END`, 200)
+
+		expect(result).toHaveLength(200)
+		expect(result).toContain("BEGIN-")
+		expect(result).toContain("-END")
+		expect(result).toContain("mention content truncated")
 	})
 })
