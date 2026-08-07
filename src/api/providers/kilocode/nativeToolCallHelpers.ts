@@ -90,8 +90,10 @@ export function addNativeToolCallsToParams<T extends OpenAI.Chat.ChatCompletionC
 ): T {
 	// When toolStyle is "json", add tool definitions to the API request.
 	// Use allowedTools from metadata if provided (includes mode-filtered native tools + MCP tools),
-	// otherwise fall back to the default set of all native tools.
-	const tools = metadata?.allowedTools && metadata.allowedTools.length > 0 ? metadata.allowedTools : nativeTools
+	// otherwise fall back to the default set of all native tools. An explicitly
+	// empty list is meaningful: the context-window guard uses it as a last-resort
+	// way to omit schemas while fitting an otherwise unsafe request.
+	const tools = metadata?.allowedTools ?? nativeTools
 	if (tools && tools.length > 0) {
 		params.tools = tools
 		//optimally we'd have tool_choice as 'required', but many providers, especially

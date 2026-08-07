@@ -51,6 +51,7 @@ import {
 import { KilocodeOpenrouterHandler } from "./providers/kilocode-openrouter"
 // forked_change end
 import { NativeOllamaHandler } from "./providers/native-ollama"
+import { withContextWindowGuard } from "./context-window-guard"
 
 export interface SingleCompletionHandler {
 	completePrompt(prompt: string): Promise<string>
@@ -58,7 +59,7 @@ export interface SingleCompletionHandler {
 
 export interface ApiHandlerCreateMessageMetadata {
 	mode?: string
-	taskId: string
+	taskId?: string
 	previousResponseId?: string
 	/**
 	 * When true, the provider must NOT fall back to internal continuity state
@@ -117,6 +118,17 @@ export interface ApiHandler {
 }
 
 export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
+	const handler = buildApiHandlerWithoutContextGuard(configuration)
+
+	// VirtualQuotaFallbackHandler builds each concrete profile through this same
+	// factory. Guard those resolved handlers rather than the unresolved outer
+	// shell, whose placeholder model metadata is intentionally generic.
+	return configuration.apiProvider === "virtual-quota-fallback"
+		? handler
+		: withContextWindowGuard(handler, configuration)
+}
+
+function buildApiHandlerWithoutContextGuard(configuration: ProviderSettings): ApiHandler {
 	const { apiProvider, ...options } = configuration
 
 	// Handle third-party provider model selection
