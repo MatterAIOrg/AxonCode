@@ -105,6 +105,36 @@ describe("tiktoken", () => {
 		expect(result).toBeGreaterThan(0)
 	})
 
+	it("counts text nested inside tool_result blocks", async () => {
+		const smallResult: Anthropic.Messages.ContentBlockParam[] = [
+			{ type: "tool_result", tool_use_id: "read-1", content: [{ type: "text", text: "short output" }] },
+		]
+		const largeResult: Anthropic.Messages.ContentBlockParam[] = [
+			{
+				type: "tool_result",
+				tool_use_id: "read-1",
+				content: [{ type: "text", text: "large tool output ".repeat(10_000) }],
+			},
+		]
+
+		const smallCount = await tiktoken(smallResult)
+		const largeCount = await tiktoken(largeResult)
+
+		expect(smallCount).toBeGreaterThan(0)
+		expect(largeCount).toBeGreaterThan(smallCount * 100)
+	})
+
+	it("counts serialized tool inputs instead of treating them as free", async () => {
+		const smallInput: Anthropic.Messages.ContentBlockParam[] = [
+			{ type: "tool_use", id: "call-1", name: "example", input: { query: "small" } },
+		]
+		const largeInput: Anthropic.Messages.ContentBlockParam[] = [
+			{ type: "tool_use", id: "call-1", name: "example", input: { query: "x".repeat(10_000) } },
+		]
+
+		expect(await tiktoken(largeInput)).toBeGreaterThan((await tiktoken(smallInput)) * 10)
+	})
+
 	it("should apply a fudge factor to the token count", async () => {
 		// We can test the fudge factor by comparing the token count with a rough estimate
 		const content: Anthropic.Messages.ContentBlockParam[] = [{ type: "text", text: "Test" }]
