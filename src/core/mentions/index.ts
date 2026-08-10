@@ -22,16 +22,6 @@ import { getCommand, type Command } from "../../services/command/commands"
 import { t } from "../../i18n"
 import { isSupportedImageFormat } from "../tools/helpers/imageHelpers" // kilocode_change
 
-export const MAX_MENTION_EXPANSION_CHARACTERS = 500_000
-export const MAX_MENTION_FILE_CHARACTERS = 200_000
-export const MAX_MENTION_FILE_LINES = 10_000
-export const MAX_MENTION_ITEMS = 100
-const MAX_MENTION_FOLDER_ENTRIES = 2_000
-const MAX_MENTION_FOLDER_FILE_CONTENTS = 50
-const MENTION_TRUNCATION_MARKER = "\n[...mention content truncated...]\n"
-const MENTION_BUDGET_EXHAUSTED =
-	"[Additional mention content was omitted because the per-message mention context limit was reached.]"
-
 function getUrlErrorMessage(error: unknown): string {
 	const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -95,27 +85,10 @@ export async function parseMentions(
 ): Promise<string> {
 	const mentions: Set<string> = new Set()
 	const validCommands: Map<string, Command> = new Map()
-	let parsedText = text
-	let remainingExpansionCharacters = MAX_MENTION_EXPANSION_CHARACTERS
-	let didAppendBudgetExhaustedNotice = false
-
-	const appendMentionContext = (openingTag: string, content: string, closingTag: string) => {
-		if (remainingExpansionCharacters <= 0) {
-			if (!didAppendBudgetExhaustedNotice) {
-				parsedText += `\n\n${MENTION_BUDGET_EXHAUSTED}`
-				didAppendBudgetExhaustedNotice = true
-			}
-			return
-		}
-
-		const fittedContent = truncateMentionContent(content, remainingExpansionCharacters)
-		parsedText += `\n\n${openingTag}\n${fittedContent}\n${closingTag}`
-		remainingExpansionCharacters -= fittedContent.length
-	}
 
 	// First pass: check which command mentions exist and cache the results
 	const commandMatches = Array.from(text.matchAll(commandRegexGlobal))
-	const uniqueCommandNames = new Set(commandMatches.map(([, commandName]) => commandName).slice(0, MAX_MENTION_ITEMS))
+	const uniqueCommandNames = new Set(commandMatches.map(([, commandName]) => commandName))
 
 	const commandExistenceChecks = await Promise.all(
 		Array.from(uniqueCommandNames).map(async (commandName) => {
@@ -137,6 +110,7 @@ export async function parseMentions(
 	}
 
 	// Only replace text for commands that actually exist
+	let parsedText = text
 	for (const [match, commandName] of commandMatches) {
 		if (validCommands.has(commandName)) {
 			parsedText = parsedText.replace(match, `Command '${commandName}' (see below for command content)`)
@@ -145,9 +119,7 @@ export async function parseMentions(
 
 	// Second pass: handle regular mentions
 	parsedText = parsedText.replace(mentionRegexGlobal, (match, mention) => {
-		if (mentions.size < MAX_MENTION_ITEMS) {
-			mentions.add(mention)
-		}
+		mentions.add(mention)
 		if (mention.startsWith("http")) {
 			return `'${mention}' (see below for site content)`
 		} else if (mention.startsWith("/")) {
@@ -207,7 +179,7 @@ export async function parseMentions(
 					result = `Error fetching content: ${rawErrorMessage}`
 				}
 			}
-			appendMentionContext(`<url_content url="${mention}">`, result, "</url_content>")
+			parsedText += `\n\n<url_content url="${mention}">\n${result}\n</url_content>`
 		} else if (mention.startsWith("/")) {
 			const mentionPath = mention.slice(1)
 			try {
@@ -219,71 +191,47 @@ export async function parseMentions(
 					maxReadFileLine,
 				)
 				if (mention.endsWith("/")) {
-					appendMentionContext(`<folder_content path="${mentionPath}">`, content, "</folder_content>")
+					parsedText += `\n\n<folder_content path="${mentionPath}">\n${content}\n</folder_content>`
 				} else {
-					appendMentionContext(`<file_content path="${mentionPath}">`, content, "</file_content>")
+					parsedText += `\n\n<file_content path="${mentionPath}">\n${content}\n</file_content>`
 					if (fileContextTracker) {
 						await fileContextTracker.trackFileContext(mentionPath, "file_mentioned")
 					}
 				}
 			} catch (error) {
 				if (mention.endsWith("/")) {
-					appendMentionContext(
-						`<folder_content path="${mentionPath}">`,
-						`Error fetching content: ${error.message}`,
-						"</folder_content>",
-					)
+					parsedText += `\n\n<folder_content path="${mentionPath}">\nError fetching content: ${error.message}\n</folder_content>`
 				} else {
-					appendMentionContext(
-						`<file_content path="${mentionPath}">`,
-						`Error fetching content: ${error.message}`,
-						"</file_content>",
-					)
+					parsedText += `\n\n<file_content path="${mentionPath}">\nError fetching content: ${error.message}\n</file_content>`
 				}
 			}
 		} else if (mention === "problems") {
 			try {
 				const problems = await getWorkspaceProblems(cwd, includeDiagnosticMessages, maxDiagnosticMessages)
-				appendMentionContext("<workspace_diagnostics>", problems, "</workspace_diagnostics>")
+				parsedText += `\n\n<workspace_diagnostics>\n${problems}\n</workspace_diagnostics>`
 			} catch (error) {
-				appendMentionContext(
-					"<workspace_diagnostics>",
-					`Error fetching diagnostics: ${error.message}`,
-					"</workspace_diagnostics>",
-				)
+				parsedText += `\n\n<workspace_diagnostics>\nError fetching diagnostics: ${error.message}\n</workspace_diagnostics>`
 			}
 		} else if (mention === "git-changes") {
 			try {
 				const workingState = await getWorkingState(cwd)
-				appendMentionContext("<git_working_state>", workingState, "</git_working_state>")
+				parsedText += `\n\n<git_working_state>\n${workingState}\n</git_working_state>`
 			} catch (error) {
-				appendMentionContext(
-					"<git_working_state>",
-					`Error fetching working state: ${error.message}`,
-					"</git_working_state>",
-				)
+				parsedText += `\n\n<git_working_state>\nError fetching working state: ${error.message}\n</git_working_state>`
 			}
 		} else if (/^[a-f0-9]{7,40}$/.test(mention)) {
 			try {
 				const commitInfo = await getCommitInfo(mention, cwd)
-				appendMentionContext(`<git_commit hash="${mention}">`, commitInfo, "</git_commit>")
+				parsedText += `\n\n<git_commit hash="${mention}">\n${commitInfo}\n</git_commit>`
 			} catch (error) {
-				appendMentionContext(
-					`<git_commit hash="${mention}">`,
-					`Error fetching commit info: ${error.message}`,
-					"</git_commit>",
-				)
+				parsedText += `\n\n<git_commit hash="${mention}">\nError fetching commit info: ${error.message}\n</git_commit>`
 			}
 		} else if (mention === "terminal") {
 			try {
 				const terminalOutput = await getLatestTerminalOutput()
-				appendMentionContext("<terminal_output>", terminalOutput, "</terminal_output>")
+				parsedText += `\n\n<terminal_output>\n${terminalOutput}\n</terminal_output>`
 			} catch (error) {
-				appendMentionContext(
-					"<terminal_output>",
-					`Error fetching terminal output: ${error.message}`,
-					"</terminal_output>",
-				)
+				parsedText += `\n\n<terminal_output>\nError fetching terminal output: ${error.message}\n</terminal_output>`
 			}
 		}
 	}
@@ -296,13 +244,9 @@ export async function parseMentions(
 				commandOutput += `Description: ${command.description}\n\n`
 			}
 			commandOutput += command.content
-			appendMentionContext(`<command name="${commandName}">`, commandOutput, "</command>")
+			parsedText += `\n\n<command name="${commandName}">\n${commandOutput}\n</command>`
 		} catch (error) {
-			appendMentionContext(
-				`<command name="${commandName}">`,
-				`Error loading command '${commandName}': ${error.message}`,
-				"</command>",
-			)
+			parsedText += `\n\n<command name="${commandName}">\nError loading command '${commandName}': ${error.message}\n</command>`
 		}
 	}
 
@@ -354,7 +298,7 @@ async function getFileOrFolderContent(
 			}
 			// forked_change end
 			try {
-				const content = await extractTextFromFile(absPath, getMentionReadLineLimit(maxReadFileLine))
+				const content = await extractTextFromFile(absPath, maxReadFileLine)
 
 				// Extract specific lines if line numbers are specified
 				if (startLine !== undefined && endLine !== undefined) {
@@ -363,20 +307,18 @@ async function getFileOrFolderContent(
 					const startIndex = Math.max(0, startLine - 1)
 					const endIndex = Math.min(lines.length, endLine)
 					const extractedLines = lines.slice(startIndex, endIndex)
-					return truncateMentionContent(extractedLines.join("\n"), MAX_MENTION_FILE_CHARACTERS)
+					return extractedLines.join("\n")
 				}
 
-				return truncateMentionContent(content, MAX_MENTION_FILE_CHARACTERS)
+				return content
 			} catch (error) {
 				return `(Failed to read contents of ${filePath}): ${error.message}`
 			}
 		} else if (stats.isDirectory()) {
-			const allEntries = await fs.readdir(absPath, { withFileTypes: true })
-			const entries = allEntries.slice(0, MAX_MENTION_FOLDER_ENTRIES)
+			const entries = await fs.readdir(absPath, { withFileTypes: true })
 			let folderContent = ""
 			const fileContentPromises: Promise<string | undefined>[] = []
 			const LOCK_SYMBOL = "🔒"
-			let includedFileContents = 0
 
 			for (let index = 0; index < entries.length; index++) {
 				const entry = entries[index]
@@ -397,8 +339,7 @@ async function getFileOrFolderContent(
 
 				if (entry.isFile()) {
 					folderContent += `${linePrefix}${displayName}\n`
-					if (!isIgnored && includedFileContents < MAX_MENTION_FOLDER_FILE_CONTENTS) {
-						includedFileContents++
+					if (!isIgnored) {
 						const filePath = path.join(mentionPath, entry.name)
 						const absoluteFilePath = path.resolve(absPath, entry.name)
 						fileContentPromises.push(
@@ -408,14 +349,8 @@ async function getFileOrFolderContent(
 									if (isBinary) {
 										return undefined
 									}
-									const content = await extractTextFromFile(
-										absoluteFilePath,
-										getMentionReadLineLimit(maxReadFileLine),
-									)
-									return `<file_content path="${filePath.toPosix()}">\n${truncateMentionContent(
-										content,
-										MAX_MENTION_FILE_CHARACTERS,
-									)}\n</file_content>`
+									const content = await extractTextFromFile(absoluteFilePath, maxReadFileLine)
+									return `<file_content path="${filePath.toPosix()}">\n${content}\n</file_content>`
 								} catch (error) {
 									return undefined
 								}
@@ -428,48 +363,14 @@ async function getFileOrFolderContent(
 					folderContent += `${linePrefix}${displayName}\n`
 				}
 			}
-			if (allEntries.length > entries.length) {
-				folderContent += `[...${allEntries.length - entries.length} additional folder entries omitted...]\n`
-			}
-			if (includedFileContents >= MAX_MENTION_FOLDER_FILE_CONTENTS) {
-				folderContent += `[Additional file contents omitted after ${MAX_MENTION_FOLDER_FILE_CONTENTS} files.]\n`
-			}
 			const fileContents = (await Promise.all(fileContentPromises)).filter((content) => content)
-			return truncateMentionContent(
-				`${folderContent}\n${fileContents.join("\n\n")}`.trim(),
-				MAX_MENTION_EXPANSION_CHARACTERS,
-			)
+			return `${folderContent}\n${fileContents.join("\n\n")}`.trim()
 		} else {
 			return `(Failed to read contents of ${filePath})`
 		}
 	} catch (error) {
 		throw new Error(`Failed to access path "${filePath}": ${error.message}`)
 	}
-}
-
-function getMentionReadLineLimit(maxReadFileLine?: number): number {
-	if (typeof maxReadFileLine === "number" && Number.isInteger(maxReadFileLine) && maxReadFileLine > 0) {
-		return Math.min(maxReadFileLine, MAX_MENTION_FILE_LINES)
-	}
-
-	// File mentions are prompt expansion, so an "unlimited" read setting must
-	// still have a context-safe ingestion ceiling. The read_file tool remains the
-	// paginated path for content beyond this point.
-	return MAX_MENTION_FILE_LINES
-}
-
-export function truncateMentionContent(content: string, maxCharacters: number): string {
-	if (content.length <= maxCharacters) {
-		return content
-	}
-	if (maxCharacters <= MENTION_TRUNCATION_MARKER.length) {
-		return MENTION_TRUNCATION_MARKER.slice(0, Math.max(0, maxCharacters))
-	}
-
-	const available = maxCharacters - MENTION_TRUNCATION_MARKER.length
-	const headLength = Math.floor(available * 0.35)
-	const tailLength = available - headLength
-	return `${content.slice(0, headLength)}${MENTION_TRUNCATION_MARKER}${content.slice(content.length - tailLength)}`
 }
 
 async function getWorkspaceProblems(
