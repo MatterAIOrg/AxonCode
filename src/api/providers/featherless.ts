@@ -9,7 +9,6 @@ import OpenAI from "openai"
 
 import type { ApiHandlerOptions } from "../../shared/api"
 import { XmlMatcher } from "../../utils/xml-matcher"
-import type { ApiHandlerCreateMessageMetadata } from "../index"
 import { convertToR1Format } from "../transform/r1-format"
 import { convertToOpenAiMessages } from "../transform/openai-format"
 import { ApiStream } from "../transform/stream"
@@ -50,11 +49,7 @@ export class FeatherlessHandler extends BaseOpenAiCompatibleProvider<Featherless
 		}
 	}
 
-	override async *createMessage(
-		systemPrompt: string,
-		messages: Anthropic.Messages.MessageParam[],
-		metadata?: ApiHandlerCreateMessageMetadata,
-	): ApiStream {
+	override async *createMessage(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]): ApiStream {
 		const model = this.getModel()
 
 		if (model.id.includes("DeepSeek-R1")) {
@@ -95,7 +90,7 @@ export class FeatherlessHandler extends BaseOpenAiCompatibleProvider<Featherless
 				yield processedChunk
 			}
 		} else {
-			yield* super.createMessage(systemPrompt, messages, metadata)
+			yield* super.createMessage(systemPrompt, messages)
 		}
 	}
 

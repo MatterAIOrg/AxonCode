@@ -52,7 +52,7 @@ const happyEyeballsFetch: typeof fetch = (input, init) =>
 		dispatcher: happyEyeballsAgent,
 	}) as unknown as Promise<Response>
 
-// forked_change start: inference failover circuit breaker.
+// inference failover circuit breaker.
 // Primary inference host is api2.matterai.so. If the GCP VM is completely down
 // (connection-level failure — NOT an HTTP error from a responding server), trip
 // the breaker and route to the fallback host api.matterai.so for a 5-minute

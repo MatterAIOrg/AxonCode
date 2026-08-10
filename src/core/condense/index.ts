@@ -158,9 +158,7 @@ export async function summarizeConversation(
 		}
 	}
 
-	// Condensing never needs callable tools. Passing an explicit empty list also
-	// keeps native tool schemas out of the request-level context budget.
-	const stream = handlerToUse.createMessage(promptToUse, requestMessages, { taskId, allowedTools: [] })
+	const stream = handlerToUse.createMessage(promptToUse, requestMessages)
 
 	let summary = ""
 	let cost = 0
