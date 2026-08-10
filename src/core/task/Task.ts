@@ -146,6 +146,7 @@ import {
 } from "../condense"
 import { Gpt5Metadata, ClineMessageWithMetadata } from "./types"
 import { MessageQueueService } from "../message-queue/MessageQueueService"
+import { isCompletionQueueBoundary, isTaskIdleForQueuedMessages } from "../message-queue/queueLifecycle"
 
 import { AutoApprovalHandler } from "./AutoApprovalHandler"
 import { isAnyRecognizedKiloCodeError, isPaymentRequiredError } from "../../shared/kilocode/errorUtils"
@@ -165,7 +166,14 @@ const STREAM_IDLE_TIMEOUT_MS = 180000 // 180 seconds
 // forked_change: how many times to auto-retry a transient provider connection
 // failure (socket closed by the network, idle timeout, DNS/TLS drop) before
 // falling back to the manual retry prompt. Applies regardless of auto-approve.
-const MAX_CONNECTION_RETRIES = 3
+const MAX_CONNECTION_RETRIES = 5
+// Fixed delay between automatic connection retries.
+const CONNECTION_RETRY_DELAY_MS = 10000 // 10 seconds
+// forked_change: idle timeout for the final attempt after all automatic
+// connection retries are exhausted. A silently stalled request (packets
+// dropped, no error surfaced) must not hang for the full STREAM_IDLE_TIMEOUT_MS
+// before the manual retry prompt appears.
+const FINAL_ATTEMPT_IDLE_TIMEOUT_MS = 30000 // 30 seconds
 
 /**
  * Race an async iterator's next() against an idle timeout.
@@ -1225,7 +1233,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// block (via the `pWaitFor`).
 		const isBlocking = !(this.askResponse !== undefined || this.lastMessageTs !== askTs)
 		const isMessageQueued = !this.messageQueueService.isEmpty()
-		const isStatusMutable = !partial && isBlocking && !isMessageQueued
+		// A queued message is user feedback for the next turn, not an implicit
+		// response to whichever tool/API ask happens to finish first. Only the
+		// final completion_result ask is a valid early dispatch boundary; all
+		// other asks must leave the queue untouched until the whole agent turn is
+		// idle and processManualMessageQueue can safely submit it.
+		const shouldDispatchQueuedMessage = isCompletionQueueBoundary(type, partial) && isBlocking && isMessageQueued
+		const isStatusMutable = !partial && isBlocking && !shouldDispatchQueuedMessage
 		let statusMutationTimeouts: NodeJS.Timeout[] = []
 
 		if (isStatusMutable) {
@@ -1265,8 +1279,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					}, 1_000),
 				)
 			}
-		} else if (isMessageQueued) {
-			console.log("Task#ask will process message queue")
+		} else if (shouldDispatchQueuedMessage) {
+			console.log("Task#ask will process message queue at completion boundary")
 
 			// Mark that we're waiting for an ask response *before* draining the
 			// queue, so the dequeued message resolves this ask (via
@@ -1278,19 +1292,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			const message = this.messageQueueService.dequeueMessage()
 
 			if (message) {
-				// Check if this is a tool approval ask that needs to be handled
-				if (
-					type === "tool" ||
-					type === "command" ||
-					type === "browser_action_launch" ||
-					type === "use_mcp_server"
-				) {
-					// For tool approvals, we need to approve first, then send the message if there's text/images
-					this.handleWebviewAskResponse("yesButtonClicked", message.text, message.images)
-				} else {
-					// For other ask types (like followup), fulfill the ask directly
-					this.setMessageResponse(message.text, message.images)
-				}
+				this.setMessageResponse(message.text, message.images)
 			}
 		}
 
@@ -1431,7 +1433,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			return
 		}
 
-		if (this.taskRequestCount > 0 || this.isStreaming || this.isWaitingForAskResponse) {
+		if (!this.isIdleForQueuedMessages()) {
 			return
 		}
 
@@ -1439,7 +1441,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		try {
 			while (!this.messageQueueService.isEmpty()) {
-				if (this.taskRequestCount > 0 || this.isStreaming || this.isWaitingForAskResponse) {
+				if (!this.isIdleForQueuedMessages()) {
 					break
 				}
 
@@ -1457,14 +1459,17 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this.isProcessingManualMessages = false
 		}
 
-		if (
-			this.taskRequestCount === 0 &&
-			!this.isStreaming &&
-			!this.isWaitingForAskResponse &&
-			!this.messageQueueService.isEmpty()
-		) {
+		if (this.isIdleForQueuedMessages() && !this.messageQueueService.isEmpty()) {
 			void this.processManualMessageQueue()
 		}
+	}
+
+	private isIdleForQueuedMessages(): boolean {
+		return isTaskIdleForQueuedMessages({
+			taskRequestCount: this.taskRequestCount,
+			isStreaming: this.isStreaming,
+			isWaitingForAskResponse: this.isWaitingForAskResponse,
+		})
 	}
 
 	private async handleManualUserMessage(message: { text: string; images?: string[] }): Promise<void> {
@@ -4220,7 +4225,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		try {
 			// Awaiting first chunk to see if it will throw an error.
 			this.isWaitingForFirstChunk = true
-			const firstChunk = await nextWithIdleTimeout(iterator)
+			// forked_change: on the final attempt (all automatic connection retries
+			// exhausted) use a short idle timeout so a silently stalled request
+			// surfaces the manual retry prompt instead of hanging for minutes.
+			const firstChunk = await nextWithIdleTimeout(
+				iterator,
+				retryAttempt >= MAX_CONNECTION_RETRIES ? FINAL_ATTEMPT_IDLE_TIMEOUT_MS : undefined,
+			)
 			yield firstChunk.value
 			this.isWaitingForFirstChunk = false
 		} catch (error) {
@@ -4265,6 +4276,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// auto-retry them a few times before falling back to the manual retry prompt —
 			// regardless of the auto-approve setting. This is the first-chunk path, so
 			// nothing has streamed yet and the retry is clean.
+			if (isConnectionClosedError(error)) {
+				console.warn(
+					`[Task#${this.taskId}.${this.instanceId}] first-chunk connection error (retryAttempt=${retryAttempt}/${MAX_CONNECTION_RETRIES})`,
+				)
+			}
+
 			if (isConnectionClosedError(error) && retryAttempt < MAX_CONNECTION_RETRIES) {
 				await this.backoffBeforeConnectionRetry(error, retryAttempt)
 				yield* this.attemptApiRequestUnlocked(retryAttempt + 1)
@@ -4274,7 +4291,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// Check if this is a 5xx error - always show retry dialog for server errors
 			const isServerError = error.status && error.status >= 500 && error.status < 600
 
-			if (autoApprovalEnabled && alwaysApproveResubmit && !isServerError) {
+			// forked_change: a connection-closed error reaching here means all automatic
+			// connection retries are exhausted (the block above already handled the
+			// retryAttempt < MAX_CONNECTION_RETRIES case). A dropped connection is a local
+			// network issue, so exponential-backoff auto-retry is pointless — always show
+			// the manual retry button instead, regardless of the auto-approve setting.
+			if (autoApprovalEnabled && alwaysApproveResubmit && !isServerError && !isConnectionClosedError(error)) {
 				let errorMsg
 
 				if (error.error?.metadata?.raw) {
@@ -4328,7 +4350,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 				return
 			} else {
-				const { response } = await this.ask("api_req_failed", describeStreamFailure(error))
+				const response = await this.askApiReqFailed(error)
 
 				if (response !== "yesButtonClicked") {
 					// This will never happen since if noButtonClicked, we will
@@ -4347,10 +4369,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// No error on first chunk, so we can continue to yield all remaining chunks.
 		// Wrap in try/catch to handle mid-stream errors and allow retry.
 		try {
-			let result = await nextWithIdleTimeout(iterator)
+			// forked_change: shortened idle timeout for the final (post-retry) attempt so
+			// a stalled mid-stream response surfaces the manual retry prompt instead of
+			// hanging for the full STREAM_IDLE_TIMEOUT_MS.
+			const idleTimeout = retryAttempt >= MAX_CONNECTION_RETRIES ? FINAL_ATTEMPT_IDLE_TIMEOUT_MS : undefined
+			let result = await nextWithIdleTimeout(iterator, idleTimeout)
 			while (!result.done) {
 				yield result.value
-				result = await nextWithIdleTimeout(iterator)
+				result = await nextWithIdleTimeout(iterator, idleTimeout)
 			}
 		} catch (error) {
 			// Reset streaming state since we encountered an error
@@ -4421,12 +4447,19 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 			// For mid-stream failures, show the retry dialog to allow user to retry
 			// Always show retry dialog for 5xx server errors
-			const { response } = await this.ask("api_req_failed", describeStreamFailure(error))
+			const response = await this.askApiReqFailed(error)
 
 			if (response !== "yesButtonClicked") {
 				// This will never happen since if noButtonClicked, we will
 				// clear current task, aborting this instance.
 				throw new Error("API request failed")
+			}
+
+			// The failed attempt already streamed output, so discard it before
+			// re-requesting (same as the auto-retry path) — but only when nothing
+			// irreversible has run; otherwise keep the streamed context intact.
+			if (canRestartCleanly) {
+				yield { type: "stream_restart" }
 			}
 
 			await this.say("api_req_retried")
@@ -4483,26 +4516,87 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	}
 
 	/**
-	 * forked_change: countdown + delay before an automatic connection retry.
-	 * Surfaces api_req_retry_delayed (exponential backoff, capped) so the user
-	 * sees why the turn paused. Stops counting early if the task is aborted.
+	 * forked_change: show a single short status line, then wait a fixed delay
+	 * before the next automatic connection retry. No per-second countdown and no
+	 * verbose error text — the full failure detail is reserved for the manual
+	 * retry prompt shown only after all auto-retries are exhausted. Stops early
+	 * if the task is aborted.
 	 */
 	private async backoffBeforeConnectionRetry(error: unknown, retryAttempt: number): Promise<void> {
-		const message = describeStreamFailure(error)
-		const seconds = Math.min(2 ** retryAttempt, MAX_EXPONENTIAL_BACKOFF_SECONDS)
-		for (let i = seconds; i > 0 && !this.abort; i--) {
-			await this.say(
-				"api_req_retry_delayed",
-				`${message}\n\nConnection retry ${retryAttempt + 1}/${MAX_CONNECTION_RETRIES} in ${i}s...`,
-				undefined,
-			)
-			await delay(1000)
+		// An abort (user pressed Stop) must cancel the retry, not let it proceed:
+		// the fixed delay below is not abort-aware, and returning silently would
+		// let the caller fire a fresh provider request on an aborted task. say()
+		// throws on abort, so re-check both before the wait and after it.
+		if (this.abort) {
+			throw new Error(`[Orbital#backoffBeforeConnectionRetry] task ${this.taskId}.${this.instanceId} aborted`)
 		}
-		await this.say(
-			"api_req_retry_delayed",
-			`${message}\n\nConnection retry ${retryAttempt + 1}/${MAX_CONNECTION_RETRIES} now...`,
-			undefined,
+		console.warn(
+			`[Task#${this.taskId}.${this.instanceId}] connection lost; retrying (${retryAttempt + 1}/${MAX_CONNECTION_RETRIES}) in ${
+				CONNECTION_RETRY_DELAY_MS / 1000
+			}s: ${error instanceof Error ? error.message : String(error)}`,
 		)
+		// Non-interactive so the status line can never supersede a pending ask
+		// (e.g. a tool approval preview) and kill it with "ask was ignored".
+		await this.say("api_req_retry_delayed", "Retrying connection", undefined, undefined, undefined, undefined, {
+			isNonInteractive: true,
+		})
+		await delay(CONNECTION_RETRY_DELAY_MS)
+		if (this.abort) {
+			throw new Error(`[Orbital#backoffBeforeConnectionRetry] task ${this.taskId}.${this.instanceId} aborted`)
+		}
+	}
+
+	/**
+	 * forked_change: present the api_req_failed retry prompt, surviving background
+	 * message activity that would otherwise supersede the ask (e.g. a late partial
+	 * text finalization, a pending tool-approval preview, or a tool error row from
+	 * presentAssistantMessage). A superseded ask rejects with "Current ask promise
+	 * was ignored" and previously aborted the whole task, leaving the user with no
+	 * retry button at all. We remove the orphaned ask row, wait for the background
+	 * activity to settle, and re-present it so the retry button reliably appears.
+	 */
+	private async askApiReqFailed(error: unknown): Promise<string> {
+		const message = describeStreamFailure(error)
+		for (let attempt = 1; attempt <= 3; attempt++) {
+			try {
+				const { response } = await this.ask("api_req_failed", message)
+				return response
+			} catch (err) {
+				if (this.abort) {
+					throw err
+				}
+				if (!(err instanceof Error) || !err.message.includes("Current ask promise was ignored")) {
+					throw err
+				}
+				console.error(
+					`[Task#${this.taskId}.${this.instanceId}] api_req_failed ask was superseded by background activity (attempt ${attempt}/3); re-presenting`,
+				)
+				await this.removeOrphanedApiReqFailedAsk()
+				await delay(1000)
+			}
+		}
+		// Last resort: surface the failure visibly instead of aborting silently.
+		try {
+			await this.say(
+				"error",
+				`Orbital lost the connection to the model and could not keep a retry prompt visible.\n\n${message}`,
+			)
+		} catch {
+			// best-effort; the task is about to abort anyway
+		}
+		throw new Error("Current ask promise was ignored")
+	}
+
+	private async removeOrphanedApiReqFailedAsk(): Promise<void> {
+		for (let i = this.clineMessages.length - 1; i >= 0; i--) {
+			const message = this.clineMessages[i]
+			if (message.type === "ask" && message.ask === "api_req_failed" && message.partial !== true) {
+				this.clineMessages.splice(i, 1)
+				break
+			}
+		}
+		await this.saveClineMessages()
+		await this.providerRef.deref()?.postStateToWebview()
 	}
 
 	/**
@@ -4621,6 +4715,13 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	 */
 	public processQueuedMessages(): void {
 		try {
+			// A message can be queued just after completion_result was rendered but
+			// after ask() performed its initial queue check. Honor the same explicit
+			// completion boundary while that ask is still pending.
+			if (this.dispatchQueuedMessageToPendingCompletion()) {
+				return
+			}
+
 			if (!this.messageQueueService.isEmpty()) {
 				// Defer to the next tick so we don't reenter while a tool is still
 				// finishing. The message stays visible in the queue until it is
@@ -4635,6 +4736,34 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		} catch (e) {
 			console.error(`[Task] Queue processing error:`, e)
 		}
+	}
+
+	private dispatchQueuedMessageToPendingCompletion(): boolean {
+		if (
+			!this.isWaitingForAskResponse ||
+			this.askResponse !== undefined ||
+			this.messageQueueService.isEmpty() ||
+			this.lastMessageTs === undefined
+		) {
+			return false
+		}
+
+		const pendingAsk = this.findMessageByTimestamp(this.lastMessageTs)
+		if (
+			pendingAsk?.type !== "ask" ||
+			pendingAsk.ask === undefined ||
+			!isCompletionQueueBoundary(pendingAsk.ask, pendingAsk.partial)
+		) {
+			return false
+		}
+
+		const message = this.messageQueueService.dequeueMessage()
+		if (!message) {
+			return false
+		}
+
+		this.setMessageResponse(message.text, message.images)
+		return true
 	}
 
 	/**

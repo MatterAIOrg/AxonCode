@@ -95,6 +95,46 @@ export class MessageQueueService extends EventEmitter<QueueEvents> {
 		return message
 	}
 
+	/**
+	 * Return a detached copy suitable for carrying pending messages across a
+	 * same-task rehydration. Queue ids and timestamps are preserved so the UI
+	 * continues to treat them as the same queued items.
+	 */
+	public snapshot(): QueuedMessage[] {
+		return this._messages.map((message) => ({
+			...message,
+			images: message.images ? [...message.images] : undefined,
+		}))
+	}
+
+	public restoreMessages(messages: readonly QueuedMessage[]): void {
+		if (messages.length === 0) {
+			return
+		}
+
+		const existingIds = new Set(this._messages.map((message) => message.id))
+		const restoredMessages: QueuedMessage[] = []
+
+		for (const message of messages) {
+			if (existingIds.has(message.id)) {
+				continue
+			}
+
+			existingIds.add(message.id)
+			restoredMessages.push({
+				...message,
+				images: message.images ? [...message.images] : undefined,
+			})
+		}
+
+		if (restoredMessages.length === 0) {
+			return
+		}
+
+		this._messages.push(...restoredMessages)
+		this.emit("stateChanged", this._messages)
+	}
+
 	public get messages(): QueuedMessage[] {
 		return this._messages
 	}

@@ -33,6 +33,7 @@ import {
 	type CloudOrganizationMembership,
 	type CreateTaskOptions,
 	type TokenUsage,
+	type QueuedMessage,
 	RooCodeEventName,
 	requestyDefaultModelId,
 	openRouterDefaultModelId,
@@ -242,6 +243,9 @@ export class ClineProvider
 					// Only rehydrate on genuine streaming failures.
 					// User-initiated cancels are handled by cancelTask().
 					if (instance.abortReason === "streaming_failed") {
+						// abortTask() disposes the old task immediately after this event,
+						// so capture its queue synchronously before the first await.
+						const queuedMessages = instance.messageQueueService.snapshot()
 						// Defensive safeguard: if another path already replaced this instance, skip
 						const current = this.getCurrentTask()
 						if (current && current.instanceId !== instance.instanceId) {
@@ -254,7 +258,7 @@ export class ClineProvider
 						const { historyItem } = await this.getTaskWithId(instance.taskId)
 						const rootTask = instance.rootTask
 						const parentTask = instance.parentTask
-						await this.createTaskWithHistoryItem({ ...historyItem, rootTask, parentTask })
+						await this.createTaskWithHistoryItem({ ...historyItem, rootTask, parentTask }, queuedMessages)
 					}
 				} catch (error) {
 					this.log(
@@ -1166,7 +1170,10 @@ ${prompt}
 		await this.removeClineFromStack()
 	}
 
-	public async createTaskWithHistoryItem(historyItem: HistoryItem & { rootTask?: Task; parentTask?: Task }) {
+	public async createTaskWithHistoryItem(
+		historyItem: HistoryItem & { rootTask?: Task; parentTask?: Task },
+		queuedMessages: readonly QueuedMessage[] = [],
+	) {
 		await this.removeClineFromStack()
 
 		// If the history item has a saved mode, restore it and its associated API configuration.
@@ -1301,6 +1308,9 @@ ${prompt}
 		})
 
 		await this.addClineToStack(task)
+		// Restore only after the task is current so stateChanged publishes the
+		// preserved queue for the replacement instance.
+		task.messageQueueService.restoreMessages(queuedMessages)
 
 		this.log(
 			`[createTaskWithHistoryItem] ${task.parentTask ? "child" : "parent"} task ${task.taskId}.${task.instanceId} instantiated`,
@@ -3356,6 +3366,9 @@ ${prompt}
 
 		console.log(`[cancelTask] cancelling task ${task.taskId}.${task.instanceId}`)
 
+		// Snapshot before the first await: the active stream can fail and dispose
+		// this task while cancellation is loading its history.
+		const queuedMessages = task.messageQueueService.snapshot()
 		const { historyItem, uiMessagesFilePath } = await this.getTaskWithId(task.taskId)
 
 		// Preserve parent and root task information for history item.
@@ -3416,7 +3429,7 @@ ${prompt}
 		}
 
 		// Clears task again, so we need to abortTask manually above.
-		const newTask = await this.createTaskWithHistoryItem({ ...historyItem, rootTask, parentTask })
+		const newTask = await this.createTaskWithHistoryItem({ ...historyItem, rootTask, parentTask }, queuedMessages)
 
 		// Restore pending file edits to the new task instance so AcceptRejectButtons remain visible
 		if (pendingFileEdits.length > 0 && newTask) {

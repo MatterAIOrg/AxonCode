@@ -5377,9 +5377,13 @@ ${comment.suggestion}
 		 */
 
 		case "queueMessage": {
-			provider
-				.getCurrentTask()
-				?.messageQueueService.addMessage(message.text ?? "", extractDataUrls(message.images))
+			const currentTask = provider.getCurrentTask()
+			currentTask?.messageQueueService.addMessage(message.text ?? "", extractDataUrls(message.images))
+			// The UI may have classified the task as busy just as its final
+			// content-only response became idle. Re-check on the task side: this
+			// no-ops while a stream, tool turn, or ask is still active and dispatches
+			// the message only if the task really is idle.
+			currentTask?.processQueuedMessages()
 			break
 		}
 		case "removeQueuedMessage": {

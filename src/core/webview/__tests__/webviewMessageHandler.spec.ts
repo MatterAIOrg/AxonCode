@@ -97,6 +97,25 @@ vi.mock("../../../utils/fs")
 vi.mock("../../../utils/path")
 vi.mock("../../../utils/globalContext")
 
+describe("webviewMessageHandler - queueMessage", () => {
+	it("asks the task to re-check whether a newly queued message can be dispatched", async () => {
+		const addMessage = vi.fn()
+		const processQueuedMessages = vi.fn()
+		mockClineProvider.getCurrentTask = vi.fn().mockReturnValue({
+			messageQueueService: { addMessage },
+			processQueuedMessages,
+		})
+
+		await webviewMessageHandler(mockClineProvider, {
+			type: "queueMessage",
+			text: "send when idle",
+		})
+
+		expect(addMessage).toHaveBeenCalledWith("send when idle", [])
+		expect(processQueuedMessages).toHaveBeenCalledTimes(1)
+	})
+})
+
 describe("webviewMessageHandler - requestLmStudioModels", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
