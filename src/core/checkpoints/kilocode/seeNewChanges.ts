@@ -102,6 +102,7 @@ export async function seeNewChanges(task: Task, commitRange: CommitRange) {
 				absolutePath: change.paths.absolute,
 				originalContent: change.content.before ?? "",
 				newContent: change.content.after ?? "",
+				createdByAgent: change.content.before === undefined,
 			})
 		}
 

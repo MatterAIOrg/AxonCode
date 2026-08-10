@@ -52,6 +52,86 @@ const happyEyeballsFetch: typeof fetch = (input, init) =>
 		dispatcher: happyEyeballsAgent,
 	}) as unknown as Promise<Response>
 
+// inference failover circuit breaker.
+// Primary inference host is api2.matterai.so. If the GCP VM is completely down
+// (connection-level failure — NOT an HTTP error from a responding server), trip
+// the breaker and route to the fallback host api.matterai.so for a 5-minute
+// cooldown. After the cooldown a half-open probe retries api2: on success the
+// breaker closes, on connection failure it reopens for another cooldown.
+// HTTP 4xx/5xx responses from a live server never trip the breaker — only fetch
+// rejections (TypeError) do, since those mean the host was unreachable.
+const INFERENCE_PRIMARY_HOST = "api2.matterai.so"
+const INFERENCE_FALLBACK_HOST = "api.matterai.so"
+const INFERENCE_CB_COOLDOWN_MS = 5 * 60 * 1000
+
+let inferenceCircuitOpen = false
+let inferenceCircuitOpenedAt = 0
+
+function isInferenceConnectionFailure(err: unknown): boolean {
+	// undici/Node fetch rejects with a TypeError ("fetch failed") for network-level
+	// errors (ECONNREFUSED, ENOTFOUND, ETIMEDOUT, connect timeout, socket hang up).
+	// HTTP error responses resolve as a Response and are thrown later by the SDK as
+	// APIError, so they never reach this path and never trip the breaker.
+	return err instanceof TypeError
+}
+
+/**
+ * fetch wrapper that failovers inference traffic from api2.matterai.so to
+ * api.matterai.so when the primary host is unreachable. Only the primary host
+ * is rewritten; any other host (e.g. a user-configured custom base URL) passes
+ * through untouched.
+ */
+export const inferenceFailoverFetch: typeof fetch = async (input, init) => {
+	const raw = typeof input === "string" ? input : ((input as any).url ?? (input as any).href ?? String(input))
+	let url: URL
+	try {
+		url = new URL(raw)
+	} catch {
+		return happyEyeballsFetch(input, init)
+	}
+
+	const isPrimary = url.hostname === INFERENCE_PRIMARY_HOST
+
+	// Breaker open and still in cooldown → skip the primary host entirely.
+	if (isPrimary && inferenceCircuitOpen && Date.now() - inferenceCircuitOpenedAt < INFERENCE_CB_COOLDOWN_MS) {
+		url.hostname = INFERENCE_FALLBACK_HOST
+		return happyEyeballsFetch(url.toString(), init)
+	}
+
+	try {
+		const response = await happyEyeballsFetch(url.toString(), init)
+		// Got an HTTP response → host is up. A successful half-open probe closes the breaker.
+		if (isPrimary && inferenceCircuitOpen) {
+			inferenceCircuitOpen = false
+			inferenceCircuitOpenedAt = 0
+			console.warn("[inference-failover] api2 probe succeeded → circuit closed")
+		}
+		return response
+	} catch (err) {
+		if (isPrimary && isInferenceConnectionFailure(err)) {
+			// Primary VM unreachable → trip the breaker and fail this request over to the fallback host.
+			const reopened = inferenceCircuitOpen
+			inferenceCircuitOpen = true
+			inferenceCircuitOpenedAt = Date.now()
+			console.warn(
+				reopened
+					? "[inference-failover] api2 probe failed → circuit reopened for 5m"
+					: "[inference-failover] api2 connection failure → circuit open, failing over to api.matterai.so for 5m",
+			)
+			url.hostname = INFERENCE_FALLBACK_HOST
+			return happyEyeballsFetch(url.toString(), init)
+		}
+		throw err
+	}
+}
+
+/** @internal test-only: force the circuit breaker state. */
+export function __setInferenceCircuitBreaker(open: boolean, openedAt = 0): void {
+	inferenceCircuitOpen = open
+	inferenceCircuitOpenedAt = openedAt
+}
+// forked_change end
+
 function stripThinkingTokens(text: string): string {
 	// Remove <think>...</think> blocks entirely, including nested ones
 	return text.replace(/<think>[\s\S]*?<\/think>/g, "").trim()
@@ -148,6 +228,12 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 	protected get providerName(): "OpenRouter" | "KiloCode" {
 		return "OpenRouter" as const
 	}
+
+	// forked_change: subclasses can override the fetch used by the OpenAI client
+	// to inject inference failover (circuit breaker). Default keeps Happy Eyeballs.
+	protected get inferenceFetch(): typeof fetch {
+		return happyEyeballsFetch
+	}
 	// forked_change end
 
 	constructor(options: ApiHandlerOptions) {
@@ -163,7 +249,8 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			defaultHeaders: DEFAULT_HEADERS,
 			// kilocode_change: route through the Happy Eyeballs agent so connect
 			// falls back across address families instead of sticking on the first.
-			fetch: happyEyeballsFetch,
+			// Subclasses may override `inferenceFetch` to add failover (circuit breaker).
+			fetch: this.inferenceFetch,
 		})
 	}
 

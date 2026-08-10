@@ -24,7 +24,7 @@ export const formatPrice = (price: number | Intl.StringNumericLiteral, digits: n
 	}).format(price)
 }
 
-const PricingTable = ({ providers }: { providers: (ModelInfo & { label: string })[] }) => {
+const PricingTable = ({ providers }: { providers: (ModelInfo & { label: string; pricingLabel?: string })[] }) => {
 	const { t } = useAppTranslation()
 	const thClass = "text-left px-3 py-2 font-medium text-vscode-foreground whitespace-nowrap"
 	const tdClass = "px-3 py-2 text-vscode-descriptionForeground whitespace-nowrap"
@@ -58,10 +58,22 @@ const PricingTable = ({ providers }: { providers: (ModelInfo & { label: string }
 							className={`border-b border-vscode-widget-border last:border-b-0 ${index % 2 === 0 ? "bg-vscode-editor-background" : "bg-vscode-sideBar-background"} hover:bg-vscode-list-hoverBackground`}>
 							<td className="px-3 py-2 text-vscode-foreground whitespace-nowrap">{item.label}</td>
 							<td className={tdClass}>{item.contextWindow.toLocaleString()}</td>
-							<td className={tdClass}>{formatPrice(item.inputPrice ?? 0)}</td>
-							<td className={tdClass}>{formatPrice(item.outputPrice ?? 0)}</td>
-							<td className={tdClass}>{item.cacheReadsPrice && formatPrice(item.cacheReadsPrice)}</td>
-							<td className={tdClass}>{item.cacheWritesPrice && formatPrice(item.cacheWritesPrice)}</td>
+							{item.pricingLabel ? (
+								<td className={tdClass} colSpan={4}>
+									{item.pricingLabel}
+								</td>
+							) : (
+								<>
+									<td className={tdClass}>{formatPrice(item.inputPrice ?? 0)}</td>
+									<td className={tdClass}>{formatPrice(item.outputPrice ?? 0)}</td>
+									<td className={tdClass}>
+										{item.cacheReadsPrice && formatPrice(item.cacheReadsPrice)}
+									</td>
+									<td className={tdClass}>
+										{item.cacheWritesPrice && formatPrice(item.cacheWritesPrice)}
+									</td>
+								</>
+							)}
 						</tr>
 					))}
 				</tbody>

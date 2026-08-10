@@ -338,6 +338,7 @@ export async function fileWriteTool(
 			absolutePath,
 			originalContent,
 			newContent: content,
+			createdByAgent: !fileExists,
 		})
 
 		// Track file operation

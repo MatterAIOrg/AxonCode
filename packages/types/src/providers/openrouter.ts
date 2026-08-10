@@ -1,7 +1,7 @@
 import type { ModelInfo } from "../model.js"
 
 // https://openrouter.ai/models?order=newest&supported_parameters=tools
-export const openRouterDefaultModelId = "axon-eido-3-code-mini-200k"
+export const openRouterDefaultModelId = "axon-auto-200k"
 
 export const openRouterDefaultModelInfo: ModelInfo = {
 	maxTokens: 64000,
@@ -14,7 +14,7 @@ export const openRouterDefaultModelInfo: ModelInfo = {
 	cacheWritesPrice: 0.0,
 	cacheReadsPrice: 0.0,
 	description:
-		"Axon Eido 3 Mini is a general purpose super intelligent LLM coding model for high-effort day-to-day tasks",
+		"Axon Auto starts with Eido 3 Code Flash and dynamically selects Flash, Mini, or Pro as the task evolves. Pricing is dynamic and follows the model used for each request.",
 }
 
 export const OPENROUTER_DEFAULT_PROVIDER_NAME = "[default]"

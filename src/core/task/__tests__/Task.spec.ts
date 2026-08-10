@@ -209,7 +209,7 @@ describe("Cline", () => {
 
 		mockExtensionContext = {
 			globalState: {
-				get: vi.fn().mockImplementation((key: keyof GlobalState) => {
+				get: vi.fn().mockImplementation((key: keyof GlobalState, defaultValue?: unknown) => {
 					if (key === "taskHistory") {
 						return [
 							{
@@ -226,10 +226,8 @@ describe("Cline", () => {
 						]
 					}
 
-					return undefined
+					return defaultValue
 				}),
-				update: vi.fn().mockImplementation((_key, _value) => Promise.resolve()),
-				keys: vi.fn().mockReturnValue([]),
 			},
 			globalStorageUri: storageUri,
 			workspaceState: {
@@ -899,6 +897,122 @@ describe("Cline", () => {
 				await cline.abortTask(true)
 				await task.catch(() => {})
 			})
+
+			it("stops the automatic connection retry when the task is aborted during the backoff delay", async () => {
+				const cline = new Task({
+					provider: mockProvider,
+					apiConfiguration: mockApiConfig,
+					task: "test task",
+					startTask: false,
+					context: mockExtensionContext,
+				})
+
+				mockProvider.getState = vi.fn().mockResolvedValue({})
+
+				const connectionError = Object.assign(new Error("socket hang up"), { code: "ECONNRESET" })
+				const createMessageSpy = vi.spyOn(cline.api, "createMessage").mockImplementation(
+					() =>
+						({
+							async *[Symbol.asyncIterator]() {
+								yield undefined
+								throw connectionError
+							},
+							async next() {
+								throw connectionError
+							},
+							async return() {
+								return { done: true, value: undefined }
+							},
+							async throw(e: any) {
+								throw e
+							},
+							async [Symbol.asyncDispose]() {},
+						}) as AsyncGenerator<ApiStreamChunk>,
+				)
+
+				const saySpy = vi.spyOn(cline, "say")
+
+				// Simulate the user pressing Stop while the fixed backoff delay is running.
+				const delaySpy = vi.spyOn(await import("delay"), "default")
+				delaySpy.mockImplementation(async () => {
+					cline.abort = true
+				})
+
+				const iterator = cline.attemptApiRequest(0)
+				await expect(iterator.next()).rejects.toThrow(/aborted/)
+
+				// The connection failure must not be auto-retried after the abort:
+				// exactly one provider call was made.
+				expect(createMessageSpy).toHaveBeenCalledTimes(1)
+				expect(saySpy).toHaveBeenCalledWith("api_req_retry_delayed", "Retrying connection", undefined)
+
+				delaySpy.mockRestore()
+			}, 10000)
+
+			it("auto-retries a connection failure with the fixed backoff delay when the task is not aborted", async () => {
+				const cline = new Task({
+					provider: mockProvider,
+					apiConfiguration: mockApiConfig,
+					task: "test task",
+					startTask: false,
+					context: mockExtensionContext,
+				})
+
+				mockProvider.getState = vi.fn().mockResolvedValue({})
+
+				const connectionError = Object.assign(new Error("socket hang up"), { code: "ECONNRESET" })
+				let attempt = 0
+				const createMessageSpy = vi.spyOn(cline.api, "createMessage").mockImplementation(() => {
+					attempt++
+					if (attempt === 1) {
+						return {
+							async *[Symbol.asyncIterator]() {
+								yield undefined
+								throw connectionError
+							},
+							async next() {
+								throw connectionError
+							},
+							async return() {
+								return { done: true, value: undefined }
+							},
+							async throw(e: any) {
+								throw e
+							},
+							async [Symbol.asyncDispose]() {},
+						} as AsyncGenerator<ApiStreamChunk>
+					}
+					return {
+						async *[Symbol.asyncIterator]() {
+							yield { type: "text", text: "Success" }
+						},
+						async next() {
+							return { done: true, value: { type: "text", text: "Success" } }
+						},
+						async return() {
+							return { done: true, value: undefined }
+						},
+						async throw(e: any) {
+							throw e
+						},
+						async [Symbol.asyncDispose]() {},
+					} as AsyncGenerator<ApiStreamChunk>
+				})
+
+				const delaySpy = vi.spyOn(await import("delay"), "default")
+				const saySpy = vi.spyOn(cline, "say")
+
+				const iterator = cline.attemptApiRequest(0)
+				const result = await iterator.next()
+				expect(result.value).toEqual({ type: "text", text: "Success" })
+
+				expect(createMessageSpy).toHaveBeenCalledTimes(2)
+				expect(delaySpy).toHaveBeenCalledTimes(1)
+				expect(delaySpy).toHaveBeenCalledWith(10000)
+				expect(saySpy).toHaveBeenCalledWith("api_req_retry_delayed", "Retrying connection", undefined)
+
+				delaySpy.mockRestore()
+			}, 10000)
 
 			describe("processUserContentMentions", () => {
 				it("should process mentions in task and feedback tags", async () => {
@@ -1982,6 +2096,71 @@ describe("Cline", () => {
 			expect(task.messageQueueService.messages).toHaveLength(1)
 			expect(task.messageQueueService.messages[0].text).toBe("hello while busy")
 			expect(sendSpy).not.toHaveBeenCalled()
+		})
+
+		it.each(["tool", "command", "followup", "api_req_failed"] as const)(
+			"does not consume queued feedback as a %s ask response",
+			async (askType) => {
+				const task = makeTask()
+				const sendSpy = vi.spyOn(task as any, "handleManualUserMessage").mockResolvedValue(undefined)
+
+				// The surrounding agent turn is still active even though this ask is
+				// complete and may temporarily stop the provider stream.
+				;(task as any).taskRequestCount = 1
+				task.messageQueueService.addMessage("feedback for the next turn")
+
+				await task.ask(askType, "active ask", false)
+
+				expect(task.messageQueueService.messages).toHaveLength(1)
+				expect(task.messageQueueService.messages[0].text).toBe("feedback for the next turn")
+				expect(sendSpy).not.toHaveBeenCalled()
+			},
+		)
+
+		it("dispatches queued feedback when attempt completion reaches its completion ask", async () => {
+			const task = makeTask()
+			;(task as any).taskRequestCount = 1
+			task.messageQueueService.addMessage("one more change")
+
+			const result = await task.ask("completion_result", "", false)
+
+			expect(result).toMatchObject({ response: "messageResponse", text: "one more change" })
+			expect(task.messageQueueService.isEmpty()).toBe(true)
+		})
+
+		it("dispatches one feedback message queued while the completion ask is already pending", async () => {
+			const task = makeTask()
+			const askTs = Date.now()
+			task.clineMessages.push({ ts: askTs, type: "ask", ask: "completion_result" })
+			task.lastMessageTs = askTs
+			task.isWaitingForAskResponse = true
+			task.messageQueueService.addMessage("late completion feedback")
+			task.messageQueueService.addMessage("keep this for the next boundary")
+
+			task.processQueuedMessages()
+			task.processQueuedMessages()
+			await flush()
+
+			expect(task.messageQueueService.messages.map((message) => message.text)).toEqual([
+				"keep this for the next boundary",
+			])
+			expect((task as any).askResponse).toBe("messageResponse")
+			expect((task as any).askResponseText).toBe("late completion feedback")
+		})
+
+		it("keeps feedback queued while a tool ask is already pending", async () => {
+			const task = makeTask()
+			const askTs = Date.now()
+			task.clineMessages.push({ ts: askTs, type: "ask", ask: "tool" })
+			task.lastMessageTs = askTs
+			task.isWaitingForAskResponse = true
+			task.messageQueueService.addMessage("do not use as approval")
+
+			task.processQueuedMessages()
+			await flush()
+
+			expect(task.messageQueueService.messages).toHaveLength(1)
+			expect((task as any).askResponse).toBeUndefined()
 		})
 
 		it("does not drain the queue between API calls in the same agent turn", async () => {

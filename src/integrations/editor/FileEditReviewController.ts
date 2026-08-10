@@ -12,6 +12,7 @@ type PendingFileEdit = {
 	readablePath: string
 	absolutePath: string
 	originalContent: string
+	createdByAgent: boolean
 	diffAnchor: vscode.Range
 	edits: Array<{
 		originalContent: string
@@ -153,7 +154,13 @@ export class FileEditReviewController implements vscode.Disposable {
 		}
 	}
 
-	addEdit(params: { relPath: string; absolutePath: string; originalContent: string; newContent: string }) {
+	addEdit(params: {
+		relPath: string
+		absolutePath: string
+		originalContent: string
+		newContent: string
+		createdByAgent?: boolean
+	}) {
 		const readablePath = getReadablePath(this.cwd, params.relPath)
 		const diffAnchor = computeFirstDifferenceRange(params.originalContent, params.newContent)
 
@@ -201,6 +208,7 @@ export class FileEditReviewController implements vscode.Disposable {
 				readablePath,
 				absolutePath: params.absolutePath,
 				originalContent: params.originalContent,
+				createdByAgent: params.createdByAgent ?? false,
 				diffAnchor,
 				edits: [edit],
 			}
@@ -244,6 +252,7 @@ export class FileEditReviewController implements vscode.Disposable {
 		relPath: string
 		absolutePath: string
 		originalContent: string
+		createdByAgent: boolean
 		edits: Array<{
 			originalContent: string
 			newContent: string
@@ -253,6 +262,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			relPath: string
 			absolutePath: string
 			originalContent: string
+			createdByAgent: boolean
 			edits: Array<{
 				originalContent: string
 				newContent: string
@@ -264,6 +274,7 @@ export class FileEditReviewController implements vscode.Disposable {
 				relPath: entry.relPath,
 				absolutePath: entry.absolutePath,
 				originalContent: entry.originalContent,
+				createdByAgent: entry.createdByAgent,
 				edits: entry.edits.map((e) => ({
 					originalContent: e.originalContent,
 					newContent: e.newContent,
@@ -283,6 +294,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			relPath: string
 			absolutePath: string
 			originalContent: string
+			createdByAgent: boolean
 			edits: Array<{
 				originalContent: string
 				newContent: string
@@ -297,6 +309,7 @@ export class FileEditReviewController implements vscode.Disposable {
 					absolutePath: data.absolutePath,
 					originalContent: edit.originalContent,
 					newContent: edit.newContent,
+					createdByAgent: data.createdByAgent,
 				})
 			}
 		}
@@ -497,7 +510,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			// writing the originalContent of the edit will revert to before THIS edit.
 			// (Note: this effectively undoes subsequent edits too, as we revert the whole document
 			// to the state before this edit, but it is necessary for correctly rejecting).
-			await fs.writeFile(entry.absolutePath, edit.originalContent, "utf-8")
+			await this.restoreContent(entry, edit.originalContent)
 
 			entry.edits.splice(index)
 			if (entry.edits.length === 0) {
@@ -507,7 +520,7 @@ export class FileEditReviewController implements vscode.Disposable {
 			this.codeLensEmitter.fire()
 		} else {
 			// Reject means we restore the original content (first edit's original content)
-			await fs.writeFile(entry.absolutePath, entry.originalContent, "utf-8")
+			await this.restoreContent(entry, entry.originalContent)
 			// Force reload/save not strictly needed as file watcher handles it,
 			// but ensures editor updates
 
@@ -571,7 +584,7 @@ export class FileEditReviewController implements vscode.Disposable {
 
 		// Reject all edits by restoring original content for each file
 		for (const entry of this.pendingEdits.values()) {
-			await fs.writeFile(entry.absolutePath, entry.originalContent, "utf-8")
+			await this.restoreContent(entry, entry.originalContent)
 		}
 
 		this.pendingEdits.clear()
@@ -580,6 +593,30 @@ export class FileEditReviewController implements vscode.Disposable {
 		this.refreshDecorations()
 		this.updateContext()
 		this.codeLensEmitter.fire()
+	}
+
+	/**
+	 * Restore a file to its pre-edit state when rejecting changes.
+	 *
+	 * If the file was created by the agent (it did not exist before the first
+	 * edit), rejecting means deleting the file entirely instead of leaving an
+	 * empty file behind. Pre-existing files are always restored by writing
+	 * their original content back, even if that content is empty.
+	 */
+	private async restoreContent(entry: PendingFileEdit, content: string) {
+		if (entry.createdByAgent && content === "") {
+			try {
+				await fs.unlink(entry.absolutePath)
+			} catch (error) {
+				const err = error as { code?: string }
+				// The file may already have been removed (e.g. by the user); that's fine.
+				if (err.code !== "ENOENT") {
+					throw error
+				}
+			}
+			return
+		}
+		await fs.writeFile(entry.absolutePath, content, "utf-8")
 	}
 
 	async handleReviewNext() {

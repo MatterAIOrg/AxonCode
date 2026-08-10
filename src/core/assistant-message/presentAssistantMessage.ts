@@ -846,7 +846,18 @@ export async function presentAssistantMessage(cline: Task) {
 				const errMsg = error instanceof Error ? error.message : String(error)
 				console.error(`[presentAssistantMessage] Tool '${block.name}' processing threw: ${errMsg}`, error)
 				try {
-					await cline.say("error", `Tool '${block.name}' failed: ${errMsg}`)
+					// Non-interactive so a late tool failure can never supersede a
+					// pending ask (e.g. the api_req_failed retry prompt) with an
+					// interactive error row and kill it via "ask was ignored".
+					await cline.say(
+						"error",
+						`Tool '${block.name}' failed: ${errMsg}`,
+						undefined,
+						undefined,
+						undefined,
+						undefined,
+						{ isNonInteractive: true },
+					)
 				} catch {
 					// best-effort; never let the error reporter itself break the loop
 				}
