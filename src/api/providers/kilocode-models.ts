@@ -162,6 +162,38 @@ const AXON_LUMEN_4_CODE: KiloCodeModelVariant = {
 	},
 }
 
+const AXON_EIDO_3_FLASH: KiloCodeModelVariant = {
+	description: "Axon Eido is a fast and low cost general purpose model for low-effort day-to-day tasks",
+	input_modalities: ["text", "image"],
+	max_output_length: 64000,
+	output_modalities: ["text"],
+	supported_sampling_parameters: [
+		"temperature",
+		"top_p",
+		"top_k",
+		"repetition_penalty",
+		"frequency_penalty",
+		"presence_penalty",
+		"seed",
+		"stop",
+	],
+	supported_features: ["tools", "structured_outputs", "web_search"],
+	openrouter: {
+		slug: "matterai/axon",
+	},
+	datacenters: [{ country_code: "US" }],
+	created: 1750426201,
+	owned_by: "matterai",
+	pricing: {
+		prompt: "0.0",
+		completion: "0.0",
+		image: "0",
+		request: "0",
+		input_cache_reads: "0",
+		input_cache_writes: "0",
+	},
+}
+
 export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 	"axon-auto-200k": {
 		...AXON_AUTO,
@@ -176,38 +208,16 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		context_length: 400000,
 	},
 	"axon-eido-3-flash": {
+		...AXON_EIDO_3_FLASH,
 		id: "axon-eido-3-flash",
 		name: "Axon Eido 3 Flash (200K context)",
-		description: "Axon Eido is a fast and low cost general purpose model for low-effort day-to-day tasks",
-		input_modalities: ["text", "image"],
 		context_length: 200000,
-		max_output_length: 64000,
-		output_modalities: ["text"],
-		supported_sampling_parameters: [
-			"temperature",
-			"top_p",
-			"top_k",
-			"repetition_penalty",
-			"frequency_penalty",
-			"presence_penalty",
-			"seed",
-			"stop",
-		],
-		supported_features: ["tools", "structured_outputs", "web_search"],
-		openrouter: {
-			slug: "matterai/axon",
-		},
-		datacenters: [{ country_code: "US" }],
-		created: 1750426201,
-		owned_by: "matterai",
-		pricing: {
-			prompt: "0.0",
-			completion: "0.0",
-			image: "0",
-			request: "0",
-			input_cache_reads: "0",
-			input_cache_writes: "0",
-		},
+	},
+	"axon-eido-3-flash-400k": {
+		...AXON_EIDO_3_FLASH,
+		id: "axon-eido-3-flash",
+		name: "Axon Eido 3 Flash (400K context)",
+		context_length: 400000,
 	},
 	"axon-eido-3-code-pro-200k": {
 		...AXON_EIDO_3_CODE_PRO,

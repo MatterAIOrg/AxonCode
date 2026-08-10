@@ -5,6 +5,7 @@ const getSharedMetadata = ({ name: _name, context_length: _contextLength, ...met
 describe("KiloCode Axon context variants", () => {
 	it.each([
 		["auto", "axon-auto-200k", "axon-auto-400k"],
+		["flash", "axon-eido-3-flash", "axon-eido-3-flash-400k"],
 		["pro", "axon-eido-3-code-pro-200k", "axon-eido-3-code-pro-400k"],
 		["mini", "axon-eido-3-code-mini-200k", "axon-eido-3-code-mini-400k"],
 		["lumen", "axon-lumen-4-code-200k", "axon-lumen-4-code-400k"],
@@ -22,6 +23,7 @@ describe("KiloCode Axon context variants", () => {
 	it.each([
 		["axon-auto-200k", "axon-auto"],
 		["axon-auto-400k", "axon-auto"],
+		["axon-eido-3-flash-400k", "axon-eido-3-flash"],
 		["axon-eido-3-code-pro-200k", "axon-eido-3-code-pro"],
 		["axon-eido-3-code-pro-400k", "axon-eido-3-code-pro"],
 		["axon-eido-3-code-mini-200k", "axon-eido-3-code-mini"],

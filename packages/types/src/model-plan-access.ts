@@ -10,12 +10,14 @@ export const canUseEido3Pro = (plan?: string): boolean => PRO_MODEL_PLANS.has(no
 export const is400kAxonModel = (modelId: string): boolean =>
 	(modelId.startsWith("axon-auto-") ||
 		modelId.startsWith("axon-eido-3-code-") ||
+		modelId.startsWith("axon-eido-3-flash-") ||
 		modelId.startsWith("axon-lumen-4-code-")) &&
 	modelId.endsWith("-400k")
 
 export const isEido3ProModel = (modelId: string): boolean => modelId.startsWith("axon-eido-3-code-pro-")
 
-export const get200kAxonFallback = (modelId: string): string => modelId.replace(/-400k$/, "-200k")
+export const get200kAxonFallback = (modelId: string): string =>
+	modelId === "axon-eido-3-flash-400k" ? "axon-eido-3-flash" : modelId.replace(/-400k$/, "-200k")
 
 // Lumen models are only available on Pro Plus and Ultra plans
 export const canUseLumenModels = canUse400kContext
@@ -35,11 +37,10 @@ export const canAccessAxonModel = (modelId: string, plan?: string): boolean => {
 
 // Returns the closest accessible fallback for a plan-restricted model
 export const getAxonPlanFallback = (modelId: string, plan?: string): string => {
-	if (isLumenAxonModel(modelId))
-		return canUseEido3Pro(plan) ? "axon-eido-3-code-pro-200k" : "axon-eido-3-code-mini-200k"
+	if (isLumenAxonModel(modelId)) return canUseEido3Pro(plan) ? "axon-eido-3-code-pro-200k" : "axon-auto-200k"
 	if (isEido3ProModel(modelId)) {
 		if (is400kAxonModel(modelId) && canUseEido3Pro(plan)) return get200kAxonFallback(modelId)
-		return "axon-eido-3-code-mini-200k"
+		return "axon-auto-200k"
 	}
 	return get200kAxonFallback(modelId)
 }
