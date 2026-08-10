@@ -127,6 +127,7 @@ export async function fileEditTool(
 					absolutePath,
 					originalContent: "",
 					newContent: newString ?? "",
+					createdByAgent: true,
 				})
 
 				await cline.fileContextTracker.trackFileContext(relPath, "roo_edited" as RecordSource)
@@ -201,6 +202,7 @@ export async function fileEditTool(
 			absolutePath,
 			originalContent,
 			newContent,
+			createdByAgent: !fileExists,
 		})
 
 		await cline.fileContextTracker.trackFileContext(relPath, "roo_edited" as RecordSource)

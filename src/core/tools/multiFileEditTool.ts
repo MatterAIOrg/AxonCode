@@ -258,12 +258,7 @@ export async function multiFileEditTool(
 					// versa. performReplacement locates old_string leniently (it tries
 					// escaped/unescaped variants) and writes new_string byte-for-byte,
 					// so this matches the single-edit file_edit tool exactly.
-					const replacement = performReplacement(
-						currentContent,
-						edit.old_string,
-						edit.new_string,
-						replaceAll,
-					)
+					const replacement = performReplacement(currentContent, edit.old_string, edit.new_string, replaceAll)
 					const newContent = replacement.content
 
 					// Record what we wrote so the substring guard above can vet
@@ -365,6 +360,7 @@ export async function multiFileEditTool(
 			absolutePath: fileEdit.absolutePath,
 			originalContent: fileEdit.originalContent,
 			newContent: fileEdit.newContent,
+			createdByAgent: !fileEdit.fileExists,
 		})
 
 		await cline.fileContextTracker.trackFileContext(fileEdit.relPath, "roo_edited" as RecordSource)
