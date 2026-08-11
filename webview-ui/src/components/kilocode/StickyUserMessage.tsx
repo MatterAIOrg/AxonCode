@@ -69,14 +69,14 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 	return (
 		<div
 			className={cn(
-				"relative flex flex-col gap-1 px-2 py-2",
+				"relative flex flex-col gap-1 px-2 py-2 mt-2",
 				"rounded-lg",
 				"border border-[var(--vscode-commandCenter-inactiveBorder)]",
 				"transition-all duration-150",
 			)}
 			style={{
 				backgroundColor: "var(--vscode-editor-background)",
-				boxShadow: isLightTheme ? "rgb(0 0 0 / 15%) 0px 7px 19px 0px" : "rgb(18 18 18 / 88%) 0px 7px 19px 0px",
+				boxShadow: isLightTheme ? "rgb(0 0 0 / 15%) 0px 7px 7px 0px" : "rgb(18 18 18 / 88%) 0px 7px 10px 0px",
 			}}>
 			<div
 				className="flex items-center justify-between gap-2 cursor-pointer"
