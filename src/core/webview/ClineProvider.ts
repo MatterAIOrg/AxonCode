@@ -676,8 +676,25 @@ export class ClineProvider
 		}
 
 		// If there is currently a task running, move it to the background first
+		// but preserve the position of the clicked task so tab order is stable.
 		if (this.clineStack.length > 0) {
-			await this.moveCurrentTaskToBackground()
+			const topTask = this.clineStack[this.clineStack.length - 1]
+			topTask.emit(RooCodeEventName.TaskUnfocused)
+
+			const rootTask = this.clineStack[0]
+			const rootTaskId = rootTask.taskId
+
+			// Rebuild the Map inserting the current task at the clicked task's slot
+			const rebuilt = new Map<string, Task[]>()
+			for (const [key, value] of this.backgroundTasks.entries()) {
+				if (key === taskId) {
+					rebuilt.set(rootTaskId, [...this.clineStack])
+				} else {
+					rebuilt.set(key, value)
+				}
+			}
+			this.backgroundTasks = rebuilt
+			this.clineStack = []
 		}
 
 		// Restore the requested task stack
@@ -2558,7 +2575,7 @@ ${prompt}
 
 				return { taskId, taskLabel, status, apiProvider, apiModelId, ts: historyItem?.ts || 0 }
 			})
-			.sort((a, b) => (b.ts as number) - (a.ts as number))
+			// kilocode_change: preserve Map insertion order so clicking a tab does not reorder the list
 			.map(({ taskId, taskLabel, status, apiProvider, apiModelId }) => ({
 				taskId,
 				taskLabel,

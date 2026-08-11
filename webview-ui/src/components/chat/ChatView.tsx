@@ -39,7 +39,6 @@ import { AudioType, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
-import { prettyModelName } from "@src/utils/prettyModelName"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import {
 	CommandDecision,
@@ -77,8 +76,6 @@ import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 // import ProfileViolationWarning from "./ProfileViolationWarning" kilocode_change: unused
-import { ListVideoIcon } from "@/utils/customIcons"
-import { X } from "lucide-react"
 import { useOptionalAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilocode_change
@@ -86,6 +83,7 @@ import { OverageActiveBanner } from "../kilocode/chat/OverageActiveBanner" // ki
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
 import { SourceControlPanel } from "./SourceControlPanel" // kilocode_change
+import ChatTabs, { TabInfo } from "./ChatTabs" // kilocode_change: multi-chat tab bar
 // import DismissibleUpsell from "../common/DismissibleUpsell" // kilocode_change: unused
 // import { useCloudUpsell } from "@src/hooks/useCloudUpsell" // kilocode_change: unused
 // import { Cloud } from "lucide-react" // kilocode_change: unused
@@ -736,27 +734,94 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return false
 	}, [modifiedMessages, clineAsk, enableButtons, primaryButtonText])
 
-	const backgroundTaskStatusMeta = useMemo(
-		() => ({
-			running: {
-				dotClassName: "bg-[var(--vscode-charts-blue)] animate-pulse",
-				label: "Running in background",
-			},
-			completed: {
-				dotClassName: "bg-[var(--vscode-testing-iconPassed)]",
-				label: "Completed",
-			},
-			waiting_approval: {
-				dotClassName: "bg-[var(--vscode-charts-yellow)]",
-				label: "Waiting on approval",
-			},
-			waiting_input: {
-				dotClassName: "bg-[var(--vscode-charts-yellow)]",
-				label: "Waiting for input",
-			},
-		}),
-		[],
-	)
+	// kilocode_change: multi-chat tab bar — derive label for the active (foreground) tab
+	const currentTabLabel = useMemo(() => {
+		if (!task) return null
+		const rawTitle = currentTaskItem?.title || (task as any)?.title
+		if (rawTitle && typeof rawTitle === "string" && rawTitle.trim()) {
+			const trimmed = rawTitle.trim()
+			if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+				try {
+					const parsed = JSON.parse(trimmed)
+					if (
+						typeof parsed === "object" &&
+						parsed !== null &&
+						typeof (parsed as { title?: unknown }).title === "string"
+					) {
+						return (parsed as { title: string }).title
+					}
+				} catch {
+					// fall through to raw title
+				}
+			}
+			return trimmed
+		}
+		const firstUserMsg = messages.find((m) => m.type === "say" && m.say === "user_feedback")
+		if (firstUserMsg?.text) return firstUserMsg.text.substring(0, 50)
+		return "New Agent"
+	}, [task, currentTaskItem, messages])
+
+	// kilocode_change: multi-chat tab bar — handlers
+	const handleAddTab = useCallback(() => {
+		vscode.postMessage({ type: "plusButtonClicked" })
+	}, [])
+
+	const handleSelectTab = useCallback((taskId: string) => {
+		vscode.postMessage({ type: "switchToBackgroundTask", taskId })
+	}, [])
+
+	const handleCloseTab = useCallback((taskId: string) => {
+		vscode.postMessage({ type: "dismissBackgroundTask", taskId })
+	}, [])
+
+	// kilocode_change: unified webview-side tab order — includes BOTH the active tab and
+	// background tabs in a single ordered list. This is a NEW ordering mechanism independent
+	// of the extension's backgroundTasks Map. Tabs never change position on click; only
+	// drag-reorder, add, or close changes the order.
+	const currentTabId = currentTaskItem?.id ?? (task as any)?.taskId ?? null
+	const [tabOrder, setTabOrder] = useState<string[]>([])
+
+	// Sync tabOrder: merge currentTabId + backgroundRunningTasks IDs into one stable list.
+	// Keep existing order, append new IDs at the end, drop removed IDs.
+	useEffect(() => {
+		const incomingBg = (backgroundRunningTasks ?? []).map((t) => t.taskId)
+		// The active tab ID is part of the unified list
+		const activeId = currentTabId
+		setTabOrder((prev) => {
+			const prevSet = new Set(prev)
+			// Build the full set of IDs that should be present (active + background)
+			const allIncoming = activeId ? [activeId, ...incomingBg] : incomingBg
+			const allIncomingSet = new Set(allIncoming)
+			// Keep existing IDs in their current order, drop ones no longer present
+			const kept = prev.filter((id) => allIncomingSet.has(id))
+			// Append any new IDs at the end in the order they arrived
+			const added = allIncoming.filter((id) => !prevSet.has(id))
+			if (kept.length === prev.length && added.length === 0) return prev
+			return [...kept, ...added]
+		})
+	}, [backgroundRunningTasks, currentTabId])
+
+	// Build the unified tabs list: one entry per ID in tabOrder, with label/active/status
+	const unifiedTabs = useMemo<TabInfo[]>(() => {
+		const bgById = new Map((backgroundRunningTasks ?? []).map((t) => [t.taskId, t]))
+		return tabOrder.map((id) => {
+			const isActive = id === currentTabId
+			if (isActive) {
+				return { taskId: id, label: currentTabLabel ?? "New Agent", isActive: true }
+			}
+			const bg = bgById.get(id)
+			return {
+				taskId: id,
+				label: bg?.taskLabel ?? "New Agent",
+				isActive: false,
+				status: bg?.status,
+			}
+		})
+	}, [tabOrder, currentTabId, currentTabLabel, backgroundRunningTasks])
+
+	const handleReorderTabs = useCallback((newOrder: string[]) => {
+		setTabOrder(newOrder)
+	}, [])
 
 	const markFollowUpAsAnswered = useCallback(() => {
 		const lastFollowUpMessage = messagesRef.current.findLast((msg: ClineMessage) => msg.ask === "followup")
@@ -2588,6 +2653,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				/>
 			)}
 
+			{/* kilocode_change: multi-chat tab bar — visible in regular chat view (not agent manager) when at least one tab exists */}
+			{!isAgentManagerMode && unifiedTabs.length > 0 && (
+				<ChatTabs
+					tabs={unifiedTabs}
+					onSelect={handleSelectTab}
+					onClose={handleCloseTab}
+					onAddTab={handleAddTab}
+					onReorder={handleReorderTabs}
+				/>
+			)}
+
 			{!task && isAgentManagerMode ? (
 				<div className="flex-1 flex flex-col items-center justify-center relative px-8 pb-32">
 					<div className="w-full max-w-[650px] flex flex-col gap-1">
@@ -2641,23 +2717,26 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				<>
 					{task ? (
 						<div className={`${isAgentManagerMode ? "ml-12 mr-64" : "mx-0"}`}>
-							<KiloTaskHeader
-								task={task}
-								tokensIn={apiMetrics.totalTokensIn}
-								tokensOut={apiMetrics.totalTokensOut}
-								cacheWrites={apiMetrics.totalCacheWrites}
-								cacheReads={apiMetrics.totalCacheReads}
-								totalCost={apiMetrics.totalCost}
-								contextTokens={apiMetrics.contextTokens}
-								handleCondenseContext={handleCondenseContext}
-								onClose={handleTaskCloseButtonClick}
-								groupedMessages={groupedMessagesWithoutExploration}
-								onMessageClick={handleMessageClick}
-								isTaskActive={sendingDisabled}
-								todos={latestTodos}
-								title={(task as any)?.title}
-								isAgentManagerMode={isAgentManagerMode}
-							/>
+							{/* kilocode_change: KiloTaskHeader only in agent manager mode — ChatTabs replaces it otherwise */}
+							{isAgentManagerMode && (
+								<KiloTaskHeader
+									task={task}
+									tokensIn={apiMetrics.totalTokensIn}
+									tokensOut={apiMetrics.totalTokensOut}
+									cacheWrites={apiMetrics.totalCacheWrites}
+									cacheReads={apiMetrics.totalCacheReads}
+									totalCost={apiMetrics.totalCost}
+									contextTokens={apiMetrics.contextTokens}
+									handleCondenseContext={handleCondenseContext}
+									onClose={handleTaskCloseButtonClick}
+									groupedMessages={groupedMessagesWithoutExploration}
+									onMessageClick={handleMessageClick}
+									isTaskActive={sendingDisabled}
+									todos={latestTodos}
+									title={(task as any)?.title}
+									isAgentManagerMode={isAgentManagerMode}
+								/>
+							)}
 
 							{hasSystemPromptOverride && (
 								<div className="px-3">
@@ -2834,85 +2913,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 											</div>
 										</div>
 									)}
-									{!isReviewOnlyMode &&
-										backgroundRunningTasks &&
-										backgroundRunningTasks.length > 0 && (
-											<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)] max-h-[50%] flex flex-col overflow-hidden">
-												<div className="flex flex-row items-center gap-1 mb-1 shrink-0">
-													<ListVideoIcon className="w-3 h-3 rtl:-scale-x-100" />
-													<span className="text-sm font-semibold text-vscode-foreground">
-														Background Agents
-													</span>
-													{/* <span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
-											{backgroundRunningTasks.filter((t) => t.status === "running").length}{" "}
-											running
-										</span> */}
-												</div>
-												<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
-													{backgroundRunningTasks.map((bt) => {
-														const resolvedStatus =
-															bt.status ??
-															((bt as { isCompleted?: boolean }).isCompleted
-																? "completed"
-																: "running")
-														const statusMeta = backgroundTaskStatusMeta[resolvedStatus]
-														const isRunning = resolvedStatus === "running"
-
-														return (
-															<div
-																key={bt.taskId}
-																className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
-																onClick={() => {
-																	vscode.postMessage({
-																		type: "switchToBackgroundTask",
-																		taskId: bt.taskId,
-																	})
-																}}>
-																<div className="flex-1 flex flex-col gap-1 min-w-0">
-																	<div className="flex items-center gap-2">
-																		<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
-																			{bt.taskLabel || "New Task"}
-																		</span>
-																	</div>
-																	<div className="flex items-center gap-2">
-																		<>
-																			<span
-																				className={`flex items-center justify-center w-2 h-2 rounded-full ${statusMeta.dotClassName}`}
-																			/>
-																			<span className="text-xs text-[var(--vscode-descriptionForeground)]">
-																				{statusMeta.label}
-																			</span>
-																		</>
-																		{bt.apiModelId && (
-																			<div className="flex items-center gap-2">
-																				<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/40" />
-																				<span className="text-xs text-[var(--vscode-descriptionForeground)]">
-																					{prettyModelName(bt.apiModelId)}
-																				</span>
-																			</div>
-																		)}
-																	</div>
-																</div>
-																<button
-																	type="button"
-																	className="shrink-0 inline-flex items-center justify-center rounded-sm p-1 text-[var(--vscode-descriptionForeground)] hover:bg-[var(--vscode-toolbar-hoverBackground)] hover:text-[var(--vscode-foreground)] transition-colors"
-																	title="Remove task from background list"
-																	onClick={(event) => {
-																		event.preventDefault()
-																		event.stopPropagation()
-																		vscode.postMessage({
-																			type: "dismissBackgroundTask",
-																			taskId: bt.taskId,
-																		})
-																	}}>
-																	<X className="size-3" />
-																</button>
-															</div>
-														)
-													})}
-												</div>
-											</div>
-										)}
+									{/* kilocode_change: Background Agents panel replaced by ChatTabs at the top */}
 									{!isReviewOnlyMode && taskHistoryFullLength > 0 && isExpanded && (
 										<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
 									)}

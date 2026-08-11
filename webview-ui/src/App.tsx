@@ -110,7 +110,7 @@ const App = () => {
 
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 	const [tab, setTab] = useState<Tab>(isSettingsEditor ? "settings" : "chat")
-	const [isAgentManagerOpen, setIsAgentManagerOpen] = useState(false)
+	const [isAgentManagerOpen] = useState(false) // kilocode_change: setter unused while floating toggle is disabled
 	const [currentSection, setCurrentSection] = useState<string | undefined>(initialSettingsSection)
 	const [_currentMarketplaceTab, setCurrentMarketplaceTab] = useState<string | undefined>(undefined)
 
@@ -298,19 +298,20 @@ const App = () => {
 	// forked_change end
 
 	// Toggle Agent Manager sidebar - only triggered by user clicks, never automatic
-	const openAgentManager = useCallback(() => {
-		setIsAgentManagerOpen(true)
-		if (isOrbital) {
-			vscode.postMessage({ type: "maximizeSideBar" })
-		}
-	}, [isOrbital])
-
-	const closeAgentManager = useCallback(() => {
-		setIsAgentManagerOpen(false)
-		if (isOrbital) {
-			vscode.postMessage({ type: "minimizeSideBar" })
-		}
-	}, [isOrbital])
+	// kilocode_change: floating toggle disabled — callbacks kept as comments for restore
+	// const openAgentManager = useCallback(() => {
+	// 	setIsAgentManagerOpen(true)
+	// 	if (isOrbital) {
+	// 		vscode.postMessage({ type: "maximizeSideBar" })
+	// 	}
+	// }, [isOrbital])
+	//
+	// const closeAgentManager = useCallback(() => {
+	// 	setIsAgentManagerOpen(false)
+	// 	if (isOrbital) {
+	// 		vscode.postMessage({ type: "minimizeSideBar" })
+	// 	}
+	// }, [isOrbital])
 
 	// Open sidebar on mount in Orbital mode (without maximizing)
 	useEffect(() => {
@@ -443,7 +444,7 @@ const App = () => {
 			</AgentManagerView>
 
 			{/* Floating Toggle at the top center - Only show in Orbital IDE */}
-			{tab === "chat" && isOrbital && (
+			{/* {tab === "chat" && isOrbital && (
 				<div className="absolute top-0 right-3.5 z-50 pointer-events-none flex justify-center">
 					<div className="pointer-events-auto bg-[var(--vscode-sideBar-background)] border border-[var(--vscode-panel-border)] p-0.5 rounded-lg flex items-center shadow-lg relative">
 						<div
@@ -469,7 +470,7 @@ const App = () => {
 						</button>
 					</div>
 				</div>
-			)}
+			)} */}
 
 			<MemoizedHumanRelayDialog
 				isOpen={humanRelayDialogState.isOpen}
