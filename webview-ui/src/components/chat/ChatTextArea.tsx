@@ -2224,9 +2224,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									type="button"
 									onClick={onCancel}
 									className={cn(
-										"relative inline-flex items-center justify-center",
+										"relative inline-flex items-center justify-center box-border",
 										"bg-transparent border border-[var(--vscode-commandCenter-inactiveBorder)]",
-										"h-7 px-3 rounded-full text-xs font-medium",
+										"h-7 px-3 rounded-full text-xs font-medium leading-none",
 										"text-vscode-foreground hover:bg-[var(--vscode-toolbar-hoverBackground)]",
 										"transition-all duration-150",
 										"cursor-pointer",
@@ -2238,9 +2238,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 									type="button"
 									onClick={handleSend}
 									className={cn(
-										"relative inline-flex items-center justify-center",
-										"bg-white hover:bg-white/90 text-black border-none",
-										"h-7 px-3 rounded-full text-xs font-medium",
+										"relative inline-flex items-center justify-center box-border",
+										"bg-white hover:bg-white/90 text-black border border-transparent",
+										"h-7 px-3 rounded-full text-xs font-medium leading-none",
 										"transition-all duration-150",
 										"cursor-pointer",
 									)}>
