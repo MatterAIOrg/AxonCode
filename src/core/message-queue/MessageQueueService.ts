@@ -2,7 +2,7 @@ import { EventEmitter } from "events"
 
 import { v4 as uuidv4 } from "uuid"
 
-import { QueuedMessage } from "@roo-code/types"
+import { PasteChipSerialized, QueuedMessage } from "@roo-code/types"
 
 export interface MessageQueueState {
 	messages: QueuedMessage[]
@@ -33,7 +33,7 @@ export class MessageQueueService extends EventEmitter<QueueEvents> {
 		return { index, message: this._messages[index] }
 	}
 
-	public addMessage(text: string, images?: string[]): QueuedMessage | undefined {
+	public addMessage(text: string, images?: string[], pasteChips?: PasteChipSerialized[]): QueuedMessage | undefined {
 		if (!text && !images?.length) {
 			return undefined
 		}
@@ -43,6 +43,7 @@ export class MessageQueueService extends EventEmitter<QueueEvents> {
 			id: uuidv4(),
 			text,
 			images,
+			pasteChips: pasteChips && pasteChips.length > 0 ? pasteChips : undefined,
 		}
 
 		this._messages.push(message)
@@ -63,7 +64,7 @@ export class MessageQueueService extends EventEmitter<QueueEvents> {
 		return true
 	}
 
-	public updateMessage(id: string, text: string, images?: string[]): boolean {
+	public updateMessage(id: string, text: string, images?: string[], pasteChips?: PasteChipSerialized[]): boolean {
 		const { message } = this.findMessage(id)
 
 		if (!message) {
@@ -73,6 +74,7 @@ export class MessageQueueService extends EventEmitter<QueueEvents> {
 		message.timestamp = Date.now()
 		message.text = text
 		message.images = images
+		message.pasteChips = pasteChips && pasteChips.length > 0 ? pasteChips : undefined
 		this.emit("stateChanged", this._messages)
 		return true
 	}

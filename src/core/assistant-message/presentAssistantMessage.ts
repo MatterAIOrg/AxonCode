@@ -480,7 +480,7 @@ export async function presentAssistantMessage(cline: Task) {
 					}
 					// forked_change end
 
-					const { response, text, images } = await cline.ask(
+					const { response, text, images, pasteChips } = await cline.ask(
 						type,
 						partialMessage,
 						false,
@@ -500,9 +500,21 @@ export async function presentAssistantMessage(cline: Task) {
 					}
 
 					// Handle yesButtonClicked with text.
-					if (text) {
-						await cline.say("user_feedback", text, images)
-						pushToolResult(formatResponse.toolResult(formatResponse.toolApprovedWithFeedback(text), images))
+					if (text || (images && images.length > 0) || (pasteChips && pasteChips.length > 0)) {
+						await cline.say(
+							"user_feedback",
+							text,
+							images,
+							undefined,
+							undefined,
+							undefined,
+							undefined,
+							undefined,
+							pasteChips,
+						)
+						pushToolResult(
+							formatResponse.toolResult(formatResponse.toolApprovedWithFeedback(text || ""), images),
+						)
 					}
 
 					return true

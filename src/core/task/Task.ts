@@ -21,6 +21,7 @@ import {
 	type ClineMessage,
 	type ClineSay,
 	type ClineAsk,
+	type PasteChipSerialized,
 	type ToolProgressStatus,
 	type HistoryItem,
 	type CreateTaskOptions,
@@ -445,6 +446,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	private askResponse?: ClineAskResponse
 	private askResponseText?: string
 	private askResponseImages?: string[]
+	private askResponsePasteChips?: PasteChipSerialized[]
 	public isWaitingForAskResponse = false
 	public lastMessageTs?: number
 	// Pending user messages live in the visible `messageQueueService` (single
@@ -527,6 +529,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		onCreated,
 		initialTodos,
 		workspacePath,
+		pasteChips,
 	}: TaskOptions) {
 		super()
 		this.context = context // kilocode_change
@@ -677,7 +680,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		if (startTask) {
 			if (task || images) {
-				this.startTask(task, images)
+				this.startTask(task, images, pasteChips)
 			} else if (historyItem) {
 				this.resumeTaskFromHistory()
 			} else {
@@ -865,11 +868,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 	static create(options: TaskOptions): [Task, Promise<void>] {
 		const instance = new Task({ ...options, startTask: false })
-		const { images, task, historyItem } = options
+		const { images, task, historyItem, pasteChips } = options
 		let promise
 
 		if (images || task) {
-			promise = instance.startTask(task, images)
+			promise = instance.startTask(task, images, pasteChips)
 		} else if (historyItem) {
 			promise = instance.resumeTaskFromHistory()
 		} else {
@@ -1081,7 +1084,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		progressStatus?: ToolProgressStatus,
 		isProtected?: boolean,
 		autoApproved?: boolean,
-	): Promise<{ response: ClineAskResponse; text?: string; images?: string[] }> {
+	): Promise<{ response: ClineAskResponse; text?: string; images?: string[]; pasteChips?: PasteChipSerialized[] }> {
 		// If this Cline instance was aborted by the provider, then the only
 		// thing keeping us alive is a promise still running in the background,
 		// in which case we don't want to send its result to the webview as it
@@ -1139,6 +1142,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					this.askResponse = undefined
 					this.askResponseText = undefined
 					this.askResponseImages = undefined
+					this.askResponsePasteChips = undefined
 
 					// Bug for the history books:
 					// In the webview we use the ts as the chatrow key for the
@@ -1165,6 +1169,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					this.askResponse = undefined
 					this.askResponseText = undefined
 					this.askResponseImages = undefined
+					this.askResponsePasteChips = undefined
 					askTs = await this.nextClineMessageTimestamp_kilocode()
 					this.lastMessageTs = askTs
 					await this.addToClineMessages({
@@ -1182,6 +1187,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this.askResponse = undefined
 			this.askResponseText = undefined
 			this.askResponseImages = undefined
+			this.askResponsePasteChips = undefined
 			askTs = await this.nextClineMessageTimestamp_kilocode()
 			this.lastMessageTs = askTs
 			await this.addToClineMessages({
@@ -1311,10 +1317,16 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			throw new Error("Current ask promise was ignored")
 		}
 
-		const result = { response: this.askResponse!, text: this.askResponseText, images: this.askResponseImages }
+		const result = {
+			response: this.askResponse!,
+			text: this.askResponseText,
+			images: this.askResponseImages,
+			pasteChips: this.askResponsePasteChips,
+		}
 		this.askResponse = undefined
 		this.askResponseText = undefined
 		this.askResponseImages = undefined
+		this.askResponsePasteChips = undefined
 
 		// Cancel the timeouts if they are still running.
 		statusMutationTimeouts.forEach((timeout) => clearTimeout(timeout))
@@ -1336,9 +1348,15 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.handleWebviewAskResponse("messageResponse", text, images)
 	}
 
-	handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[], isAutomatic = false) {
+	handleWebviewAskResponse(
+		askResponse: ClineAskResponse,
+		text?: string,
+		images?: string[],
+		isAutomatic = false,
+		pasteChips?: PasteChipSerialized[],
+	) {
 		if (!this.isWaitingForAskResponse && askResponse === "messageResponse" && !isAutomatic) {
-			void this.enqueueManualUserMessage(text, images)
+			void this.enqueueManualUserMessage(text, images, pasteChips)
 			return
 		}
 
@@ -1356,7 +1374,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			const trimmedText = text?.trim() ?? ""
 			const hasImages = Array.isArray(images) && images.length > 0
 			if (trimmedText || hasImages) {
-				void this.enqueueManualUserMessage(text, images)
+				void this.enqueueManualUserMessage(text, images, pasteChips)
 			}
 			return
 		}
@@ -1364,6 +1382,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// this.askResponse = askResponse kilocode_change
 		this.askResponseText = text
 		this.askResponseImages = images
+		this.askResponsePasteChips = pasteChips
 
 		// forked_change start
 		// the askResponse assignment needs to happen last to avoid the async
@@ -1405,7 +1424,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.handleWebviewAskResponse("noButtonClicked", text, images)
 	}
 
-	private async enqueueManualUserMessage(text?: string, images?: string[]): Promise<void> {
+	private async enqueueManualUserMessage(
+		text?: string,
+		images?: string[],
+		pasteChips?: PasteChipSerialized[],
+	): Promise<void> {
 		const trimmedText = text?.trim() ?? ""
 		const hasImages = Array.isArray(images) && images.length > 0
 
@@ -1415,7 +1438,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		// Add to the visible queue (single source of truth) so the message stays
 		// shown in the UI until it is actually sent by processManualMessageQueue.
-		this.messageQueueService.addMessage(trimmedText, hasImages ? [...(images as string[])] : undefined)
+		this.messageQueueService.addMessage(trimmedText, hasImages ? [...(images as string[])] : undefined, pasteChips)
 
 		try {
 			await this.processManualMessageQueue()
@@ -1453,7 +1476,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					break
 				}
 
-				await this.handleManualUserMessage({ text: nextMessage.text, images: nextMessage.images })
+				await this.handleManualUserMessage({
+					text: nextMessage.text,
+					images: nextMessage.images,
+					pasteChips: nextMessage.pasteChips,
+				})
 			}
 		} finally {
 			this.isProcessingManualMessages = false
@@ -1472,8 +1499,12 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		})
 	}
 
-	private async handleManualUserMessage(message: { text: string; images?: string[] }): Promise<void> {
-		const { text, images } = message
+	private async handleManualUserMessage(message: {
+		text: string
+		images?: string[]
+		pasteChips?: PasteChipSerialized[]
+	}): Promise<void> {
+		const { text, images, pasteChips } = message
 
 		try {
 			await this.checkpointSave(false, true)
@@ -1482,7 +1513,17 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		}
 
 		try {
-			await this.say("user_feedback", text, images)
+			await this.say(
+				"user_feedback",
+				text,
+				images,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				pasteChips,
+			)
 		} catch (error) {
 			console.error("Failed to append manual user message to conversation:", error)
 		}
@@ -1523,6 +1564,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		images?: string[],
 		mode?: string,
 		providerProfile?: string,
+		pasteChips?: PasteChipSerialized[],
 	): Promise<void> {
 		try {
 			text = (text ?? "").trim()
@@ -1550,6 +1592,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					invoke: "sendMessage",
 					text,
 					images: stringsToImageAttachments(images),
+					pasteChips: pasteChips && pasteChips.length > 0 ? pasteChips : undefined,
 				})
 			} else {
 				console.error("[Task#submitUserMessage] Provider reference lost")
@@ -1674,6 +1717,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			metadata?: Record<string, unknown>
 		} = {},
 		contextCondense?: ContextCondense,
+		pasteChips?: PasteChipSerialized[],
 	): Promise<undefined> {
 		if (this.abort) {
 			throw new Error(`[Orbital#say] task ${this.taskId}.${this.instanceId} aborted`)
@@ -1710,6 +1754,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						partial,
 						contextCondense,
 						metadata: options.metadata,
+						pasteChips: pasteChips && pasteChips.length > 0 ? pasteChips : undefined,
 					})
 				}
 			} else {
@@ -1756,6 +1801,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						images,
 						contextCondense,
 						metadata: options.metadata,
+						pasteChips: pasteChips && pasteChips.length > 0 ? pasteChips : undefined,
 					})
 				}
 			}
@@ -1779,6 +1825,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				images,
 				checkpoint,
 				contextCondense,
+				pasteChips: pasteChips && pasteChips.length > 0 ? pasteChips : undefined,
 			})
 		}
 	}
@@ -1850,7 +1897,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		void this.reportCommittedCodeUsage().catch(() => {})
 	}
 
-	private async startTask(task?: string, images?: string[]): Promise<void> {
+	private async startTask(task?: string, images?: string[], pasteChips?: PasteChipSerialized[]): Promise<void> {
 		if (this.enableBridge) {
 			try {
 				await BridgeOrchestrator.subscribeToTask(this)
@@ -1875,7 +1922,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		await this.providerRef.deref()?.postStateToWebview()
 
-		await this.say("text", task, images)
+		await this.say("text", task, images, undefined, undefined, undefined, undefined, undefined, pasteChips)
 		if (!this.parentTask) this.reportUserMessageUsage()
 		this.isInitialized = true
 
@@ -1985,13 +2032,23 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		this.isInitialized = true
 
-		const { response, text, images } = await this.ask(askType) // Calls `postStateToWebview`.
+		const { response, text, images, pasteChips } = await this.ask(askType) // Calls `postStateToWebview`.
 
 		let responseText: string | undefined
 		let responseImages: string[] | undefined
 
 		if (response === "messageResponse") {
-			await this.say("user_feedback", text, images)
+			await this.say(
+				"user_feedback",
+				text,
+				images,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				pasteChips,
+			)
 			responseText = text
 			responseImages = images
 		}

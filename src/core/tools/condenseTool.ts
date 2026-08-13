@@ -24,11 +24,21 @@ export const condenseTool = async (
 			}
 			cline.consecutiveMistakeCount = 0
 
-			const { text, images } = await cline.ask("condense", context, false)
+			const { text, images, pasteChips } = await cline.ask("condense", context, false)
 
 			// If the user provided a response, treat it as feedback
-			if (text || images?.length) {
-				await cline.say("user_feedback", text ?? "", images)
+			if (text || images?.length || pasteChips?.length) {
+				await cline.say(
+					"user_feedback",
+					text ?? "",
+					images,
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					pasteChips,
+				)
 				pushToolResult(
 					formatResponse.toolResult(
 						`The user provided feedback on the condensed conversation summary:\n<feedback>\n${text}\n</feedback>`,

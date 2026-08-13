@@ -7,6 +7,7 @@ import delay from "delay"
 import { CommandExecutionStatus, DEFAULT_TERMINAL_OUTPUT_CHARACTER_LIMIT } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
 
+import { PasteChipSerialized } from "@roo-code/types"
 import { Task } from "../task/Task"
 
 import { ToolUse, AskApproval, HandleError, PushToolResult, RemoveClosingTag, ToolResponse } from "../../shared/tools"
@@ -188,7 +189,7 @@ export async function executeCommand(
 		return [false, `Working directory '${workingDir}' does not exist.`]
 	}
 
-	let message: { text?: string; images?: string[] } | undefined
+	let message: { text?: string; images?: string[]; pasteChips?: PasteChipSerialized[] } | undefined
 	let runInBackground = false
 	let completed = false
 	let result: string = ""
@@ -215,11 +216,11 @@ export async function executeCommand(
 			}
 
 			try {
-				const { response, text, images } = await task.ask("command_output", "")
+				const { response, text, images, pasteChips } = await task.ask("command_output", "")
 				runInBackground = true
 
 				if (response === "messageResponse") {
-					message = { text, images }
+					message = { text, images, pasteChips }
 					process.continue()
 				}
 			} catch (_error) {}
@@ -337,8 +338,18 @@ export async function executeCommand(
 	await delay(50)
 
 	if (message) {
-		const { text, images } = message
-		await task.say("user_feedback", text, images, undefined, undefined, undefined, { isNonInteractive: true })
+		const { text, images, pasteChips } = message
+		await task.say(
+			"user_feedback",
+			text,
+			images,
+			undefined,
+			undefined,
+			undefined,
+			{ isNonInteractive: true },
+			undefined,
+			pasteChips,
+		)
 
 		return [
 			true,

@@ -64,11 +64,21 @@ export async function reportBugTool(
 				kilocode_version: kilocodeVersion,
 			})
 
-			const { text, images } = await cline.ask("report_bug", bugReportData, false)
+			const { text, images, pasteChips } = await cline.ask("report_bug", bugReportData, false)
 
 			// If the user provided a response, treat it as feedback
-			if (text || images?.length) {
-				await cline.say("user_feedback", text ?? "", images)
+			if (text || images?.length || pasteChips?.length) {
+				await cline.say(
+					"user_feedback",
+					text ?? "",
+					images,
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					pasteChips,
+				)
 				pushToolResult(
 					formatResponse.toolResult(
 						`The user provided feedback on the Github issue generated:\n<feedback>\n${text}\n</feedback>`,
