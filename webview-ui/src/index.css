@@ -649,6 +649,36 @@ body[data-vscode-theme-kind="vs"] .mention-chip {
 }
 
 /**
+ * Chat-text-area list formatting
+ *
+ * The composer renders ordered/unordered list items via the central chat-render
+ * helper. Preflight globally resets ol/ul/menu to list-style: none to keep the
+ * rest of the UI tidy, so we re-enable native markers here, scoped to the
+ * chat-input so we never leak into tooltips or menus that rely on the reset.
+ */
+[data-testid="chat-input"] ol.chat-list {
+	padding-left: 1.5em;
+	margin: 0.5em 0;
+	list-style-type: decimal;
+}
+
+[data-testid="chat-input"] ul.chat-list {
+	padding-left: 1.5em;
+	margin: 0.5em 0;
+	list-style-type: disc;
+}
+
+[data-testid="chat-input"] .chat-list li {
+	margin: 0.25em 0;
+	padding-left: 0.25em;
+}
+
+[data-testid="chat-input"] .chat-list li::marker {
+	color: var(--vscode-foreground);
+	opacity: 0.85;
+}
+
+/**
  * vscrui Overrides / Hacks
  */
 
