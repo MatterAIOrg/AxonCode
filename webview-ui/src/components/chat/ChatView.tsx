@@ -105,6 +105,7 @@ export interface ChatViewRef {
 }
 
 export const MAX_IMAGES_PER_MESSAGE = 20 // This is the Anthropic limit.
+const NEW_CHAT_TAB_ID = "__new_chat_tab__"
 
 export const shouldEnableCommandApproval = (message: ClineMessage, isPartial: boolean): boolean =>
 	!isPartial && message.autoApproved !== true
@@ -138,6 +139,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const {
 		clineMessages: messages,
+		currentTaskId,
 		currentTaskItem,
 		currentTaskTodos,
 		taskHistoryFullLength, // kilocode_change
@@ -174,7 +176,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// cloudIsAuthenticated, // kilocode_change
 		messageQueue = [],
 		sendMessageOnEnter, // kilocode_change
-		backgroundRunningTasks, // kilocode_change: multi-chat support
+		taskTabs,
 		cwd,
 	} = useExtensionState()
 
@@ -761,63 +763,103 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return "New Agent"
 	}, [task, currentTaskItem, messages])
 
-	// kilocode_change: multi-chat tab bar — handlers
+	const currentTabId = currentTaskId ?? currentTaskItem?.id ?? null
+	const [tabOrder, setTabOrder] = useState<string[]>([])
+	const [pendingNewTabFromId, setPendingNewTabFromId] = useState<string | null | undefined>(undefined)
+
 	const handleAddTab = useCallback(() => {
+		setPendingNewTabFromId((previous) => (previous === undefined ? currentTabId : previous))
+		setTabOrder((prev) => {
+			const withCurrent = currentTabId && !prev.includes(currentTabId) ? [...prev, currentTabId] : [...prev]
+			return withCurrent.includes(NEW_CHAT_TAB_ID) ? withCurrent : [...withCurrent, NEW_CHAT_TAB_ID]
+		})
 		vscode.postMessage({ type: "plusButtonClicked" })
-	}, [])
+	}, [currentTabId])
 
 	const handleSelectTab = useCallback((taskId: string) => {
-		vscode.postMessage({ type: "switchToBackgroundTask", taskId })
+		if (taskId === NEW_CHAT_TAB_ID) {
+			textAreaRef.current?.focus()
+			return
+		}
+
+		setPendingNewTabFromId(undefined)
+		setTabOrder((prev) => prev.filter((id) => id !== NEW_CHAT_TAB_ID))
+		vscode.postMessage({ type: "switchTask", taskId })
 	}, [])
 
 	const handleCloseTab = useCallback((taskId: string) => {
-		vscode.postMessage({ type: "dismissBackgroundTask", taskId })
+		setTabOrder((prev) => prev.filter((id) => id !== taskId))
+		if (taskId !== NEW_CHAT_TAB_ID) {
+			vscode.postMessage({ type: "closeTask", taskId })
+		} else {
+			setPendingNewTabFromId(undefined)
+		}
 	}, [])
 
-	// kilocode_change: unified webview-side tab order — includes BOTH the active tab and
-	// background tabs in a single ordered list. This is a NEW ordering mechanism independent
-	// of the extension's backgroundTasks Map. Tabs never change position on click; only
-	// drag-reorder, add, or close changes the order.
-	const currentTabId = currentTaskItem?.id ?? (task as any)?.taskId ?? null
-	const [tabOrder, setTabOrder] = useState<string[]>([])
-
-	// Sync tabOrder: merge currentTabId + backgroundRunningTasks IDs into one stable list.
-	// Keep existing order, append new IDs at the end, drop removed IDs.
 	useEffect(() => {
-		const incomingBg = (backgroundRunningTasks ?? []).map((t) => t.taskId)
-		// The active tab ID is part of the unified list
-		const activeId = currentTabId
+		const incomingIds = (taskTabs ?? []).map((tab) => tab.taskId)
+		const incomingSet = new Set(incomingIds)
+		const shouldReplacePending =
+			pendingNewTabFromId !== undefined && currentTabId !== null && currentTabId !== pendingNewTabFromId
 		setTabOrder((prev) => {
-			const prevSet = new Set(prev)
-			// Build the full set of IDs that should be present (active + background)
-			const allIncoming = activeId ? [activeId, ...incomingBg] : incomingBg
-			const allIncomingSet = new Set(allIncoming)
-			// Keep existing IDs in their current order, drop ones no longer present
-			const kept = prev.filter((id) => allIncomingSet.has(id))
-			// Append any new IDs at the end in the order they arrived
-			const added = allIncoming.filter((id) => !prevSet.has(id))
-			if (kept.length === prev.length && added.length === 0) return prev
-			return [...kept, ...added]
-		})
-	}, [backgroundRunningTasks, currentTabId])
+			const next = prev.filter((id) => id === NEW_CHAT_TAB_ID || incomingSet.has(id))
 
-	// Build the unified tabs list: one entry per ID in tabOrder, with label/active/status
-	const unifiedTabs = useMemo<TabInfo[]>(() => {
-		const bgById = new Map((backgroundRunningTasks ?? []).map((t) => [t.taskId, t]))
-		return tabOrder.map((id) => {
-			const isActive = id === currentTabId
-			if (isActive) {
-				return { taskId: id, label: currentTabLabel ?? "New Agent", isActive: true }
+			if (shouldReplacePending) {
+				const pendingIndex = next.indexOf(NEW_CHAT_TAB_ID)
+				if (pendingIndex === -1) return next
+				const existingCurrentIndex = next.indexOf(currentTabId)
+				if (existingCurrentIndex !== -1) {
+					next.splice(existingCurrentIndex, 1)
+				}
+				next[next.indexOf(NEW_CHAT_TAB_ID)] = currentTabId
 			}
-			const bg = bgById.get(id)
+			if (currentTabId && !next.includes(currentTabId) && !shouldReplacePending) {
+				next.push(currentTabId)
+			}
+
+			for (const taskId of incomingIds) {
+				if (!next.includes(taskId)) {
+					next.push(taskId)
+				}
+			}
+
+			return next
+		})
+		if (shouldReplacePending) {
+			setPendingNewTabFromId(undefined)
+		}
+	}, [taskTabs, currentTabId, pendingNewTabFromId])
+
+	// Build the unified tabs list: one entry per ID in tabOrder, with label/active/status.
+	// Keep the local order stable while the extension updates task metadata.
+	const unifiedTabs = useMemo<TabInfo[]>(() => {
+		const taskById = new Map((taskTabs ?? []).map((tab) => [tab.taskId, tab]))
+		return tabOrder.map((id) => {
+			const isNewTab = id === NEW_CHAT_TAB_ID
+			const isActive = id === currentTabId || (isNewTab && !currentTabId)
+			if (isNewTab) {
+				return { taskId: id, label: "New Agent", isActive: true }
+			}
+			if (isActive) {
+				return {
+					taskId: id,
+					label: currentTabLabel ?? taskById.get(id)?.taskLabel ?? "New Agent",
+					isActive: true,
+					status: taskById.get(id)?.status,
+				}
+			}
+			const taskTab = taskById.get(id)
+			if (!taskTab) {
+				return { taskId: id, label: "New Agent", isActive: false }
+			}
 			return {
 				taskId: id,
-				label: bg?.taskLabel ?? "New Agent",
+				label: taskTab.taskLabel ?? "New Agent",
 				isActive: false,
-				status: bg?.status,
+				status: taskTab.status,
 			}
 		})
-	}, [tabOrder, currentTabId, currentTabLabel, backgroundRunningTasks])
+	}, [tabOrder, currentTabId, currentTabLabel, taskTabs])
 
 	const handleReorderTabs = useCallback((newOrder: string[]) => {
 		setTabOrder(newOrder)

@@ -150,7 +150,7 @@ export class ClineProvider
 	private webviewDisposables: vscode.Disposable[] = []
 	private view?: vscode.WebviewView | vscode.WebviewPanel
 	private clineStack: Task[] = []
-	private backgroundTasks: Map<string, Task[]> = new Map() // kilocode_change: multi-chat support
+	private taskStacks: Map<string, Task[]> = new Map()
 	private codeIndexStatusSubscription?: vscode.Disposable
 	private codeIndexManager?: CodeIndexManager
 	private _workspaceTracker?: WorkspaceTracker // workSpaceTracker read-only for access outside this class
@@ -638,11 +638,10 @@ export class ClineProvider
 		}
 	}
 
-	// kilocode_change: multi-chat support start
 	/**
-	 * Moves the currently running task(s) to the background map without aborting them.
+	 * Stashes the currently active task stack without aborting it.
 	 */
-	public async moveCurrentTaskToBackground() {
+	public async stashCurrentTask() {
 		if (this.clineStack.length === 0) {
 			return
 		}
@@ -655,27 +654,25 @@ export class ClineProvider
 		const rootTask = this.clineStack[0]
 		const rootTaskId = rootTask.taskId
 
-		this.backgroundTasks.set(rootTaskId, [...this.clineStack])
+		this.taskStacks.set(rootTaskId, [...this.clineStack])
 		this.clineStack = []
 
-		this.log(
-			`[moveCurrentTaskToBackground] Moved task ${rootTaskId} to background. Total background tasks: ${this.backgroundTasks.size}`,
-		)
+		this.log(`[stashCurrentTask] Stashed task ${rootTaskId}. Total task stacks: ${this.taskStacks.size}`)
 
 		await this.postStateToWebview()
 	}
 
 	/**
-	 * Restores a background task to the foreground stack.
+	 * Activates a stashed task stack.
 	 */
-	public async bringTaskToForeground(taskId: string) {
-		const bgStack = this.backgroundTasks.get(taskId)
-		if (!bgStack || bgStack.length === 0) {
-			this.log(`[bringTaskToForeground] Task ${taskId} not found in background map`)
+	public async activateTask(taskId: string) {
+		const taskStack = this.taskStacks.get(taskId)
+		if (!taskStack || taskStack.length === 0) {
+			this.log(`[activateTask] Task ${taskId} not found`)
 			return
 		}
 
-		// If there is currently a task running, move it to the background first
+		// If there is currently a task running, stash it first
 		// but preserve the position of the clicked task so tab order is stable.
 		if (this.clineStack.length > 0) {
 			const topTask = this.clineStack[this.clineStack.length - 1]
@@ -686,26 +683,26 @@ export class ClineProvider
 
 			// Rebuild the Map inserting the current task at the clicked task's slot
 			const rebuilt = new Map<string, Task[]>()
-			for (const [key, value] of this.backgroundTasks.entries()) {
+			for (const [key, value] of this.taskStacks.entries()) {
 				if (key === taskId) {
 					rebuilt.set(rootTaskId, [...this.clineStack])
 				} else {
 					rebuilt.set(key, value)
 				}
 			}
-			this.backgroundTasks = rebuilt
+			this.taskStacks = rebuilt
 			this.clineStack = []
 		}
 
 		// Restore the requested task stack
-		this.clineStack = bgStack
-		this.backgroundTasks.delete(taskId)
+		this.clineStack = taskStack
+		this.taskStacks.delete(taskId)
 
 		// Focus the newly restored top task
 		const topTask = this.clineStack[this.clineStack.length - 1]
 		topTask.emit(RooCodeEventName.TaskFocused)
 
-		this.log(`[bringTaskToForeground] Restored task ${taskId} to foreground`)
+		this.log(`[activateTask] Activated task ${taskId}`)
 
 		// Restore the task's model to global state for UI display
 		if (topTask.apiConfiguration) {
@@ -715,20 +712,23 @@ export class ClineProvider
 		await this.postStateToWebview()
 	}
 
-	public async dismissBackgroundTask(taskId: string) {
-		const bgStack = this.backgroundTasks.get(taskId)
-		if (!bgStack || bgStack.length === 0) {
-			this.log(`[dismissBackgroundTask] Task ${taskId} not found in background map`)
+	public async closeTask(taskId: string) {
+		const isActiveTask = this.clineStack[0]?.taskId === taskId
+		const taskStack = isActiveTask ? [...this.clineStack] : this.taskStacks.get(taskId)
+		if (!taskStack || taskStack.length === 0) {
+			this.log(`[closeTask] Task ${taskId} not found`)
 			return
 		}
 
-		for (const task of [...bgStack].reverse()) {
+		if (isActiveTask) {
+			this.clineStack = []
+		}
+
+		for (const task of [...taskStack].reverse()) {
 			try {
 				await task.abortTask(true)
 			} catch (e) {
-				this.log(
-					`[dismissBackgroundTask] background task abort failed: ${e instanceof Error ? e.message : String(e)}`,
-				)
+				this.log(`[closeTask] task abort failed: ${e instanceof Error ? e.message : String(e)}`)
 			}
 
 			const cleanupFunctions = this.taskEventListeners.get(task)
@@ -738,10 +738,9 @@ export class ClineProvider
 			this.taskEventListeners.delete(task)
 		}
 
-		this.backgroundTasks.delete(taskId)
+		this.taskStacks.delete(taskId)
 		await this.postStateToWebview()
 	}
-	// kilocode_change: multi-chat support end
 
 	getTaskStackSize(): number {
 		return this.clineStack.length
@@ -854,20 +853,20 @@ export class ClineProvider
 
 		this.log("Cleared all tasks")
 
-		// Abort and clear background tasks
-		for (const [taskId, stack] of this.backgroundTasks.entries()) {
+		// Abort and clear inactive task stacks
+		for (const [taskId, stack] of this.taskStacks.entries()) {
 			for (const task of stack.reverse()) {
 				try {
 					await task.abortTask(true)
 				} catch (e) {
-					this.log(`[dispose] background task abort failed: ${e.message}`)
+					this.log(`[dispose] inactive task abort failed: ${e.message}`)
 				}
 				const cleanupFunctions = this.taskEventListeners.get(task)
 				if (cleanupFunctions) cleanupFunctions.forEach((cleanup) => cleanup())
 				this.taskEventListeners.delete(task)
 			}
 		}
-		this.backgroundTasks.clear()
+		this.taskStacks.clear()
 
 		// Clear all pending edit operations to prevent memory leaks
 		this.clearAllPendingEditOperations()
@@ -1987,10 +1986,10 @@ ${prompt}
 
 	async showTaskWithId(id: string) {
 		if (id !== this.getCurrentTask()?.taskId) {
-			// Check if task is already running in background
-			if (this.backgroundTasks.has(id)) {
-				this.log(`[showTaskWithId] bringing background task ${id} to foreground`)
-				await this.bringTaskToForeground(id)
+			// Check if task is already open in another tab
+			if (this.taskStacks.has(id)) {
+				this.log(`[showTaskWithId] activating task ${id}`)
+				await this.activateTask(id)
 				await this.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
 				return
 			}
@@ -1998,9 +1997,9 @@ ${prompt}
 			// Non-current task.
 			const { historyItem } = await this.getTaskWithId(id)
 
-			// Move current to background instead of clearing
+			// Keep the current task open instead of clearing it
 			if (this.clineStack.length > 0) {
-				await this.moveCurrentTaskToBackground()
+				await this.stashCurrentTask()
 			}
 
 			await this.createTaskWithHistoryItem(historyItem) // Will be safe since stack is empty.
@@ -2052,15 +2051,15 @@ ${prompt}
 				await this.finishSubTask(t("common:tasks.deleted"))
 			}
 
-			// multi-chat support: remove from background tasks if it was backgrounded
-			if (this.backgroundTasks.has(id)) {
-				const stack = this.backgroundTasks.get(id)
+			// Remove the task from the open task registry
+			if (this.taskStacks.has(id)) {
+				const stack = this.taskStacks.get(id)
 				if (stack) {
 					for (const task of stack) {
 						task.abort = true
 					}
 				}
-				this.backgroundTasks.delete(id)
+				this.taskStacks.delete(id)
 				await this.postStateToWebview()
 			}
 
@@ -2260,21 +2259,11 @@ ${prompt}
 		return this.mergeCommandLists("deniedCommands", "denied", globalStateCommands)
 	}
 
-	private getBackgroundTaskStatus(task: Task): "running" | "completed" | "waiting_approval" | "waiting_input" {
+	private getTaskStatus(task: Task): "in_progress" | "completed" {
 		const askType = task.taskAsk?.ask
 
 		if (task.abort || task.abandoned) {
 			return "completed"
-		}
-
-		if (
-			askType === "tool" ||
-			askType === "command" ||
-			askType === "browser_action_launch" ||
-			askType === "use_mcp_server" ||
-			askType === "auto_approval_max_req_reached"
-		) {
-			return "waiting_approval"
 		}
 
 		if (askType === "completion_result" || askType === "resume_completed_task") {
@@ -2282,7 +2271,7 @@ ${prompt}
 		}
 
 		if (askType) {
-			return "waiting_input"
+			return "in_progress"
 		}
 
 		const hasPendingAssistantWork =
@@ -2293,7 +2282,7 @@ ${prompt}
 			!task.didCompleteReadingStream
 
 		if (hasPendingAssistantWork) {
-			return "running"
+			return "in_progress"
 		}
 
 		return "completed"
@@ -2506,87 +2495,30 @@ ${prompt}
 		this.kiloCodeTaskHistorySizeForTelemetryOnly = taskHistory.length
 		// forked_change end
 
-		// multi-chat support: assemble background tasks
-		const backgroundRunningTasks = Array.from(this.backgroundTasks.entries())
-			.map(([taskId, stack]) => {
-				const rootTask = stack[0]
-				const historyItem = taskHistory.find((h) => h.id === taskId)
-				const uiMessages = rootTask.clineMessages.filter((msg) => msg.type === "say")
-				const taskLabel =
-					historyItem?.title ||
-					(rootTask as any).title ||
-					rootTask.metadata?.task ||
-					(uiMessages.length > 0
-						? uiMessages[0].text
-							? uiMessages[0].text.substring(0, 50) + "..."
-							: "Image Agent"
-						: "New Agent")
+		const taskTabFor = (taskId: string, stack: Task[]) => {
+			const rootTask = stack[0]
+			const currentTask = stack[stack.length - 1] ?? rootTask
+			const historyItem = taskHistory.find((h) => h.id === taskId)
+			const firstMessage = rootTask.clineMessages.find((msg) => msg.type === "say")
+			const taskLabel =
+				historyItem?.title ||
+				(rootTask as any).title ||
+				rootTask.metadata?.task ||
+				(firstMessage?.text ? firstMessage.text.substring(0, 50) + "..." : "New Agent")
 
-				const status = this.getBackgroundTaskStatus(rootTask)
+			return { taskId, taskLabel, status: this.getTaskStatus(currentTask) }
+		}
 
-				// Get model information from task's API configuration
-				const apiProvider = rootTask.apiConfiguration?.apiProvider
-				let apiModelId: string | undefined
-				if (apiProvider) {
-					const modelFieldMap: Record<string, keyof typeof rootTask.apiConfiguration> = {
-						anthropic: "apiModelId",
-						"claude-code": "apiModelId",
-						bedrock: "apiModelId",
-						vertex: "apiModelId",
-						gemini: "apiModelId",
-						"gemini-cli": "apiModelId",
-						mistral: "apiModelId",
-						deepseek: "apiModelId",
-						doubao: "apiModelId",
-						moonshot: "apiModelId",
-						xai: "apiModelId",
-						groq: "apiModelId",
-						chutes: "apiModelId",
-						cerebras: "apiModelId",
-						sambanova: "apiModelId",
-						zai: "apiModelId",
-						synthetic: "apiModelId",
-						featherless: "apiModelId",
-						"qwen-code": "apiModelId",
-						roo: "apiModelId",
-						"virtual-quota-fallback": "apiModelId",
-						openrouter: "openRouterModelId",
-						"kilocode-openrouter": "openRouterModelId",
-						glama: "glamaModelId",
-						openai: "openAiModelId",
-						"openai-native": "openAiModelId",
-						ollama: "ollamaModelId",
-						lmstudio: "lmStudioModelId",
-						unbound: "unboundModelId",
-						requesty: "requestyModelId",
-						litellm: "litellmModelId",
-						huggingface: "huggingFaceModelId",
-						"io-intelligence": "ioIntelligenceModelId",
-						"vercel-ai-gateway": "vercelAiGatewayModelId",
-						deepinfra: "deepInfraModelId",
-						kilocode: "kilocodeModel",
-						ovhcloud: "ovhCloudAiEndpointsModelId",
-					}
-					const field = modelFieldMap[apiProvider]
-					if (field) {
-						apiModelId = rootTask.apiConfiguration[field] as string | undefined
-					}
-				}
-
-				return { taskId, taskLabel, status, apiProvider, apiModelId, ts: historyItem?.ts || 0 }
-			})
-			// kilocode_change: preserve Map insertion order so clicking a tab does not reorder the list
-			.map(({ taskId, taskLabel, status, apiProvider, apiModelId }) => ({
-				taskId,
-				taskLabel,
-				status,
-				apiProvider,
-				apiModelId,
-			}))
+		const taskTabs = Array.from(this.taskStacks.entries()).map(([taskId, stack]) => taskTabFor(taskId, stack))
+		const currentRootTask = this.clineStack[0]
+		if (currentRootTask && !taskTabs.some((tab) => tab.taskId === currentRootTask.taskId)) {
+			taskTabs.push(taskTabFor(currentRootTask.taskId, this.clineStack))
+		}
 
 		return {
 			version: this.context.extension?.packageJSON?.version ?? "",
 			apiConfiguration: mergedApiConfiguration,
+			currentTaskId: this.clineStack[0]?.taskId,
 			customInstructions,
 			alwaysAllowReadOnly: alwaysAllowReadOnly ?? true,
 			alwaysAllowReadOnlyOutsideWorkspace: alwaysAllowReadOnlyOutsideWorkspace ?? true,
@@ -2732,7 +2664,7 @@ ${prompt}
 			featureRoomoteControlEnabled,
 			codeReviewSettings,
 			contextWindowUsage: this.getCurrentTask()?.contextWindowUsage, // kilocode_change: Track context window usage
-			backgroundRunningTasks, // multi-chat support
+			taskTabs,
 			isOrbital: isOrbitalIDE(), // kilocode_change: Orbital IDE detection for Agent Manager
 		}
 	}
@@ -3296,8 +3228,8 @@ ${prompt}
 		configuration: RooCodeSettings = {},
 	): Promise<Task> {
 		if (this.clineStack.length > 0) {
-			console.log(`[createTask] moving existing task to background before creating new one`)
-			await this.moveCurrentTaskToBackground()
+			console.log(`[createTask] stashing existing task before creating new one`)
+			await this.stashCurrentTask()
 		}
 
 		if (configuration) {
@@ -3366,6 +3298,7 @@ ${prompt}
 		})
 
 		await this.addClineToStack(task)
+		await this.postStateToWebview()
 
 		this.log(
 			`[createTask] ${task.parentTask ? "child" : "parent"} task ${task.taskId}.${task.instanceId} instantiated`,

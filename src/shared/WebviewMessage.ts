@@ -83,7 +83,7 @@ export interface WebviewMessage {
 		| "shareCurrentTask"
 		| "showTaskWithId"
 		| "deleteTaskWithId"
-		| "dismissBackgroundTask"
+		| "closeTask"
 		| "exportTaskWithId"
 		| "importSettings"
 		| "toggleToolAutoApprove"
@@ -203,8 +203,8 @@ export interface WebviewMessage {
 		| "deleteMcpServer"
 		| "maxOpenTabsContext"
 		| "maxWorkspaceFiles"
-		| "switchToBackgroundTask" // multi-chat
-		| "dismissBackgroundTask" // multi-chat
+		| "switchTask" // multi-chat
+		| "closeTask" // multi-chat
 		| "humanRelayResponse"
 		| "updateTaskModel" // Task-local model update for isolation
 		| "humanRelayCancel"
@@ -366,7 +366,7 @@ export interface WebviewMessage {
 		| "maximizeSideBar"
 		| "minimizeSideBar"
 		| "openSideBar"
-		| "plusButtonClicked" // kilocode_change: Move agent to background
+		| "plusButtonClicked" // kilocode_change: Create a new chat tab
 	// forked_change end
 	text?: string
 	editedMessageContent?: string
@@ -426,7 +426,7 @@ export interface WebviewMessage {
 	hasSystemPromptOverride?: boolean
 	terminalOperation?: "continue" | "abort"
 	messageTs?: number
-	taskId?: string // For switchToBackgroundTask and dismissBackgroundTask
+	taskId?: string // For switchTask and closeTask
 	restoreCheckpoint?: boolean
 	historyPreviewCollapsed?: boolean
 	filters?: { type?: string; search?: string; tags?: string[] }

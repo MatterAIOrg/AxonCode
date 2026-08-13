@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { X, Plus } from "lucide-react"
 import { MessageSquareIcon } from "@/utils/customIcons"
 
-export type TabStatus = "running" | "completed" | "waiting_approval" | "waiting_input"
+export type TabStatus = "in_progress" | "completed"
 
 export interface TabInfo {
 	taskId: string
@@ -20,10 +20,8 @@ export interface ChatTabsProps {
 }
 
 const statusDotClass: Record<TabStatus, string> = {
-	running: "bg-[var(--vscode-charts-blue)] animate-pulse",
+	in_progress: "bg-[var(--vscode-charts-blue)] animate-pulse",
 	completed: "bg-[var(--vscode-testing-iconPassed)]",
-	waiting_approval: "bg-[var(--vscode-charts-yellow)]",
-	waiting_input: "bg-[var(--vscode-charts-yellow)]",
 }
 
 const ChatTabs: React.FC<ChatTabsProps> = ({ tabs, onSelect, onClose, onAddTab, onReorder }) => {

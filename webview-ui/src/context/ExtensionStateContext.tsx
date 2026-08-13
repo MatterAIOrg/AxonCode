@@ -217,13 +217,11 @@ export interface ExtensionStateContextType extends ExtensionState {
 		}
 	} // kilocode_change: Track context window usage
 	betaModelsEnabled?: boolean // kilocode_change: Beta models availability
-	backgroundRunningTasks?: Array<{
+	taskTabs?: Array<{
 		taskId: string
 		taskLabel: string
-		status: "running" | "completed" | "waiting_approval" | "waiting_input"
-		apiProvider?: string
-		apiModelId?: string
-	}> // kilocode_change: multi-chat support
+		status: "in_progress" | "completed"
+	}>
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -354,7 +352,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		kiloCodeImageApiKey: "",
 		openRouterImageGenerationSelectedModel: "",
 		betaModelsEnabled: false, // kilocode_change: Default to false
-		backgroundRunningTasks: [], // kilocode_change: multi-chat support
+		taskTabs: [],
 	})
 
 	const [didHydrateState, setDidHydrateState] = useState(false)
@@ -724,7 +722,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setIncludeDiagnosticMessages: (value) => {
 			setState((prevState) => ({ ...prevState, includeDiagnosticMessages: value }))
 		},
-		backgroundRunningTasks: state.backgroundRunningTasks, // kilocode_change: multi-chat support
+		taskTabs: state.taskTabs,
 		maxDiagnosticMessages: state.maxDiagnosticMessages,
 		setMaxDiagnosticMessages: (value) => {
 			setState((prevState) => ({ ...prevState, maxDiagnosticMessages: value }))

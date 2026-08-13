@@ -1083,14 +1083,14 @@ export const webviewMessageHandler = async (
 	}
 
 	switch (message.type) {
-		case "switchToBackgroundTask":
+		case "switchTask":
 			if (message.taskId) {
-				await provider.bringTaskToForeground(message.taskId)
+				await provider.activateTask(message.taskId)
 			}
 			break
-		case "dismissBackgroundTask":
+		case "closeTask":
 			if (message.taskId) {
-				await provider.dismissBackgroundTask(message.taskId)
+				await provider.closeTask(message.taskId)
 			}
 			break
 		case "webviewDidLaunch":
@@ -4370,8 +4370,8 @@ ${comment.suggestion}
 			break
 		}
 		case "plusButtonClicked": {
-			// kilocode_change: Move agent to background
-			await provider.moveCurrentTaskToBackground()
+			// Keep the current task open while starting a new chat tab.
+			await provider.stashCurrentTask()
 			await provider.refreshWorkspace()
 			provider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
 			provider.postMessageToWebview({ type: "action", action: "focusInput" })
