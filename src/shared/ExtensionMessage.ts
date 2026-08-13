@@ -8,6 +8,7 @@ import type {
 	MarketplaceItem,
 	ModeConfig,
 	OrganizationAllowList,
+	PasteChipSerialized,
 	ProviderSettings,
 	ProviderSettingsEntry,
 	QueuedMessage,
@@ -246,6 +247,7 @@ export interface ExtensionMessage {
 	state?: ExtensionState
 	images?: ImageAttachment[]
 	documents?: DocumentAttachment[]
+	pasteChips?: PasteChipSerialized[]
 	attachmentErrors?: string[]
 	filePaths?: string[]
 	openedTabs?: Array<{

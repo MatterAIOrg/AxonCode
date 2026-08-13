@@ -205,6 +205,24 @@ export const contextCondenseSchema = z.object({
 export type ContextCondense = z.infer<typeof contextCondenseSchema>
 
 /**
+ * PasteChipSerialized
+ *
+ * Persisted shape of a paste chip. The webview composer collapses any pasted
+ * text over a size threshold into a chip in its attachment strip. The full
+ * pasted text is merged into the outgoing message at the chip's cursor
+ * position when the message is sent, but the chip metadata is also carried on
+ * the persisted message so the chat history can render the chip instead of
+ * (or alongside) the merged raw text.
+ */
+export const pasteChipSerializedSchema = z.object({
+	id: z.string(),
+	text: z.string(),
+	insertPosition: z.number(),
+})
+
+export type PasteChipSerialized = z.infer<typeof pasteChipSerializedSchema>
+
+/**
  * ClineMessage
  */
 
@@ -215,6 +233,12 @@ export const clineMessageSchema = z.object({
 	say: clineSaySchema.optional(),
 	text: z.string().optional(),
 	images: z.array(z.string()).optional(),
+	// Persisted paste chips from the webview composer. When set, the chat
+	// history and sticky user message should render these chips instead of
+	// (or alongside) the merged paste text in `text`. The chip text is also
+	// included inline in `text` for API consumption, so this field is purely
+	// for UI preservation.
+	pasteChips: z.array(pasteChipSerializedSchema).optional(),
 	partial: z.boolean().optional(),
 	reasoning: z.string().optional(),
 	conversationHistoryIndex: z.number().optional(),
@@ -267,6 +291,7 @@ export const queuedMessageSchema = z.object({
 	id: z.string(),
 	text: z.string(),
 	images: z.array(z.string()).optional(),
+	pasteChips: z.array(pasteChipSerializedSchema).optional(),
 })
 
 export type QueuedMessage = z.infer<typeof queuedMessageSchema>

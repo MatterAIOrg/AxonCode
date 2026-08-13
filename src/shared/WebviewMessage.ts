@@ -8,6 +8,7 @@ import {
 	type MarketplaceItem,
 	type ShareVisibility,
 	type QueuedMessage,
+	type PasteChipSerialized,
 	marketplaceItemSchema,
 	// forked_change start
 	CommitRange,
@@ -36,7 +37,7 @@ export interface UpdateTodoListPayload {
 	todos: any[]
 }
 
-export type EditQueuedMessagePayload = Pick<QueuedMessage, "id" | "text" | "images">
+export type EditQueuedMessagePayload = Pick<QueuedMessage, "id" | "text" | "images" | "pasteChips">
 
 // forked_change start: Type-safe global state update message
 export type GlobalStateValue<K extends keyof GlobalState> = GlobalState[K]
@@ -377,6 +378,7 @@ export interface WebviewMessage {
 	askResponse?: ClineAskResponse
 	apiConfiguration?: ProviderSettings
 	images?: string[]
+	pasteChips?: PasteChipSerialized[]
 	bool?: boolean
 	value?: number
 	commands?: string[]
