@@ -759,7 +759,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			return trimmed
 		}
 		const firstUserMsg = messages.find((m) => m.type === "say" && m.say === "user_feedback")
-		if (firstUserMsg?.text) return firstUserMsg.text.substring(0, 50)
+		if (firstUserMsg?.text) return firstUserMsg.text
 		return "New Agent"
 	}, [task, currentTaskItem, messages])
 

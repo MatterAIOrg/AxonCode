@@ -2504,7 +2504,7 @@ ${prompt}
 				historyItem?.title ||
 				(rootTask as any).title ||
 				rootTask.metadata?.task ||
-				(firstMessage?.text ? firstMessage.text.substring(0, 50) + "..." : "New Agent")
+				(firstMessage?.text ? firstMessage.text : "New Agent")
 
 			return { taskId, taskLabel, status: this.getTaskStatus(currentTask) }
 		}
