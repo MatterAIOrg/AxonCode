@@ -23,7 +23,7 @@ import {
 import { useAudioRecorder } from "@/hooks/useAudioRecorder"
 import { cn } from "@/lib/utils"
 import { valueToHtml as renderValueToHtml, containsListSyntax } from "@/utils/chat-render"
-import { MessageSquareX, VolumeX } from "lucide-react"
+import { VolumeX } from "lucide-react"
 import DocumentAttachments from "../common/DocumentAttachments"
 import PasteChips, { PasteChip } from "../common/PasteChips"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
@@ -158,7 +158,7 @@ interface ChatTextAreaProps {
 	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 	selectedDocuments?: DocumentAttachment[]
 	setSelectedDocuments?: React.Dispatch<React.SetStateAction<DocumentAttachment[]>>
-	onSend: (text?: string) => void
+	onSend: (text?: string, pasteChips?: PasteChip[]) => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
 	onHeightChange?: (height: number) => void
@@ -279,11 +279,17 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				return
 			}
 
+			// Snapshot the chips before clearing so we can pass them through to
+			// onSend; the parent stores them on the outgoing message so the chat
+			// history can render the chips instead of (or alongside) the merged
+			// raw text.
+			const chipsSnapshot = pasteChips
+
 			// Merge any pasted-text chips into the message at their recorded
 			// positions, as if the text had been pasted there directly, then clear
 			// the strip (the text is now part of the outgoing value).
-			const mergedValue = mergePasteChips(inputValue, pasteChips)
-			if (pasteChips.length > 0) {
+			const mergedValue = mergePasteChips(inputValue, chipsSnapshot)
+			if (chipsSnapshot.length > 0) {
 				setPasteChips([])
 			}
 
@@ -294,7 +300,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 			// Pass the final text through onSend directly so the parent never
 			// reads a stale inputValue from an earlier render.
-			onSend(expandedValue)
+			onSend(expandedValue, chipsSnapshot)
 		}, [inputValue, pasteChips, setInputValue, expandMentions, onSend])
 
 		const handleRemovePasteChip = useCallback((id: string) => {
@@ -2210,117 +2216,71 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							<CommandApprovalSelector />
 						</div>
 					</div>
-					<div className="flex items-center gap-0">
-						{!isEditMode && (
-							<div className="flex items-center gap-0.5">
-								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
-							</div>
-						)}
-						{isEditMode && (
-							<StandardTooltip content={t("chat:cancel.title")}>
+					<div className={cn("flex items-center", isEditMode ? "gap-1.5" : "gap-0")}>
+						{isEditMode ? (
+							<>
 								<button
 									aria-label={t("chat:cancel.title")}
-									disabled={false}
+									type="button"
 									onClick={onCancel}
 									className={cn(
 										"relative inline-flex items-center justify-center",
-										"bg-transparent border-none py-1.5",
-										"rounded-lg min-w-[24px] min-h-[28px]",
-										"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+										"bg-transparent border border-[var(--vscode-commandCenter-inactiveBorder)]",
+										"h-7 px-3 rounded-full text-xs font-medium",
+										"text-vscode-foreground hover:bg-[var(--vscode-toolbar-hoverBackground)]",
 										"transition-all duration-150",
-										"focus-visible:ring-1 focus-visible:ring-white/50",
-										"active:bg-[rgba(255,255,255,0.1)]",
 										"cursor-pointer",
 									)}>
-									<MessageSquareX className="w-4 h-4" />
+									{t("chat:cancel.title")}
 								</button>
-							</StandardTooltip>
-						)}
-						{/* kilocode_change: mic button for speech-to-text */}
-						{/* {apiConfiguration && (
-						<div className="relative inline-flex">
-							{recorderState === "recording" && (
-								<div
-									className={cn(
-										"absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-10",
-										"flex items-center gap-1.5 whitespace-nowrap",
-										"rounded px-2 py-1 text-xs shadow-md",
-										"bg-vscode-editorWidget-background border border-vscode-editorWidget-border text-vscode-foreground",
-									)}>
-									<span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-									{t("chat:recording")}
-								</div>
-							)}
-							<StandardTooltip
-								content={
-									recorderError
-										? recorderError
-										: recorderState === "recording"
-											? t("chat:stopRecording")
-											: t("chat:startRecording")
-								}>
 								<button
-									aria-label={
-										recorderState === "recording" ? t("chat:stopRecording") : t("chat:startRecording")
-									}
-									disabled={false}
-									onClick={() => {
-										if (recorderState === "recording") {
-											stopRecording()
-										} else if (recorderState === "idle") {
-											startRecording()
-										}
-									}}
+									aria-label={t("kilocode:userFeedback.send")}
+									type="button"
+									onClick={handleSend}
 									className={cn(
 										"relative inline-flex items-center justify-center",
-										"bg-transparent border-none py-1.5",
-										"rounded-lg min-w-[24px] min-h-[28px]",
+										"bg-white hover:bg-white/90 text-black border-none",
+										"h-7 px-3 rounded-full text-xs font-medium",
 										"transition-all duration-150",
-										"focus-visible:ring-1 focus-visible:ring-white/50",
-										"active:bg-[rgba(255,255,255,0.1)]",
-										recorderError || recorderState === "recording"
-											? "text-red-400 hover:text-red-300 cursor-pointer"
-											: "opacity-80 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground cursor-pointer",
+										"cursor-pointer",
 									)}>
-									{recorderState === "recording" ? (
-										<Square
-											className={cn("w-3.5 h-3.5", { hidden: containerWidth < 235 })}
-											fill="currentColor"
-										/>
-									) : (
-										<Mic className={cn("w-4 h-4", { hidden: containerWidth < 235 })} />
-									)}
+									{t("kilocode:userFeedback.send")}
 								</button>
-							</StandardTooltip>
-						</div>
-					)} */}
-						<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
-							<button
-								aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}
-								disabled={false}
-								onClick={isStreaming && !inputValue.trim() ? onCancelStreaming : handleSend}
-								className={cn(
-									"relative inline-flex items-center justify-center",
-									"bg-transparent border-none",
-									"rounded-lg min-w-[28px] min-h-[28px]",
-									"opacity-100 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-									"transition-all duration-150",
-									"focus-visible:ring-1 focus-visible:ring-white/50",
-									"active:bg-[rgba(255,255,255,0.1)]",
-									"cursor-pointer",
-									isStreaming &&
-										!inputValue.trim() &&
-										"text-red-400 hover:text-red-300 hover:bg-red-500/10",
-								)}>
-								{isStreaming ? (
-									<div className="w-4 h-4 bg-current rounded-sm"></div>
-								) : (
-									<div className="w-5.5 h-5.5 rounded-full bg-current/20 flex items-center justify-center">
-										<ArrowUp02Icon className="w-4 h-4 rtl:-scale-x-100" />
-									</div>
-								)}
-							</button>
-						</StandardTooltip>
+							</>
+						) : (
+							<>
+								<div className="flex items-center gap-0.5">
+									<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
+								</div>
+								<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
+									<button
+										aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}
+										disabled={false}
+										onClick={isStreaming && !inputValue.trim() ? onCancelStreaming : handleSend}
+										className={cn(
+											"relative inline-flex items-center justify-center",
+											"bg-transparent border-none",
+											"rounded-lg min-w-[28px] min-h-[28px]",
+											"opacity-100 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+											"transition-all duration-150",
+											"focus-visible:ring-1 focus-visible:ring-white/50",
+											"active:bg-[rgba(255,255,255,0.1)]",
+											"cursor-pointer",
+											isStreaming &&
+												!inputValue.trim() &&
+												"text-red-400 hover:text-red-300 hover:bg-red-500/10",
+										)}>
+										{isStreaming ? (
+											<div className="w-4 h-4 bg-current rounded-sm"></div>
+										) : (
+											<div className="w-5.5 h-5.5 rounded-full bg-current/20 flex items-center justify-center">
+												<ArrowUp02Icon className="w-4 h-4 rtl:-scale-x-100" />
+											</div>
+										)}
+									</button>
+								</StandardTooltip>
+							</>
+						)}
 					</div>
 				</div>
 			</div>

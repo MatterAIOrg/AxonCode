@@ -19,6 +19,7 @@ import { vscode } from "@src/utils/vscode"
 import CodeAccordian, { extractFirstLineNumberFromDiff } from "../common/CodeAccordian"
 import ImageBlock from "../common/ImageBlock"
 import MarkdownBlock from "../common/MarkdownBlock"
+import PasteChips, { getDisplayTextWithoutPasteChips } from "../common/PasteChips"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
 import ErrorRow from "./ErrorRow"
@@ -1789,6 +1790,11 @@ export const ChatRowContent = ({
 						return <OutOfCreditsBanner />
 					}
 
+					const initialTaskDisplayText = getDisplayTextWithoutPasteChips(
+						message.text || "",
+						message.pasteChips,
+					)
+
 					return (
 						<div>
 							{/* <div style={headerStyle}>
@@ -1796,7 +1802,9 @@ export const ChatRowContent = ({
 								<span style={{}}>{t("chat:text.rooSaid")}</span>
 							</div> */}
 							<div className="">
-								<Markdown markdown={message.text} partial={message.partial} />
+								{initialTaskDisplayText ? (
+									<Markdown markdown={initialTaskDisplayText} partial={message.partial} />
+								) : null}
 								{message.images && message.images.length > 0 && (
 									<div style={{ marginTop: "0px" }}>
 										{message.images.map((image, index) => (
@@ -1804,10 +1812,57 @@ export const ChatRowContent = ({
 										))}
 									</div>
 								)}
+								{message.pasteChips && message.pasteChips.length > 0 && (
+									<PasteChips chips={message.pasteChips} readonly compact />
+								)}
 							</div>
 						</div>
 					)
 				case "user_feedback":
+					const userFeedbackDisplayText = getDisplayTextWithoutPasteChips(
+						message.text || "",
+						message.pasteChips,
+					)
+					const hasChips = Boolean(message.pasteChips && message.pasteChips.length > 0)
+					const hasImages = Boolean(message.images && message.images.length > 0)
+					const hasAttachments = hasChips || hasImages
+					const hasText = Boolean(userFeedbackDisplayText)
+
+					const actionButtons = (
+						<div className="flex items-center gap-2 pr-1 ml-auto shrink-0">
+							<StandardTooltip content={t("chat:checkpoint.menu.restore")}>
+								<div
+									className="cursor-pointer shrink-0 opacity-20 hover:opacity-100 transition-opacity"
+									style={{ visibility: isStreaming ? "hidden" : "visible" }}
+									onClick={(e) => {
+										e.stopPropagation()
+										handleEditClick()
+									}}
+									title={t("chat:checkpoint.restore")}>
+									<Undo2 className="w-3.5 h-3.5" />
+								</div>
+							</StandardTooltip>
+							<div
+								className="cursor-pointer shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+								style={{ visibility: isStreaming ? "hidden" : "visible" }}
+								onClick={(e) => {
+									e.stopPropagation()
+									handleEditClick()
+								}}>
+								{/* <Edit className="w-4 shrink-0" aria-label="Edit message icon" /> */}
+							</div>
+							<div
+								className="cursor-pointer shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+								style={{ visibility: isStreaming ? "hidden" : "visible" }}
+								onClick={(e) => {
+									e.stopPropagation()
+									vscode.postMessage({ type: "deleteMessage", value: message.ts })
+								}}>
+								{/* <Trash2 className="w-4 shrink-0" aria-label="Delete message icon" /> */}
+							</div>
+						</div>
+					)
+
 					return (
 						<div className="group" data-user-feedback="true" data-message-index={messageIndex}>
 							{/* <div style={headerStyle}>
@@ -1840,11 +1895,11 @@ export const ChatRowContent = ({
 											onCancel={handleCancelEdit}
 										/>
 									</div>
-								) : (
-									<div className="flex justify-between items-end">
-										<div className="flex-grow">
+								) : hasText && !hasAttachments ? (
+									<div className="flex justify-between items-end w-full gap-2">
+										<div className="flex-grow min-w-0">
 											<ReadOnlyChatText
-												value={message.text || ""}
+												value={userFeedbackDisplayText}
 												className="px-1 py-1 wrap-anywhere rounded-lg transition-colors hover:bg-vscode-editor-hover-highlight"
 												onClick={() => {
 													if (!isStreaming) {
@@ -1854,43 +1909,40 @@ export const ChatRowContent = ({
 												title={t("chat:queuedMessages.clickToEdit")}
 											/>
 										</div>
-
-										<StandardTooltip content={t("chat:checkpoint.menu.restore")}>
-											<div
-												className="cursor-pointer shrink-0 mb-1.5 opacity-20 hover:opacity-100 transition-opacity"
-												style={{ visibility: isStreaming ? "hidden" : "visible" }}
-												onClick={(e) => {
-													e.stopPropagation()
-													handleEditClick()
-												}}
-												title={t("chat:checkpoint.restore")}>
-												<Undo2 className="w-3.5 h-3.5" />
+										<div className="mb-1.5">{actionButtons}</div>
+									</div>
+								) : hasAttachments ? (
+									<div className="flex flex-col gap-1.5">
+										{hasText && (
+											<div className="w-full">
+												<ReadOnlyChatText
+													value={userFeedbackDisplayText}
+													className="px-1 py-1 wrap-anywhere rounded-lg transition-colors hover:bg-vscode-editor-hover-highlight"
+													onClick={() => {
+														if (!isStreaming) {
+															handleEditClick()
+														}
+													}}
+													title={t("chat:queuedMessages.clickToEdit")}
+												/>
 											</div>
-										</StandardTooltip>
-										<div className="flex gap-2 pr-1">
-											<div
-												className="cursor-pointer shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-												style={{ visibility: isStreaming ? "hidden" : "visible" }}
-												onClick={(e) => {
-													e.stopPropagation()
-													handleEditClick()
-												}}>
-												{/* <Edit className="w-4 shrink-0" aria-label="Edit message icon" /> */}
+										)}
+										{hasImages && hasChips && (
+											<Thumbnails images={message.images!} style={{ marginTop: "2px" }} />
+										)}
+										<div className="flex justify-between items-center w-full gap-2">
+											<div className="flex-grow min-w-0">
+												{hasChips ? (
+													<PasteChips chips={message.pasteChips!} readonly compact />
+												) : (
+													<Thumbnails images={message.images!} />
+												)}
 											</div>
-											<div
-												className="cursor-pointer shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-												style={{ visibility: isStreaming ? "hidden" : "visible" }}
-												onClick={(e) => {
-													e.stopPropagation()
-													vscode.postMessage({ type: "deleteMessage", value: message.ts })
-												}}>
-												{/* <Trash2 className="w-4 shrink-0" aria-label="Delete message icon" /> */}
-											</div>
+											{actionButtons}
 										</div>
 									</div>
-								)}
-								{!isEditing && message.images && message.images.length > 0 && (
-									<Thumbnails images={message.images} style={{ marginTop: "8px" }} />
+								) : (
+									<div className="flex justify-end w-full">{actionButtons}</div>
 								)}
 							</div>
 						</div>

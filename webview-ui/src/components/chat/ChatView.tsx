@@ -12,7 +12,7 @@ import { appendImages, normalizeImages } from "@src/utils/imageUtils"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
 
 import { ImageAttachment } from "@src/components/common/Thumbnails"
-import type { ClineAsk, ClineMessage, McpServerUse } from "@roo-code/types"
+import type { ClineAsk, ClineMessage, McpServerUse, PasteChipSerialized } from "@roo-code/types"
 
 import { FollowUpData, SuggestionItem } from "@roo-code/types"
 
@@ -898,15 +898,24 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	 * Handles sending messages to the extension
 	 * @param text - The message text to send
 	 * @param images - Array of image data URLs to send with the message
+	 * @param pasteChips - Optional paste chips captured by the composer that
+	 * should be persisted on the outgoing message so the chat history can
+	 * render them in user messages and the sticky user message.
 	 */
 	const handleSendMessage = useCallback(
-		(text: string, images: ImageAttachment[]) => {
+		(text: string, images: ImageAttachment[], pasteChips?: PasteChipSerialized[]) => {
 			text = formatMessageWithDocuments(text, selectedDocuments)
 			const imageDataUrls = images.map((img) => img.dataUrl)
+			const payloadChips = pasteChips && pasteChips.length > 0 ? pasteChips : undefined
 			if (text || imageDataUrls.length > 0) {
 				if (sendingDisabled || isStreaming) {
 					try {
-						vscode.postMessage({ type: "queueMessage", text, images: imageDataUrls })
+						vscode.postMessage({
+							type: "queueMessage",
+							text,
+							images: imageDataUrls,
+							pasteChips: payloadChips,
+						})
 						setInputValue("")
 						setSelectedImages([])
 						setSelectedDocuments([])
@@ -923,7 +932,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				userRespondedRef.current = true
 
 				if (messagesRef.current.length === 0) {
-					vscode.postMessage({ type: "newTask", text, images: imageDataUrls })
+					vscode.postMessage({
+						type: "newTask",
+						text,
+						images: imageDataUrls,
+						pasteChips: payloadChips,
+					})
 				} else if (clineAskRef.current) {
 					if (clineAskRef.current === "followup") {
 						markFollowUpAsAnswered()
@@ -944,6 +958,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								askResponse: "messageResponse",
 								text,
 								images: imageDataUrls,
+								pasteChips: payloadChips,
 							})
 							break
 						case "tool":
@@ -955,6 +970,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								askResponse: "noButtonClicked",
 								text,
 								images: imageDataUrls,
+								pasteChips: payloadChips,
 							})
 							break
 						// There is no other case that a textfield should be enabled.
@@ -966,6 +982,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						askResponse: "messageResponse",
 						text,
 						images: imageDataUrls,
+						pasteChips: payloadChips,
 					})
 				}
 
@@ -1009,11 +1026,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// after which buttons are shown and we then send an askResponse to the
 	// extension.
 	const handlePrimaryButtonClick = useCallback(
-		(text?: string, images?: ImageAttachment[]) => {
+		(text?: string, images?: ImageAttachment[], pasteChips?: PasteChipSerialized[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
 			const trimmedInput = formatMessageWithDocuments(text ?? "", selectedDocuments)
+			const payloadChips = pasteChips && pasteChips.length > 0 ? pasteChips : undefined
 
 			switch (clineAsk) {
 				case "api_req_failed":
@@ -1031,6 +1049,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							askResponse: "yesButtonClicked",
 							text: trimmedInput,
 							images: images?.map((img) => img.dataUrl),
+							pasteChips: payloadChips,
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -1066,11 +1085,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	)
 
 	const handleSecondaryButtonClick = useCallback(
-		(text?: string, images?: ImageAttachment[]) => {
+		(text?: string, images?: ImageAttachment[], pasteChips?: PasteChipSerialized[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
 			const trimmedInput = formatMessageWithDocuments(text ?? "", selectedDocuments)
+			const payloadChips = pasteChips && pasteChips.length > 0 ? pasteChips : undefined
 
 			if (isStreaming) {
 				vscode.postMessage({ type: "cancelTask" })
@@ -1097,6 +1117,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							askResponse: "noButtonClicked",
 							text: trimmedInput,
 							images: images?.map((img) => img.dataUrl),
+							pasteChips: payloadChips,
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -1253,16 +1274,24 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							handleChatReset()
 							break
 						case "sendMessage":
-							handleSendMessage(message.text ?? "", normalizeImages(message.images))
+							handleSendMessage(message.text ?? "", normalizeImages(message.images), message.pasteChips)
 							break
 						case "setChatBoxMessage":
 							handleSetChatBoxMessage(message.text ?? "", normalizeImages(message.images))
 							break
 						case "primaryButtonClick":
-							handlePrimaryButtonClick(message.text ?? "", normalizeImages(message.images))
+							handlePrimaryButtonClick(
+								message.text ?? "",
+								normalizeImages(message.images),
+								message.pasteChips,
+							)
 							break
 						case "secondaryButtonClick":
-							handleSecondaryButtonClick(message.text ?? "", normalizeImages(message.images))
+							handleSecondaryButtonClick(
+								message.text ?? "",
+								normalizeImages(message.images),
+								message.pasteChips,
+							)
 							break
 					}
 					break
@@ -1478,7 +1507,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				]
 				if (message.ask && alwaysHiddenOnceProcessedAsk.includes(message.ask)) return false
 				if (message.say && alwaysHiddenOnceProcessedSay.includes(message.say)) return false
-				if (message.say === "text" && (message.text ?? "") === "" && (message.images?.length ?? 0) === 0) {
+				if (
+					message.say === "text" &&
+					(message.text ?? "") === "" &&
+					(message.images?.length ?? 0) === 0 &&
+					(message.pasteChips?.length ?? 0) === 0
+				) {
 					return false
 				}
 				return true
@@ -1508,7 +1542,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					}
 					break
 				case "text":
-					if ((message.text ?? "") === "" && (message.images?.length ?? 0) === 0) return false
+					if (
+						(message.text ?? "") === "" &&
+						(message.images?.length ?? 0) === 0 &&
+						(message.pasteChips?.length ?? 0) === 0
+					) {
+						return false
+					}
 					break
 				case "mcp_server_request_started":
 					return false
@@ -2734,7 +2774,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									setSelectedImages={setSelectedImages}
 									selectedDocuments={selectedDocuments}
 									setSelectedDocuments={setSelectedDocuments}
-									onSend={(text?: string) => handleSendMessage(text ?? inputValue, selectedImages)}
+									onSend={(text?: string, pasteChips?: PasteChipSerialized[]) =>
+										handleSendMessage(text ?? inputValue, selectedImages, pasteChips)
+									}
 									onSelectImages={selectAttachments}
 									shouldDisableImages={shouldDisableImages}
 									onHeightChange={() => {
@@ -2800,8 +2842,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</div>
 								<div className="flex flex-grow flex-col justify-start gap-4">
 									{!isReviewOnlyMode && (
-										<div className="w-full min-w-0 mt-4 mb-1">
-											<div className="relative overflow-hidden rounded-2xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-vscode-editor-background h-[88px]">
+										<div className="w-full min-w-0 mt-0 mb-1">
+											<div className="relative overflow-hidden rounded-2xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-vscode-editor-background h-[90px]">
 												<div
 													className="flex transition-transform duration-500 ease-in-out h-full"
 													style={{ transform: `translateX(-${activeMarketingCard * 100}%)` }}>
@@ -2893,9 +2935,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
 																	Introducing Orbcode CLI
 																</p>
-																<span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)]">
-																	New
-																</span>
 																<img
 																	src={iconsBaseUri + "/matterai-company-ic.svg"}
 																	alt="MatterAI"
@@ -3132,7 +3171,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								setSelectedImages={setSelectedImages}
 								selectedDocuments={selectedDocuments}
 								setSelectedDocuments={setSelectedDocuments}
-								onSend={(text?: string) => handleSendMessage(text ?? inputValue, selectedImages)}
+								onSend={(text?: string, pasteChips?: PasteChipSerialized[]) =>
+									handleSendMessage(text ?? inputValue, selectedImages, pasteChips)
+								}
 								onSelectImages={selectAttachments}
 								shouldDisableImages={shouldDisableImages}
 								onHeightChange={() => {

@@ -1,6 +1,7 @@
 // kilocode_change: new file - Sticky user message component for chat
 import { memo, useState } from "react"
-import type { ClineMessage } from "@roo-code/types"
+import type { ClineMessage, PasteChipSerialized } from "@roo-code/types"
+import PasteChips, { getDisplayTextWithoutPasteChips } from "../common/PasteChips"
 import { ReadOnlyChatText } from "../chat/ReadOnlyChatText"
 import type { ExplorationGroup } from "../chat/ExplorationGroupRow"
 import { cn } from "@src/lib/utils"
@@ -27,12 +28,17 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 
 	// Get the message to display based on stickyIndex
 	// stickyIndex: null = task prompt, number = index in messages array (groupedMessages)
-	const getStickyMessage = () => {
+	const getStickyMessage = (): {
+		text?: string
+		images?: string[]
+		pasteChips?: PasteChipSerialized[]
+	} => {
 		// If stickyIndex is null, show the initial task prompt
 		if (stickyIndex === null) {
 			return {
 				text: task?.text,
 				images: task?.images,
+				pasteChips: task?.pasteChips,
 			}
 		}
 
@@ -43,6 +49,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 			return {
 				text: task?.text,
 				images: task?.images,
+				pasteChips: task?.pasteChips,
 			}
 		}
 
@@ -50,6 +57,7 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 			return {
 				text: msg.text,
 				images: msg.images,
+				pasteChips: msg.pasteChips,
 			}
 		}
 
@@ -57,19 +65,22 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 		return {
 			text: task?.text,
 			images: task?.images,
+			pasteChips: task?.pasteChips,
 		}
 	}
 
 	const stickyMessage = getStickyMessage()
 
-	if (!stickyMessage?.text && !stickyMessage?.images?.length) {
+	if (!stickyMessage?.text && !stickyMessage?.images?.length && !stickyMessage?.pasteChips?.length) {
 		return null
 	}
+
+	const displayText = getDisplayTextWithoutPasteChips(stickyMessage.text || "", stickyMessage.pasteChips)
 
 	return (
 		<div
 			className={cn(
-				"relative flex flex-col gap-1 px-2 py-2 mt-2",
+				"relative flex flex-col gap-1 px-2 mx-2 py-2 mt-2",
 				"rounded-lg",
 				"border border-[var(--vscode-commandCenter-inactiveBorder)]",
 				"transition-all duration-150",
@@ -82,28 +93,36 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 				className="flex items-center justify-between gap-2 cursor-pointer"
 				onClick={() => setIsExpanded(!isExpanded)}>
 				<div className={cn("grow min-w-0", !isExpanded && "overflow-hidden")}>
-					{!isExpanded ? (
-						<div
-							style={{
-								display: "-webkit-box",
-								WebkitLineClamp: 2,
-								WebkitBoxOrient: "vertical",
-								overflow: "hidden",
-								textOverflow: "ellipsis",
-								opacity: 0.85,
-								fontSize: "13px",
-							}}>
-							<ReadOnlyChatText value={stickyMessage.text || ""} />
-						</div>
+					{displayText ? (
+						!isExpanded ? (
+							<div
+								style={{
+									display: "-webkit-box",
+									WebkitLineClamp: 2,
+									WebkitBoxOrient: "vertical",
+									overflow: "hidden",
+									textOverflow: "ellipsis",
+									opacity: 0.85,
+									fontSize: "13px",
+								}}>
+								<ReadOnlyChatText value={displayText} />
+							</div>
+						) : (
+							<div
+								className="overflow-auto max-h-40 text-[13px]"
+								style={{
+									whiteSpace: "pre-wrap",
+									wordBreak: "break-word",
+								}}>
+								<ReadOnlyChatText value={displayText} />
+							</div>
+						)
 					) : (
-						<div
-							className="overflow-auto max-h-40 text-[13px]"
-							style={{
-								whiteSpace: "pre-wrap",
-								wordBreak: "break-word",
-							}}>
-							<ReadOnlyChatText value={stickyMessage.text || ""} />
-						</div>
+						!isExpanded &&
+						stickyMessage.pasteChips &&
+						stickyMessage.pasteChips.length > 0 && (
+							<PasteChips chips={stickyMessage.pasteChips} readonly compact />
+						)
 					)}
 				</div>
 			</div>
@@ -121,6 +140,9 @@ const StickyUserMessage = ({ task, messages, stickyIndex }: StickyUserMessagePro
 						<span className="text-xs opacity-60">+{stickyMessage.images.length - 4} more</span>
 					)}
 				</div>
+			)}
+			{isExpanded && stickyMessage.pasteChips && stickyMessage.pasteChips.length > 0 && (
+				<PasteChips chips={stickyMessage.pasteChips} readonly compact />
 			)}
 		</div>
 	)
