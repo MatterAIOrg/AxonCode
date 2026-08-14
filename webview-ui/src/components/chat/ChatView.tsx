@@ -799,22 +799,28 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	useEffect(() => {
 		const incomingIds = (taskTabs ?? []).map((tab) => tab.taskId)
 		const incomingSet = new Set(incomingIds)
-		const shouldReplacePending =
-			pendingNewTabFromId !== undefined && currentTabId !== null && currentTabId !== pendingNewTabFromId
-		setTabOrder((prev) => {
-			const next = prev.filter((id) => id === NEW_CHAT_TAB_ID || incomingSet.has(id))
 
-			if (shouldReplacePending) {
-				const pendingIndex = next.indexOf(NEW_CHAT_TAB_ID)
-				if (pendingIndex === -1) return next
-				const existingCurrentIndex = next.indexOf(currentTabId)
-				if (existingCurrentIndex !== -1) {
-					next.splice(existingCurrentIndex, 1)
+		setTabOrder((prev) => {
+			let next = prev.filter(
+				(id) => id === NEW_CHAT_TAB_ID || incomingSet.has(id) || (currentTabId !== null && id === currentTabId),
+			)
+
+			if (currentTabId !== null) {
+				const hasNewChatTab = next.includes(NEW_CHAT_TAB_ID)
+				const hasCurrentTab = next.includes(currentTabId)
+
+				if (hasNewChatTab) {
+					if (hasCurrentTab) {
+						// Current task is already in tab order, remove the pending new chat tab
+						next = next.filter((id) => id !== NEW_CHAT_TAB_ID)
+					} else {
+						// Replace the pending new chat tab with the current task
+						const newTabIndex = next.indexOf(NEW_CHAT_TAB_ID)
+						next[newTabIndex] = currentTabId
+					}
+				} else if (!hasCurrentTab) {
+					next.push(currentTabId)
 				}
-				next[next.indexOf(NEW_CHAT_TAB_ID)] = currentTabId
-			}
-			if (currentTabId && !next.includes(currentTabId) && !shouldReplacePending) {
-				next.push(currentTabId)
 			}
 
 			for (const taskId of incomingIds) {
@@ -825,7 +831,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			return next
 		})
-		if (shouldReplacePending) {
+
+		if (currentTabId !== null && pendingNewTabFromId !== undefined) {
 			setPendingNewTabFromId(undefined)
 		}
 	}, [taskTabs, currentTabId, pendingNewTabFromId])
