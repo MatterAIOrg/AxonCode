@@ -296,6 +296,7 @@ vi.mock("../../../shared/modes", () => ({
 		}
 	}),
 	defaultModeSlug: "code",
+	validateModeSlug: vi.fn().mockImplementation((slug) => slug || "code"),
 }))
 
 vi.mock("../../prompts/system", () => ({
@@ -758,7 +759,7 @@ describe("ClineProvider", () => {
 	})
 
 	describe("task status", () => {
-		test("marks approval asks as in progress", () => {
+		test("marks idle asks with no pending work as undefined", () => {
 			const status = (provider as any).getTaskStatus({
 				abort: false,
 				abandoned: false,
@@ -771,10 +772,10 @@ describe("ClineProvider", () => {
 				didCompleteReadingStream: true,
 			})
 
-			expect(status).toBe("in_progress")
+			expect(status).toBeUndefined()
 		})
 
-		test("marks quiescent tasks as completed", () => {
+		test("marks quiescent tasks as undefined", () => {
 			const status = (provider as any).getTaskStatus({
 				abort: false,
 				abandoned: false,
@@ -787,7 +788,7 @@ describe("ClineProvider", () => {
 				didCompleteReadingStream: true,
 			})
 
-			expect(status).toBe("completed")
+			expect(status).toBeUndefined()
 		})
 
 		test("marks active work as in progress", () => {

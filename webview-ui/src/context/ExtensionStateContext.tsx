@@ -220,7 +220,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	taskTabs?: Array<{
 		taskId: string
 		taskLabel: string
-		status: "in_progress" | "completed"
+		status?: "in_progress" | "completed"
 	}>
 }
 

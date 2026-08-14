@@ -466,7 +466,7 @@ export type ExtensionState = Pick<
 	taskTabs?: Array<{
 		taskId: string
 		taskLabel: string
-		status: "in_progress" | "completed"
+		status?: "in_progress" | "completed"
 	}>
 	currentTaskTodos?: TodoItem[] // Initial todos for the current task
 	apiConfiguration: ProviderSettings

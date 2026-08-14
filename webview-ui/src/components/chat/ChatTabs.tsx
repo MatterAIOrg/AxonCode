@@ -19,9 +19,8 @@ export interface ChatTabsProps {
 	onReorder?: (newOrder: string[]) => void
 }
 
-const statusDotClass: Record<TabStatus, string> = {
+const statusDotClass: Partial<Record<TabStatus, string>> = {
 	in_progress: "bg-[var(--vscode-charts-blue)] animate-pulse",
-	completed: "bg-[var(--vscode-testing-iconPassed)]",
 }
 
 const ChatTabs: React.FC<ChatTabsProps> = ({ tabs, onSelect, onClose, onAddTab, onReorder }) => {
@@ -75,7 +74,7 @@ const ChatTabs: React.FC<ChatTabsProps> = ({ tabs, onSelect, onClose, onAddTab, 
 	return (
 		<div
 			data-testid="chat-tabs"
-			className="flex items-end bg-[var(--vscode-editorGroupHeader-tabsBackground,var(--vscode-sideBar-background))] border-b border-[var(--vscode-panel-border)] h-9 px-1.5 pt-1 overflow-x-auto scrollbar-hide shrink-0 gap-0.5">
+			className="flex items-end bg-[var(--vscode-editorGroupHeader-tabsBackground,var(--vscode-sideBar-background))] border-b border-[var(--vscode-panel-border)] h-9 px-1.5 pt-1 overflow-hidden shrink-0 gap-0.5">
 			{tabs.map((tab) => {
 				const isDragOver = dragOverTaskId === tab.taskId
 				const isDragging = draggedTaskId === tab.taskId
@@ -90,13 +89,13 @@ const ChatTabs: React.FC<ChatTabsProps> = ({ tabs, onSelect, onClose, onAddTab, 
 						onDragLeave={handleDragLeave}
 						onDrop={(e) => handleDrop(e, tab.taskId)}
 						onDragEnd={handleDragEnd}
-						className={`flex items-center gap-1.5 h-[30px] pl-3 pr-1.5 rounded-t-lg flex-1 min-w-[80px] max-w-[240px] cursor-pointer group select-none transition-colors duration-150 ${
+						className={`flex items-center gap-1.5 h-[30px] pl-2.5 pr-1.5 rounded-t-lg flex-1 min-w-0 max-w-[240px] cursor-pointer group select-none transition-colors duration-150 ${
 							tab.isActive
 								? "bg-[var(--vscode-tab-activeBackground,var(--vscode-editor-background))] text-[var(--vscode-tab-activeForeground,var(--vscode-foreground))] cursor-default shadow-xs border-t border-x border-[var(--vscode-panel-border)]/40 -mb-[1px] pb-[1px]"
 								: "bg-transparent hover:bg-[var(--vscode-tab-hoverBackground)] text-[var(--vscode-tab-inactiveForeground)] hover:text-[var(--vscode-tab-activeForeground,var(--vscode-foreground))]"
 						} ${isDragOver ? "ring-2 ring-[var(--vscode-focusBorder)]" : ""} ${isDragging ? "opacity-40" : ""}`}
 						title={tab.label || "New Agent"}>
-						{tab.status && (
+						{tab.status && statusDotClass[tab.status] && (
 							<span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDotClass[tab.status]}`} />
 						)}
 						<MessageSquareIcon

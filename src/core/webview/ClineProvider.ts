@@ -2259,33 +2259,29 @@ ${prompt}
 		return this.mergeCommandLists("deniedCommands", "denied", globalStateCommands)
 	}
 
-	private getTaskStatus(task: Task): "in_progress" | "completed" {
-		const askType = task.taskAsk?.ask
-
+	private getTaskStatus(task: Task): "in_progress" | "completed" | undefined {
 		if (task.abort || task.abandoned) {
-			return "completed"
+			return undefined
 		}
 
+		const askType = task.taskAsk?.ask
 		if (askType === "completion_result" || askType === "resume_completed_task") {
-			return "completed"
-		}
-
-		if (askType) {
-			return "in_progress"
+			return undefined
 		}
 
 		const hasPendingAssistantWork =
-			task.isStreaming ||
-			task.isWaitingForAskResponse ||
-			task.presentAssistantMessageLocked ||
-			task.currentStreamingContentIndex < task.assistantMessageContent.length ||
-			!task.didCompleteReadingStream
+			Boolean(task.isStreaming) ||
+			Boolean(task.presentAssistantMessageLocked) ||
+			(typeof task.currentStreamingContentIndex === "number" &&
+				Array.isArray(task.assistantMessageContent) &&
+				task.currentStreamingContentIndex < task.assistantMessageContent.length) ||
+			task.didCompleteReadingStream === false
 
 		if (hasPendingAssistantWork) {
 			return "in_progress"
 		}
 
-		return "completed"
+		return undefined
 	}
 
 	/**
