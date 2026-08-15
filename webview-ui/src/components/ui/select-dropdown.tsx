@@ -3,7 +3,7 @@ import { Fzf } from "fzf"
 import { Infinity as InfinityIC, ListTodo, LucideIcon, MessagesSquare, RefreshCw, Settings, X } from "lucide-react"
 import * as React from "react"
 
-import { Popover, PopoverContent, PopoverTrigger, StandardTooltip } from "@/components/ui"
+import { Input, Popover, PopoverContent, PopoverTrigger, StandardTooltip } from "@/components/ui"
 import { cn } from "@/lib/utils"
 import { IconProps } from "@radix-ui/react-icons/dist/types" // kilocode_change
 import { useRooPortal } from "./hooks/useRooPortal"
@@ -72,6 +72,7 @@ export interface SelectDropdownProps {
 	disableSearch?: boolean
 	triggerIcon?: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>> | boolean | undefined // kilocode_change
 	onRefresh?: () => void // kilocode_change: callback for refreshing model list
+	headerComponent?: React.ReactNode // kilocode_change: custom header in dropdown popup
 }
 
 export const SelectDropdown = React.memo(
@@ -96,6 +97,7 @@ export const SelectDropdown = React.memo(
 				disableSearch = false,
 				triggerIcon = CaretUpIcon, // kilocode_change
 				onRefresh, // kilocode_change
+				headerComponent, // kilocode_change
 			},
 			ref,
 		) => {
@@ -308,13 +310,13 @@ export const SelectDropdown = React.memo(
 							{/* Search input */}
 							{!disableSearch && (
 								<div className="sticky top-0 z-10 p-2 border-b border-vscode-dropdown-border bg-[var(--vscode-editor-background)] flex items-center gap-2">
-									<input
+									<Input
 										aria-label="Search"
 										ref={searchInputRef}
 										value={searchValue}
 										onChange={(e) => setSearchValue(e.target.value)}
 										placeholder="Search models..."
-										className="flex-1 h-8 px-2 py-1 text-xs bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border rounded focus:outline-0"
+										className="flex-1 h-8 px-2 text-xs"
 									/>
 									{searchValue.length > 0 && (
 										<X
@@ -336,20 +338,26 @@ export const SelectDropdown = React.memo(
 								</div>
 							)}
 
+							{headerComponent && (
+								<div className="border-b border-vscode-dropdown-border bg-[var(--vscode-editor-background)]">
+									{headerComponent}
+								</div>
+							)}
+
 							{/* Dropdown items - Use windowing for large lists */}
 							{/* kilocode_change: different max height: max-h-82 */}
 							<div className="max-h-82 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 								{groupedOptions.length === 0 && searchValue ? (
 									<div className="py-2 px-3 text-sm text-vscode-foreground/70">No results found</div>
 								) : (
-									<div className="py-1">
+									<div className="p-1">
 										{groupedOptions.map((option, index) => {
 											// Memoize rendering of each item type for better performance
 											if (option.type === DropdownOptionType.GROUP) {
 												return (
 													<div
 														key={`group-${option.value || index}`}
-														className="px-3 pt-2.5 pb-1 text-xs font-medium text-vscode-descriptionForeground opacity-70"
+														className="px-3 pt-2 pb-1 text-xs font-medium text-vscode-descriptionForeground opacity-70"
 														data-testid="dropdown-group">
 														{option.label}
 													</div>
@@ -374,19 +382,19 @@ export const SelectDropdown = React.memo(
 												<div
 													key={itemKey}
 													onClick={() => !option.disabled && handleSelect(option.value)}
-													className={cn("px-1.5 py-0.5", itemClassName)}
+													className={cn("px-1 py-0.5", itemClassName)}
 													data-testid="dropdown-item">
 													{renderItem ? (
 														renderItem(option)
 													) : (
 														<div
 															className={cn(
-																"flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors duration-150 rounded-lg",
+																"flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors duration-150 rounded-sm",
 																option.disabled
 																	? "opacity-50 cursor-not-allowed"
 																	: isSelected
-																		? "bg-[var(--vscode-list-activeSelectionBackground)] text-[var(--vscode-list-activeSelectionForeground)]"
-																		: "hover:bg-[var(--vscode-list-hoverBackground)] text-[var(--vscode-foreground)] opacity-80",
+																		? "bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)]"
+																		: "hover:bg-[var(--vscode-button-hoverBackground)] hover:text-[var(--vscode-button-foreground)] text-[var(--vscode-foreground)] opacity-70",
 															)}>
 															{option.codicon &&
 																(() => {
@@ -418,7 +426,7 @@ export const SelectDropdown = React.memo(
 																		className={cn(
 																			"text-xs truncate",
 																			isSelected
-																				? "text-[var(--vscode-list-activeSelectionForeground)] opacity-70"
+																				? "text-[var(--vscode-button-foreground)] opacity-70"
 																				: "text-[var(--vscode-descriptionForeground)]",
 																		)}>
 																		{option.description}

@@ -1,15 +1,17 @@
 import { DropdownOption, DropdownOptionType, SelectDropdown, StandardTooltip } from "@/components/ui"
 import { usePreferredModels } from "@/components/ui/hooks/kilocode/usePreferredModels"
 import { useThirdPartyModels } from "@/components/ui/hooks/useOllamaModels"
-import { Alert02Icon, BulbIcon } from "@/utils/customIcons"
+import { Alert02Icon } from "@/utils/customIcons"
 import {
 	canAccessAxonModel,
 	canUse400kContext,
-	canUseEido3Pro,
+	canUsePaidPlan,
+	get232kAxonFallback,
+	get400kAxonVariant,
 	getAxonPlanFallback,
 	is400kAxonModel,
-	isEido3ProModel,
 	isLumenAxonModel,
+	isPaidPlanAxonModel,
 	isPlanRestrictedAxonModel,
 	OPENROUTER_DEFAULT_PROVIDER_NAME,
 	type ProviderSettings,
@@ -17,7 +19,7 @@ import {
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
 import { vscode } from "@src/utils/vscode"
-import { useMemo, useCallback, useEffect } from "react"
+import { useMemo, useCallback, useEffect, useState } from "react"
 import {
 	prettyModelName,
 	removeContextSuffix,
@@ -49,16 +51,19 @@ const sanitizeModelLabel = (modelId: string, provider: string): string => {
 	return baseName
 }
 
-const MODEL_QUALIFIER_PATTERN = /\s*(\((?:200k context|400k context|free)\))$/i
+const MODEL_QUALIFIER_PATTERN = /\s*(\((?:232k context|400k context|free)\))$/i
 
-// Sort priority for Axon models within a context window group: Auto, Flash, Mini, Pro, Lumen
+const isStandardContextWindow = (cw?: number): boolean => cw === 232000
+const isExtendedContextWindow = (cw?: number): boolean => cw === 400000
+
+// Sort priority for Axon models within a context window group: Auto, Flash, Mini, Eido 3.2, Pro, Lumen
 const getModelSortPriority = (modelId: string): number => {
 	if (modelId.startsWith("axon-auto-")) return 0
 	if (modelId.includes("flash")) return 1
 	if (modelId.includes("mini")) return 2
-	if (modelId.includes("pro")) return 3
-	if (modelId.includes("lumen")) return 4
-	return 5
+	if (modelId.includes("pro")) return 4
+	if (modelId.includes("lumen")) return 5
+	return 3
 }
 
 const ModelLabel = ({ label }: { label: string }) => {
@@ -106,8 +111,24 @@ export const ModelSelector = ({
 		})
 	const modelIdKey = getModelIdKey({ provider })
 	const has400kAccess = canUse400kContext(profilePlan)
-	const hasProAccess = canUseEido3Pro(profilePlan)
+	const hasPaidPlanAccess = canUsePaidPlan(profilePlan)
 
+	// Track user-selected context mode ("232k" or "400k")
+	// Initialize based on selectedModelId context window
+	const isCurrently400k = selectedModelId
+		? providerModels[selectedModelId]?.contextWindow === 400000 || is400kAxonModel(selectedModelId)
+		: false
+	const [contextMode, setContextMode] = useState<"232k" | "400k">(() => (isCurrently400k ? "400k" : "232k"))
+
+	// Keep contextMode in sync when selectedModelId changes externally
+	useEffect(() => {
+		if (selectedModelId) {
+			const is400k = providerModels[selectedModelId]?.contextWindow === 400000 || is400kAxonModel(selectedModelId)
+			setContextMode(is400k ? "400k" : "232k")
+		}
+	}, [selectedModelId, providerModels])
+
+	// Models IDs for third-party or Axon
 	const modelsIds = usePreferredModels(providerModels)
 
 	// Get third-party provider settings
@@ -188,57 +209,67 @@ export const ModelSelector = ({
 			selectedModelId?.startsWith("opencode:") ||
 			selectedModelId?.startsWith("matterai3p:")
 
+		// Filter Axon models to only include models corresponding to active context window
+		const filteredAxonModelIds = modelsIds.filter((modelId) => {
+			const cw = providerModels[modelId]?.contextWindow
+			if (isStandardContextWindow(cw) || isExtendedContextWindow(cw)) {
+				return contextMode === "400k" ? isExtendedContextWindow(cw) : isStandardContextWindow(cw)
+			}
+			return true
+		})
+
+		// Determine the active model ID representation for the selected context
+		const effectiveSelectedModelId = isSelectedThirdParty
+			? selectedModelId
+			: contextMode === "400k"
+				? get400kAxonVariant(selectedModelId)
+				: get232kAxonFallback(selectedModelId)
+
 		// Only add to missingModelIds if it's not a third-party model and not already in the list
 		const missingModelIds =
-			!isSelectedThirdParty && modelsIds.indexOf(selectedModelId) >= 0
+			!isSelectedThirdParty && filteredAxonModelIds.indexOf(effectiveSelectedModelId) >= 0
 				? []
 				: isSelectedThirdParty
 					? []
-					: [selectedModelId]
-		const allOptions = missingModelIds.concat(modelsIds).map((modelId) => {
-			const baseLabel = providerModels[modelId]?.displayName ?? prettyModelName(modelId)
-			const label = removeContextSuffix(baseLabel)
-			const isProModel = proModelIds?.includes(modelId)
-			const isProModelDisabled = isProModel && !proModelsEnabled
-			const isExtendedContextDisabled = is400kAxonModel(modelId) && !has400kAccess
-			const isLumenModelDisabled = isLumenAxonModel(modelId) && !has400kAccess
-			const isEidoProDisabled = isEido3ProModel(modelId) && !is400kAxonModel(modelId) && !hasProAccess
+					: providerModels[effectiveSelectedModelId]
+						? [effectiveSelectedModelId]
+						: []
 
-			return {
-				value: modelId,
-				label,
-				type: DropdownOptionType.ITEM,
-				disabled: isProModelDisabled || isExtendedContextDisabled || isLumenModelDisabled || isEidoProDisabled,
-				isProModelDisabled,
-				isExtendedContextDisabled,
-				isLumenModelDisabled,
-				isEidoProDisabled,
-			}
-		})
-		const groupedContextWindows = [200000, 400000]
-		const contextOptions = groupedContextWindows.flatMap((contextWindow) => {
-			const modelsInGroup = allOptions
-				.filter((option) => providerModels[option.value]?.contextWindow === contextWindow)
-				.sort((a, b) => getModelSortPriority(a.value) - getModelSortPriority(b.value))
+		const axonOptions = missingModelIds
+			.concat(filteredAxonModelIds)
+			.filter((modelId) => {
+				const cw = providerModels[modelId]?.contextWindow
+				return (
+					(contextMode === "400k" ? isExtendedContextWindow(cw) : isStandardContextWindow(cw)) ||
+					(!cw &&
+						!modelId.startsWith("matterai3p:") &&
+						!modelId.startsWith("ollama:") &&
+						!modelId.startsWith("opencode:"))
+				)
+			})
+			.sort((a, b) => getModelSortPriority(a) - getModelSortPriority(b))
+			.map((modelId) => {
+				const baseLabel = providerModels[modelId]?.displayName ?? prettyModelName(modelId)
+				const label = removeContextSuffix(baseLabel)
+				const isProModel = proModelIds?.includes(modelId)
+				const isProModelDisabled = isProModel && !proModelsEnabled
+				const isExtendedContextDisabled = is400kAxonModel(modelId) && !has400kAccess
+				const isLumenModelDisabled = isLumenAxonModel(modelId) && !has400kAccess
+				const isPaidModelDisabled =
+					isPaidPlanAxonModel(modelId) && !is400kAxonModel(modelId) && !hasPaidPlanAccess
 
-			return modelsInGroup.length > 0
-				? [
-						{
-							value: `__context_${contextWindow}__`,
-							label: `Context: ${contextWindow / 1000}k`,
-							type: DropdownOptionType.GROUP,
-							disabled: true,
-							isProModelDisabled: false,
-							isExtendedContextDisabled: false,
-							isLumenModelDisabled: false,
-						},
-						...modelsInGroup,
-					]
-				: []
-		})
-		const ungroupedOptions = allOptions.filter(
-			(option) => !groupedContextWindows.includes(providerModels[option.value]?.contextWindow),
-		)
+				return {
+					value: modelId,
+					label,
+					type: DropdownOptionType.ITEM,
+					disabled:
+						isProModelDisabled || isExtendedContextDisabled || isLumenModelDisabled || isPaidModelDisabled,
+					isProModelDisabled,
+					isExtendedContextDisabled,
+					isLumenModelDisabled,
+					isPaidModelDisabled,
+				}
+			})
 
 		// Add matterai3p models (always shown after Axon models)
 		const matterai3pOpts = Object.entries(matterai3pOptions).map(([modelId, { label }]) => ({
@@ -248,6 +279,7 @@ export const ModelSelector = ({
 			disabled: false,
 			isProModelDisabled: false,
 			isExtendedContextDisabled: false,
+			isPaidModelDisabled: false,
 		}))
 
 		// Add other third-party provider models (shown after matterai3p)
@@ -258,6 +290,7 @@ export const ModelSelector = ({
 			disabled: false,
 			isProModelDisabled: false,
 			isExtendedContextDisabled: false,
+			isPaidModelDisabled: false,
 		}))
 
 		// Add "Configure Models" option at the end
@@ -269,20 +302,22 @@ export const ModelSelector = ({
 			disabled: false,
 			isProModelDisabled: false,
 			isExtendedContextDisabled: false,
+			isPaidModelDisabled: false,
 		}
 
 		// Order: Axon models -> matterai3p models -> other 3p models -> configure
-		return [...contextOptions, ...ungroupedOptions, ...matterai3pOpts, ...thirdPartyOptions, configureOption]
+		return [...axonOptions, ...matterai3pOpts, ...thirdPartyOptions, configureOption]
 	}, [
 		modelsIds,
 		providerModels,
 		selectedModelId,
+		contextMode,
 		proModelIds,
 		proModelsEnabled,
 		matterai3pOptions,
 		thirdPartyModels,
 		has400kAccess,
-		hasProAccess,
+		hasPaidPlanAccess,
 	])
 
 	const disabled = isLoading || isError
@@ -310,6 +345,78 @@ export const ModelSelector = ({
 		},
 		[currentTaskItem, provider, currentApiConfigName, apiConfiguration, modelIdKey],
 	)
+
+	const onContextToggle = useCallback(
+		(mode: "232k" | "400k") => {
+			if (mode === contextMode) return
+			setContextMode(mode)
+
+			// If current model is an Axon model, switch the active selection to the matching context variant
+			const isThirdParty =
+				selectedModelId?.startsWith("ollama:") ||
+				selectedModelId?.startsWith("opencode:") ||
+				selectedModelId?.startsWith("matterai3p:")
+
+			if (!isThirdParty && selectedModelId) {
+				const nextModelId =
+					mode === "400k" ? get400kAxonVariant(selectedModelId) : get232kAxonFallback(selectedModelId)
+				if (
+					providerModels[nextModelId] &&
+					(!isPlanRestrictedAxonModel(nextModelId) || canAccessAxonModel(nextModelId, profilePlan))
+				) {
+					selectAxonModel(nextModelId)
+				}
+			}
+		},
+		[contextMode, selectedModelId, providerModels, profilePlan, selectAxonModel],
+	)
+
+	const renderContextToggleHeader = () => {
+		return (
+			<div className="flex items-center justify-between px-3 py-1.5 text-xs">
+				<span className="font-semibold text-vscode-foreground opacity-80 mr-2">Context Window</span>
+				<div className="inline-flex rounded-md gap-1 p-0.5 bg-[var(--vscode-dropdown-background)] border border-[var(--vscode-dropdown-border)]">
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation()
+							onContextToggle("232k")
+						}}
+						className={cn(
+							"px-2 py-0.5 text-xs font-medium rounded transition-colors cursor-pointer rounded-md",
+							contextMode === "232k"
+								? "bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] font-semibold shadow-xs"
+								: "text-vscode-descriptionForeground hover:text-[var(--vscode-button-foreground)] hover:bg-[var(--vscode-button-hoverBackground)]",
+						)}>
+						232k
+					</button>
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation()
+							if (!has400kAccess) {
+								vscode.postMessage({
+									type: "openExternal",
+									url: "https://app.matterai.so/ai-coding-agent",
+								})
+								return
+							}
+							onContextToggle("400k")
+						}}
+						className={cn(
+							"px-2 py-0.5 text-xs font-medium rounded-md transition-colors cursor-pointer flex items-center gap-1",
+							contextMode === "400k"
+								? "bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] font-semibold shadow-xs"
+								: "text-vscode-descriptionForeground hover:text-[var(--vscode-button-foreground)] hover:bg-[var(--vscode-button-hoverBackground)]",
+							!has400kAccess && "opacity-70",
+						)}>
+						<span>400k</span>
+						{!has400kAccess && <Alert02Icon className="size-3 text-yellow-500" />}
+					</button>
+				</div>
+			</div>
+		)
+	}
 
 	const onChange = (value: string) => {
 		if (isPlanRestrictedAxonModel(value) && !canAccessAxonModel(value, profilePlan)) return
@@ -393,6 +500,7 @@ export const ModelSelector = ({
 			isProModelDisabled?: boolean
 			isExtendedContextDisabled?: boolean
 			isLumenModelDisabled?: boolean
+			isPaidModelDisabled?: boolean
 			isEidoProDisabled?: boolean
 		},
 	) => {
@@ -408,18 +516,14 @@ export const ModelSelector = ({
 		const itemContent = (
 			<div
 				className={cn(
-					"flex w-full items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors duration-150 rounded-lg",
+					"flex w-full items-center gap-2 px-2.5 py-1.5 cursor-pointer transition-colors duration-150 rounded-sm",
 					option.disabled
 						? "opacity-50 cursor-not-allowed"
 						: isSelected
-							? "bg-[var(--vscode-list-activeSelectionBackground)] text-[var(--vscode-list-activeSelectionForeground)]"
-							: "hover:bg-[var(--vscode-list-hoverBackground)] text-[var(--vscode-foreground)] opacity-80",
+							? "bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)]"
+							: "hover:bg-[var(--vscode-button-hoverBackground)] hover:text-[var(--vscode-button-foreground)] text-[var(--vscode-foreground)] opacity-70",
 				)}>
-				{isConfigureOption ? (
-					<Settings className="opacity-80 mr-2 size-4 shrink-0" />
-				) : isThirdPartyModel ? null : (
-					<BulbIcon className="opacity-80 mr-2 size-4 shrink-0" />
-				)}
+				{isConfigureOption ? <Settings className="opacity-80 mr-1.5 size-4 shrink-0" /> : null}
 				<div className="flex-1 min-w-0 flex items-baseline gap-2">
 					<div className="font-bold text-sm shrink-0">
 						<ModelLabel label={option.label} />
@@ -526,12 +630,12 @@ export const ModelSelector = ({
 						)}
 					</>
 				)}
-				{option.isEidoProDisabled && (
+				{(option.isPaidModelDisabled || option.isEidoProDisabled) && (
 					<StandardTooltip
 						content={
 							<div className="flex flex-col gap-2 text-[13px] p-2">
 								<span className="font-semibold">
-									Axon Eido 3 Pro is available on Pro, Pro Plus, and Ultra plans
+									{option.label} is available on Pro, Pro Plus, and Ultra plans
 								</span>
 								<button
 									className="text-[var(--vscode-button-background)] hover:underline text-left"
@@ -611,6 +715,7 @@ export const ModelSelector = ({
 				const is400k = providerModels[option.value]?.contextWindow === 400000 || is400kAxonModel(option.value)
 				return <ModelLabel label={formatSelectedModelLabel(option.label, is400k)} />
 			}}
+			headerComponent={renderContextToggleHeader()}
 			onRefresh={handleRefreshModels} // Always show refresh since matterai3p is always enabled
 		/>
 	)

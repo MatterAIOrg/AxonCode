@@ -287,10 +287,10 @@ describe("/model command", () => {
 			mockContext.currentProvider = {
 				id: "test-provider",
 				provider: "kilocode",
-				kilocodeModel: "axon-eido-3-code-mini-200k",
+				kilocodeModel: "axon-eido-3-code-mini-232k",
 			}
 			mockContext.routerModels!["kilocode-openrouter"] = {
-				"axon-eido-3-code-mini-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-mini-232k": { contextWindow: 232000 },
 				"axon-eido-3-code-mini-400k": { contextWindow: 400000 },
 			}
 			mockContext.args = ["select", "axon-eido-3-code-mini-400k"]
@@ -308,35 +308,35 @@ describe("/model command", () => {
 			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3-code-mini-400k")
 		})
 
-		it("should allow Eido 3 Pro 200k on Pro plan", async () => {
+		it("should allow Eido 3 Pro 232k on Pro plan", async () => {
 			mockContext.currentProvider = {
 				id: "test-provider",
 				provider: "kilocode",
-				kilocodeModel: "axon-eido-3-code-mini-200k",
+				kilocodeModel: "axon-eido-3-code-mini-232k",
 			}
 			mockContext.routerModels!["kilocode-openrouter"] = {
-				"axon-eido-3-code-mini-200k": { contextWindow: 200000 },
-				"axon-eido-3-code-pro-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-mini-232k": { contextWindow: 232000 },
+				"axon-eido-3-code-pro-232k": { contextWindow: 232000 },
 			}
-			mockContext.args = ["select", "axon-eido-3-code-pro-200k"]
+			mockContext.args = ["select", "axon-eido-3-code-pro-232k"]
 			mockContext.profileData = { plan: "Pro" }
 
 			await modelCommand.handler(mockContext)
 
-			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3-code-pro-200k")
+			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3-code-pro-232k")
 		})
 
-		it("should reject Eido 3 Pro 200k on free plan", async () => {
+		it("should reject Eido 3 Pro 232k on free plan", async () => {
 			mockContext.currentProvider = {
 				id: "test-provider",
 				provider: "kilocode",
-				kilocodeModel: "axon-eido-3-code-mini-200k",
+				kilocodeModel: "axon-eido-3-code-mini-232k",
 			}
 			mockContext.routerModels!["kilocode-openrouter"] = {
-				"axon-eido-3-code-mini-200k": { contextWindow: 200000 },
-				"axon-eido-3-code-pro-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-mini-232k": { contextWindow: 232000 },
+				"axon-eido-3-code-pro-232k": { contextWindow: 232000 },
 			}
-			mockContext.args = ["select", "axon-eido-3-code-pro-200k"]
+			mockContext.args = ["select", "axon-eido-3-code-pro-232k"]
 			mockContext.profileData = { plan: "free" }
 
 			await modelCommand.handler(mockContext)
@@ -349,10 +349,10 @@ describe("/model command", () => {
 			mockContext.currentProvider = {
 				id: "test-provider",
 				provider: "kilocode",
-				kilocodeModel: "axon-eido-3-code-pro-200k",
+				kilocodeModel: "axon-eido-3-code-pro-232k",
 			}
 			mockContext.routerModels!["kilocode-openrouter"] = {
-				"axon-eido-3-code-pro-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-pro-232k": { contextWindow: 232000 },
 				"axon-eido-3-code-pro-400k": { contextWindow: 400000 },
 			}
 			mockContext.args = ["select", "axon-eido-3-code-pro-400k"]
@@ -368,10 +368,10 @@ describe("/model command", () => {
 			mockContext.currentProvider = {
 				id: "test-provider",
 				provider: "kilocode",
-				kilocodeModel: "axon-eido-3-code-pro-200k",
+				kilocodeModel: "axon-eido-3-code-pro-232k",
 			}
 			mockContext.routerModels!["kilocode-openrouter"] = {
-				"axon-eido-3-code-pro-200k": { contextWindow: 200000 },
+				"axon-eido-3-code-pro-232k": { contextWindow: 232000 },
 				"axon-eido-3-code-pro-400k": { contextWindow: 400000 },
 			}
 			mockContext.args = ["select", "axon-eido-3-code-pro-400k"]
