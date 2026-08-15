@@ -245,6 +245,51 @@ describe("ChatTextArea", () => {
 	})
 
 	describe("contenteditable selection", () => {
+		it("removes a mention chip after backspace within a list item", () => {
+			const setInputValue = vi.fn()
+			render(<ChatTextArea {...defaultProps} inputValue="- @problems " setInputValue={setInputValue} />)
+
+			const input = screen.getByTestId("chat-input")
+			const listItem = input.querySelector("li")!
+			const trailingText = listItem.lastChild!
+			const range = document.createRange()
+			range.setStart(trailingText, trailingText.textContent?.length ?? 0)
+			range.collapse(true)
+			window.getSelection()?.removeAllRanges()
+			window.getSelection()?.addRange(range)
+			fireEvent.mouseUp(input)
+
+			fireEvent.keyDown(input, { key: "Backspace" })
+			fireEvent.keyDown(input, { key: "Backspace" })
+
+			expect(setInputValue).toHaveBeenLastCalledWith("- ")
+		})
+
+		it("exits a list after two Shift+Enter presses", () => {
+			const Wrapper = () => {
+				const [inputValue, setInputValue] = useState("- item")
+
+				return <ChatTextArea {...defaultProps} inputValue={inputValue} setInputValue={setInputValue} />
+			}
+
+			render(<Wrapper />)
+
+			const input = screen.getByTestId("chat-input")
+			const listText = input.querySelector("li")!.firstChild!
+			const range = document.createRange()
+			range.setStart(listText, listText.textContent?.length ?? 0)
+			range.collapse(true)
+			window.getSelection()?.removeAllRanges()
+			window.getSelection()?.addRange(range)
+			fireEvent.mouseUp(input)
+
+			fireEvent.keyDown(input, { key: "Enter", shiftKey: true })
+			fireEvent.keyDown(input, { key: "Enter", shiftKey: true })
+
+			expect(input.querySelectorAll("li")).toHaveLength(1)
+			expect(input.querySelector("br[data-plain-break='true']")).toBeInTheDocument()
+		})
+
 		it("preserves the caret when an unrelated render rebuilds the editor DOM", () => {
 			const { rerender } = render(<ChatTextArea {...defaultProps} inputValue="hello world" />)
 			const input = screen.getByTestId("chat-input")

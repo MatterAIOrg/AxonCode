@@ -12,7 +12,7 @@ import { appendImages, normalizeImages } from "@src/utils/imageUtils"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
 
 import { ImageAttachment } from "@src/components/common/Thumbnails"
-import type { ClineAsk, ClineMessage, McpServerUse } from "@roo-code/types"
+import type { ClineAsk, ClineMessage, McpServerUse, PasteChipSerialized } from "@roo-code/types"
 
 import { FollowUpData, SuggestionItem } from "@roo-code/types"
 
@@ -39,7 +39,6 @@ import { AudioType, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
 
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
-import { prettyModelName } from "@src/utils/prettyModelName"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import {
 	CommandDecision,
@@ -77,8 +76,6 @@ import StickyUserMessage from "../kilocode/StickyUserMessage" // kilocode_change
 import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 // import ProfileViolationWarning from "./ProfileViolationWarning" kilocode_change: unused
-import { ListVideoIcon } from "@/utils/customIcons"
-import { X } from "lucide-react"
 import { useOptionalAgentFileViewer } from "../agent/AgentFileViewerContext" // kilocode_change: for agent manager file viewer
 import { KilocodeNotifications } from "../kilocode/KilocodeNotifications" // kilocode_change
 import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilocode_change
@@ -86,6 +83,7 @@ import { OverageActiveBanner } from "../kilocode/chat/OverageActiveBanner" // ki
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
 import { SourceControlPanel } from "./SourceControlPanel" // kilocode_change
+import ChatTabs, { TabInfo } from "./ChatTabs" // kilocode_change: multi-chat tab bar
 // import DismissibleUpsell from "../common/DismissibleUpsell" // kilocode_change: unused
 // import { useCloudUpsell } from "@src/hooks/useCloudUpsell" // kilocode_change: unused
 // import { Cloud } from "lucide-react" // kilocode_change: unused
@@ -107,6 +105,7 @@ export interface ChatViewRef {
 }
 
 export const MAX_IMAGES_PER_MESSAGE = 20 // This is the Anthropic limit.
+const NEW_CHAT_TAB_ID = "__new_chat_tab__"
 
 export const shouldEnableCommandApproval = (message: ClineMessage, isPartial: boolean): boolean =>
 	!isPartial && message.autoApproved !== true
@@ -140,6 +139,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	const {
 		clineMessages: messages,
+		currentTaskId,
 		currentTaskItem,
 		currentTaskTodos,
 		taskHistoryFullLength, // kilocode_change
@@ -176,7 +176,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// cloudIsAuthenticated, // kilocode_change
 		messageQueue = [],
 		sendMessageOnEnter, // kilocode_change
-		backgroundRunningTasks, // kilocode_change: multi-chat support
+		taskTabs,
 		cwd,
 	} = useExtensionState()
 
@@ -736,27 +736,141 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return false
 	}, [modifiedMessages, clineAsk, enableButtons, primaryButtonText])
 
-	const backgroundTaskStatusMeta = useMemo(
-		() => ({
-			running: {
-				dotClassName: "bg-[var(--vscode-charts-blue)] animate-pulse",
-				label: "Running in background",
-			},
-			completed: {
-				dotClassName: "bg-[var(--vscode-testing-iconPassed)]",
-				label: "Completed",
-			},
-			waiting_approval: {
-				dotClassName: "bg-[var(--vscode-charts-yellow)]",
-				label: "Waiting on approval",
-			},
-			waiting_input: {
-				dotClassName: "bg-[var(--vscode-charts-yellow)]",
-				label: "Waiting for input",
-			},
-		}),
-		[],
-	)
+	// kilocode_change: multi-chat tab bar — derive label for the active (foreground) tab
+	const currentTabLabel = useMemo(() => {
+		if (!task) return null
+		const rawTitle = currentTaskItem?.title || (task as any)?.title
+		if (rawTitle && typeof rawTitle === "string" && rawTitle.trim()) {
+			const trimmed = rawTitle.trim()
+			if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+				try {
+					const parsed = JSON.parse(trimmed)
+					if (
+						typeof parsed === "object" &&
+						parsed !== null &&
+						typeof (parsed as { title?: unknown }).title === "string"
+					) {
+						return (parsed as { title: string }).title
+					}
+				} catch {
+					// fall through to raw title
+				}
+			}
+			return trimmed
+		}
+		const firstUserMsg = messages.find((m) => m.type === "say" && m.say === "user_feedback")
+		if (firstUserMsg?.text) return firstUserMsg.text
+		return "New Agent"
+	}, [task, currentTaskItem, messages])
+
+	const currentTabId = currentTaskId ?? currentTaskItem?.id ?? null
+	const [tabOrder, setTabOrder] = useState<string[]>([])
+	const [pendingNewTabFromId, setPendingNewTabFromId] = useState<string | null | undefined>(undefined)
+
+	const handleAddTab = useCallback(() => {
+		setPendingNewTabFromId((previous) => (previous === undefined ? currentTabId : previous))
+		setTabOrder((prev) => {
+			const withCurrent = currentTabId && !prev.includes(currentTabId) ? [...prev, currentTabId] : [...prev]
+			return withCurrent.includes(NEW_CHAT_TAB_ID) ? withCurrent : [...withCurrent, NEW_CHAT_TAB_ID]
+		})
+		vscode.postMessage({ type: "plusButtonClicked" })
+	}, [currentTabId])
+
+	const handleSelectTab = useCallback((taskId: string) => {
+		if (taskId === NEW_CHAT_TAB_ID) {
+			textAreaRef.current?.focus()
+			return
+		}
+
+		setPendingNewTabFromId(undefined)
+		setTabOrder((prev) => prev.filter((id) => id !== NEW_CHAT_TAB_ID))
+		vscode.postMessage({ type: "switchTask", taskId })
+	}, [])
+
+	const handleCloseTab = useCallback((taskId: string) => {
+		setTabOrder((prev) => prev.filter((id) => id !== taskId))
+		if (taskId !== NEW_CHAT_TAB_ID) {
+			vscode.postMessage({ type: "closeTask", taskId })
+		} else {
+			setPendingNewTabFromId(undefined)
+		}
+	}, [])
+
+	useEffect(() => {
+		const incomingIds = (taskTabs ?? []).map((tab) => tab.taskId)
+		const incomingSet = new Set(incomingIds)
+
+		setTabOrder((prev) => {
+			let next = prev.filter(
+				(id) => id === NEW_CHAT_TAB_ID || incomingSet.has(id) || (currentTabId !== null && id === currentTabId),
+			)
+
+			if (currentTabId !== null) {
+				const hasNewChatTab = next.includes(NEW_CHAT_TAB_ID)
+				const hasCurrentTab = next.includes(currentTabId)
+
+				if (hasNewChatTab) {
+					if (hasCurrentTab) {
+						// Current task is already in tab order, remove the pending new chat tab
+						next = next.filter((id) => id !== NEW_CHAT_TAB_ID)
+					} else {
+						// Replace the pending new chat tab with the current task
+						const newTabIndex = next.indexOf(NEW_CHAT_TAB_ID)
+						next[newTabIndex] = currentTabId
+					}
+				} else if (!hasCurrentTab) {
+					next.push(currentTabId)
+				}
+			}
+
+			for (const taskId of incomingIds) {
+				if (!next.includes(taskId)) {
+					next.push(taskId)
+				}
+			}
+
+			return next
+		})
+
+		if (currentTabId !== null && pendingNewTabFromId !== undefined) {
+			setPendingNewTabFromId(undefined)
+		}
+	}, [taskTabs, currentTabId, pendingNewTabFromId])
+
+	// Build the unified tabs list: one entry per ID in tabOrder, with label/active/status.
+	// Keep the local order stable while the extension updates task metadata.
+	const unifiedTabs = useMemo<TabInfo[]>(() => {
+		const taskById = new Map((taskTabs ?? []).map((tab) => [tab.taskId, tab]))
+		return tabOrder.map((id) => {
+			const isNewTab = id === NEW_CHAT_TAB_ID
+			const isActive = id === currentTabId || (isNewTab && !currentTabId)
+			if (isNewTab) {
+				return { taskId: id, label: "New Agent", isActive: true }
+			}
+			if (isActive) {
+				return {
+					taskId: id,
+					label: currentTabLabel ?? taskById.get(id)?.taskLabel ?? "New Agent",
+					isActive: true,
+					status: taskById.get(id)?.status,
+				}
+			}
+			const taskTab = taskById.get(id)
+			if (!taskTab) {
+				return { taskId: id, label: "New Agent", isActive: false }
+			}
+			return {
+				taskId: id,
+				label: taskTab.taskLabel ?? "New Agent",
+				isActive: false,
+				status: taskTab.status,
+			}
+		})
+	}, [tabOrder, currentTabId, currentTabLabel, taskTabs])
+
+	const handleReorderTabs = useCallback((newOrder: string[]) => {
+		setTabOrder(newOrder)
+	}, [])
 
 	const markFollowUpAsAnswered = useCallback(() => {
 		const lastFollowUpMessage = messagesRef.current.findLast((msg: ClineMessage) => msg.ask === "followup")
@@ -791,15 +905,24 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	 * Handles sending messages to the extension
 	 * @param text - The message text to send
 	 * @param images - Array of image data URLs to send with the message
+	 * @param pasteChips - Optional paste chips captured by the composer that
+	 * should be persisted on the outgoing message so the chat history can
+	 * render them in user messages and the sticky user message.
 	 */
 	const handleSendMessage = useCallback(
-		(text: string, images: ImageAttachment[]) => {
+		(text: string, images: ImageAttachment[], pasteChips?: PasteChipSerialized[]) => {
 			text = formatMessageWithDocuments(text, selectedDocuments)
 			const imageDataUrls = images.map((img) => img.dataUrl)
+			const payloadChips = pasteChips && pasteChips.length > 0 ? pasteChips : undefined
 			if (text || imageDataUrls.length > 0) {
 				if (sendingDisabled || isStreaming) {
 					try {
-						vscode.postMessage({ type: "queueMessage", text, images: imageDataUrls })
+						vscode.postMessage({
+							type: "queueMessage",
+							text,
+							images: imageDataUrls,
+							pasteChips: payloadChips,
+						})
 						setInputValue("")
 						setSelectedImages([])
 						setSelectedDocuments([])
@@ -816,7 +939,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				userRespondedRef.current = true
 
 				if (messagesRef.current.length === 0) {
-					vscode.postMessage({ type: "newTask", text, images: imageDataUrls })
+					vscode.postMessage({
+						type: "newTask",
+						text,
+						images: imageDataUrls,
+						pasteChips: payloadChips,
+					})
 				} else if (clineAskRef.current) {
 					if (clineAskRef.current === "followup") {
 						markFollowUpAsAnswered()
@@ -837,6 +965,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								askResponse: "messageResponse",
 								text,
 								images: imageDataUrls,
+								pasteChips: payloadChips,
 							})
 							break
 						case "tool":
@@ -848,6 +977,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								askResponse: "noButtonClicked",
 								text,
 								images: imageDataUrls,
+								pasteChips: payloadChips,
 							})
 							break
 						// There is no other case that a textfield should be enabled.
@@ -859,6 +989,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						askResponse: "messageResponse",
 						text,
 						images: imageDataUrls,
+						pasteChips: payloadChips,
 					})
 				}
 
@@ -902,11 +1033,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// after which buttons are shown and we then send an askResponse to the
 	// extension.
 	const handlePrimaryButtonClick = useCallback(
-		(text?: string, images?: ImageAttachment[]) => {
+		(text?: string, images?: ImageAttachment[], pasteChips?: PasteChipSerialized[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
 			const trimmedInput = formatMessageWithDocuments(text ?? "", selectedDocuments)
+			const payloadChips = pasteChips && pasteChips.length > 0 ? pasteChips : undefined
 
 			switch (clineAsk) {
 				case "api_req_failed":
@@ -924,6 +1056,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							askResponse: "yesButtonClicked",
 							text: trimmedInput,
 							images: images?.map((img) => img.dataUrl),
+							pasteChips: payloadChips,
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -959,11 +1092,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	)
 
 	const handleSecondaryButtonClick = useCallback(
-		(text?: string, images?: ImageAttachment[]) => {
+		(text?: string, images?: ImageAttachment[], pasteChips?: PasteChipSerialized[]) => {
 			// Mark that user has responded
 			userRespondedRef.current = true
 
 			const trimmedInput = formatMessageWithDocuments(text ?? "", selectedDocuments)
+			const payloadChips = pasteChips && pasteChips.length > 0 ? pasteChips : undefined
 
 			if (isStreaming) {
 				vscode.postMessage({ type: "cancelTask" })
@@ -990,6 +1124,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							askResponse: "noButtonClicked",
 							text: trimmedInput,
 							images: images?.map((img) => img.dataUrl),
+							pasteChips: payloadChips,
 						})
 						// Clear input state after sending
 						setInputValue("")
@@ -1146,16 +1281,24 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							handleChatReset()
 							break
 						case "sendMessage":
-							handleSendMessage(message.text ?? "", normalizeImages(message.images))
+							handleSendMessage(message.text ?? "", normalizeImages(message.images), message.pasteChips)
 							break
 						case "setChatBoxMessage":
 							handleSetChatBoxMessage(message.text ?? "", normalizeImages(message.images))
 							break
 						case "primaryButtonClick":
-							handlePrimaryButtonClick(message.text ?? "", normalizeImages(message.images))
+							handlePrimaryButtonClick(
+								message.text ?? "",
+								normalizeImages(message.images),
+								message.pasteChips,
+							)
 							break
 						case "secondaryButtonClick":
-							handleSecondaryButtonClick(message.text ?? "", normalizeImages(message.images))
+							handleSecondaryButtonClick(
+								message.text ?? "",
+								normalizeImages(message.images),
+								message.pasteChips,
+							)
 							break
 					}
 					break
@@ -1371,7 +1514,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				]
 				if (message.ask && alwaysHiddenOnceProcessedAsk.includes(message.ask)) return false
 				if (message.say && alwaysHiddenOnceProcessedSay.includes(message.say)) return false
-				if (message.say === "text" && (message.text ?? "") === "" && (message.images?.length ?? 0) === 0) {
+				if (
+					message.say === "text" &&
+					(message.text ?? "") === "" &&
+					(message.images?.length ?? 0) === 0 &&
+					(message.pasteChips?.length ?? 0) === 0
+				) {
 					return false
 				}
 				return true
@@ -1401,7 +1549,13 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					}
 					break
 				case "text":
-					if ((message.text ?? "") === "" && (message.images?.length ?? 0) === 0) return false
+					if (
+						(message.text ?? "") === "" &&
+						(message.images?.length ?? 0) === 0 &&
+						(message.pasteChips?.length ?? 0) === 0
+					) {
+						return false
+					}
 					break
 				case "mcp_server_request_started":
 					return false
@@ -2588,6 +2742,17 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				/>
 			)}
 
+			{/* kilocode_change: multi-chat tab bar — visible in regular chat view (not agent manager) when at least one tab exists */}
+			{!isAgentManagerMode && unifiedTabs.length > 0 && (
+				<ChatTabs
+					tabs={unifiedTabs}
+					onSelect={handleSelectTab}
+					onClose={handleCloseTab}
+					onAddTab={handleAddTab}
+					onReorder={handleReorderTabs}
+				/>
+			)}
+
 			{!task && isAgentManagerMode ? (
 				<div className="flex-1 flex flex-col items-center justify-center relative px-8 pb-32">
 					<div className="w-full max-w-[650px] flex flex-col gap-1">
@@ -2616,7 +2781,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									setSelectedImages={setSelectedImages}
 									selectedDocuments={selectedDocuments}
 									setSelectedDocuments={setSelectedDocuments}
-									onSend={(text?: string) => handleSendMessage(text ?? inputValue, selectedImages)}
+									onSend={(text?: string, pasteChips?: PasteChipSerialized[]) =>
+										handleSendMessage(text ?? inputValue, selectedImages, pasteChips)
+									}
 									onSelectImages={selectAttachments}
 									shouldDisableImages={shouldDisableImages}
 									onHeightChange={() => {
@@ -2641,23 +2808,26 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				<>
 					{task ? (
 						<div className={`${isAgentManagerMode ? "ml-12 mr-64" : "mx-0"}`}>
-							<KiloTaskHeader
-								task={task}
-								tokensIn={apiMetrics.totalTokensIn}
-								tokensOut={apiMetrics.totalTokensOut}
-								cacheWrites={apiMetrics.totalCacheWrites}
-								cacheReads={apiMetrics.totalCacheReads}
-								totalCost={apiMetrics.totalCost}
-								contextTokens={apiMetrics.contextTokens}
-								handleCondenseContext={handleCondenseContext}
-								onClose={handleTaskCloseButtonClick}
-								groupedMessages={groupedMessagesWithoutExploration}
-								onMessageClick={handleMessageClick}
-								isTaskActive={sendingDisabled}
-								todos={latestTodos}
-								title={(task as any)?.title}
-								isAgentManagerMode={isAgentManagerMode}
-							/>
+							{/* kilocode_change: KiloTaskHeader only in agent manager mode — ChatTabs replaces it otherwise */}
+							{isAgentManagerMode && (
+								<KiloTaskHeader
+									task={task}
+									tokensIn={apiMetrics.totalTokensIn}
+									tokensOut={apiMetrics.totalTokensOut}
+									cacheWrites={apiMetrics.totalCacheWrites}
+									cacheReads={apiMetrics.totalCacheReads}
+									totalCost={apiMetrics.totalCost}
+									contextTokens={apiMetrics.contextTokens}
+									handleCondenseContext={handleCondenseContext}
+									onClose={handleTaskCloseButtonClick}
+									groupedMessages={groupedMessagesWithoutExploration}
+									onMessageClick={handleMessageClick}
+									isTaskActive={sendingDisabled}
+									todos={latestTodos}
+									title={(task as any)?.title}
+									isAgentManagerMode={isAgentManagerMode}
+								/>
+							)}
 
 							{hasSystemPromptOverride && (
 								<div className="px-3">
@@ -2679,8 +2849,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</div>
 								<div className="flex flex-grow flex-col justify-start gap-4">
 									{!isReviewOnlyMode && (
-										<div className="w-full min-w-0 mt-4 mb-1">
-											<div className="relative overflow-hidden rounded-2xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-vscode-editor-background h-[88px]">
+										<div className="w-full min-w-0 mt-0 mb-1">
+											<div className="relative overflow-hidden rounded-2xl border border-[var(--vscode-commandCenter-inactiveBorder)] bg-vscode-editor-background h-[90px]">
 												<div
 													className="flex transition-transform duration-500 ease-in-out h-full"
 													style={{ transform: `translateX(-${activeMarketingCard * 100}%)` }}>
@@ -2772,9 +2942,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
 																	Introducing Orbcode CLI
 																</p>
-																<span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)]">
-																	New
-																</span>
 																<img
 																	src={iconsBaseUri + "/matterai-company-ic.svg"}
 																	alt="MatterAI"
@@ -2834,85 +3001,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 											</div>
 										</div>
 									)}
-									{!isReviewOnlyMode &&
-										backgroundRunningTasks &&
-										backgroundRunningTasks.length > 0 && (
-											<div className="w-full min-w-0 mb-0 p-2 rounded-xl bg-vscode-editor-background/50 border border-[var(--vscode-commandCenter-inactiveBorder)] max-h-[50%] flex flex-col overflow-hidden">
-												<div className="flex flex-row items-center gap-1 mb-1 shrink-0">
-													<ListVideoIcon className="w-3 h-3 rtl:-scale-x-100" />
-													<span className="text-sm font-semibold text-vscode-foreground">
-														Background Agents
-													</span>
-													{/* <span className="ml-auto text-xs bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] px-2 py-0.5 rounded-full">
-											{backgroundRunningTasks.filter((t) => t.status === "running").length}{" "}
-											running
-										</span> */}
-												</div>
-												<div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
-													{backgroundRunningTasks.map((bt) => {
-														const resolvedStatus =
-															bt.status ??
-															((bt as { isCompleted?: boolean }).isCompleted
-																? "completed"
-																: "running")
-														const statusMeta = backgroundTaskStatusMeta[resolvedStatus]
-														const isRunning = resolvedStatus === "running"
-
-														return (
-															<div
-																key={bt.taskId}
-																className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--vscode-list-hoverBackground)] rounded-lg border border-[var(--vscode-commandCenter-inactiveBorder)] transition-colors ${isRunning ? "card-shimmer" : ""}`}
-																onClick={() => {
-																	vscode.postMessage({
-																		type: "switchToBackgroundTask",
-																		taskId: bt.taskId,
-																	})
-																}}>
-																<div className="flex-1 flex flex-col gap-1 min-w-0">
-																	<div className="flex items-center gap-2">
-																		<span className="text-sm font-medium text-[var(--vscode-foreground)] truncate">
-																			{bt.taskLabel || "New Task"}
-																		</span>
-																	</div>
-																	<div className="flex items-center gap-2">
-																		<>
-																			<span
-																				className={`flex items-center justify-center w-2 h-2 rounded-full ${statusMeta.dotClassName}`}
-																			/>
-																			<span className="text-xs text-[var(--vscode-descriptionForeground)]">
-																				{statusMeta.label}
-																			</span>
-																		</>
-																		{bt.apiModelId && (
-																			<div className="flex items-center gap-2">
-																				<div className="w-1 h-1 rounded-full bg-vscode-descriptionForeground/40" />
-																				<span className="text-xs text-[var(--vscode-descriptionForeground)]">
-																					{prettyModelName(bt.apiModelId)}
-																				</span>
-																			</div>
-																		)}
-																	</div>
-																</div>
-																<button
-																	type="button"
-																	className="shrink-0 inline-flex items-center justify-center rounded-sm p-1 text-[var(--vscode-descriptionForeground)] hover:bg-[var(--vscode-toolbar-hoverBackground)] hover:text-[var(--vscode-foreground)] transition-colors"
-																	title="Remove task from background list"
-																	onClick={(event) => {
-																		event.preventDefault()
-																		event.stopPropagation()
-																		vscode.postMessage({
-																			type: "dismissBackgroundTask",
-																			taskId: bt.taskId,
-																		})
-																	}}>
-																	<X className="size-3" />
-																</button>
-															</div>
-														)
-													})}
-												</div>
-											</div>
-										)}
+									{/* kilocode_change: Background Agents panel replaced by ChatTabs at the top */}
 									{!isReviewOnlyMode && taskHistoryFullLength > 0 && isExpanded && (
 										<HistoryPreview taskHistoryVersion={taskHistoryVersion} />
 									)}
@@ -3089,7 +3178,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								setSelectedImages={setSelectedImages}
 								selectedDocuments={selectedDocuments}
 								setSelectedDocuments={setSelectedDocuments}
-								onSend={(text?: string) => handleSendMessage(text ?? inputValue, selectedImages)}
+								onSend={(text?: string, pasteChips?: PasteChipSerialized[]) =>
+									handleSendMessage(text ?? inputValue, selectedImages, pasteChips)
+								}
 								onSelectImages={selectAttachments}
 								shouldDisableImages={shouldDisableImages}
 								onHeightChange={() => {

@@ -296,6 +296,7 @@ vi.mock("../../../shared/modes", () => ({
 		}
 	}),
 	defaultModeSlug: "code",
+	validateModeSlug: vi.fn().mockImplementation((slug) => slug || "code"),
 }))
 
 vi.mock("../../prompts/system", () => ({
@@ -634,6 +635,18 @@ describe("ClineProvider", () => {
 		expect(stackSizeBeforeAbort - stackSizeAfterAbort).toBe(1)
 	})
 
+	test("closeTask clears the active task", async () => {
+		const mockCline = new Task(defaultTaskOptions)
+		const postStateToWebviewSpy = vi.spyOn(provider, "postStateToWebview").mockResolvedValue(undefined)
+		;(provider as any).clineStack = [mockCline]
+
+		await provider.closeTask(mockCline.taskId)
+
+		expect(mockCline.abortTask).toHaveBeenCalledWith(true)
+		expect(provider.getTaskStackSize()).toBe(0)
+		expect(postStateToWebviewSpy).toHaveBeenCalled()
+	})
+
 	describe("clearTask message handler", () => {
 		beforeEach(async () => {
 			await provider.resolveWebviewView(mockWebviewView)
@@ -745,9 +758,9 @@ describe("ClineProvider", () => {
 		})
 	})
 
-	describe("background task status", () => {
-		test("marks approval asks as waiting on approval", () => {
-			const status = (provider as any).getBackgroundTaskStatus({
+	describe("task status", () => {
+		test("marks idle asks with no pending work as undefined", () => {
+			const status = (provider as any).getTaskStatus({
 				abort: false,
 				abandoned: false,
 				taskAsk: { ask: "tool" },
@@ -759,11 +772,11 @@ describe("ClineProvider", () => {
 				didCompleteReadingStream: true,
 			})
 
-			expect(status).toBe("waiting_approval")
+			expect(status).toBeUndefined()
 		})
 
-		test("marks quiescent tasks as completed", () => {
-			const status = (provider as any).getBackgroundTaskStatus({
+		test("marks quiescent tasks as undefined", () => {
+			const status = (provider as any).getTaskStatus({
 				abort: false,
 				abandoned: false,
 				taskAsk: undefined,
@@ -775,11 +788,11 @@ describe("ClineProvider", () => {
 				didCompleteReadingStream: true,
 			})
 
-			expect(status).toBe("completed")
+			expect(status).toBeUndefined()
 		})
 
-		test("marks active background work as running", () => {
-			const status = (provider as any).getBackgroundTaskStatus({
+		test("marks active work as in progress", () => {
+			const status = (provider as any).getTaskStatus({
 				abort: false,
 				abandoned: false,
 				taskAsk: undefined,
@@ -791,7 +804,7 @@ describe("ClineProvider", () => {
 				didCompleteReadingStream: false,
 			})
 
-			expect(status).toBe("running")
+			expect(status).toBe("in_progress")
 		})
 	})
 

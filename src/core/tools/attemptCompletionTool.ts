@@ -184,7 +184,7 @@ export async function attemptCompletionTool(
 			// We already sent completion_result says, an
 			// empty string asks relinquishes control over
 			// button and field.
-			const { response, text, images } = await cline.ask("completion_result", "", false)
+			const { response, text, images, pasteChips } = await cline.ask("completion_result", "", false)
 
 			// Signals to recursive loop to stop (for now
 			// cline never happens since yesButtonClicked
@@ -194,7 +194,17 @@ export async function attemptCompletionTool(
 				return
 			}
 
-			await cline.say("user_feedback", text ?? "", images)
+			await cline.say(
+				"user_feedback",
+				text ?? "",
+				images,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				pasteChips,
+			)
 
 			const feedbackContent: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[] = [
 				{

@@ -287,6 +287,48 @@ const renderChatView = (props: Partial<ChatViewProps> = {}) => {
 	)
 }
 
+describe("ChatView - Chat Tabs", () => {
+	beforeEach(() => vi.clearAllMocks())
+
+	it("appends a newly created tab instead of replacing the active tab", async () => {
+		renderChatView()
+
+		mockPostMessage({
+			currentTaskId: "task-a",
+			currentTaskItem: { id: "task-a", title: "First task" },
+			taskTabs: [{ taskId: "task-a", taskLabel: "First task", status: "in_progress" }],
+			clineMessages: [{ type: "say", say: "task", ts: Date.now(), text: "First task" }],
+		})
+
+		await waitFor(() => {
+			expect(document.querySelectorAll('[data-testid="chat-tabs"] [role="button"]')).toHaveLength(1)
+		})
+
+		act(() => {
+			;(document.querySelector('[data-testid="chat-tabs-add"]') as HTMLButtonElement).click()
+		})
+
+		expect(document.querySelectorAll('[data-testid="chat-tabs"] [role="button"]')).toHaveLength(2)
+
+		mockPostMessage({
+			currentTaskId: "task-b",
+			currentTaskItem: { id: "task-b", title: "Second task" },
+			taskTabs: [
+				{ taskId: "task-a", taskLabel: "First task", status: "completed" },
+				{ taskId: "task-b", taskLabel: "Second task", status: "in_progress" },
+			],
+			clineMessages: [{ type: "say", say: "task", ts: Date.now(), text: "Second task" }],
+		})
+
+		await waitFor(() => {
+			const tabs = Array.from(document.querySelectorAll('[data-testid="chat-tabs"] [role="button"]'))
+			expect(tabs).toHaveLength(2)
+			expect(tabs[0]).toHaveTextContent("First task")
+			expect(tabs[1]).toHaveTextContent("Second task")
+		})
+	})
+})
+
 describe("ChatView - Auto Approval Tests", () => {
 	beforeEach(() => vi.clearAllMocks())
 

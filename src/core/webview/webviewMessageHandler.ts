@@ -1083,14 +1083,14 @@ export const webviewMessageHandler = async (
 	}
 
 	switch (message.type) {
-		case "switchToBackgroundTask":
+		case "switchTask":
 			if (message.taskId) {
-				await provider.bringTaskToForeground(message.taskId)
+				await provider.activateTask(message.taskId)
 			}
 			break
-		case "dismissBackgroundTask":
+		case "closeTask":
 			if (message.taskId) {
-				await provider.dismissBackgroundTask(message.taskId)
+				await provider.closeTask(message.taskId)
 			}
 			break
 		case "webviewDidLaunch":
@@ -1237,7 +1237,9 @@ export const webviewMessageHandler = async (
 			// agentically running promises in old instance don't affect our new
 			// task. This essentially creates a fresh slate for the new task.
 			try {
-				await provider.createTask(message.text, extractDataUrls(message.images))
+				await provider.createTask(message.text, extractDataUrls(message.images), undefined, {
+					pasteChips: message.pasteChips,
+				})
 				// Task created successfully - notify the UI to reset
 				await provider.postMessageToWebview({
 					type: "invoke",
@@ -1634,7 +1636,13 @@ ${comment.suggestion}
 		case "askResponse":
 			provider
 				.getCurrentTask()
-				?.handleWebviewAskResponse(message.askResponse!, message.text, extractDataUrls(message.images))
+				?.handleWebviewAskResponse(
+					message.askResponse!,
+					message.text,
+					extractDataUrls(message.images),
+					false,
+					message.pasteChips,
+				)
 			break
 		case "autoCondenseContext":
 			await updateGlobalState("autoCondenseContext", message.bool)
@@ -4370,8 +4378,8 @@ ${comment.suggestion}
 			break
 		}
 		case "plusButtonClicked": {
-			// kilocode_change: Move agent to background
-			await provider.moveCurrentTaskToBackground()
+			// Keep the current task open while starting a new chat tab.
+			await provider.stashCurrentTask()
 			await provider.refreshWorkspace()
 			provider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
 			provider.postMessageToWebview({ type: "action", action: "focusInput" })
@@ -5378,7 +5386,11 @@ ${comment.suggestion}
 
 		case "queueMessage": {
 			const currentTask = provider.getCurrentTask()
-			currentTask?.messageQueueService.addMessage(message.text ?? "", extractDataUrls(message.images))
+			currentTask?.messageQueueService.addMessage(
+				message.text ?? "",
+				extractDataUrls(message.images),
+				message.pasteChips,
+			)
 			// The UI may have classified the task as busy just as its final
 			// content-only response became idle. Re-check on the task side: this
 			// no-ops while a stream, tool turn, or ask is still active and dispatches
@@ -5392,8 +5404,8 @@ ${comment.suggestion}
 		}
 		case "editQueuedMessage": {
 			if (message.payload) {
-				const { id, text, images } = message.payload as EditQueuedMessagePayload
-				provider.getCurrentTask()?.messageQueueService.updateMessage(id, text, images)
+				const { id, text, images, pasteChips } = message.payload as EditQueuedMessagePayload
+				provider.getCurrentTask()?.messageQueueService.updateMessage(id, text, images, pasteChips)
 			}
 
 			break
@@ -5426,7 +5438,13 @@ ${comment.suggestion}
 				// We need to wait for the task to finish rehydrating and reach the resume_task prompt
 				const checkAndSend = () => {
 					if (newTask.isWaitingForAskResponse) {
-						newTask.handleWebviewAskResponse("messageResponse", queuedMsg.text, queuedMsg.images)
+						newTask.handleWebviewAskResponse(
+							"messageResponse",
+							queuedMsg.text,
+							queuedMsg.images,
+							false,
+							queuedMsg.pasteChips,
+						)
 					} else {
 						setTimeout(checkAndSend, 100)
 					}

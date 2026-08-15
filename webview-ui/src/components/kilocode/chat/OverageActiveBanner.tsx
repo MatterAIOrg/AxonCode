@@ -50,7 +50,7 @@ export const OverageActiveBanner = ({ usage, className }: OverageActiveBannerPro
 	return (
 		<div className={className ?? "w-full min-w-0 my-2 pr-1"}>
 			<div className="flex flex-col rounded-2xl gap-2 px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-panel-border)]">
-				<div className="flex items-center justify-between gap-2">
+				<div className="flex items-center justify-between gap-2 p-1">
 					<div className="flex flex-col gap-1">
 						<span className="text-lg font-medium text-[var(--vscode-foreground)]">Overage is enabled</span>
 						<span className="text-md text-[var(--vscode-descriptionForeground)] max-w-[85%]">

@@ -8,6 +8,7 @@ import type {
 	MarketplaceItem,
 	ModeConfig,
 	OrganizationAllowList,
+	PasteChipSerialized,
 	ProviderSettings,
 	ProviderSettingsEntry,
 	QueuedMessage,
@@ -246,6 +247,7 @@ export interface ExtensionMessage {
 	state?: ExtensionState
 	images?: ImageAttachment[]
 	documents?: DocumentAttachment[]
+	pasteChips?: PasteChipSerialized[]
 	attachmentErrors?: string[]
 	filePaths?: string[]
 	openedTabs?: Array<{
@@ -459,7 +461,13 @@ export type ExtensionState = Pick<
 	betaModelsEnabled?: boolean // kilocode_change: Beta models availability
 	version: string
 	clineMessages: ClineMessage[]
+	currentTaskId?: string
 	currentTaskItem?: HistoryItem
+	taskTabs?: Array<{
+		taskId: string
+		taskLabel: string
+		status?: "in_progress" | "completed"
+	}>
 	currentTaskTodos?: TodoItem[] // Initial todos for the current task
 	apiConfiguration: ProviderSettings
 	uriScheme?: string
@@ -549,13 +557,6 @@ export type ExtensionState = Pick<
 	featureRoomoteControlEnabled: boolean
 	showTimestamps?: boolean
 	isOrbital?: boolean // kilocode_change: Orbital IDE detection for Agent Manager
-	backgroundRunningTasks?: Array<{
-		taskId: string
-		taskLabel: string
-		status: "running" | "completed" | "waiting_approval" | "waiting_input"
-		apiProvider?: string
-		apiModelId?: string
-	}>
 }
 
 // kilocode_change: Plan mode implementation

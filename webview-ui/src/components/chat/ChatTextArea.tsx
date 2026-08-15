@@ -3,7 +3,7 @@ import { useEvent } from "react-use"
 
 import { DocumentAttachment, ExtensionMessage } from "@roo/ExtensionMessage"
 import { WebviewMessage } from "@roo/WebviewMessage"
-import { mentionRegex, mentionRegexGlobal, unescapeSpaces } from "@roo/context-mentions"
+import { mentionRegex, unescapeSpaces } from "@roo/context-mentions"
 import { Mode, getAllModes } from "@roo/modes"
 
 import { Button, StandardTooltip } from "@/components/ui" // kilocode_change
@@ -22,8 +22,8 @@ import {
 
 import { useAudioRecorder } from "@/hooks/useAudioRecorder"
 import { cn } from "@/lib/utils"
-import { renderMentionChip, renderSlashCommandChip } from "@/utils/chat-render"
-import { MessageSquareX, VolumeX } from "lucide-react"
+import { valueToHtml as renderValueToHtml, containsListSyntax } from "@/utils/chat-render"
+import { VolumeX } from "lucide-react"
 import DocumentAttachments from "../common/DocumentAttachments"
 import PasteChips, { PasteChip } from "../common/PasteChips"
 import Thumbnails, { ImageAttachment } from "../common/Thumbnails"
@@ -46,7 +46,6 @@ import {
 	getMatchingSlashCommands,
 	insertSlashCommand,
 	shouldShowSlashCommandsMenu,
-	validateSlashCommand,
 } from "@/utils/slash-commands"
 // forked_change end
 
@@ -159,7 +158,7 @@ interface ChatTextAreaProps {
 	setSelectedImages: React.Dispatch<React.SetStateAction<ImageAttachment[]>>
 	selectedDocuments?: DocumentAttachment[]
 	setSelectedDocuments?: React.Dispatch<React.SetStateAction<DocumentAttachment[]>>
-	onSend: (text?: string) => void
+	onSend: (text?: string, pasteChips?: PasteChip[]) => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
 	onHeightChange?: (height: number) => void
@@ -280,11 +279,17 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				return
 			}
 
+			// Snapshot the chips before clearing so we can pass them through to
+			// onSend; the parent stores them on the outgoing message so the chat
+			// history can render the chips instead of (or alongside) the merged
+			// raw text.
+			const chipsSnapshot = pasteChips
+
 			// Merge any pasted-text chips into the message at their recorded
 			// positions, as if the text had been pasted there directly, then clear
 			// the strip (the text is now part of the outgoing value).
-			const mergedValue = mergePasteChips(inputValue, pasteChips)
-			if (pasteChips.length > 0) {
+			const mergedValue = mergePasteChips(inputValue, chipsSnapshot)
+			if (chipsSnapshot.length > 0) {
 				setPasteChips([])
 			}
 
@@ -295,7 +300,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 			// Pass the final text through onSend directly so the parent never
 			// reads a stale inputValue from an earlier render.
-			onSend(expandedValue)
+			onSend(expandedValue, chipsSnapshot)
 		}, [inputValue, pasteChips, setInputValue, expandMentions, onSend])
 
 		const handleRemovePasteChip = useCallback((id: string) => {
@@ -362,6 +367,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		const isUserInputRef = useRef(false) // Use ref to avoid re-renders
 		const intendedCursorPositionRef = useRef<number | null>(null) // Track intended cursor position for synchronous restoration
 		const lastSelectionRef = useRef<{ start: number; end: number } | null>(null)
+		// True while an IME composition session is active in the contenteditable.
+		// During composition the browser owns the DOM and the in-progress text, so
+		// we must not rebuild innerHTML or the partial character will be lost or
+		// duplicated when the composer finalizes.
+		const isComposingRef = useRef(false)
 
 		// get the icons base uri on mount
 		useEffect(() => {
@@ -527,6 +537,36 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return el.dataset.commandValue
 				}
 
+				// <li data-list-marker="-">item</li> must round-trip back to "- item",
+				// exactly matching what the user typed and what valueToHtml produced.
+				// Indentation and the trailing space-after-marker are reconstructed
+				// here so the synthetic offset stays in sync with the rendered HTML.
+				if (el.dataset?.listMarker !== undefined) {
+					const indent = el.dataset.listIndent ? parseInt(el.dataset.listIndent, 10) : 0
+					const marker = el.dataset.listMarker
+					let result = `${" ".repeat(indent)}${marker} `
+					const children = Array.from(el.childNodes)
+					const isListNode = (n: Node): boolean =>
+						n.nodeType === Node.ELEMENT_NODE &&
+						((n as HTMLElement).tagName === "UL" || (n as HTMLElement).tagName === "OL")
+					for (let i = 0; i < children.length; i++) {
+						const currChild = children[i]
+						// Only insert a "\n" when crossing the boundary between
+						// text/chip content and a nested list. Chips and text are
+						// contiguous in the source and must NOT be separated, or
+						// the round-tripped plain text gains a phantom newline
+						// that breaks caret math and corrupts the input value.
+						if (isListNode(currChild)) {
+							result += "\n"
+						} else if (i > 0 && isListNode(children[i - 1])) {
+							result += "\n"
+						}
+						result += toPlainText(currChild, i === children.length - 1)
+					}
+					if (!isLastSibling) result += "\n"
+					return result
+				}
+
 				if (el.tagName === "BR") {
 					return "\n"
 				}
@@ -552,11 +592,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		const getNodeTextLength = useCallback((node: Node): number => {
 			if (node.nodeType === Node.TEXT_NODE) {
-				return node.textContent?.length || 0
+				return (node.textContent || "").length
 			}
 
 			if (node.nodeType === Node.ELEMENT_NODE) {
 				const el = node as HTMLElement
+
 				if (el.dataset?.mentionValue) {
 					return el.dataset.mentionValue.length
 				}
@@ -565,11 +606,31 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return el.dataset.commandValue.length
 				}
 
+				// LI contributes the marker + the spacer character PLUS its body text.
+				// This matches toPlainText so caret math stays consistent in both directions.
+				if (el.dataset?.listMarker !== undefined) {
+					const indent = el.dataset.listIndent ? parseInt(el.dataset.listIndent, 10) : 0
+					const marker = el.dataset.listMarker
+					let total = indent + marker.length + 1
+					total += Array.from(el.childNodes).reduce((sum, child) => sum + getNodeTextLength(child), 0)
+					// toPlainText appends "\n" after every non-last LI to mirror the
+					// newline that separates list items in the source text. Mirror it
+					// here so caret math stays consistent in both directions.
+					const parent = el.parentNode
+					if (parent) {
+						const siblings = Array.from(parent.childNodes)
+						if (siblings.indexOf(el) !== siblings.length - 1) {
+							total += 1
+						}
+					}
+					return total
+				}
+
 				if (el.tagName === "BR") {
 					return 1
 				}
 
-				return Array.from(el.childNodes).reduce((total, child) => total + getNodeTextLength(child), 0)
+				return Array.from(el.childNodes).reduce((sum, child) => sum + getNodeTextLength(child), 0)
 			}
 
 			return 0
@@ -577,15 +638,23 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 		const computeTextOffset = useCallback(
 			(root: Node, target: Node, offset: number): number => {
+				// Bytes attributed to the leading "- " (or "1. ") marker on an LI
+				// without counting the actual content. symmetric with the contribution
+				// getNodeTextLength makes for plain text that surrounds lists.
+				const listPrefix = (el: HTMLElement): number => {
+					if (el.dataset?.listMarker === undefined) return 0
+					const indent = el.dataset.listIndent ? parseInt(el.dataset.listIndent, 10) : 0
+					return indent + (el.dataset.listMarker?.length ?? 0) + 1
+				}
+
 				if (root === target) {
-					// For text nodes, offset is a character offset — return directly.
-					// For element nodes (e.g. the contenteditable div itself, or a <div>/<br>
-					// wrapper inserted by the browser after Shift+Enter), offset is a child
-					// index. We must sum the text lengths of children[0..offset) to get the
-					// real character position.
 					if (target.nodeType === Node.ELEMENT_NODE) {
-						let total = 0
+						const targetEl = target as HTMLElement
 						const children = Array.from(target.childNodes)
+						let total = 0
+						if (targetEl.dataset?.listMarker !== undefined) {
+							total += listPrefix(targetEl)
+						}
 						for (let i = 0; i < offset && i < children.length; i++) {
 							total += getNodeTextLength(children[i])
 						}
@@ -599,11 +668,16 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					if (child === target) {
 						return total + computeTextOffset(child, target, offset)
 					}
-
 					if (child.contains(target)) {
+						const childEl = child as HTMLElement
+						// When the cursor lands inside an LI's text content, attribute
+						// the leading marker bytes to the running total before
+						// descending, otherwise caret math loses the marker.
+						if (childEl.dataset?.listMarker !== undefined) {
+							return total + listPrefix(childEl) + computeTextOffset(childEl, target, offset)
+						}
 						return total + computeTextOffset(child, target, offset)
 					}
-
 					total += getNodeTextLength(child)
 				}
 
@@ -964,61 +1038,21 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			setIsMouseDownOnMenu(true)
 		}, [])
 
-		const escapeHtml = (value: string) =>
-			value.replace(/[&<>"']/g, (char) => {
-				const map: Record<string, string> = {
-					"&": "&amp;",
-					"<": "&lt;",
-					">": "&gt;",
-					'"': "&quot;",
-					"'": "&#39;",
-				}
-				return map[char] || char
-			})
-
-		const renderMentionChipLocal = useCallback(
-			(rawMention: string, isCompactFile: boolean = false) => {
-				return renderMentionChip(rawMention, materialIconsBaseUri, isCompactFile)
-			},
-			[materialIconsBaseUri],
-		)
-
+		// List formatting is shared with ReadOnlyChatText/StickyUserMessage via
+		// the central chat-render helper. Memoize so useLayoutEffect does not
+		// rebuild innerHTML on every unrelated re-render (each rebuild would
+		// collapse the caret/selection).
 		const valueToHtml = useCallback(
-			(value: string) => {
-				let processedText = escapeHtml(value || "")
-
-				processedText = processedText
-					.replace(/\n/g, '<br data-plain-break="true">')
-					.replace(/@([a-zA-Z0-9_.-]+(?:\.[a-zA-Z0-9]+)?)(?=\s|$)/g, (_match, name) => {
-						if (mentionMapRef.current.has(name)) {
-							return renderMentionChipLocal(name, true)
-						}
-						return _match
-					})
-					.replace(mentionRegexGlobal, (_match, mention) => renderMentionChipLocal(mention, false))
-
-				if (/^\s*\//.test(processedText)) {
-					const slashIndex = processedText.indexOf("/")
-					const spaceIndex = processedText.indexOf(" ", slashIndex)
-					const endIndex = spaceIndex > -1 ? spaceIndex : processedText.length
-					const commandText = processedText.substring(slashIndex + 1, endIndex)
-					const isValidCommand = validateSlashCommand(
-						commandText,
-						customModes,
-						localWorkflows,
-						globalWorkflows,
-					)
-
-					if (isValidCommand) {
-						const chipHtml = renderSlashCommandChip(commandText, materialIconsBaseUri)
-						processedText =
-							processedText.substring(0, slashIndex) + chipHtml + processedText.substring(endIndex)
-					}
-				}
-
-				return processedText || '<br data-plain-break="true">'
-			},
-			[customModes, renderMentionChipLocal, localWorkflows, globalWorkflows, materialIconsBaseUri],
+			(value: string) =>
+				renderValueToHtml(
+					value,
+					materialIconsBaseUri,
+					mentionMapRef.current,
+					customModes,
+					localWorkflows,
+					globalWorkflows,
+				),
+			[materialIconsBaseUri, customModes, localWorkflows, globalWorkflows],
 		)
 
 		const setSelectionOffsets = useCallback((start: number, end: number = start) => {
@@ -1033,6 +1067,20 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						const length = node.textContent?.length || 0
 						if (remaining <= length) return { node, offset: remaining }
 						remaining -= length
+						// After consuming the entire textNode, if it is the last
+						// child of its parent, the caret sits at the end of the
+						// textNode. Return that position so the caret lands
+						// inside the parent (e.g. inside an <li>) instead of
+						// falling back to the end of the outermost container,
+						// which would visually break out of the list item.
+						const parent = node.parentNode
+						if (parent) {
+							const siblings = Array.from(parent.childNodes) as ChildNode[]
+							const index = siblings.indexOf(node as ChildNode)
+							if (remaining === 0 && index === siblings.length - 1) {
+								return { node: parent, offset: index + 1 }
+							}
+						}
 						return null
 					}
 
@@ -1054,9 +1102,47 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						return null
 					}
 
+					// LI: attribute leading "- " bytes to the running total before
+					// descending so that the marker stays transparent to the caller,
+					// then walk into the body text. The marker itself is purely a
+					// presentational pseudo-element (see index.css .chat-list) so
+					// the caret must land on the real content node.
+					if (element.dataset?.listMarker !== undefined) {
+						const indent = element.dataset.listIndent ? parseInt(element.dataset.listIndent, 10) : 0
+						const prefix = indent + (element.dataset.listMarker?.length ?? 0) + 1
+						if (remaining <= indent) {
+							// Caret before the list body (between indent and marker).
+							// Snap to the start of the LI so we never expose a DOM
+							// position without a corresponding plain-text character.
+							const parent = element.parentNode
+							if (!parent) return null
+							const index = Array.from(parent.childNodes).indexOf(element)
+							return { node: parent, offset: index + 1 }
+						}
+						if (remaining <= prefix) {
+							// Caret sits in the marker slot — land on the start of the
+							// first child so subsequent text-input remains inside the LI.
+							const firstChild = element.childNodes[0] ?? element
+							return { node: firstChild, offset: 0 }
+						}
+						remaining -= prefix
+					}
+
 					for (const child of Array.from(element.childNodes)) {
 						const point = walk(child)
 						if (point) return point
+					}
+
+					if (element.dataset?.listMarker !== undefined) {
+						const parent = element.parentNode
+						if (parent) {
+							const siblings = Array.from(parent.childNodes)
+							const index = siblings.indexOf(element)
+							if (index !== siblings.length - 1) {
+								if (remaining <= 1) return { node: parent, offset: index + 1 }
+								remaining -= 1
+							}
+						}
 					}
 
 					return null
@@ -1083,15 +1169,29 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 		useLayoutEffect(() => {
 			if (!textAreaRef.current) return
 
+			// While the user is composing text (IME / dead keys), the browser owns the
+			// partial character. Rebuilding innerHTML here would either lose it or
+			// duplicate it once the composition ends, so we always skip.
+			if (isComposingRef.current) {
+				return
+			}
+
 			// Only update innerHTML if the change is not from user input
 			// This prevents destroying the selection when user is typing or pressing Enter
 			if (isUserInputRef.current) {
 				// Reset the flag after checking it
 				isUserInputRef.current = false
-				// The browser already owns the correct selection for native input. Do not
-				// leave this position queued for an unrelated future DOM rebuild.
-				intendedCursorPositionRef.current = null
-				return // Skip innerHTML update to preserve selection
+				// If the typed text still has no list syntax (e.g. plain letters / a
+				// single "- " that was deleted before pressing space), there is
+				// nothing structured to rebuild, so we skip. This avoids a full DOM
+				// rewrite on every keystroke for normal text.
+				if (!containsListSyntax(inputValue)) {
+					intendedCursorPositionRef.current = null
+					return
+				}
+				// Otherwise fall through: list syntax appears or changed during typing,
+				// so we need to swap plain-text into <ul>/<ol>/<li>. Preserve the
+				// queued caret position so the user lands in the right place.
 			}
 
 			const previousSelection = lastSelectionRef.current
@@ -1270,6 +1370,11 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				}
 
 				const isComposing = event.nativeEvent?.isComposing ?? false
+				const liveSelection = getSelectionOffsets()
+				const liveValue = getPlainTextFromInput()
+				const activeValue = textAreaRef.current ? liveValue : inputValue
+				const activeCursorPosition = liveSelection?.end ?? cursorPosition
+				const hasSelection = liveSelection ? liveSelection.start !== liveSelection.end : false
 
 				const shouldSendMessage =
 					!isComposing &&
@@ -1286,13 +1391,71 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return
 				}
 
+				// List continuation / exit on Enter: when the caret sits inside a list line
+				// and the keystroke would normally insert a newline (i.e. not send the
+				// message), insert the next marker so the user can keep typing items
+				// without retyping "- " or "1. " on every line. If the current line is
+				// just the marker with no content, exit the list instead — the second
+				// press of Enter (or Shift+Enter) on a freshly-opened list item drops
+				// the marker and leaves the cursor on a plain blank line.
+				const wouldInsertNewline =
+					event.key === "Enter" && !isComposing && !event.metaKey && !event.ctrlKey && !hasSelection
+				if (wouldInsertNewline && containsListSyntax(activeValue)) {
+					const beforeCursor = activeValue.slice(0, activeCursorPosition)
+					const lineStart = beforeCursor.lastIndexOf("\n") + 1
+					const nextNewline = activeValue.indexOf("\n", activeCursorPosition)
+					const lineEnd = nextNewline === -1 ? activeValue.length : nextNewline
+					const currentLine = activeValue.slice(lineStart, lineEnd)
+					const match = currentLine.match(/^(\s*)([-*+]|\d+[.)])(\s+)(.*)$/)
+					if (match) {
+						event.preventDefault()
+						const indent = match[1]
+						const marker = match[2]
+
+						// Empty list item (just "- " / "1. ") → exit the list. Strip the
+						// marker while keeping the surrounding newlines so the caret
+						// drops onto a fresh blank line below the previous list item
+						// rather than snapping back to the end of the last item.
+						if (match[4] === "") {
+							const prefix = indent + marker + match[3]
+							const prefixStart = lineStart
+							const prefixEnd = prefixStart + prefix.length
+							const newValue = activeValue.slice(0, prefixStart) + activeValue.slice(prefixEnd)
+							// Keep the caret at prefixStart. The character at
+							// prefixStart in the new value is the newline that used
+							// to terminate the previous list item (or end-of-string
+							// if there was nothing before it), so the caret sits on
+							// the new blank line below the list.
+							const newCursor = prefixStart
+							setInputValue(newValue)
+							setCursorPosition(newCursor)
+							intendedCursorPositionRef.current = newCursor
+							lastSelectionRef.current = { start: newCursor, end: newCursor }
+							return
+						}
+
+						const nextMarker = /[-*+]/.test(marker) ? "-" : `${parseInt(marker, 10) + 1}.`
+						const insertion = `\n${indent}${nextMarker} `
+						const newValue =
+							activeValue.slice(0, activeCursorPosition) +
+							insertion +
+							activeValue.slice(activeCursorPosition)
+						const newCursor = activeCursorPosition + insertion.length
+						setInputValue(newValue)
+						setCursorPosition(newCursor)
+						intendedCursorPositionRef.current = newCursor
+						lastSelectionRef.current = { start: newCursor, end: newCursor }
+						return
+					}
+				}
+
 				if (handleHistoryNavigation(event, showContextMenu, isComposing)) {
 					return
 				}
 
 				if (event.key === "Backspace" && !isComposing) {
-					const charBeforeCursor = inputValue[cursorPosition - 1]
-					const charAfterCursor = inputValue[cursorPosition + 1]
+					const charBeforeCursor = activeValue[activeCursorPosition - 1]
+					const charAfterCursor = activeValue[activeCursorPosition]
 
 					const charBeforeIsWhitespace =
 						charBeforeCursor === " " || charBeforeCursor === "\n" || charBeforeCursor === "\r\n"
@@ -1302,9 +1465,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 
 					if (
 						charBeforeIsWhitespace &&
-						inputValue.slice(0, cursorPosition - 1).match(new RegExp(mentionRegex.source + "$"))
+						activeValue.slice(0, activeCursorPosition - 1).match(new RegExp(mentionRegex.source + "$"))
 					) {
-						const newCursorPosition = cursorPosition - 1
+						const newCursorPosition = activeCursorPosition - 1
 						if (!charAfterIsWhitespace) {
 							event.preventDefault()
 							setCaretPosition(newCursorPosition)
@@ -1314,9 +1477,9 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 						setCursorPosition(newCursorPosition)
 						setJustDeletedSpaceAfterMention(true)
 					} else if (justDeletedSpaceAfterMention) {
-						const { newText, newPosition } = removeMention(inputValue, cursorPosition)
+						const { newText, newPosition } = removeMention(activeValue, activeCursorPosition)
 
-						if (newText !== inputValue) {
+						if (newText !== activeValue) {
 							event.preventDefault()
 							setInputValue(newText)
 							intendedCursorPositionRef.current = newPosition
@@ -1345,6 +1508,8 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				selectedType,
 				inputValue,
 				cursorPosition,
+				getSelectionOffsets,
+				getPlainTextFromInput,
 				setInputValue,
 				justDeletedSpaceAfterMention,
 				queryItems,
@@ -1920,6 +2085,15 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					data-testid="chat-input"
 					onInput={handleInputChange}
 					onFocus={() => setIsFocused(true)}
+					onCompositionStart={() => {
+						isComposingRef.current = true
+					}}
+					onCompositionEnd={() => {
+						isComposingRef.current = false
+						// The DOM is now finalized; let the next layout effect rebuild
+						// innerHTML from the freshly committed plain text.
+						isUserInputRef.current = false
+					}}
 					onKeyDown={(e) => {
 						if (isEditMode && e.key === "Escape" && !e.nativeEvent?.isComposing) {
 							e.preventDefault()
@@ -2042,117 +2216,71 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 							<CommandApprovalSelector />
 						</div>
 					</div>
-					<div className="flex items-center gap-0">
-						{!isEditMode && (
-							<div className="flex items-center gap-0.5">
-								<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
-							</div>
-						)}
-						{isEditMode && (
-							<StandardTooltip content={t("chat:cancel.title")}>
+					<div className={cn("flex items-center", isEditMode ? "gap-1.5" : "gap-0")}>
+						{isEditMode ? (
+							<>
 								<button
 									aria-label={t("chat:cancel.title")}
-									disabled={false}
+									type="button"
 									onClick={onCancel}
 									className={cn(
-										"relative inline-flex items-center justify-center",
-										"bg-transparent border-none py-1.5",
-										"rounded-lg min-w-[24px] min-h-[28px]",
-										"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+										"relative inline-flex items-center justify-center box-border",
+										"bg-transparent border border-[var(--vscode-commandCenter-inactiveBorder)]",
+										"h-7 px-3 rounded-full text-xs font-medium leading-none",
+										"text-vscode-foreground hover:bg-[var(--vscode-toolbar-hoverBackground)]",
 										"transition-all duration-150",
-										"focus-visible:ring-1 focus-visible:ring-white/50",
-										"active:bg-[rgba(255,255,255,0.1)]",
 										"cursor-pointer",
 									)}>
-									<MessageSquareX className="w-4 h-4" />
+									{t("chat:cancel.title")}
 								</button>
-							</StandardTooltip>
-						)}
-						{/* kilocode_change: mic button for speech-to-text */}
-						{/* {apiConfiguration && (
-						<div className="relative inline-flex">
-							{recorderState === "recording" && (
-								<div
-									className={cn(
-										"absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-10",
-										"flex items-center gap-1.5 whitespace-nowrap",
-										"rounded px-2 py-1 text-xs shadow-md",
-										"bg-vscode-editorWidget-background border border-vscode-editorWidget-border text-vscode-foreground",
-									)}>
-									<span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-									{t("chat:recording")}
-								</div>
-							)}
-							<StandardTooltip
-								content={
-									recorderError
-										? recorderError
-										: recorderState === "recording"
-											? t("chat:stopRecording")
-											: t("chat:startRecording")
-								}>
 								<button
-									aria-label={
-										recorderState === "recording" ? t("chat:stopRecording") : t("chat:startRecording")
-									}
-									disabled={false}
-									onClick={() => {
-										if (recorderState === "recording") {
-											stopRecording()
-										} else if (recorderState === "idle") {
-											startRecording()
-										}
-									}}
+									aria-label={t("kilocode:userFeedback.send")}
+									type="button"
+									onClick={handleSend}
 									className={cn(
-										"relative inline-flex items-center justify-center",
-										"bg-transparent border-none py-1.5",
-										"rounded-lg min-w-[24px] min-h-[28px]",
+										"relative inline-flex items-center justify-center box-border",
+										"bg-white hover:bg-white/90 text-black border border-transparent",
+										"h-7 px-3 rounded-full text-xs font-medium leading-none",
 										"transition-all duration-150",
-										"focus-visible:ring-1 focus-visible:ring-white/50",
-										"active:bg-[rgba(255,255,255,0.1)]",
-										recorderError || recorderState === "recording"
-											? "text-red-400 hover:text-red-300 cursor-pointer"
-											: "opacity-80 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground cursor-pointer",
+										"cursor-pointer",
 									)}>
-									{recorderState === "recording" ? (
-										<Square
-											className={cn("w-3.5 h-3.5", { hidden: containerWidth < 235 })}
-											fill="currentColor"
-										/>
-									) : (
-										<Mic className={cn("w-4 h-4", { hidden: containerWidth < 235 })} />
-									)}
+									{t("kilocode:userFeedback.send")}
 								</button>
-							</StandardTooltip>
-						</div>
-					)} */}
-						<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
-							<button
-								aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}
-								disabled={false}
-								onClick={isStreaming && !inputValue.trim() ? onCancelStreaming : handleSend}
-								className={cn(
-									"relative inline-flex items-center justify-center",
-									"bg-transparent border-none",
-									"rounded-lg min-w-[28px] min-h-[28px]",
-									"opacity-100 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-									"transition-all duration-150",
-									"focus-visible:ring-1 focus-visible:ring-white/50",
-									"active:bg-[rgba(255,255,255,0.1)]",
-									"cursor-pointer",
-									isStreaming &&
-										!inputValue.trim() &&
-										"text-red-400 hover:text-red-300 hover:bg-red-500/10",
-								)}>
-								{isStreaming ? (
-									<div className="w-4 h-4 bg-current rounded-sm"></div>
-								) : (
-									<div className="w-5.5 h-5.5 rounded-full bg-current/20 flex items-center justify-center">
-										<ArrowUp02Icon className="w-4 h-4 rtl:-scale-x-100" />
-									</div>
-								)}
-							</button>
-						</StandardTooltip>
+							</>
+						) : (
+							<>
+								<div className="flex items-center gap-0.5">
+									<ContextUsageIndicator className={cn({ hidden: containerWidth < 235 })} />
+								</div>
+								<StandardTooltip content={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}>
+									<button
+										aria-label={isStreaming ? t("chat:cancel.title") : t("chat:sendMessage")}
+										disabled={false}
+										onClick={isStreaming && !inputValue.trim() ? onCancelStreaming : handleSend}
+										className={cn(
+											"relative inline-flex items-center justify-center",
+											"bg-transparent border-none",
+											"rounded-lg min-w-[28px] min-h-[28px]",
+											"opacity-100 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
+											"transition-all duration-150",
+											"focus-visible:ring-1 focus-visible:ring-white/50",
+											"active:bg-[rgba(255,255,255,0.1)]",
+											"cursor-pointer",
+											isStreaming &&
+												!inputValue.trim() &&
+												"text-red-400 hover:text-red-300 hover:bg-red-500/10",
+										)}>
+										{isStreaming ? (
+											<div className="w-4 h-4 bg-current rounded-sm"></div>
+										) : (
+											<div className="w-5.5 h-5.5 rounded-full bg-current/20 flex items-center justify-center">
+												<ArrowUp02Icon className="w-4 h-4 rtl:-scale-x-100" />
+											</div>
+										)}
+									</button>
+								</StandardTooltip>
+							</>
+						)}
 					</div>
 				</div>
 			</div>

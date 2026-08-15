@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { RooCodeEventName } from "./events.js"
 import type { RooCodeSettings } from "./global-settings.js"
-import type { ClineMessage, QueuedMessage, TokenUsage } from "./message.js"
+import type { ClineMessage, PasteChipSerialized, QueuedMessage, TokenUsage } from "./message.js"
 import type { ToolUsage, ToolName } from "./tool.js"
 import type { StaticAppProperties, GitProperties, TelemetryProperties } from "./telemetry.js"
 import type { TodoItem } from "./todo.js"
@@ -92,6 +92,9 @@ export interface CreateTaskOptions {
 	consecutiveMistakeLimit?: number
 	experiments?: Record<string, boolean>
 	initialTodos?: TodoItem[]
+	// Paste chips captured by the composer for the initial task prompt that
+	// should be persisted on the task message so chat history can render them.
+	pasteChips?: PasteChipSerialized[]
 }
 
 export enum TaskStatus {
