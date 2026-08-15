@@ -14,9 +14,8 @@ describe("prettyModelName", () => {
 
 describe("removeAxonPrefix", () => {
 	it("should remove Axon prefix from display labels", () => {
-		expect(removeAxonPrefix("Axon Eido 3 Flash (200K context)")).toBe("Eido 3 Flash (200K context)")
+		expect(removeAxonPrefix("Axon Eido 3 Flash (232K context)")).toBe("Eido 3 Flash (232K context)")
 		expect(removeAxonPrefix("Axon Code 2 Pro")).toBe("Code 2 Pro")
-		expect(removeAxonPrefix("Axon Eido 3 Mini")).toBe("Eido 3 Mini")
 	})
 
 	it("should remove axon prefix from hyphenated or lowercased model ids", () => {
@@ -35,10 +34,8 @@ describe("removeAxonPrefix", () => {
 })
 
 describe("formatSelectedModelLabel", () => {
-	it("should remove Axon prefix and hide 200k context specifiers", () => {
-		expect(formatSelectedModelLabel("Axon Eido 3 Flash (200K context)")).toBe("Eido 3 Flash")
-		expect(formatSelectedModelLabel("Axon Eido 3 Mini (200k context)")).toBe("Eido 3 Mini")
-		expect(formatSelectedModelLabel("Axon Eido 3 Code Mini 200k")).toBe("Eido 3 Code Mini")
+	it("should remove Axon prefix and hide 232k context specifiers", () => {
+		expect(formatSelectedModelLabel("Axon Eido 3 Flash (232K context)")).toBe("Eido 3 Flash")
 	})
 
 	it("should remove Axon prefix but keep 400k context specifiers", () => {

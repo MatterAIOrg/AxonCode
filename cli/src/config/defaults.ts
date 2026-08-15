@@ -55,7 +55,7 @@ export const DEFAULT_CONFIG = {
 			id: "default",
 			provider: "kilocode",
 			kilocodeToken: "",
-			kilocodeModel: "axon-eido-3-code-mini-200k",
+			kilocodeModel: "axon-auto-232k",
 		},
 	],
 	autoApproval: DEFAULT_AUTO_APPROVAL,

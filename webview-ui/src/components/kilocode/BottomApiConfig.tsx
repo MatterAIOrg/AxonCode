@@ -2,7 +2,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { GitBranchIcon } from "@/utils/customIcons"
 import { vscode } from "@/utils/vscode"
 import { ProfileData, WebviewMessage } from "@roo/WebviewMessage"
-import { GaugeCircle } from "lucide-react"
+import { GaugeCircle, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { WeeklyResetButton } from "./common/WeeklyResetButton"
@@ -198,13 +198,22 @@ export const BottomApiConfig = () => {
 										transform: "translate(0, -100%)",
 									}}>
 									<div className="space-y-3">
-										<div className="space-y-1">
-											<div className="text-md font-medium text-[var(--vscode-foreground)]">
-												Current Plan
+										<div className="flex items-start justify-between gap-2">
+											<div className="space-y-1">
+												<div className="text-md font-medium text-[var(--vscode-foreground)]">
+													Current Plan
+												</div>
+												<div className="text-xs text-[var(--vscode-descriptionForeground)]">
+													{profileData?.plan?.replace("_", " ")?.toUpperCase()}
+												</div>
 											</div>
-											<div className="text-xs text-[var(--vscode-descriptionForeground)]">
-												{profileData?.plan?.replace("_", " ")?.toUpperCase()}
-											</div>
+											<button
+												type="button"
+												onClick={() => setShowHoverCard(false)}
+												className="shrink-0 text-[var(--vscode-descriptionForeground)] hover:text-[var(--vscode-foreground)] transition-colors"
+												aria-label="Close">
+												<X size={14} />
+											</button>
 										</div>
 
 										<div className="text-md font-medium text-[var(--vscode-foreground)]">

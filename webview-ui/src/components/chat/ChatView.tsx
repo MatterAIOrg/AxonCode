@@ -2447,6 +2447,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						handlePrimaryButtonClick={handlePrimaryButtonClick}
 						handleSecondaryButtonClick={handleSecondaryButtonClick}
 						isAgentManagerMode={isAgentManagerMode}
+						profilePlan={profileData?.plan ?? profileData?.tieredUsage?.plan}
 					/>
 				)
 			}
@@ -2507,6 +2508,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					onSecondaryButtonClick={handleSecondaryButtonClick}
 					enableButtons={enableButtons && index === groupedMessages.length - 1}
 					isAgentManagerMode={isAgentManagerMode} // kilocode_change: pass agent manager mode
+					profilePlan={profileData?.plan ?? profileData?.tieredUsage?.plan}
 				/>
 			)
 		},
@@ -2527,6 +2529,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
 			isAgentManagerMode, // kilocode_change: add to dependencies
+			profileData?.plan,
+			profileData?.tieredUsage?.plan,
 		],
 	)
 
@@ -2908,7 +2912,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 														<div className="flex flex-col gap-1 h-full justify-center">
 															<div className="flex flex-row gap-2 items-center">
 																<p className="text-sm p-0 m-0 font-semibold text-vscode-foreground">
-																	Introducing Axon Eido 3 Model family
+																	Introducing Axon Eido 3.2 Model family
 																</p>
 																<img
 																	src={iconsBaseUri + "/matterai-company-ic.svg"}

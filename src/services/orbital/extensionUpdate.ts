@@ -23,6 +23,12 @@ const ORBITAL_UPDATE_RESTART_COMMANDS = [
 	"workbench.action.restartExtensionHost",
 ]
 
+// Installing this extension can take a few minutes. The install command below
+// resolves before the install is actually complete, so we wait for the
+// extension registry change event instead. This timeout is a fallback so a
+// missed event never blocks the update indefinitely.
+const INSTALL_COMPLETION_TIMEOUT_MS = 5 * 60 * 1000
+
 interface ParsedVersion {
 	major: number
 	minor: number
@@ -106,6 +112,30 @@ export async function checkForOrbitalExtensionUpdate(): Promise<OrbitalExtension
 	}
 }
 
+/**
+ * Resolves when the extension registry reports a change (install/uninstall/
+ * enable/disable). The `workbench.extensions.installExtension` command can
+ * resolve before the install has finished, so this is the reliable signal that
+ * the install completed. Falls back to the timeout if the event never fires.
+ */
+function waitForExtensionChange(timeoutMs: number): Promise<void> {
+	return new Promise((resolve) => {
+		let settled = false
+		let disposable: vscode.Disposable | undefined
+		const finish = () => {
+			if (settled) {
+				return
+			}
+			settled = true
+			clearTimeout(timeout)
+			disposable?.dispose()
+			resolve()
+		}
+		const timeout = setTimeout(finish, timeoutMs)
+		disposable = vscode.extensions.onDidChange(finish)
+	})
+}
+
 export async function installOrbitalExtensionUpdate(
 	context: vscode.ExtensionContext,
 	targetVersion: string,
@@ -128,10 +158,12 @@ export async function installOrbitalExtensionUpdate(
 		// Pin the version discovered through Open VSX. An unversioned install can
 		// resolve against stale gallery metadata and report success without
 		// installing the release shown in the banner.
+		const installCompleted = waitForExtensionChange(INSTALL_COMPLETION_TIMEOUT_MS)
 		await vscode.commands.executeCommand(
 			"workbench.extensions.installExtension",
 			`${extensionId}@${normalizedTargetVersion}`,
 		)
+		await installCompleted
 	} catch (error) {
 		await context.globalState.update(PENDING_ORBITAL_UPDATE_KEY, undefined)
 		throw error

@@ -51,7 +51,7 @@ describe("Provider Merging", () => {
 		expect(result.config.providers[0].id).toBe("default")
 		expect(result.config.providers[0]).toHaveProperty("kilocodeToken")
 		expect(result.config.providers[0]).toHaveProperty("kilocodeModel")
-		expect(result.config.providers[0].kilocodeModel).toBe("axon-eido-3-code-mini-200k")
+		expect(result.config.providers[0].kilocodeModel).toBe("axon-auto-232k")
 		expect(result.validation.valid).toBe(true)
 	})
 
@@ -67,7 +67,7 @@ describe("Provider Merging", () => {
 					id: "default",
 					provider: "kilocode",
 					kilocodeToken: "test-token-1234567890",
-					kilocodeModel: "axon-eido-3-code-mini-400k",
+					kilocodeModel: "axon-eido-3.2-400k",
 				},
 			],
 			theme: "dark",

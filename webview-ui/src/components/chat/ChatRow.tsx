@@ -82,6 +82,7 @@ interface ChatRowProps {
 	enableButtons?: boolean
 	isAgentManagerMode?: boolean
 	disableReasoningAutoExpand?: boolean
+	profilePlan?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -232,6 +233,7 @@ export const ChatRowContent = ({
 	enableButtons,
 	isAgentManagerMode: _isAgentManagerMode,
 	disableReasoningAutoExpand,
+	profilePlan,
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
 
@@ -1871,7 +1873,8 @@ export const ChatRowContent = ({
 							</div> */}
 							<div
 								className={cn(
-									"rounded-lg whitespace-pre-wrap mb-1",
+									isEditing ? "rounded-2xl" : "rounded-lg",
+									"whitespace-pre-wrap mb-1",
 									"bg-vscode-textCodeBlock-background",
 									isEditing ? "overflow-visible" : "overflow-hidden", // kilocode_change
 									isEditing ? "text-vscode-editor-foreground" : "cursor-text p-1",
@@ -1893,6 +1896,7 @@ export const ChatRowContent = ({
 											modeShortcutText=""
 											isEditMode={true}
 											onCancel={handleCancelEdit}
+											profilePlan={profilePlan}
 										/>
 									</div>
 								) : hasText && !hasAttachments ? (

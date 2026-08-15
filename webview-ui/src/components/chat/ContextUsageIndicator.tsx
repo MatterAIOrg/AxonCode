@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 
+import { useSelectedModel } from "@/components/ui/hooks/useSelectedModel"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
@@ -49,7 +50,8 @@ const FALLBACK_BREAKDOWN: ContextBreakdown = {
 }
 
 export const ContextUsageIndicator: React.FC<ContextUsageIndicatorProps> = ({ className }) => {
-	const { contextWindowUsage } = useExtensionState()
+	const { contextWindowUsage, apiConfiguration } = useExtensionState()
+	const { info: selectedModelInfo } = useSelectedModel(apiConfiguration)
 	const [open, setOpen] = useState(false)
 
 	const { currentUsage, maxContext, percentage, breakdown } = useMemo(() => {
@@ -65,8 +67,10 @@ export const ContextUsageIndicator: React.FC<ContextUsageIndicatorProps> = ({ cl
 			}
 		}
 
-		return { currentUsage: 0, maxContext: 400000, percentage: 0, breakdown: FALLBACK_BREAKDOWN }
-	}, [contextWindowUsage])
+		// No task is open: fall back to the currently selected model's context window.
+		const maxContext = selectedModelInfo?.contextWindow ?? 400000
+		return { currentUsage: 0, maxContext, percentage: 0, breakdown: FALLBACK_BREAKDOWN }
+	}, [contextWindowUsage, selectedModelInfo])
 
 	// SVG circle calculations
 	const size = 16

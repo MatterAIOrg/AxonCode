@@ -15,6 +15,14 @@ vi.mock("vscode", () => ({
 		appName: "Orbital",
 		uriScheme: "orbital",
 	},
+	extensions: {
+		// Fire the registry change immediately so the install wait resolves
+		// without needing real timers.
+		onDidChange: vi.fn((listener: () => void) => {
+			listener()
+			return { dispose: vi.fn() }
+		}),
+	},
 }))
 
 function createContext(initialState?: unknown) {

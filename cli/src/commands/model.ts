@@ -8,6 +8,7 @@ import {
 	is400kAxonModel,
 	isEido3ProModel,
 	isLumenAxonModel,
+	isPaidPlanAxonModel,
 	isPlanRestrictedAxonModel,
 } from "@roo-code/types"
 import {
@@ -304,7 +305,9 @@ async function selectModel(context: any, modelId: string): Promise<void> {
 		} else if (is400kAxonModel(modelId)) {
 			message = "400k context is only available on Pro Plus and Ultra plans."
 		} else if (isEido3ProModel(modelId)) {
-			message = "Axon Eido 3 Pro is only available on Pro, Pro Plus, and Ultra plans."
+			message = "Axon Eido Pro is only available on Pro, Pro Plus, and Ultra plans."
+		} else if (isPaidPlanAxonModel(modelId)) {
+			message = "This model is only available on Pro, Pro Plus, and Ultra plans."
 		}
 		addMessage({
 			id: Date.now().toString(),

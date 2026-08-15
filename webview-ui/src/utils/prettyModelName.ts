@@ -5,21 +5,16 @@ const AXON_MODEL_CREDITS: Record<string, string> = {
 }
 
 export const AXON_MODEL_TOOLTIPS: Record<string, [string, string]> = {
-	"axon-auto-200k": ["Dynamic coding model", "selects Flash, Mini, or Pro for the task"],
-	"axon-auto-400k": ["Dynamic coding model", "selects Flash, Mini, or Pro for the task"],
-	"axon-eido-3-flash": ["Fast general-purpose model", "for low-effort day-to-day tasks"],
-	"axon-eido-3-flash-400k": ["Fast general-purpose model", "for low-effort day-to-day tasks"],
-	"axon-code-2-5-mini": ["Free model for very lightweight task", "low thinking"],
-	"axon-code-2-pro": ["Medium cost frontier model for", "small to medium tasks, medium thinking"],
-	"axon-code-2-pro-high": ["Medium cost frontier model for", "small to medium tasks, extended thinking"],
-	"axon-code-2-5-pro": ["High intelligence frontier model", "for complex task, medium thinking"],
-	"axon-code-2-5-pro-high": ["High intelligence frontier model", "for complex task, extended thinking"],
-	"axon-eido-3-code-mini-200k": ["High intelligence frontier model", "for high-effort day-to-day tasks"],
-	"axon-eido-3-code-mini-400k": ["High intelligence frontier model", "for high-effort day-to-day tasks"],
-	"axon-eido-3-code-pro-200k": ["Frontier model", "for coding tasks and long-running agents"],
-	"axon-eido-3-code-pro-400k": ["Frontier model", "for coding tasks and long-running agents"],
-	"axon-lumen-4-code-200k": ["Ultra-intelligence frontier model", "for complex agentic coding tasks"],
-	"axon-lumen-4-code-400k": ["Ultra-intelligence frontier model", "for complex agentic coding tasks"],
+	"axon-auto-232k": ["Dynamic model switching", "between Flash, 3.2, and Pro"],
+	"axon-auto-400k": ["Dynamic model switching", "between Flash, 3.2, and Pro"],
+	"axon-eido-3.2-flash": ["Fast general-purpose model", "daily coding driver"],
+	"axon-eido-3.2-flash-400k": ["Fast general-purpose model", "daily coding driver"],
+	"axon-eido-3.2-232k": ["High intelligence frontier model", "for complicated coding tasks"],
+	"axon-eido-3.2-400k": ["High intelligence frontier model", "high intelligence coding tasks"],
+	"axon-eido-3.2-code-pro-232k": ["Frontier intelligence", "for coding tasks and long-running agents"],
+	"axon-eido-3.2-code-pro-400k": ["Frontier intelligence", "for coding tasks and long-running agents"],
+	"axon-lumen-4-code-232k": ["Ultra-intelligence", "for very complex agentic coding tasks"],
+	"axon-lumen-4-code-400k": ["Ultra-intelligence", "for very complex agentic coding tasks"],
 }
 
 /**
@@ -100,16 +95,16 @@ export const removeAxonPrefix = (text: string): string => {
 }
 
 /**
- * Removes context window suffixes like "(200k context)", "(400k context)", "200k context", etc.
+ * Removes context window suffixes like "(232k context)", "(400k context)", "232k context", etc.
  */
 export const removeContextSuffix = (text: string): string => {
 	if (!text) return ""
-	return text.replace(/\s*\(?(?:200k|400k)(?:\s*context)?\)?/gi, "").trim()
+	return text.replace(/\s*\(?(?:232k|400k)(?:\s*context)?\)?/gi, "").trim()
 }
 
 /**
  * Formats model label for displaying as selected model in ChatTextArea.
- * Removes "Axon" prefix. Hides 200k context, but appends 400k context if is400k is true.
+ * Removes "Axon" prefix. Hides 232k context, but appends 400k context if is400k is true.
  */
 export const formatSelectedModelLabel = (text: string, is400k?: boolean): string => {
 	if (!text) return ""

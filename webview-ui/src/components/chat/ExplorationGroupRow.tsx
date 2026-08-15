@@ -362,6 +362,7 @@ interface ExplorationGroupRowProps {
 	handlePrimaryButtonClick: () => void
 	handleSecondaryButtonClick: () => void
 	isAgentManagerMode: boolean | undefined
+	profilePlan?: string
 }
 
 export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
@@ -385,10 +386,11 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 		handlePrimaryButtonClick,
 		handleSecondaryButtonClick,
 		isAgentManagerMode,
+		profilePlan,
 	} = props
 
 	const { t } = useTranslation()
-	const [localExpanded, setLocalExpanded] = useState(true)
+	const [localExpanded, setLocalExpanded] = useState(false)
 	const [elapsedTime, setElapsedTime] = useState(0)
 	const prevHeightRef = useRef(0)
 
@@ -525,6 +527,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 							onSecondaryButtonClick={handleSecondaryButtonClick}
 							enableButtons={enableButtons && isLast && idx === messages.length - 1}
 							isAgentManagerMode={isAgentManagerMode}
+							profilePlan={profilePlan}
 						/>
 					))}
 				</div>
