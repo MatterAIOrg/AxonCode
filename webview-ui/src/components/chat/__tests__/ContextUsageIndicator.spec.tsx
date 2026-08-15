@@ -28,8 +28,15 @@ vi.mock("@/context/ExtensionStateContext", () => ({
 	useExtensionState: () => useExtensionStateMock(),
 }))
 
+const useSelectedModelMock = vi.fn()
+
+vi.mock("@/components/ui/hooks/useSelectedModel", () => ({
+	useSelectedModel: () => useSelectedModelMock(),
+}))
+
 describe("ContextUsageIndicator", () => {
 	beforeEach(() => {
+		useSelectedModelMock.mockReturnValue({ info: { contextWindow: 200000 } })
 		// Reset window.postMessage between tests so we can assert the popover
 		// fires a `refreshContextBreakdown` message when opened.
 		;(window as any).__postedMessages = []
@@ -97,5 +104,15 @@ describe("ContextUsageIndicator", () => {
 		fireEvent.click(screen.getByTestId("context-usage-indicator-trigger"))
 
 		expect(screen.getByText("No context usage yet.")).toBeInTheDocument()
+	})
+
+	it("uses the selected model's context window when no task is open", () => {
+		useExtensionStateMock.mockReturnValue({ contextWindowUsage: undefined })
+		useSelectedModelMock.mockReturnValue({ info: { contextWindow: 232000 } })
+		render(<ContextUsageIndicator />)
+
+		fireEvent.click(screen.getByTestId("context-usage-indicator-trigger"))
+
+		expect(screen.getByTestId("context-usage-popover-tokens")).toHaveTextContent("~0 / 232.0K Tokens")
 	})
 })

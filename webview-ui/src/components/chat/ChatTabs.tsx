@@ -89,7 +89,7 @@ const ChatTabs: React.FC<ChatTabsProps> = ({ tabs, onSelect, onClose, onAddTab, 
 						onDragLeave={handleDragLeave}
 						onDrop={(e) => handleDrop(e, tab.taskId)}
 						onDragEnd={handleDragEnd}
-						className={`flex items-center gap-1.5 h-[30px] pl-2.5 pr-1.5 rounded-t-lg flex-1 min-w-0 max-w-[240px] cursor-pointer group select-none transition-colors duration-150 ${
+						className={`flex items-center gap-1.5 h-[30px] pl-2.5 pr-1.5 rounded-t-lg min-w-0 max-w-[240px] cursor-pointer group select-none transition-colors duration-150 ${
 							tab.isActive
 								? "bg-[var(--vscode-tab-activeBackground,var(--vscode-editor-background))] text-[var(--vscode-tab-activeForeground,var(--vscode-foreground))] cursor-default shadow-xs border-t border-x border-[var(--vscode-panel-border)]/40 -mb-[1px] pb-[1px]"
 								: "bg-transparent hover:bg-[var(--vscode-tab-hoverBackground)] text-[var(--vscode-tab-inactiveForeground)] hover:text-[var(--vscode-tab-activeForeground,var(--vscode-foreground))]"
@@ -103,7 +103,7 @@ const ChatTabs: React.FC<ChatTabsProps> = ({ tabs, onSelect, onClose, onAddTab, 
 							height={14}
 							className={tab.isActive ? "shrink-0" : "shrink-0 opacity-70"}
 						/>
-						<span className="text-xs truncate flex-1 min-w-0">{tab.label || "New Agent"}</span>
+						<span className="text-xs truncate min-w-0">{tab.label || "New Agent"}</span>
 						<button
 							onClick={(e) => {
 								e.stopPropagation()
