@@ -388,7 +388,7 @@ export const ExplorationGroupRow = memo((props: ExplorationGroupRowProps) => {
 	} = props
 
 	const { t } = useTranslation()
-	const [localExpanded, setLocalExpanded] = useState(true)
+	const [localExpanded, setLocalExpanded] = useState(false)
 	const [elapsedTime, setElapsedTime] = useState(0)
 	const prevHeightRef = useRef(0)
 
