@@ -5,14 +5,12 @@ const AXON_MODEL_CREDITS: Record<string, string> = {
 }
 
 export const AXON_MODEL_TOOLTIPS: Record<string, [string, string]> = {
-	"axon-auto-232k": ["Dynamic model switching", "between Flash, Mini, and Pro"],
-	"axon-auto-400k": ["Dynamic model switching", "between Flash, Mini, and Pro"],
+	"axon-auto-232k": ["Dynamic model switching", "between Flash, 3.2, and Pro"],
+	"axon-auto-400k": ["Dynamic model switching", "between Flash, 3.2, and Pro"],
 	"axon-eido-3.2-flash": ["Fast general-purpose model", "daily coding driver"],
 	"axon-eido-3.2-flash-400k": ["Fast general-purpose model", "daily coding driver"],
 	"axon-eido-3.2-232k": ["High intelligence frontier model", "for complicated coding tasks"],
 	"axon-eido-3.2-400k": ["High intelligence frontier model", "high intelligence coding tasks"],
-	"axon-eido-3-code-mini-232k": ["High intelligence frontier model", "for high-effort day-to-day tasks"],
-	"axon-eido-3-code-mini-400k": ["High intelligence frontier model", "for high-effort day-to-day tasks"],
 	"axon-eido-3.2-code-pro-232k": ["Frontier intelligence", "for coding tasks and long-running agents"],
 	"axon-eido-3.2-code-pro-400k": ["Frontier intelligence", "for coding tasks and long-running agents"],
 	"axon-lumen-4-code-232k": ["Ultra-intelligence", "for very complex agentic coding tasks"],

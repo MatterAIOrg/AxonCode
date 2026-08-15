@@ -56,11 +56,10 @@ const MODEL_QUALIFIER_PATTERN = /\s*(\((?:232k context|400k context|free)\))$/i
 const isStandardContextWindow = (cw?: number): boolean => cw === 232000
 const isExtendedContextWindow = (cw?: number): boolean => cw === 400000
 
-// Sort priority for Axon models within a context window group: Auto, Flash, Mini, Eido 3.2, Pro, Lumen
+// Sort priority for Axon models within a context window group: Auto, Flash, Eido 3.2, Pro, Lumen
 const getModelSortPriority = (modelId: string): number => {
 	if (modelId.startsWith("axon-auto-")) return 0
 	if (modelId.includes("flash")) return 1
-	if (modelId.includes("mini")) return 2
 	if (modelId.includes("pro")) return 4
 	if (modelId.includes("lumen")) return 5
 	return 3

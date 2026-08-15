@@ -32,7 +32,7 @@ type KiloCodeModelVariant = Omit<KiloCodeModel, "id" | "name" | "context_length"
 
 const AXON_AUTO: KiloCodeModelVariant = {
 	description:
-		"Axon Auto starts with Eido 3 Code Flash and dynamically selects Flash, Mini, or Pro as the task evolves. Pricing is dynamic and follows the model used for each request.",
+		"Axon Auto starts with Eido 3.2 Flash and dynamically selects Flash, 3.2, or Pro as the task evolves. Pricing is dynamic and follows the model used for each request.",
 	input_modalities: ["text", "image"],
 	max_output_length: 64000,
 	output_modalities: ["text"],
@@ -125,39 +125,6 @@ const AXON_EIDO_3_2: KiloCodeModelVariant = {
 		image: "0",
 		request: "0",
 		input_cache_reads: "0.0000005",
-		input_cache_writes: "0",
-	},
-}
-
-const AXON_EIDO_3_CODE_MINI: KiloCodeModelVariant = {
-	description:
-		"Axon Eido 3 Mini is a general purpose super intelligent LLM coding model for high-effort day-to-day tasks",
-	input_modalities: ["text", "image"],
-	max_output_length: 64000,
-	output_modalities: ["text"],
-	supported_sampling_parameters: [
-		"temperature",
-		"top_p",
-		"top_k",
-		"repetition_penalty",
-		"frequency_penalty",
-		"presence_penalty",
-		"seed",
-		"stop",
-	],
-	supported_features: ["tools", "structured_outputs", "web_search"],
-	openrouter: {
-		slug: "matterai/axon",
-	},
-	datacenters: [{ country_code: "US" }],
-	created: 1750426201,
-	owned_by: "matterai",
-	pricing: {
-		prompt: "0.0000015",
-		completion: "0.0000045",
-		image: "0",
-		request: "0",
-		input_cache_reads: "0",
 		input_cache_writes: "0",
 	},
 }
@@ -274,18 +241,6 @@ export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
 		...AXON_EIDO_3_2_CODE_PRO,
 		id: "axon-eido-3.2-code-pro",
 		name: "Axon Eido 3.2 Pro (400K context)",
-		context_length: 400000,
-	},
-	"axon-eido-3-code-mini-232k": {
-		...AXON_EIDO_3_CODE_MINI,
-		id: "axon-eido-3-code-mini",
-		name: "Axon Eido 3 Mini (232K context)",
-		context_length: 232000,
-	},
-	"axon-eido-3-code-mini-400k": {
-		...AXON_EIDO_3_CODE_MINI,
-		id: "axon-eido-3-code-mini",
-		name: "Axon Eido 3 Mini (400K context)",
 		context_length: 400000,
 	},
 	"axon-lumen-4-code-232k": {

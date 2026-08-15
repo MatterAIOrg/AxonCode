@@ -6,7 +6,7 @@ import { rooCodeSettingsSchema } from "@roo-code/types"
  * CreateRun
  */
 
-export const MODEL_DEFAULT = "axon-eido-3-code-mini-232k"
+export const MODEL_DEFAULT = "axon-auto-232k"
 
 export const CONCURRENCY_MIN = 1
 export const CONCURRENCY_MAX = 25

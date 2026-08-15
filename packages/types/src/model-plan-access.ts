@@ -11,7 +11,7 @@ export const canUseEido3Pro = canUsePaidPlan
 
 export const is400kAxonModel = (modelId: string): boolean =>
 	(modelId.startsWith("axon-auto-") ||
-		modelId.startsWith("axon-eido-3-code-") ||
+		modelId.startsWith("axon-eido-3-code-pro-") ||
 		modelId.startsWith("axon-eido-3-flash-") ||
 		modelId.startsWith("axon-eido-3.2-") ||
 		modelId.startsWith("axon-lumen-4-code-")) &&
@@ -23,10 +23,7 @@ export const isEido3ProModel = (modelId: string): boolean =>
 export const isEido32Model = (modelId: string): boolean =>
 	modelId.startsWith("axon-eido-3.2-") && !modelId.includes("flash") && !modelId.includes("code-pro")
 
-export const isEido3MiniModel = (modelId: string): boolean => modelId.startsWith("axon-eido-3-code-mini-")
-
-export const isPaidPlanAxonModel = (modelId: string): boolean =>
-	isEido3ProModel(modelId) || isEido32Model(modelId) || isEido3MiniModel(modelId)
+export const isPaidPlanAxonModel = (modelId: string): boolean => isEido3ProModel(modelId) || isEido32Model(modelId)
 
 export const get232kAxonFallback = (modelId: string): string => {
 	if (modelId === "axon-eido-3-flash-400k") return "axon-eido-3-flash"
@@ -47,7 +44,7 @@ export const canUseLumenModels = canUse400kContext
 
 export const isLumenAxonModel = (modelId: string): boolean => modelId.startsWith("axon-lumen-4-code-")
 
-// Paid models (Eido Pro, Eido 3.2, Eido 3 Mini) require a Pro plan or higher; 400k context and Lumen models require Pro Plus or Ultra
+// Paid models (Eido Pro, Eido 3.2) require a Pro plan or higher; 400k context and Lumen models require Pro Plus or Ultra
 export const isPlanRestrictedAxonModel = (modelId: string): boolean =>
 	isPaidPlanAxonModel(modelId) || is400kAxonModel(modelId) || isLumenAxonModel(modelId)
 

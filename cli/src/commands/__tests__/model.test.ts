@@ -287,13 +287,13 @@ describe("/model command", () => {
 			mockContext.currentProvider = {
 				id: "test-provider",
 				provider: "kilocode",
-				kilocodeModel: "axon-eido-3-code-mini-232k",
+				kilocodeModel: "axon-auto-232k",
 			}
 			mockContext.routerModels!["kilocode-openrouter"] = {
-				"axon-eido-3-code-mini-232k": { contextWindow: 232000 },
-				"axon-eido-3-code-mini-400k": { contextWindow: 400000 },
+				"axon-auto-232k": { contextWindow: 232000 },
+				"axon-eido-3.2-400k": { contextWindow: 400000 },
 			}
-			mockContext.args = ["select", "axon-eido-3-code-mini-400k"]
+			mockContext.args = ["select", "axon-eido-3.2-400k"]
 			mockContext.profileData = { plan: "Pro" }
 
 			await modelCommand.handler(mockContext)
@@ -305,17 +305,17 @@ describe("/model command", () => {
 			mockContext.profileData = { plan: "Ultra" }
 			await modelCommand.handler(mockContext)
 
-			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3-code-mini-400k")
+			expect(updateProviderModelMock).toHaveBeenCalledWith("axon-eido-3.2-400k")
 		})
 
 		it("should allow Eido 3 Pro 232k on Pro plan", async () => {
 			mockContext.currentProvider = {
 				id: "test-provider",
 				provider: "kilocode",
-				kilocodeModel: "axon-eido-3-code-mini-232k",
+				kilocodeModel: "axon-auto-232k",
 			}
 			mockContext.routerModels!["kilocode-openrouter"] = {
-				"axon-eido-3-code-mini-232k": { contextWindow: 232000 },
+				"axon-auto-232k": { contextWindow: 232000 },
 				"axon-eido-3-code-pro-232k": { contextWindow: 232000 },
 			}
 			mockContext.args = ["select", "axon-eido-3-code-pro-232k"]
@@ -330,10 +330,10 @@ describe("/model command", () => {
 			mockContext.currentProvider = {
 				id: "test-provider",
 				provider: "kilocode",
-				kilocodeModel: "axon-eido-3-code-mini-232k",
+				kilocodeModel: "axon-auto-232k",
 			}
 			mockContext.routerModels!["kilocode-openrouter"] = {
-				"axon-eido-3-code-mini-232k": { contextWindow: 232000 },
+				"axon-auto-232k": { contextWindow: 232000 },
 				"axon-eido-3-code-pro-232k": { contextWindow: 232000 },
 			}
 			mockContext.args = ["select", "axon-eido-3-code-pro-232k"]

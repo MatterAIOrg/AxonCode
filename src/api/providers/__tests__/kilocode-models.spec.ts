@@ -8,7 +8,6 @@ describe("KiloCode Axon context variants", () => {
 		["flash", "axon-eido-3.2-flash", "axon-eido-3.2-flash-400k", 232000],
 		["eido-3.2", "axon-eido-3.2-232k", "axon-eido-3.2-400k", 232000],
 		["pro", "axon-eido-3.2-code-pro-232k", "axon-eido-3.2-code-pro-400k", 232000],
-		["mini", "axon-eido-3-code-mini-232k", "axon-eido-3-code-mini-400k", 232000],
 		["lumen", "axon-lumen-4-code-232k", "axon-lumen-4-code-400k", 232000],
 	])(
 		"provides lower-context and 400k %s variants with identical model metadata",
@@ -33,8 +32,6 @@ describe("KiloCode Axon context variants", () => {
 		["axon-eido-3.2-400k", "axon-eido-3.2"],
 		["axon-eido-3.2-code-pro-232k", "axon-eido-3.2-code-pro"],
 		["axon-eido-3.2-code-pro-400k", "axon-eido-3.2-code-pro"],
-		["axon-eido-3-code-mini-232k", "axon-eido-3-code-mini"],
-		["axon-eido-3-code-mini-400k", "axon-eido-3-code-mini"],
 		["axon-lumen-4-code-232k", "axon-lumen-4-code"],
 		["axon-lumen-4-code-400k", "axon-lumen-4-code"],
 	])("sends %s to its upstream model %s", (selectedId, apiModelId) => {
