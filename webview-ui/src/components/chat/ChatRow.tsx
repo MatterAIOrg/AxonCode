@@ -82,6 +82,7 @@ interface ChatRowProps {
 	enableButtons?: boolean
 	isAgentManagerMode?: boolean
 	disableReasoningAutoExpand?: boolean
+	profilePlan?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -232,6 +233,7 @@ export const ChatRowContent = ({
 	enableButtons,
 	isAgentManagerMode: _isAgentManagerMode,
 	disableReasoningAutoExpand,
+	profilePlan,
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
 
@@ -1894,6 +1896,7 @@ export const ChatRowContent = ({
 											modeShortcutText=""
 											isEditMode={true}
 											onCancel={handleCancelEdit}
+											profilePlan={profilePlan}
 										/>
 									</div>
 								) : hasText && !hasAttachments ? (

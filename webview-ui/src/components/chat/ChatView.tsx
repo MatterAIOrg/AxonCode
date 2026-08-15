@@ -2447,6 +2447,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						handlePrimaryButtonClick={handlePrimaryButtonClick}
 						handleSecondaryButtonClick={handleSecondaryButtonClick}
 						isAgentManagerMode={isAgentManagerMode}
+						profilePlan={profileData?.plan ?? profileData?.tieredUsage?.plan}
 					/>
 				)
 			}
@@ -2507,6 +2508,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					onSecondaryButtonClick={handleSecondaryButtonClick}
 					enableButtons={enableButtons && index === groupedMessages.length - 1}
 					isAgentManagerMode={isAgentManagerMode} // kilocode_change: pass agent manager mode
+					profilePlan={profileData?.plan ?? profileData?.tieredUsage?.plan}
 				/>
 			)
 		},
@@ -2527,6 +2529,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
 			isAgentManagerMode, // kilocode_change: add to dependencies
+			profileData?.plan,
+			profileData?.tieredUsage?.plan,
 		],
 	)
 
