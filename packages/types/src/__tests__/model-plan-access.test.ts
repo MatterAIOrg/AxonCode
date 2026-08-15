@@ -3,6 +3,7 @@ import {
 	canAccessAxonModel,
 	canUse400kContext,
 	canUseEido3Pro,
+	canUseLumenModels,
 	canUsePaidPlan,
 	get232kAxonFallback,
 	get400kAxonVariant,
@@ -11,6 +12,7 @@ import {
 	isEido3ProModel,
 	isEido32Model,
 	isEido3MiniModel,
+	isLumenAxonModel,
 	isPaidPlanAxonModel,
 	isPlanRestrictedAxonModel,
 } from "../model-plan-access.js"
@@ -22,6 +24,14 @@ describe("model-plan-access", () => {
 		expect(canUse400kContext("pro")).toBe(false)
 		expect(canUse400kContext("free")).toBe(false)
 		expect(canUse400kContext(undefined)).toBe(false)
+	})
+
+	it("checks Lumen model plan access (Pro Plus and Ultra only)", () => {
+		expect(canUseLumenModels("proplus")).toBe(true)
+		expect(canUseLumenModels("ultra")).toBe(true)
+		expect(canUseLumenModels("pro")).toBe(false)
+		expect(canUseLumenModels("free")).toBe(false)
+		expect(canUseLumenModels(undefined)).toBe(false)
 	})
 
 	it("checks paid plans", () => {
@@ -36,6 +46,10 @@ describe("model-plan-access", () => {
 	it("identifies model categories", () => {
 		expect(is400kAxonModel("axon-auto-400k")).toBe(true)
 		expect(is400kAxonModel("axon-auto-232k")).toBe(false)
+
+		expect(isLumenAxonModel("axon-lumen-4-code-232k")).toBe(true)
+		expect(isLumenAxonModel("axon-lumen-4-code-400k")).toBe(true)
+		expect(isLumenAxonModel("axon-eido-3.2-code-pro-232k")).toBe(false)
 
 		expect(isEido3ProModel("axon-eido-3.2-code-pro-232k")).toBe(true)
 		expect(isEido3ProModel("axon-eido-3.2-232k")).toBe(false)
@@ -53,6 +67,8 @@ describe("model-plan-access", () => {
 		expect(isPaidPlanAxonModel("axon-auto-232k")).toBe(false)
 		expect(isPaidPlanAxonModel("axon-eido-3.2-flash")).toBe(false)
 
+		expect(isPlanRestrictedAxonModel("axon-lumen-4-code-232k")).toBe(true)
+		expect(isPlanRestrictedAxonModel("axon-lumen-4-code-400k")).toBe(true)
 		expect(isPlanRestrictedAxonModel("axon-eido-3-code-mini-232k")).toBe(true)
 		expect(isPlanRestrictedAxonModel("axon-eido-3.2-232k")).toBe(true)
 		expect(isPlanRestrictedAxonModel("axon-auto-232k")).toBe(false)
@@ -66,16 +82,19 @@ describe("model-plan-access", () => {
 		expect(canAccessAxonModel("axon-eido-3-code-mini-232k", "free")).toBe(false)
 		expect(canAccessAxonModel("axon-eido-3.2-232k", "free")).toBe(false)
 		expect(canAccessAxonModel("axon-eido-3.2-code-pro-232k", "free")).toBe(false)
+		expect(canAccessAxonModel("axon-lumen-4-code-232k", "free")).toBe(false)
 
 		// Pro plan access
 		expect(canAccessAxonModel("axon-eido-3-code-mini-232k", "pro")).toBe(true)
 		expect(canAccessAxonModel("axon-eido-3.2-232k", "pro")).toBe(true)
 		expect(canAccessAxonModel("axon-eido-3.2-code-pro-232k", "pro")).toBe(true)
 		expect(canAccessAxonModel("axon-eido-3.2-400k", "pro")).toBe(false)
+		expect(canAccessAxonModel("axon-lumen-4-code-232k", "pro")).toBe(false)
 
 		// Pro Plus access
 		expect(canAccessAxonModel("axon-eido-3.2-400k", "proplus")).toBe(true)
 		expect(canAccessAxonModel("axon-lumen-4-code-232k", "proplus")).toBe(true)
+		expect(canAccessAxonModel("axon-lumen-4-code-400k", "proplus")).toBe(true)
 	})
 
 	it("falls back correctly for free users", () => {
@@ -89,5 +108,7 @@ describe("model-plan-access", () => {
 		expect(getAxonPlanFallback("axon-eido-3.2-232k", "free")).toBe("axon-auto-232k")
 		expect(getAxonPlanFallback("axon-eido-3.2-code-pro-232k", "free")).toBe("axon-auto-232k")
 		expect(getAxonPlanFallback("axon-eido-3.2-flash-400k", "free")).toBe("axon-eido-3.2-flash")
+		expect(getAxonPlanFallback("axon-lumen-4-code-232k", "pro")).toBe("axon-eido-3.2-code-pro-232k")
+		expect(getAxonPlanFallback("axon-lumen-4-code-232k", "free")).toBe("axon-auto-232k")
 	})
 })
