@@ -82,6 +82,7 @@ import { OutOfCreditsBanner } from "../kilocode/chat/OutOfCreditsBanner" // kilo
 import { OverageActiveBanner } from "../kilocode/chat/OverageActiveBanner" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { QueuedMessages } from "./QueuedMessages"
+import { UsageDialog } from "./UsageDialog"
 import { SourceControlPanel } from "./SourceControlPanel" // kilocode_change
 import ChatTabs, { TabInfo } from "./ChatTabs" // kilocode_change: multi-chat tab bar
 // import DismissibleUpsell from "../common/DismissibleUpsell" // kilocode_change: unused
@@ -262,6 +263,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [showCheckpointWarning, setShowCheckpointWarning] = useState<boolean>(false)
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
 	const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
+	const [showUsageModal, setShowUsageModal] = useState(false)
 	// forked_change start: AI Code Review state
 	const [showSourceControl, setShowSourceControl] = useState(isReviewOnlyMode)
 	const [codeReviewResults, setCodeReviewResults] = useState<{
@@ -911,6 +913,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	 */
 	const handleSendMessage = useCallback(
 		(text: string, images: ImageAttachment[], pasteChips?: PasteChipSerialized[]) => {
+			if (text.trim() === "/usage" || text.trim().startsWith("/usage ")) {
+				setShowUsageModal(true)
+				setInputValue("")
+				return
+			}
 			text = formatMessageWithDocuments(text, selectedDocuments)
 			const imageDataUrls = images.map((img) => img.dataUrl)
 			const payloadChips = pasteChips && pasteChips.length > 0 ? pasteChips : undefined
@@ -2802,6 +2809,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									isStreaming={isStreaming}
 									onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
 									profilePlan={profileData?.plan ?? profileData?.tieredUsage?.plan}
+									onShowUsage={() => setShowUsageModal(true)}
 								/>
 								<BottomControls showApiConfig />
 							</>
@@ -3199,6 +3207,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								isStreaming={isStreaming}
 								onCancelStreaming={() => handleSecondaryButtonClick(inputValue, selectedImages)}
 								profilePlan={profileData?.plan ?? profileData?.tieredUsage?.plan}
+								onShowUsage={() => setShowUsageModal(true)}
 							/>
 						</div>
 					)}
@@ -3222,6 +3231,18 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					{/* <CloudUpsellDialog open={isUpsellOpen} onOpenChange={closeUpsell} onConnect={handleConnect} /> */}
 				</>
 			)}
+			<UsageDialog
+				open={showUsageModal}
+				onOpenChange={setShowUsageModal}
+				currentTaskLabel={(task as any)?.title || currentTaskItem?.task}
+				tokensIn={apiMetrics.totalTokensIn}
+				tokensOut={apiMetrics.totalTokensOut}
+				cacheWrites={apiMetrics.totalCacheWrites}
+				cacheReads={apiMetrics.totalCacheReads}
+				totalCost={apiMetrics.totalCost}
+				contextTokens={apiMetrics.contextTokens}
+				hasActiveTask={!!task}
+			/>
 		</div>
 	)
 }

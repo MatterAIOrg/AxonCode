@@ -15,7 +15,7 @@ import {
 	isCommittingParallelModeAtom,
 } from "../atoms/ui.js"
 import { setModeAtom, providerAtom, updateProviderAtom } from "../atoms/config.js"
-import { routerModelsAtom, extensionStateAtom, isParallelModeAtom } from "../atoms/extension.js"
+import { routerModelsAtom, extensionStateAtom, isParallelModeAtom, currentTaskAtom } from "../atoms/extension.js"
 import { requestRouterModelsAtom } from "../atoms/actions.js"
 import { profileDataAtom, balanceDataAtom, profileLoadingAtom, balanceLoadingAtom } from "../atoms/profile.js"
 import { useWebviewMessage } from "./useWebviewMessage.js"
@@ -77,6 +77,7 @@ export function useCommandContext(): UseCommandContextReturn {
 	const extensionState = useAtomValue(extensionStateAtom)
 	const kilocodeDefaultModel = extensionState?.kilocodeDefaultModel || ""
 	const isParallelMode = useAtomValue(isParallelModeAtom)
+	const currentTask = useAtomValue(currentTaskAtom)
 
 	// Get profile state
 	const profileData = useAtomValue(profileDataAtom)
@@ -141,6 +142,8 @@ export function useCommandContext(): UseCommandContextReturn {
 				updateProvider: async (providerId: string, updates: any) => {
 					await updateProvider(providerId, updates)
 				},
+				// Current task context
+				currentTask,
 				// Profile data context
 				profileData,
 				balanceData,
@@ -167,6 +170,7 @@ export function useCommandContext(): UseCommandContextReturn {
 			balanceLoading,
 			setCommittingParallelMode,
 			isParallelMode,
+			currentTask,
 			extensionService,
 		],
 	)

@@ -173,6 +173,7 @@ interface ChatTextAreaProps {
 	isStreaming?: boolean
 	onCancelStreaming?: () => void
 	profilePlan?: string
+	onShowUsage?: () => void
 }
 
 export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
@@ -199,6 +200,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			isStreaming = false,
 			onCancelStreaming,
 			profilePlan,
+			onShowUsage,
 		},
 		ref,
 	) => {
@@ -279,6 +281,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 				return
 			}
 
+			if (inputValue.trim() === "/usage" || inputValue.trim().startsWith("/usage ")) {
+				onShowUsage?.()
+				setInputValue("")
+				return
+			}
+
 			// Snapshot the chips before clearing so we can pass them through to
 			// onSend; the parent stores them on the outgoing message so the chat
 			// history can render the chips instead of (or alongside) the merged
@@ -301,7 +309,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 			// Pass the final text through onSend directly so the parent never
 			// reads a stale inputValue from an earlier render.
 			onSend(expandedValue, chipsSnapshot)
-		}, [inputValue, pasteChips, setInputValue, expandMentions, onSend])
+		}, [inputValue, pasteChips, setInputValue, expandMentions, onSend, onShowUsage])
 
 		const handleRemovePasteChip = useCallback((id: string) => {
 			setPasteChips((prev) => prev.filter((chip) => chip.id !== id))
@@ -488,6 +496,12 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					return
 				}
 
+				if (command.name === "usage") {
+					onShowUsage?.()
+					setInputValue("")
+					return
+				}
+
 				// Handle other slash commands (like newtask)
 				const { newValue, commandIndex } = insertSlashCommand(inputValue, command.name)
 				const newCursorPosition = newValue.indexOf(" ", commandIndex + 1 + command.name.length) + 1
@@ -500,7 +514,7 @@ export const ChatTextArea = forwardRef<HTMLDivElement, ChatTextAreaProps>(
 					textAreaRef.current?.focus()
 				}, 0)
 			},
-			[inputValue, setInputValue, customModes],
+			[inputValue, setInputValue, customModes, onShowUsage],
 		)
 		// forked_change end
 

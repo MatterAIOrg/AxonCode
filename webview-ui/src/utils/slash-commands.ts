@@ -52,6 +52,10 @@ export function getSupportedSlashCommands(
 			name: "link",
 			description: "Link other repos so changes here are checked against them",
 		},
+		{
+			name: "usage",
+			description: "Print current task token usage (if active) and plan details",
+		},
 	]
 
 	// Add mode-switching commands dynamically

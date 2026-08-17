@@ -54,7 +54,13 @@ export interface HistoryItem {
 	id: string
 	ts: number
 	task: string
-	workspace: string
+	tokensIn?: number
+	tokensOut?: number
+	cacheWrites?: number
+	cacheReads?: number
+	totalCost?: number
+	size?: number
+	workspace?: string
 	mode?: string
 	isFavorited?: boolean
 	fileNotfound?: boolean

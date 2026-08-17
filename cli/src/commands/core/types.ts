@@ -2,7 +2,7 @@
  * Command system type definitions
  */
 
-import type { RouterModels } from "../../types/messages.js"
+import type { RouterModels, HistoryItem } from "../../types/messages.js"
 import type { ProviderConfig } from "../../config/types.js"
 import type { ProfileData, BalanceData } from "../../state/atoms/profile.js"
 import type { ExtensionService } from "../../services/extension.js"
@@ -54,6 +54,8 @@ export interface CommandContext {
 	refreshRouterModels: () => Promise<void>
 	// Provider update function for teams command
 	updateProvider: (providerId: string, updates: Partial<ProviderConfig>) => Promise<void>
+	// Current task context
+	currentTask?: HistoryItem | null
 	// Profile data context
 	profileData: ProfileData | null
 	balanceData: BalanceData | null
