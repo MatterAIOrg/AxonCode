@@ -31,6 +31,8 @@ const getCommandIcon = (name: string): string => {
 			return "codicon-tools"
 		case "link":
 			return "codicon-link"
+		case "usage":
+			return "codicon-dashboard"
 		// Modes
 		case "architect":
 			return "codicon-organization"

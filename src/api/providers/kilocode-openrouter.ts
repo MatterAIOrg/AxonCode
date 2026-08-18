@@ -134,6 +134,11 @@ export class KilocodeOpenrouterHandler extends OpenRouterHandler {
 			info = this.endpoints[this.options.openRouterSpecificProvider]
 		}
 
+		// ALL Axon models accept image inputs. Force the flag so no downstream
+		// gate (maybeRemoveImageBlocks, read_file, browser tool, system prompt)
+		// can ever strip or skip images, even on a fallback model info.
+		info = { ...info, supportsImages: true }
+
 		const id = getKilocodeApiModelId(selectedId)
 
 		const params = getModelParams({

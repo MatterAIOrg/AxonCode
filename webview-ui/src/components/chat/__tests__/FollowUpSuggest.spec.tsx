@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from "react"
-import { render, screen, act } from "@testing-library/react"
+import { render, screen, act, fireEvent } from "@testing-library/react"
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 
 import { FollowUpSuggest } from "../FollowUpSuggest"
@@ -409,5 +409,79 @@ describe("FollowUpSuggest", () => {
 
 		// onSuggestionClick should NOT have been called (component doesn't auto-select)
 		expect(mockOnSuggestionClick).not.toHaveBeenCalled()
+	})
+
+	it("should vanish options when a suggestion is clicked", () => {
+		renderWithTestProviders(
+			<FollowUpSuggest
+				suggestions={mockSuggestions}
+				onSuggestionClick={mockOnSuggestionClick}
+				ts={123}
+				onCancelAutoApproval={mockOnCancelAutoApproval}
+				isAnswered={false}
+			/>,
+			defaultTestState,
+		)
+
+		expect(screen.getByText("First suggestion")).toBeInTheDocument()
+		expect(screen.getByText("Second suggestion")).toBeInTheDocument()
+
+		// Click the first suggestion
+		fireEvent.click(screen.getByText("First suggestion"))
+
+		expect(mockOnSuggestionClick).toHaveBeenCalledWith(mockSuggestions[0], expect.anything())
+		expect(mockOnCancelAutoApproval).toHaveBeenCalled()
+
+		// Options should vanish immediately
+		expect(screen.queryByText("First suggestion")).not.toBeInTheDocument()
+		expect(screen.queryByText("Second suggestion")).not.toBeInTheDocument()
+	})
+
+	it("should not render options when isAnswered is true", () => {
+		const { container } = renderWithTestProviders(
+			<FollowUpSuggest
+				suggestions={mockSuggestions}
+				onSuggestionClick={mockOnSuggestionClick}
+				ts={123}
+				onCancelAutoApproval={mockOnCancelAutoApproval}
+				isAnswered={true}
+			/>,
+			defaultTestState,
+		)
+
+		expect(container.firstChild).toBeNull()
+		expect(screen.queryByText("First suggestion")).not.toBeInTheDocument()
+		expect(screen.queryByText("Second suggestion")).not.toBeInTheDocument()
+	})
+
+	it("should keep options visible and cancel auto-approval when copy button is clicked", () => {
+		renderWithTestProviders(
+			<FollowUpSuggest
+				suggestions={mockSuggestions}
+				onSuggestionClick={mockOnSuggestionClick}
+				ts={123}
+				onCancelAutoApproval={mockOnCancelAutoApproval}
+				isAnswered={false}
+			/>,
+			defaultTestState,
+		)
+
+		const copyButtons = screen.getAllByRole("button", { name: "Copy to input" })
+		expect(copyButtons.length).toBe(2)
+
+		fireEvent.click(copyButtons[0])
+
+		expect(mockOnSuggestionClick).toHaveBeenCalledWith(
+			mockSuggestions[0],
+			expect.objectContaining({ shiftKey: true }),
+		)
+		expect(mockOnCancelAutoApproval).toHaveBeenCalled()
+
+		// Options should remain visible since it was only copied to input
+		expect(screen.getByText("First suggestion")).toBeInTheDocument()
+		expect(screen.getByText("Second suggestion")).toBeInTheDocument()
+
+		// Countdown timer should no longer be visible
+		expect(screen.queryByText(/\d+s/)).not.toBeInTheDocument()
 	})
 })

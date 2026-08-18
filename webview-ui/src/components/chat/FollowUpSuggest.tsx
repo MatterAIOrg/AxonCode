@@ -28,18 +28,20 @@ export const FollowUpSuggest = ({
 	const { autoApprovalEnabled, alwaysAllowFollowupQuestions, followupAutoApproveTimeoutMs } = useExtensionState()
 	const [countdown, setCountdown] = useState<number | null>(null)
 	const [suggestionSelected, setSuggestionSelected] = useState(false)
+	const [isAutoApprovalCancelled, setIsAutoApprovalCancelled] = useState(false)
 	const { t } = useAppTranslation()
 
 	// Start countdown timer when auto-approval is enabled for follow-up questions
 	useEffect(() => {
 		// Only start countdown if auto-approval is enabled for follow-up questions and no suggestion has been selected
-		// Also stop countdown if the question has been answered
+		// Also stop countdown if the question has been answered or auto-approval was cancelled
 		if (
 			autoApprovalEnabled &&
 			alwaysAllowFollowupQuestions &&
 			suggestions.length > 0 &&
 			!suggestionSelected &&
-			!isAnswered
+			!isAnswered &&
+			!isAutoApprovalCancelled
 		) {
 			// Start with the configured timeout in seconds
 			const timeoutMs =
@@ -79,6 +81,7 @@ export const FollowUpSuggest = ({
 		suggestionSelected,
 		onCancelAutoApproval,
 		isAnswered,
+		isAutoApprovalCancelled,
 	])
 	const handleSuggestionClick = useCallback(
 		(suggestion: SuggestionItem, event: React.MouseEvent) => {
@@ -97,8 +100,8 @@ export const FollowUpSuggest = ({
 		[onSuggestionClick, onCancelAutoApproval],
 	)
 
-	// Don't render if there are no suggestions or no click handler.
-	if (!suggestions?.length || !onSuggestionClick) {
+	// Don't render if there are no suggestions, no click handler, or if the question is answered / suggestion selected.
+	if (isAnswered || suggestionSelected || !suggestions?.length || !onSuggestionClick) {
 		return null
 	}
 
@@ -132,7 +135,7 @@ export const FollowUpSuggest = ({
 								className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-vscode-descriptionForeground opacity-0 transition-all hover:bg-[color-mix(in_srgb,var(--vscode-foreground)_10%,transparent)] hover:text-vscode-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder group-hover:opacity-100"
 								onClick={(e) => {
 									e.stopPropagation()
-									setSuggestionSelected(true)
+									setIsAutoApprovalCancelled(true)
 									onCancelAutoApproval?.()
 									onSuggestionClick?.(suggestion, { ...e, shiftKey: true })
 								}}>

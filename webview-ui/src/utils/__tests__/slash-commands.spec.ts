@@ -17,4 +17,19 @@ describe("slash command discovery", () => {
 		expect(getMatchingSlashCommands("create-s").map((command) => command.name)).toContain("create-skill")
 		expect(validateSlashCommand("create-skill")).toBe("full")
 	})
+
+	it("includes usage in the chat textarea commands", () => {
+		const commands = getSupportedSlashCommands()
+		const usage = commands.find((command) => command.name === "usage")
+
+		expect(usage).toEqual({
+			name: "usage",
+			description: "Print current task token usage (if active) and plan details",
+		})
+	})
+
+	it("matches and validates usage autocomplete input", () => {
+		expect(getMatchingSlashCommands("us").map((command) => command.name)).toContain("usage")
+		expect(validateSlashCommand("usage")).toBe("full")
+	})
 })

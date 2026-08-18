@@ -129,6 +129,47 @@ describe("convertToOpenAiMessages", () => {
 		expect(toolMessage.content).toBe("Current temperature in London: 20°C")
 	})
 
+	it("should forward tool result images as a follow-up user message", () => {
+		const anthropicMessages: Anthropic.Messages.MessageParam[] = [
+			{
+				role: "user",
+				content: [
+					{
+						type: "tool_result",
+						tool_use_id: "attempt-1",
+						content: [
+							{ type: "text", text: "Feedback on the result" },
+							{
+								type: "image",
+								source: {
+									type: "base64",
+									media_type: "image/png",
+									data: "base64data",
+								},
+							},
+						],
+					},
+				],
+			},
+		]
+
+		const openAiMessages = convertToOpenAiMessages(anthropicMessages)
+		expect(openAiMessages).toHaveLength(2)
+
+		const toolMessage = openAiMessages[0] as OpenAI.Chat.ChatCompletionToolMessageParam
+		expect(toolMessage.role).toBe("tool")
+		expect(toolMessage.content).toBe("Feedback on the result\n(see following user message for image)")
+
+		const imageMessage = openAiMessages[1] as OpenAI.Chat.ChatCompletionUserMessageParam
+		expect(imageMessage.role).toBe("user")
+		expect(imageMessage.content).toEqual([
+			{
+				type: "image_url",
+				image_url: { url: "data:image/png;base64,base64data" },
+			},
+		])
+	})
+
 	describe("tool_call/tool_result pairing safety net", () => {
 		it("backfills a placeholder tool message for an unanswered parallel tool_call", () => {
 			// Assistant requested two tool calls but only the first was answered — the

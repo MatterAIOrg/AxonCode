@@ -1117,7 +1117,6 @@ export const ChatRowContent = ({
 					<div
 						className={`flex ${isExpanded ? "flex-col items-start" : "flex-row items-center"} gap-1 min-w-0`}>
 						<div style={headerStyle}>
-							{toolIcon("file-code")}
 							<span style={{}}>
 								{message.type === "ask"
 									? tool.isOutsideWorkspace
