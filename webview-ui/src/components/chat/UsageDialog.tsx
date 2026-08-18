@@ -50,7 +50,7 @@ export const UsageDialog: React.FC<UsageDialogProps> = ({
 	// per-task cost is currently surfaced only on the CLI's /usage output, not
 	// in the webview dialog.
 	totalCost: _totalCost = 0,
-	contextTokens = 0,
+	// contextTokens = 0,
 	hasActiveTask = false,
 }) => {
 	const { apiConfiguration } = useExtensionState()
@@ -139,25 +139,17 @@ export const UsageDialog: React.FC<UsageDialogProps> = ({
 
 								<div className="flex flex-col gap-1.5 text-[11px]">
 									<div className="flex justify-between text-[var(--vscode-descriptionForeground)]">
-										<span>Input + Cache Reads:</span>
+										<span>Input + Cache Reads</span>
 										<span className="font-medium text-[var(--vscode-foreground)]">
 											{billableInput.toLocaleString()} tokens
 										</span>
 									</div>
 									<div className="flex justify-between text-[var(--vscode-descriptionForeground)]">
-										<span>Completions:</span>
+										<span>Completions</span>
 										<span className="font-medium text-[var(--vscode-foreground)]">
 											{tokensOut.toLocaleString()} tokens
 										</span>
 									</div>
-									{contextTokens > 0 && (
-										<div className="flex justify-between text-[var(--vscode-descriptionForeground)]">
-											<span>Context Tokens (post-compaction):</span>
-											<span className="font-medium text-[var(--vscode-foreground)]">
-												{contextTokens.toLocaleString()}
-											</span>
-										</div>
-									)}
 								</div>
 							</>
 						) : (
