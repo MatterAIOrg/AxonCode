@@ -4,6 +4,11 @@ import { searchFilesWithRipgrep } from "../ripgrep"
 import { formatSearchPage } from "./format"
 import { SearchFilesOptions, SearchPage } from "./types"
 
+export interface SearchFilesResult {
+	text: string
+	matchCount: number
+}
+
 export async function searchFiles(
 	cwd: string,
 	directoryPath: string,
@@ -11,12 +16,12 @@ export async function searchFiles(
 	filePattern?: string,
 	rooIgnoreController?: RooIgnoreController,
 	options: SearchFilesOptions = {},
-): Promise<string> {
+): Promise<SearchFilesResult> {
 	let page: SearchPage
 
 	if (options.cursor?.engine === "ripgrep") {
 		page = await searchFilesWithRipgrep(cwd, directoryPath, regex, filePattern, rooIgnoreController, options)
-		return formatSearchPage(page)
+		return { text: formatSearchPage(page), matchCount: page.matches.length }
 	}
 
 	try {
@@ -31,7 +36,7 @@ export async function searchFiles(
 		page.warning = `FFF failed; used ripgrep fallback (${message})`
 	}
 
-	return formatSearchPage(page)
+	return { text: formatSearchPage(page), matchCount: page.matches.length }
 }
 
 export * from "./format"
