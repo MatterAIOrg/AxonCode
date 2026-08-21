@@ -18,7 +18,7 @@ describe("search_files engine selection", () => {
 	it("uses FFF by default", async () => {
 		fffMock.mockResolvedValue({ engine: "fff", matches: [], nextCursor: null })
 
-		const output = await searchFiles("/workspace", "/workspace/src", "needle")
+		const { text: output } = await searchFiles("/workspace", "/workspace/src", "needle")
 
 		expect(output).toContain("Engine: fff")
 		expect(fffMock).toHaveBeenCalledOnce()
@@ -29,7 +29,7 @@ describe("search_files engine selection", () => {
 		fffMock.mockRejectedValue(new Error("native unavailable"))
 		ripgrepMock.mockResolvedValue({ engine: "ripgrep", matches: [], nextCursor: null })
 
-		const output = await searchFiles("/workspace", "/workspace/src", "needle")
+		const { text: output } = await searchFiles("/workspace", "/workspace/src", "needle")
 
 		expect(output).toContain("Engine: ripgrep")
 		expect(output).toContain("FFF failed; used ripgrep fallback")
@@ -42,6 +42,8 @@ describe("search_files engine selection", () => {
 		await searchFiles("/workspace", "/workspace/src", "needle", undefined, undefined, {
 			cursor: { engine: "ripgrep", offset: 50 },
 		})
+
+		// Return value is unused in this test; just verifying engine selection.
 
 		expect(fffMock).not.toHaveBeenCalled()
 		expect(ripgrepMock).toHaveBeenCalledOnce()

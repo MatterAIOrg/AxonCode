@@ -89,6 +89,7 @@ interface FileResult {
 	feedbackImages?: any[] // User feedback images from approval/denial
 	mtimeMs?: number // forked_change: file mtime at read time, for repeated-read detection
 	wasRepeated?: boolean // The unchanged region was already served earlier in this task
+	overlapNotice?: string // forked_change: notice prepended when the read overlaps a prior read
 	totalLines?: number
 	startLine?: number
 	endLine?: number
@@ -97,6 +98,36 @@ interface FileResult {
 // forked_change: key for Task.readRegionHistory — identifies one exact read request.
 function readRegionKey(fullPath: string, offset?: number, limit?: number): string {
 	return `${fullPath}|${offset ?? 1}|${limit ?? "all"}`
+}
+
+// forked_change: find a previously-read region of the same file version that
+// overlaps with the requested range. Returns the overlapping range or null.
+// Unlike readRegionKey (exact match), this catches partial overlaps — e.g.
+// reading lines 600-849 then 800-1059 — so the model can be told part of the
+// content is already in context.
+function findOverlappingReadRegion(
+	cline: Task,
+	fullPath: string,
+	mtimeMs: number,
+	offset: number,
+	limit: number | undefined,
+): { startLine: number; endLine: number } | null {
+	const newStart = offset
+	const newEnd = limit !== undefined ? offset + limit - 1 : Infinity
+	const prefix = `${fullPath}|`
+	for (const [key, storedMtime] of cline.readRegionHistory) {
+		if (storedMtime !== mtimeMs) continue
+		if (!key.startsWith(prefix)) continue
+		const parts = key.split("|")
+		const oldStart = parseInt(parts[1], 10)
+		const oldLimitStr = parts[2]
+		const oldEnd = oldLimitStr === "all" ? Infinity : oldStart + parseInt(oldLimitStr, 10) - 1
+		// Overlap check: ranges [newStart, newEnd] and [oldStart, oldEnd]
+		if (newStart <= oldEnd && oldStart <= newEnd) {
+			return { startLine: oldStart, endLine: oldEnd === Infinity ? 0 : oldEnd }
+		}
+	}
+	return null
 }
 
 export async function readFileTool(
@@ -458,6 +489,25 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 			}
 			// forked_change end
 
+			// forked_change: detect overlapping reads of the same file version.
+			// The exact-match check above catches identical (path, offset, limit)
+			// repeats. This catches partial overlaps — e.g. reading 600-849 then
+			// 800-1059 — and prepends a notice so the model knows part of the
+			// content is already in context and should not re-read it.
+			if (fileResult.mtimeMs !== undefined && !fileResult.wasRepeated) {
+				const overlap = findOverlappingReadRegion(
+					cline,
+					fullPath,
+					fileResult.mtimeMs,
+					fileResult.offset ?? 1,
+					fileResult.limit,
+				)
+				if (overlap) {
+					const endLabel = overlap.endLine === 0 ? "end" : String(overlap.endLine)
+					fileResult.overlapNotice = `[overlap notice] Lines ${overlap.startLine}-${endLabel} of this file were already read earlier in this conversation. Only lines outside that range are new. Use the earlier content for the overlapping portion instead of re-reading it.`
+				}
+			}
+
 			// Process approved files
 			try {
 				const [totalLines, isBinary] = await Promise.all([countFileLines(fullPath), isBinaryFile(fullPath)])
@@ -634,6 +684,14 @@ Do not stop or ask the user because of this skipped read; proceed with the best 
 					xmlContent: `--- ${relPath} ---\n[error] ${errorMsg}`,
 				})
 				await handleError(`reading file ${relPath}`, error instanceof Error ? error : new Error(errorMsg))
+			}
+		}
+
+		// forked_change: prepend overlap notices to served content so the model
+		// is aware it is partially re-reading a region.
+		for (const result of fileResults) {
+			if (result.overlapNotice && result.xmlContent && !result.wasRepeated) {
+				result.xmlContent = `${result.overlapNotice}\n${result.xmlContent}`
 			}
 		}
 
