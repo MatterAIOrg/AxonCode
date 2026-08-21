@@ -64,6 +64,15 @@ export async function searchFilesTool(
 				contextLines: Number.isFinite(contextLines) ? contextLines : undefined,
 			})
 
+			// forked_change: append guidance when a search returns no matches,
+			// steering the model toward tightening/loosening the regex or scoping
+			// the path instead of blindly retrying with a slightly different pattern.
+			let output = results
+			if (results.includes("Matches: 0")) {
+				output +=
+					"\n\nNo matches found. Before retrying:\n- Tighten or simplify the regex (e.g. use a shorter, more specific pattern).\n- Widen the path scope (e.g. search from the repo root instead of a subdirectory).\n- Try a different file_pattern glob.\n- If you have already searched 2+ times with no results, stop searching and reason from what you already know."
+			}
+
 			const completeMessage = JSON.stringify({ ...sharedMessageProps, content: results } satisfies ClineSayTool)
 			const didApprove = await askApproval("tool", completeMessage)
 
@@ -71,7 +80,7 @@ export async function searchFilesTool(
 				return
 			}
 
-			pushToolResult(results)
+			pushToolResult(output)
 
 			return
 		}

@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- **Investigation efficiency guidance in system prompt.** Added an "Investigation efficiency" section to the shared tool-usage instructions (`applyDiffToolDescription` in `src/core/prompts/system.ts`) that directs the agent to classify comprehension questions separately from implementation tasks, form a one-line hypothesis before searching, read call sites rather than implementation internals, avoid reading prose/content when the question is about control flow, and stop exploring as soon as it can answer.
+- **Overlapping read detection in `read_file`.** `readFileTool.ts` now detects when a requested file region partially overlaps with a region already read earlier in the same task (same file, same mtime). The exact-match short-circuit (unchanged) still blocks identical re-reads; the new overlap check prepends a notice to the served content telling the model which lines are already in context, so it does not waste a follow-up call re-reading the overlapping portion. This catches the common failure of reading lines 600-849 then 800-1059 of the same file.
+- **Zero-result guidance in `search_files`.** `searchFilesTool.ts` now appends actionable guidance when a search returns 0 matches, directing the model to tighten or simplify the regex, widen the path scope, try a different glob, or stop searching after 2+ failed attempts. This prevents the search to 0 results to slightly different regex to 0 results loop.
+- **Native tool description improvements.** The `read_file` native tool description now tells the model not to read file contents (prompt text, config values, prose) when investigating control flow, and not to re-read regions already read earlier. The `search_files` native tool description now tells the model to scope the path to the narrowest plausible directory and to stop after 2+ zero-result searches.
+
+---
+
 ## [v6.9.0] - 2026-08-04
 
 ### Added
