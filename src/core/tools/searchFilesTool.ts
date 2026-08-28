@@ -77,7 +77,7 @@ export async function searchFilesTool(
 			let output = results
 			if (matchCount === 0) {
 				output +=
-					"\n\nNo matches found. Before retrying:\n- Tighten or simplify the regex (e.g. use a shorter, more specific pattern).\n- Widen the path scope (e.g. search from the repo root instead of a subdirectory).\n- Try a different file_pattern glob.\n- If you have already searched 2+ times with no results, stop searching and reason from what you already know."
+					"\n\nNo matches found. Change the regex, path, or file_pattern before retrying; do not repeat this unchanged search."
 			}
 
 			const completeMessage = JSON.stringify({ ...sharedMessageProps, content: results } satisfies ClineSayTool)

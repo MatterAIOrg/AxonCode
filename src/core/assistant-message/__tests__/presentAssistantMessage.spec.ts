@@ -70,6 +70,21 @@ describe("presentAssistantMessage", () => {
 
 	it("executes every complete tool_use block in a native multi-tool response", async () => {
 		const getState = vi.fn().mockResolvedValue({ mode: "code", customModes: [] })
+		let searchFinished = false
+		let readStartedBeforeSearchFinished = false
+		vi.mocked(searchFilesTool).mockImplementationOnce(
+			async (_cline: any, _block: any, _ask: any, _handleError: any, pushToolResult: any) => {
+				await new Promise((resolve) => setTimeout(resolve, 20))
+				searchFinished = true
+				pushToolResult(`search:${_block.params.regex}`)
+			},
+		)
+		vi.mocked(readFileTool).mockImplementationOnce(
+			async (_cline: any, block: any, _ask: any, _handleError: any, pushToolResult: any) => {
+				if (!searchFinished) readStartedBeforeSearchFinished = true
+				pushToolResult(`read:${block.params.file_path ?? block.params.path}`)
+			},
+		)
 		const cline = {
 			abort: false,
 			taskId: "task-1",
@@ -150,6 +165,7 @@ describe("presentAssistantMessage", () => {
 
 		expect(searchFilesTool).toHaveBeenCalledTimes(1)
 		expect(readFileTool).toHaveBeenCalledTimes(2)
+		expect(readStartedBeforeSearchFinished).toBe(true)
 		expect(cline.checkpointSave).toHaveBeenCalledTimes(1)
 		expect(cline.say).toHaveBeenCalledWith(
 			"text",

@@ -25,12 +25,12 @@ export default {
 						"Replacement text. This will be inserted in place of the matched section. Can be an empty string to delete the match.",
 				},
 				replace_all: {
-					type: "boolean",
+					type: ["boolean", "null"],
 					description:
-						"Set to true only after verifying that the requested change should apply to every occurrence of old_string. Never set it merely to bypass a multiple-match error. Defaults to false.",
+						"Pass false (or null) unless the requested change intentionally applies to every occurrence. Never use it to bypass an ambiguity error.",
 				},
 			},
-			required: ["file_path", "old_string", "new_string"],
+			required: ["file_path", "old_string", "new_string", "replace_all"],
 			additionalProperties: false,
 		},
 	},

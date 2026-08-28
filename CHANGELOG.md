@@ -1,6 +1,28 @@
 # Changelog
 
-## [Unreleased]
+## [v6.8.2] - 2026-08-28
+
+### Added
+
+- **Parallel execution of independent read-only tools.** When a native-JSON provider returns several independent read/search calls in one assistant message (`read_file`, `search_files`, `list_files`, `list_code_definition_names`, `codebase_search`, `lsp`), they now run concurrently (up to 4 at a time via `MAX_PARALLEL_READ_ONLY_TOOLS` in the new `src/core/tools/toolExecutionPolicy.ts`) and their results are committed in model order so tool_use/tool_result pairing stays intact. Mutating, interactive, and external tools remain on the serialized path; read approvals inside a batch render as non-interactive progress rows instead of sharing the task's single ask promise. `parallel_tool_calls` is now enabled for native tool call providers.
+
+### Changed
+
+- **`search_files` is one-shot and ripgrep-first.** Ripgrep is now the default engine with FFF as the fallback; the default and maximum result count rose from 50 to 100; the model-facing `cursor` parameter was removed from both the XML and native JSON tool schemas. Pages that hit the cap say "additional matches omitted; refine the search pattern or path instead of paginating."
+- **System prompt condensed.** The RULES, tool-use guidelines, and objective sections were rewritten to be shorter and tool-agnostic: `codebase_search` is recommended when the target is unclear instead of being mandatory before any exploration, the smallest sufficient tool is preferred, and independent reads/searches are batched in JSON mode while edits and commands stay sequential. The legacy text-tool guidance block is now only included for XML tool style.
+- **Native tool schemas tightened for strict mode.** `execute_command` now requires `cwd`, `message`, and `isDangerous` (with destructive-action classification); `file_edit`/`multi_file_edit` require `replace_all`; `generate_file` requires `path`; `check_past_chat_memories` requires `workspace` (nullable where optional). The `lsp` description was condensed.
+- **`allowedTools` metadata respected when empty.** `addNativeToolCallsToParams` uses mode-filtered tool exposure whenever provided, including an intentional empty list for tool-less modes, instead of falling back to the full native tool set.
+- **Write delay default reduced.** `DEFAULT_WRITE_DELAY_MS` dropped from 1000ms to 250ms so routine edits do not add a second of latency; users with slower language servers can raise `writeDelayMs` in settings.
+- **KiloCode notification polling disabled.** `fetchKilocodeNotificationsHandler` now responds with an empty notification list; the native-notification fetch/display path was removed.
+
+### Fixed
+
+- **Malformed tool-call JSON recovers instead of stalling.** Tool calls whose JSON arguments fail to parse at stream finalization are tracked by `AssistantMessageParser` (`getDroppedMalformedToolCalls`); the task loop injects a corrective message with a truncated preview of the raw arguments and retries, bounded by the consecutive-mistake limit.
+- **Tool-repetition auto-retry is bounded.** The automatic "try again" response for repeated identical tool calls is capped at 2 attempts (`MAX_TOOL_REPETITION_AUTO_RETRIES`); after the budget is exhausted an error row tells the model to change approach instead of looping forever.
+
+---
+
+## [v6.8.1] - 2026-08-21
 
 ### Changed
 

@@ -5,7 +5,7 @@ export default {
 	function: {
 		name: "search_files",
 		description:
-			"Search file contents recursively under a directory using a Rust-compatible regex and optional file glob. Returns a compact, paginated page with at most three matches per file. To continue, call search_files again with the returned cursor and the same path, regex, and file_pattern; pass JSON null without quotes for the first page. Scope path to the narrowest plausible directory instead of searching from the repository root. If a search returns 0 matches, tighten or simplify the regex rather than retrying with a slightly different pattern. After 2+ searches with no results, stop and reason from what you already know.",
+			"Search file contents recursively with a Rust-compatible regex. Returns up to 100 matching lines with file and line numbers; additional matches are omitted, so refine the pattern or path instead of repeating the same search. Use the narrowest plausible path and an optional file glob. Use read_file for surrounding context.",
 		strict: true,
 		parameters: {
 			type: "object",
@@ -22,17 +22,12 @@ export default {
 					type: ["string", "null"],
 					description: "Glob limiting searched files (e.g. '*.ts'), or null for all files",
 				},
-				cursor: {
-					type: ["string", "null"],
-					description:
-						"Continuation cursor copied exactly from a previous result. For the first page, pass JSON null without quotes; never invent a cursor",
-				},
 				max_results: {
 					type: ["number", "null"],
 					minimum: 1,
 					maximum: 100,
 					description:
-						"Target results for this page; null uses 50. FFF may include up to two extra matches to finish the current file",
+						"Target result count; null uses 100. Results are bounded, so refine the query if the target is too broad.",
 				},
 				context_lines: {
 					type: ["number", "null"],
@@ -41,7 +36,7 @@ export default {
 					description: "Context lines before and after each match; null uses 0",
 				},
 			},
-			required: ["path", "regex", "file_pattern", "cursor", "max_results", "context_lines"],
+			required: ["path", "regex", "file_pattern", "max_results", "context_lines"],
 			additionalProperties: false,
 		},
 	},

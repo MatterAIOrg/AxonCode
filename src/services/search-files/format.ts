@@ -15,7 +15,10 @@ function addContextLine(lines: Map<number, string>, contextLine: SearchContextLi
 
 export function formatSearchPage(page: SearchPage): string {
 	const cursor = serializeSearchCursor(page.nextCursor)
-	const header = [`Engine: ${page.engine}`, `Matches: ${page.matches.length}`, `Next cursor: ${cursor ?? "none"}`]
+	const header = [`Engine: ${page.engine}`, `Matches: ${page.matches.length}`]
+	if (cursor) {
+		header.push("Additional matches omitted; refine the search pattern or path instead of paginating.")
+	}
 
 	if (page.warning) {
 		header.push(`Warning: ${page.warning}`)

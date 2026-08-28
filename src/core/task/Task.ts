@@ -494,6 +494,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	didAlreadyUseTool = false
 	didCompleteReadingStream = false
 	toolRepetitionAutoRetry = false
+	/** True only while independent read-only native tools are executing as a batch. */
+	parallelToolExecution = false
+	/** Auto-retry is useful once, but must never become an unbounded model loop. */
+	toolRepetitionAutoRetryCount = 0
 	// Track executed tool calls by their signature (name + args hash) to detect duplicates
 	private executedToolCallSignatures: Set<string> = new Set()
 	// forked_change: task-lifetime map of file regions already read (path|offset|limit → file
@@ -3300,6 +3304,59 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				await this.persistGpt5Metadata(reasoningMessage)
 				await this.saveClineMessages()
 				await this.providerRef.deref()?.postStateToWebview()
+
+				// forked_change start: Detect malformed tool calls that were dropped during
+				// finalization (their JSON arguments never parsed). Instead of silently
+				// stopping the agent, inject a corrective message and retry so the model
+				// can re-issue the call with valid JSON.
+				const droppedToolCalls = this.assistantMessageParser.getDroppedMalformedToolCalls()
+				if (droppedToolCalls.length > 0) {
+					this.consecutiveMistakeCount++
+
+					if (this.consecutiveMistakeCount >= this.consecutiveMistakeLimit) {
+						await this.say(
+							"error",
+							`Reached consecutive mistake limit (${this.consecutiveMistakeLimit}) due to repeated malformed tool call JSON. Stopping.`,
+						)
+						return true
+					}
+
+					const toolNames = droppedToolCalls.map((tc) => tc.name).join(", ")
+					const rawArgsPreview = droppedToolCalls
+						.map((tc) => {
+							const args = tc.rawArguments.trim()
+							return args.length > 500 ? args.slice(0, 500) + "...(truncated)" : args
+						})
+						.join("\n---\n")
+
+					await this.say(
+						"error",
+						`Malformed tool call JSON for ${toolNames}. The arguments could not be parsed. Retrying...`,
+					)
+
+					// Preserve any text the model produced before the malformed call
+					// so it stays in the API conversation history for context.
+					if (assistantMessage.length > 0) {
+						await this.addToApiConversationHistory({
+							role: "assistant",
+							content: [{ type: "text", text: assistantMessage }],
+						})
+					}
+
+					stack.push({
+						userContent: [
+							{
+								type: "text",
+								text: `Your previous tool call(s) for [${toolNames}] produced malformed JSON arguments and could not be executed. The raw arguments were:\n\n${rawArgsPreview}\n\nPlease re-issue the tool call with valid, complete JSON arguments.`,
+							},
+						],
+						includeFileDetails: false,
+					})
+
+					await new Promise((resolve) => setImmediate(resolve))
+					continue
+				}
+				// forked_change end
 
 				// Reset parser after each complete conversation round
 				this.assistantMessageParser.reset()

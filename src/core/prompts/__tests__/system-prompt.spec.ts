@@ -226,6 +226,34 @@ describe("SYSTEM_PROMPT", () => {
 		expect(prompt).toMatchFileSnapshot("./__snapshots__/system-prompt/consistent-system-prompt.snap")
 	})
 
+	it("should not include legacy text tool guidance in native JSON mode", async () => {
+		const prompt = await SYSTEM_PROMPT(
+			mockContext,
+			"/test/path",
+			false,
+			undefined,
+			undefined,
+			undefined,
+			defaultModeSlug,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			experiments,
+			true,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			"test-model",
+			"json",
+		)
+
+		expect(prompt).not.toContain("Common tool calls and explanations")
+		expect(prompt).not.toContain("## file_edit")
+	})
+
 	it("should include browser actions when supportsComputerUse is true", async () => {
 		const prompt = await SYSTEM_PROMPT(
 			mockContext,

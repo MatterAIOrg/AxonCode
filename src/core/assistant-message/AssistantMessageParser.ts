@@ -86,6 +86,10 @@ export class AssistantMessageParser {
 	private mcpToolChecker: McpToolChecker | undefined
 	// Track partial native tool calls that have been emitted but not yet completed
 	private emittedPartialNativeToolCalls: Set<string> = new Set()
+	// forked_change: Track tool calls dropped at finalization because their JSON
+	// arguments never parsed. The task loop reads this to retry with a corrective
+	// message instead of silently stopping the agent.
+	private droppedMalformedToolCalls: { name: string; rawArguments: string }[] = []
 	// forked_change end
 
 	private accumulator = ""
@@ -116,6 +120,7 @@ export class AssistantMessageParser {
 		this.processedNativeToolCallIds.clear()
 		this.nativeToolCallIndexToId.clear()
 		this.emittedPartialNativeToolCalls.clear()
+		this.droppedMalformedToolCalls = []
 		// forked_change end
 	}
 
@@ -126,6 +131,13 @@ export class AssistantMessageParser {
 	public getContentBlocks(): AssistantMessageContent[] {
 		// Return a shallow copy to prevent external mutation
 		return this.contentBlocks.slice()
+	}
+
+	// forked_change: Expose tool calls dropped at finalization because their JSON
+	// arguments never parsed. The task loop uses this to retry with a corrective
+	// message instead of silently stopping the agent.
+	public getDroppedMalformedToolCalls(): { name: string; rawArguments: string }[] {
+		return this.droppedMalformedToolCalls
 	}
 
 	// forked_change start
@@ -697,6 +709,12 @@ export class AssistantMessageParser {
 				console.warn(
 					`[AssistantMessageParser] Failed to parse accumulated tool call at finalization: ${toolCallId}`,
 				)
+				// forked_change: Track the dropped tool call so the task loop can retry
+				// with a corrective message instead of silently stopping the agent.
+				this.droppedMalformedToolCalls.push({
+					name: accumulatedCall.function?.name ?? "unknown",
+					rawArguments: accumulatedCall.function?.arguments ?? "",
+				})
 				removePartialBlock()
 				continue
 			}

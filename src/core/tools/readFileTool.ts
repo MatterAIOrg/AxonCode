@@ -348,6 +348,24 @@ export async function readFileTool(
 		}
 
 		// Handle batch files - auto-approve all
+		const showReadApproval = async (message: string) => {
+			if (cline.parallelToolExecution) {
+				// A parallel read-only batch cannot use the task's single interactive
+				// ask promise. Keep the progress visible without blocking execution.
+				await cline.say("tool", message, undefined, false, undefined, undefined, { isNonInteractive: true })
+				return
+			}
+
+			setImmediate(() => {
+				try {
+					cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
+				} catch {
+					// best-effort
+				}
+			})
+			await cline.ask("tool", message, false).catch(() => {})
+		}
+
 		if (filesToApprove.length > 1) {
 			// Create batch message to show in UI
 			const batchFiles = filesToApprove.map((fileResult) => {
@@ -371,19 +389,7 @@ export async function readFileTool(
 				batchFiles,
 			} satisfies ClineSayTool)
 
-			// kilocode_change: Auto-approve - show in UI and immediately approve
-			// Use setImmediate to trigger approval AFTER ask starts waiting for response.
-			// forked_change: guard handleWebviewAskResponse (mocks in tests may not
-			// implement it) and swallow any race-condition error from cline.ask
-			// (e.g. "Current ask promise was ignored") so the tool never aborts.
-			setImmediate(() => {
-				try {
-					cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
-				} catch {
-					// best-effort
-				}
-			})
-			await cline.ask("tool", completeMessage, false).catch(() => {})
+			await showReadApproval(completeMessage)
 
 			// Auto-approve all files
 			filesToApprove.forEach((fileResult) => {
@@ -413,19 +419,7 @@ export async function readFileTool(
 				limit: effectiveLimit,
 			} satisfies ClineSayTool)
 
-			// kilocode_change: Auto-approve - show in UI and immediately approve
-			// Use setImmediate to trigger approval AFTER ask starts waiting for response.
-			// forked_change: guard handleWebviewAskResponse (mocks in tests may not
-			// implement it) and swallow any race-condition error from cline.ask
-			// (e.g. "Current ask promise was ignored") so the tool never aborts.
-			setImmediate(() => {
-				try {
-					cline.handleWebviewAskResponse?.("yesButtonClicked", undefined, undefined)
-				} catch {
-					// best-effort
-				}
-			})
-			await cline.ask("tool", completeMessage, false).catch(() => {})
+			await showReadApproval(completeMessage)
 
 			updateFileResult(fileResult, {
 				status: "approved",
