@@ -45,6 +45,28 @@ import { webFetchTool } from "../tools/webFetchTool"
 import { webSearchTool } from "../tools/webSearchTool"
 import { figmaFetchTool } from "../tools/figmaFetchTool"
 import { askFollowupQuestionTool } from "../tools/askFollowupQuestionTool"
+import { MAX_PARALLEL_READ_ONLY_TOOLS, MAX_TOOL_REPETITION_AUTO_RETRIES } from "../tools/toolExecutionPolicy"
+
+type PresentAssistantMessageOptions = {
+	/** Explicit content-block index used by the read-only batch scheduler. */
+	blockIndex?: number
+	/** Internal execution path; skips the presenter lock and block advancement. */
+	parallel?: boolean
+	/** Per-block result buffer, committed in assistant/model order by the scheduler. */
+	resultBuffer?: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.ToolResultBlockParam)[]
+}
+
+// These tools only observe repository state. They can run concurrently once the
+// assistant message is complete. Mutating, interactive, and external tools remain
+// on the existing serialized path.
+const PARALLEL_READ_ONLY_TOOLS = new Set<ToolName>([
+	"read_file",
+	"search_files",
+	"list_files",
+	"list_code_definition_names",
+	"codebase_search",
+	"lsp",
+])
 
 /**
  * Processes and presents assistant message content to the user interface.
@@ -63,20 +85,38 @@ import { askFollowupQuestionTool } from "../tools/askFollowupQuestionTool"
  * as it becomes available.
  */
 
-export async function presentAssistantMessage(cline: Task) {
+export async function presentAssistantMessage(cline: Task, options: PresentAssistantMessageOptions = {}) {
+	const isParallelWorker = options.parallel === true
+	const blockIndex = options.blockIndex ?? cline.currentStreamingContentIndex
+
 	if (cline.abort) {
 		throw new Error(`[Task#presentAssistantMessage] task ${cline.taskId}.${cline.instanceId} aborted`)
 	}
 
-	if (cline.presentAssistantMessageLocked) {
+	if (!isParallelWorker && cline.presentAssistantMessageLocked) {
 		cline.presentAssistantMessageHasPendingUpdates = true
 		return
 	}
 
-	cline.presentAssistantMessageLocked = true
-	cline.presentAssistantMessageHasPendingUpdates = false
+	if (!isParallelWorker) {
+		cline.presentAssistantMessageLocked = true
+		cline.presentAssistantMessageHasPendingUpdates = false
 
-	if (cline.currentStreamingContentIndex >= cline.assistantMessageContent.length) {
+		// Native providers may return several independent read/search calls in one
+		// assistant message. Execute them concurrently, then commit their results in
+		// model order so the API pairing contract remains intact.
+		const parallelBlockIndexes = getParallelReadOnlyBlockIndexes(cline, blockIndex)
+		if (cline.didCompleteReadingStream && parallelBlockIndexes.length > 1) {
+			try {
+				await executeParallelReadOnlyBlocks(cline, parallelBlockIndexes)
+			} finally {
+				cline.presentAssistantMessageLocked = false
+			}
+			return
+		}
+	}
+
+	if (blockIndex >= cline.assistantMessageContent.length) {
 		// This may happen if the last content block was completed before
 		// streaming could finish. If streaming is finished, and we're out of
 		// bounds then this means we already  presented/executed the last
@@ -85,11 +125,13 @@ export async function presentAssistantMessage(cline: Task) {
 			cline.userMessageContentReady = true
 		}
 
-		cline.presentAssistantMessageLocked = false
+		if (!isParallelWorker) {
+			cline.presentAssistantMessageLocked = false
+		}
 		return
 	}
 
-	const rawBlock = cline.assistantMessageContent[cline.currentStreamingContentIndex]
+	const rawBlock = cline.assistantMessageContent[blockIndex]
 	// Shallow copy is sufficient - strings are immutable and we only need to
 	// prevent the stream from mutating the reference. Deep cloning large
 	// content strings would be expensive and unnecessary.
@@ -271,6 +313,7 @@ export async function presentAssistantMessage(cline: Task) {
 			const pushToolResult_withToolUseId_kilocode = (
 				...items: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[]
 			) => {
+				const resultContent = options.resultBuffer ?? cline.userMessageContent
 				// Check for non-empty toolUseId - empty string should be treated as missing
 				if (block.toolUseId && block.toolUseId.length > 0) {
 					// forked_change: a tool may push more than once for the same tool_use
@@ -280,7 +323,7 @@ export async function presentAssistantMessage(cline: Task) {
 					// providers reject or misbehave on duplicates — so merge follow-up
 					// pushes into the existing tool_result block instead of adding a
 					// second one.
-					const existingToolResult = cline.userMessageContent.find(
+					const existingToolResult = resultContent.find(
 						(item): item is Anthropic.ToolResultBlockParam =>
 							item.type === "tool_result" && item.tool_use_id === block.toolUseId,
 					)
@@ -292,14 +335,14 @@ export async function presentAssistantMessage(cline: Task) {
 						}
 						existingToolResult.content.push(...items)
 					} else {
-						cline.userMessageContent.push({
+						resultContent.push({
 							type: "tool_result",
 							tool_use_id: block.toolUseId,
 							content: items,
 						})
 					}
 				} else {
-					cline.userMessageContent.push(...items)
+					resultContent.push(...items)
 				}
 				// forked_change: mark that this tool_use already has a result so the
 				// safety net in the finally block doesn't double-push.
@@ -336,7 +379,7 @@ export async function presentAssistantMessage(cline: Task) {
 				// file_write deliberately keeps its preview through execution and
 				// settles that same row in place. Its finally block below removes
 				// the preview only when execution exits before it can be settled.
-				if (!block.partial && block.name !== "file_write") {
+				if (!isParallelWorker && !block.partial && block.name !== "file_write") {
 					await removeStaleToolPreview()
 				}
 
@@ -414,7 +457,7 @@ export async function presentAssistantMessage(cline: Task) {
 					if (
 						!block.partial &&
 						cline.didCompleteReadingStream &&
-						cline.currentStreamingContentIndex >= cline.assistantMessageContent.length - 1
+						blockIndex >= cline.assistantMessageContent.length - 1
 					) {
 						cline.userMessageContentReady = true
 					}
@@ -442,6 +485,14 @@ export async function presentAssistantMessage(cline: Task) {
 					// what webFetchTool / readFileTool were already doing inline.
 					const autoApproveWithoutBlocking = async () => {
 						if (partialMessage) {
+							if (cline.parallelToolExecution) {
+								// Parallel read-only workers must not share the single interactive
+								// ask promise. Persist a non-interactive progress row instead.
+								await cline.say("tool", partialMessage, undefined, false, undefined, progressStatus, {
+									isNonInteractive: true,
+								})
+								return true
+							}
 							setImmediate(() => {
 								try {
 									// Guard for tests where cline is a partial mock without this method.
@@ -613,9 +664,25 @@ export async function presentAssistantMessage(cline: Task) {
 						// Track tool repetition in telemetry.
 						TelemetryService.instance.captureConsecutiveMistakeError(cline.taskId)
 
-						// Signal the task loop to auto-retry: remove the looping
-						// assistant message from history and inject "try again".
-						cline.toolRepetitionAutoRetry = true
+						// Signal the task loop to auto-retry only a small number of times.
+						// The repetition detector resets after blocking, so without a
+						// separate budget an unchanged model could repeat this cycle forever.
+						const repetitionRetryCount = cline.toolRepetitionAutoRetryCount ?? 0
+						const canAutoRetry = repetitionRetryCount < MAX_TOOL_REPETITION_AUTO_RETRIES
+						if (canAutoRetry) {
+							cline.toolRepetitionAutoRetryCount = repetitionRetryCount + 1
+							cline.toolRepetitionAutoRetry = true
+						} else {
+							await cline.say(
+								"error",
+								`Automatic recovery stopped after ${MAX_TOOL_REPETITION_AUTO_RETRIES} repeated tool-call retries. The next model response must use a different tool or approach.`,
+								undefined,
+								undefined,
+								undefined,
+								undefined,
+								{ isNonInteractive: true },
+							)
+						}
 
 						// Push a tool error result to maintain tool_use/tool_result
 						// pairing for the current response.
@@ -628,7 +695,9 @@ export async function presentAssistantMessage(cline: Task) {
 					}
 				}
 
-				await checkpointSaveAndMark(cline) // kilocode_change: moved out of switch
+				if (!isParallelWorker) {
+					await checkpointSaveAndMark(cline) // kilocode_change: moved out of switch
+				}
 
 				// forked_change start: Check if context condensation is needed before executing tools
 				// that may add significant content to the context window.
@@ -647,7 +716,7 @@ export async function presentAssistantMessage(cline: Task) {
 					"use_mcp_tool",
 					"access_mcp_resource",
 				]
-				if (!block.partial && toolsThatAddContent.includes(block.name)) {
+				if (!isParallelWorker && !block.partial && toolsThatAddContent.includes(block.name)) {
 					await cline.checkAndCondenseContext()
 				}
 				// forked_change end
@@ -884,7 +953,7 @@ export async function presentAssistantMessage(cline: Task) {
 				// the next API request will be rejected for an unmatched tool_use_id.
 				if (!block.partial && block.toolUseId && block.toolUseId.length > 0 && !toolResultPushed) {
 					try {
-						cline.userMessageContent.push({
+						;(options.resultBuffer ?? cline.userMessageContent).push({
 							type: "tool_result",
 							tool_use_id: block.toolUseId,
 							content: [
@@ -899,7 +968,7 @@ export async function presentAssistantMessage(cline: Task) {
 						// Make sure the task loop can move forward even on failure —
 						// otherwise the next iteration may hang waiting for a result.
 						cline.didAlreadyUseTool = true
-						if (cline.didCompleteReadingStream) {
+						if (cline.didCompleteReadingStream && !isParallelWorker) {
 							cline.userMessageContentReady = true
 						}
 					} catch (e) {
@@ -921,6 +990,10 @@ export async function presentAssistantMessage(cline: Task) {
 	// This needs to be placed here, if not then calling
 	// cline.presentAssistantMessage below would fail (sometimes) since it's
 	// locked.
+	if (isParallelWorker) {
+		return
+	}
+
 	cline.presentAssistantMessageLocked = false
 
 	// NOTE: When tool is rejected, iterator stream is interrupted and it waits
@@ -930,7 +1003,7 @@ export async function presentAssistantMessage(cline: Task) {
 	// (instead of preemptively doing it in iterator).
 	if (!block.partial || cline.didRejectTool) {
 		// Block is finished streaming and executing.
-		if (cline.currentStreamingContentIndex === cline.assistantMessageContent.length - 1) {
+		if (blockIndex === cline.assistantMessageContent.length - 1) {
 			// It's okay that we increment if !didCompleteReadingStream, it'll
 			// just return because out of bounds and as streaming continues it
 			// will call `presentAssitantMessage` if a new block is ready. If
@@ -945,7 +1018,7 @@ export async function presentAssistantMessage(cline: Task) {
 		// when it's ready).
 		// Need to increment regardless, so when read stream calls this function
 		// again it will be streaming the next block.
-		cline.currentStreamingContentIndex++
+		cline.currentStreamingContentIndex = blockIndex + 1
 
 		if (cline.currentStreamingContentIndex < cline.assistantMessageContent.length) {
 			// There are already more content blocks to stream, so we'll call
@@ -976,6 +1049,62 @@ export async function presentAssistantMessage(cline: Task) {
 		await presentAssistantMessage(cline)
 		// forked_change end
 	}
+}
+
+function getParallelReadOnlyBlockIndexes(cline: Task, startIndex: number): number[] {
+	const indexes: number[] = []
+
+	for (let index = startIndex; index < cline.assistantMessageContent.length; index++) {
+		const block = cline.assistantMessageContent[index]
+		if (block.type !== "tool_use" || block.partial || !PARALLEL_READ_ONLY_TOOLS.has(block.name)) {
+			break
+		}
+		indexes.push(index)
+	}
+
+	return indexes
+}
+
+async function executeParallelReadOnlyBlocks(cline: Task, blockIndexes: number[]): Promise<void> {
+	// Shared setup is intentionally performed once. In particular, context
+	// condensation and checkpoint persistence must not race across workers.
+	await cline.removeStalePartialToolAskMessage()
+	await checkpointSaveAndMark(cline)
+	await cline.checkAndCondenseContext()
+
+	const resultBuffers = blockIndexes.map(
+		() => [] as (Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.ToolResultBlockParam)[],
+	)
+	const previousParallelState = cline.parallelToolExecution
+	cline.parallelToolExecution = true
+
+	try {
+		let nextIndex = 0
+		const workerCount = Math.min(MAX_PARALLEL_READ_ONLY_TOOLS, blockIndexes.length)
+		await Promise.all(
+			Array.from({ length: workerCount }, async () => {
+				while (nextIndex < blockIndexes.length) {
+					const resultIndex = nextIndex++
+					await presentAssistantMessage(cline, {
+						blockIndex: blockIndexes[resultIndex],
+						parallel: true,
+						resultBuffer: resultBuffers[resultIndex],
+					})
+				}
+			}),
+		)
+	} finally {
+		cline.parallelToolExecution = previousParallelState
+	}
+
+	// Tool results must be appended in the same order as the assistant tool calls,
+	// even though the underlying filesystem/search operations finish out of order.
+	for (const resultBuffer of resultBuffers) {
+		cline.userMessageContent.push(...resultBuffer)
+	}
+
+	cline.currentStreamingContentIndex = blockIndexes[blockIndexes.length - 1] + 1
+	cline.userMessageContentReady = true
 }
 
 /**

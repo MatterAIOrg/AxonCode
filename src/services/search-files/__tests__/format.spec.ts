@@ -2,7 +2,7 @@ import { formatSearchPage, truncateSearchLine } from "../format"
 import { normalizeNullableSearchString, parseSearchCursor, serializeSearchCursor } from "../types"
 
 describe("search_files compact output", () => {
-	it("groups matches by file and emits a continuation cursor", () => {
+	it("groups matches by file and hides continuation cursors from the model", () => {
 		const output = formatSearchPage({
 			engine: "fff",
 			nextCursor: { engine: "fff", offset: 42 },
@@ -14,7 +14,8 @@ describe("search_files compact output", () => {
 
 		expect(output).toContain("Engine: fff")
 		expect(output).toContain("Matches: 2")
-		expect(output).toContain("Next cursor: fff:42")
+		expect(output).toContain("Additional matches omitted; refine the search pattern or path instead of paginating.")
+		expect(output).not.toContain("Next cursor:")
 		expect(output.match(/# src\/a\.ts/g)).toHaveLength(1)
 		expect(output).toContain("> 12:4 def | const value = 1")
 	})

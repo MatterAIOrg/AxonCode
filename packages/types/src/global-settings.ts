@@ -18,10 +18,10 @@ import { fastApplyModelSchema, ghostServiceSettingsSchema } from "./kilocode/kil
 
 /**
  * Default delay in milliseconds after writes to allow diagnostics to detect potential problems.
- * This delay is particularly important for Go and other languages where tools like goimports
- * need time to automatically clean up unused imports.
+ * Keep the default short so routine edits do not add a full second of harness latency; users
+ * with slower language servers can increase writeDelayMs in settings.
  */
-export const DEFAULT_WRITE_DELAY_MS = 1000
+export const DEFAULT_WRITE_DELAY_MS = 250
 
 /**
  * Default terminal output character limit constant.

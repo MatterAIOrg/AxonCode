@@ -1,4 +1,6 @@
-export const DEFAULT_SEARCH_RESULTS = 50
+// Keep the model-facing search operation one-shot. A larger first page is
+// cheaper than forcing the model through cursor continuation turns.
+export const DEFAULT_SEARCH_RESULTS = 100
 export const MAX_SEARCH_RESULTS = 100
 export const MAX_MATCHES_PER_FILE = 3
 export const MAX_SEARCH_CONTEXT_LINES = 2

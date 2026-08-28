@@ -15,37 +15,37 @@ describe("search_files engine selection", () => {
 		vi.clearAllMocks()
 	})
 
-	it("uses FFF by default", async () => {
-		fffMock.mockResolvedValue({ engine: "fff", matches: [], nextCursor: null })
-
-		const { text: output } = await searchFiles("/workspace", "/workspace/src", "needle")
-
-		expect(output).toContain("Engine: fff")
-		expect(fffMock).toHaveBeenCalledOnce()
-		expect(ripgrepMock).not.toHaveBeenCalled()
-	})
-
-	it("falls back to ripgrep only when FFF errors", async () => {
-		fffMock.mockRejectedValue(new Error("native unavailable"))
+	it("uses ripgrep by default", async () => {
 		ripgrepMock.mockResolvedValue({ engine: "ripgrep", matches: [], nextCursor: null })
 
 		const { text: output } = await searchFiles("/workspace", "/workspace/src", "needle")
 
 		expect(output).toContain("Engine: ripgrep")
-		expect(output).toContain("FFF failed; used ripgrep fallback")
 		expect(ripgrepMock).toHaveBeenCalledOnce()
+		expect(fffMock).not.toHaveBeenCalled()
 	})
 
-	it("continues a ripgrep cursor without attempting FFF", async () => {
-		ripgrepMock.mockResolvedValue({ engine: "ripgrep", matches: [], nextCursor: null })
+	it("falls back to FFF only when ripgrep errors", async () => {
+		ripgrepMock.mockRejectedValue(new Error("ripgrep unavailable"))
+		fffMock.mockResolvedValue({ engine: "fff", matches: [], nextCursor: null })
+
+		const { text: output } = await searchFiles("/workspace", "/workspace/src", "needle")
+
+		expect(output).toContain("Engine: fff")
+		expect(output).toContain("ripgrep failed; used FFF fallback")
+		expect(fffMock).toHaveBeenCalledOnce()
+	})
+
+	it("continues an engine-specific cursor without changing engines", async () => {
+		fffMock.mockResolvedValue({ engine: "fff", matches: [], nextCursor: null })
 
 		await searchFiles("/workspace", "/workspace/src", "needle", undefined, undefined, {
-			cursor: { engine: "ripgrep", offset: 50 },
+			cursor: { engine: "fff", offset: 50 },
 		})
 
 		// Return value is unused in this test; just verifying engine selection.
 
-		expect(fffMock).not.toHaveBeenCalled()
-		expect(ripgrepMock).toHaveBeenCalledOnce()
+		expect(fffMock).toHaveBeenCalledOnce()
+		expect(ripgrepMock).not.toHaveBeenCalled()
 	})
 })

@@ -211,18 +211,17 @@ Command validity rules: a command is never empty, never just \`:\`, never a bare
 
 ## search_files
 
-Search file contents using a Rust-compatible regex. Results are compact, limited to three matches per file, and paginated.
+Search file contents using a Rust-compatible regex. Results are compact and bounded to the first 100 matches; refine the query instead of paginating.
 
 ### Parameters
 
 1. **path** (string, required): Directory to search recursively, relative to workspace
 2. **regex** (string, required): Rust-compatible regular expression pattern
 3. **file_pattern** (string or null, required): Glob pattern to filter files OR null
-4. **cursor** (string or null, required): Copy a returned cursor exactly, or pass JSON null without quotes for the first page; never invent a cursor
-5. **max_results** (number or null, required): Target 1-100 results; null defaults to 50. FFF may finish the current file, adding at most two matches.
-6. **context_lines** (number or null, required): 0-2 surrounding lines; null defaults to 0
+4. **max_results** (number or null, required): Target 1-100 results; null defaults to 100.
+5. **context_lines** (number or null, required): 0-2 surrounding lines; null defaults to 0
 
-Use zero context for discovery, then read the relevant file region. Reuse a cursor only with the same path, regex, and file pattern.
+Use zero context for discovery, then read the relevant file region. If results are capped, refine the path, regex, or file pattern.
 
 ### Search Hygiene
 
@@ -339,22 +338,18 @@ async function generatePromptParts(
 					clineProviderState, // kilocode_change
 				)
 			: ""
+	const toolGuidance = toolUseStyle === "json" ? "" : applyDiffToolDescription
 
 	// Split the tool descriptions string into "tool definitions" (everything that's
 	// a tool schema/usage block) and the static system prompt (role definition,
-	// apply diff, previous chat titles, system info). The split is a heuristic:
+	// tool guidance, previous chat titles, system info). The split is a heuristic:
 	// tool descriptions begin with `## ` headers introducing a tool name.
 	const toolDefinitionSections = toolDescriptions.split(/\n(?=##\s)/).filter((section) => section.trim().length > 0)
 	const toolDefinitionsText = toolDefinitionSections.join("\n")
 
 	// Anything not part of the tool definitions stays in the system prompt
-	// (role definition, applyDiffToolDescription, system info, etc.).
-	const systemPromptText = [
-		roleDefinition,
-		applyDiffToolDescription,
-		previousChatTitlesSection,
-		getSystemInfoSection(cwd),
-	]
+	// (role definition, tool guidance, system info, etc.).
+	const systemPromptText = [roleDefinition, toolGuidance, previousChatTitlesSection, getSystemInfoSection(cwd)]
 		.filter((part) => part && part.trim().length > 0)
 		.join("\n\n")
 
@@ -362,7 +357,7 @@ async function generatePromptParts(
 
 ${toolDescriptions}
 
-${applyDiffToolDescription}
+${toolGuidance}
 
 ${mcpServersSection}
 

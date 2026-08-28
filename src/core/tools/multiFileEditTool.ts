@@ -328,7 +328,7 @@ export async function multiFileEditTool(
 	cline.recordToolUsage("multi_file_edit")
 
 	// Emit individual fileEdit messages for each file (this creates the fileEdit UI per file)
-	for (const fileEdit of fileEditSummaries) {
+	for (const [fileEditIndex, fileEdit] of fileEditSummaries.entries()) {
 		const diff = formatResponse.createPrettyPatch(fileEdit.relPath, fileEdit.originalContent, fileEdit.newContent)
 		const editLineNumber = calculateEditLineNumber(fileEdit.originalContent, fileEdit.originalContent)
 
@@ -347,11 +347,15 @@ export async function multiFileEditTool(
 		cline.diffViewProvider.editType = fileEdit.fileExists ? "modify" : "create"
 		cline.diffViewProvider.originalContent = fileEdit.originalContent
 
+		// Apply the complete batch first, then wait for diagnostics once. Waiting
+		// after every file makes a multi-file edit pay the language-server delay N
+		// times and is especially noticeable on routine refactors.
+		const shouldRunDiagnostics = diagnosticsEnabled && fileEditIndex === fileEditSummaries.length - 1
 		await cline.diffViewProvider.saveDirectly(
 			fileEdit.relPath,
 			fileEdit.newContent,
 			false,
-			diagnosticsEnabled,
+			shouldRunDiagnostics,
 			writeDelayMs,
 		)
 

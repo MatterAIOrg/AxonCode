@@ -27,12 +27,12 @@ export default {
 						"The full content to render into the file. For pdf/docx/md/txt/html use markdown (headings, bullets, tables, code blocks). For pptx use the slide-deck dialect with @layout, @accent, @section, @chart/@endchart, @cards, @category, @subtitle, @notes directives. For xlsx/csv use CSV text where the first row is the header row.",
 				},
 				path: {
-					type: "string",
+					type: ["string", "null"],
 					description:
 						"Optional filesystem path (relative to the workspace) where the generated file should be saved. If omitted, the file is saved to the workspace root using a sanitized version of the title plus the appropriate extension.",
 				},
 			},
-			required: ["file_type", "title", "content"],
+			required: ["file_type", "title", "content", "path"],
 			additionalProperties: false,
 		},
 	},

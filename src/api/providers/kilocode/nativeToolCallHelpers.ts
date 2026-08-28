@@ -57,7 +57,7 @@
  *
  * ## What These Helpers Do
  *
- * - `addNativeToolCallsToParams`: Sets `parallel_tool_calls: false` and adds `tools` and `tool_choice`
+ * - `addNativeToolCallsToParams`: Enables parallel native calls and adds `tools` and `tool_choice`
  *   parameters when toolStyle is "json" and allowed tools are provided
  *
  * - `processNativeToolCallsFromDelta`: Processes streaming tool call deltas and yields them as
@@ -89,9 +89,10 @@ export function addNativeToolCallsToParams<T extends OpenAI.Chat.ChatCompletionC
 	metadata?: ApiHandlerCreateMessageMetadata,
 ): T {
 	// When toolStyle is "json", add tool definitions to the API request.
-	// Use allowedTools from metadata if provided (includes mode-filtered native tools + MCP tools),
-	// otherwise fall back to the default set of all native tools.
-	const tools = metadata?.allowedTools && metadata.allowedTools.length > 0 ? metadata.allowedTools : nativeTools
+	// Use allowedTools from metadata whenever it is present (including an intentional
+	// empty list for a mode with no tools). Only fall back to the default set when the
+	// caller did not provide mode-filtered exposure data.
+	const tools = metadata?.allowedTools ?? nativeTools
 	if (tools && tools.length > 0) {
 		params.tools = tools
 		//optimally we'd have tool_choice as 'required', but many providers, especially
