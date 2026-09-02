@@ -1,20 +1,19 @@
 import type { ModelInfo } from "../model.js"
 
-// https://openrouter.ai/models?order=newest&supported_parameters=tools
-export const openRouterDefaultModelId = "axon-auto-232k"
+// MatterAI OSS models served through the MatterAI gateway
+export const openRouterDefaultModelId = "deepseek/deepseek-v4-flash-0731"
 
 export const openRouterDefaultModelInfo: ModelInfo = {
 	maxTokens: 64000,
 	contextWindow: 232_000,
 	supportsImages: true,
 	supportsComputerUse: false,
-	supportsPromptCache: false,
-	inputPrice: 1.0,
-	outputPrice: 4.0,
-	cacheWritesPrice: 0.0,
-	cacheReadsPrice: 0.0,
-	description:
-		"Axon Auto starts with Eido 3 Code Flash and dynamically selects Flash, Mini, or Pro as the task evolves. Pricing is dynamic and follows the model used for each request.",
+	supportsPromptCache: true,
+	inputPrice: 0.00000015,
+	outputPrice: 0.0000005,
+	cacheWritesPrice: 0,
+	cacheReadsPrice: 0.00000003,
+	description: "GLM 5.3 Flash is a fast, low cost open model for everyday coding tasks.",
 }
 
 export const OPENROUTER_DEFAULT_PROVIDER_NAME = "[default]"

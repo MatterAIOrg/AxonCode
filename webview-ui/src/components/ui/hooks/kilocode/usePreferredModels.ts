@@ -26,7 +26,7 @@ export const usePreferredModels = (models: Record<string, ModelInfo> | null) => 
 				restModelIds.push(key)
 			}
 		}
-		restModelIds.sort((a, b) => a.localeCompare(b))
+		// restModelIds.sort((a, b) => a.localeCompare(b))
 
 		return [...preferredModelIds, ...restModelIds]
 	}, [models])

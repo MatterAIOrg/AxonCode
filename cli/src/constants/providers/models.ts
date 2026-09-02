@@ -475,7 +475,7 @@ export function sortModelsByPreference(models: ModelRecord): string[] {
 	}
 
 	// Sort rest alphabetically
-	restModelIds.sort((a, b) => a.localeCompare(b))
+	// restModelIds.sort((a, b) => a.localeCompare(b))
 
 	return [...preferredModelIds, ...restModelIds]
 }

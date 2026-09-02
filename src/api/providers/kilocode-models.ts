@@ -28,11 +28,15 @@ export type KiloCodeModel = {
 	}
 }
 
-type KiloCodeModelVariant = Omit<KiloCodeModel, "id" | "name" | "context_length">
+type KiloCodeModelVariant = Omit<
+	KiloCodeModel,
+	"id" | "name" | "description" | "context_length" | "owned_by" | "openrouter"
+>
 
-const AXON_AUTO: KiloCodeModelVariant = {
-	description:
-		"Axon Auto starts with Eido 3.2 Flash and dynamically selects Flash, 3.2, or Pro as the task evolves. Pricing is dynamic and follows the model used for each request.",
+// Shared metadata for the OSS models served through the MatterAI gateway.
+// Pricing strings are USD per token (OpenRouter format); per-model rates are
+// set on each entry below.
+const OSS_MODEL_BASE: KiloCodeModelVariant = {
 	input_modalities: ["text", "image"],
 	max_output_length: 64000,
 	output_modalities: ["text"],
@@ -47,213 +51,127 @@ const AXON_AUTO: KiloCodeModelVariant = {
 		"stop",
 	],
 	supported_features: ["tools", "structured_outputs", "web_search"],
-	openrouter: {
-		slug: "matterai/axon",
-	},
 	datacenters: [{ country_code: "US" }],
-	created: 1750426201,
-	owned_by: "matterai",
+	created: 1786032000,
 	pricing: {
-		type: "dynamic",
-		display: "dynamic pricing",
 		image: "0",
 		request: "0",
-		input_cache_reads: "0",
-		input_cache_writes: "0",
-	},
-}
-
-const AXON_EIDO_3_2_CODE_PRO: KiloCodeModelVariant = {
-	description:
-		"Axon Eido 3.2 Pro is the frontier Orbital model for coding tasks, long running agents and general intelligence, fine-tuned on open source models.",
-	input_modalities: ["text", "image"],
-	max_output_length: 64000,
-	output_modalities: ["text"],
-	supported_sampling_parameters: [
-		"temperature",
-		"top_p",
-		"top_k",
-		"repetition_penalty",
-		"frequency_penalty",
-		"presence_penalty",
-		"seed",
-		"stop",
-	],
-	supported_features: ["tools", "structured_outputs", "web_search"],
-	openrouter: {
-		slug: "matterai/axon",
-	},
-	datacenters: [{ country_code: "US" }],
-	created: 1750426201,
-	owned_by: "matterai",
-	pricing: {
-		prompt: "0.000003",
-		completion: "0.000009",
-		image: "0",
-		request: "0",
-		input_cache_reads: "0",
-		input_cache_writes: "0",
-	},
-}
-
-const AXON_EIDO_3_2: KiloCodeModelVariant = {
-	description:
-		"Axon Eido 3.2 is a general purpose super intelligent LLM coding model for high-effort day-to-day tasks",
-	input_modalities: ["text", "image"],
-	max_output_length: 64000,
-	output_modalities: ["text"],
-	supported_sampling_parameters: [
-		"temperature",
-		"top_p",
-		"top_k",
-		"repetition_penalty",
-		"frequency_penalty",
-		"presence_penalty",
-		"seed",
-		"stop",
-	],
-	supported_features: ["tools", "structured_outputs", "web_search"],
-	openrouter: {
-		slug: "matterai/axon",
-	},
-	datacenters: [{ country_code: "US" }],
-	created: 1750426201,
-	owned_by: "matterai",
-	pricing: {
-		prompt: "0.000002",
-		completion: "0.000006",
-		image: "0",
-		request: "0",
-		input_cache_reads: "0.0000005",
-		input_cache_writes: "0",
-	},
-}
-
-const AXON_LUMEN_4_CODE: KiloCodeModelVariant = {
-	description:
-		"Axon Lumen 4 is the ultra-intelligent frontier model for complex agentic coding tasks and general intelligence.",
-	input_modalities: ["text", "image"],
-	max_output_length: 128000,
-	output_modalities: ["text"],
-	supported_sampling_parameters: [
-		"temperature",
-		"top_p",
-		"top_k",
-		"repetition_penalty",
-		"frequency_penalty",
-		"presence_penalty",
-		"seed",
-		"stop",
-	],
-	supported_features: ["tools", "structured_outputs", "web_search"],
-	openrouter: {
-		slug: "matterai/axon",
-	},
-	datacenters: [{ country_code: "US" }],
-	created: 1750426201,
-	owned_by: "matterai",
-	pricing: {
-		prompt: "0.000005",
-		completion: "0.000025",
-		image: "0",
-		request: "0",
-		input_cache_reads: "0",
-		input_cache_writes: "0",
-	},
-}
-
-const AXON_EIDO_3_2_FLASH: KiloCodeModelVariant = {
-	description: "Axon Eido 3.2 Flash is a fast and low cost general purpose model for low-effort day-to-day tasks",
-	input_modalities: ["text", "image"],
-	max_output_length: 64000,
-	output_modalities: ["text"],
-	supported_sampling_parameters: [
-		"temperature",
-		"top_p",
-		"top_k",
-		"repetition_penalty",
-		"frequency_penalty",
-		"presence_penalty",
-		"seed",
-		"stop",
-	],
-	supported_features: ["tools", "structured_outputs", "web_search"],
-	openrouter: {
-		slug: "matterai/axon",
-	},
-	datacenters: [{ country_code: "US" }],
-	created: 1750426201,
-	owned_by: "matterai",
-	pricing: {
-		prompt: "0.0",
-		completion: "0.0",
-		image: "0",
-		request: "0",
-		input_cache_reads: "0",
 		input_cache_writes: "0",
 	},
 }
 
 export const KILO_CODE_MODELS: Record<string, KiloCodeModel> = {
-	"axon-auto-232k": {
-		...AXON_AUTO,
-		id: "axon-auto",
-		name: "Axon Auto (232K context)",
+	"meta/muse-spark-1.2-contributor": {
+		...OSS_MODEL_BASE,
+		id: "meta/muse-spark-1.2-contributor",
+		name: "Muse Spark 1.2 Contributor",
+		description: "Meta Muse Spark 1.2 Contributor is an open general purpose model for everyday coding tasks.",
 		context_length: 232000,
+		owned_by: "meta",
+		openrouter: { slug: "meta/muse-spark-1.2-contributor" },
+		// $0.10/M input, $0.002/M cache read, $0.20/M output
+		pricing: {
+			...OSS_MODEL_BASE.pricing,
+			prompt: "0.0000001",
+			completion: "0.0000002",
+			input_cache_reads: "0.000000002",
+		},
 	},
-	"axon-auto-400k": {
-		...AXON_AUTO,
-		id: "axon-auto",
-		name: "Axon Auto (400K context)",
-		context_length: 400000,
-	},
-	"axon-eido-3.2-flash": {
-		...AXON_EIDO_3_2_FLASH,
-		id: "axon-eido-3.2-flash",
-		name: "Axon Eido 3.2 Flash (232K context)",
+	"deepseek/deepseek-v4-flash-0731": {
+		...OSS_MODEL_BASE,
+		id: "deepseek/deepseek-v4-flash-0731",
+		name: "DeepSeek V4 Flash",
+		description: "DeepSeek V4 Flash is a fast, low cost open model for low-effort day-to-day coding tasks.",
 		context_length: 232000,
+		owned_by: "deepseek",
+		openrouter: { slug: "deepseek/deepseek-v4-flash-0731" },
+		// $0.14/M input, $0.028/M cache read, $0.28/M output
+		pricing: {
+			...OSS_MODEL_BASE.pricing,
+			prompt: "0.00000014",
+			completion: "0.00000028",
+			input_cache_reads: "0.000000028",
+		},
 	},
-	"axon-eido-3.2-flash-400k": {
-		...AXON_EIDO_3_2_FLASH,
-		id: "axon-eido-3.2-flash",
-		name: "Axon Eido 3.2 Flash (400K context)",
-		context_length: 400000,
-	},
-	"axon-eido-3.2-232k": {
-		...AXON_EIDO_3_2,
-		id: "axon-eido-3.2",
-		name: "Axon Eido 3.2 (232K context)",
+	"zai/glm-5.3-flash": {
+		...OSS_MODEL_BASE,
+		id: "zai/glm-5.3-flash",
+		name: "GLM 5.3 Flash",
+		description: "GLM 5.3 Flash is a fast, low cost open model for everyday coding tasks.",
 		context_length: 232000,
+		owned_by: "zai",
+		openrouter: { slug: "zai/glm-5.3-flash" },
+		// $0.15/M input, $0.03/M cache read, $0.50/M output
+		pricing: {
+			...OSS_MODEL_BASE.pricing,
+			prompt: "0.00000015",
+			completion: "0.0000005",
+			input_cache_reads: "0.00000003",
+		},
 	},
-	"axon-eido-3.2-400k": {
-		...AXON_EIDO_3_2,
-		id: "axon-eido-3.2",
-		name: "Axon Eido 3.2 (400K context)",
-		context_length: 400000,
-	},
-	"axon-eido-3.2-code-pro-232k": {
-		...AXON_EIDO_3_2_CODE_PRO,
-		id: "axon-eido-3.2-code-pro",
-		name: "Axon Eido 3.2 Pro (232K context)",
+	"zai/glm-5.3": {
+		...OSS_MODEL_BASE,
+		id: "zai/glm-5.3",
+		name: "GLM 5.3",
+		description: "GLM 5.3 is Z.ai's frontier open model for complex coding tasks and long running agents.",
 		context_length: 232000,
+		owned_by: "zai",
+		openrouter: { slug: "zai/glm-5.3" },
+		// $1.40/M input, $0.14/M cache read, $4.40/M output
+		pricing: {
+			...OSS_MODEL_BASE.pricing,
+			prompt: "0.0000014",
+			completion: "0.0000044",
+			input_cache_reads: "0.00000014",
+		},
 	},
-	"axon-eido-3.2-code-pro-400k": {
-		...AXON_EIDO_3_2_CODE_PRO,
-		id: "axon-eido-3.2-code-pro",
-		name: "Axon Eido 3.2 Pro (400K context)",
-		context_length: 400000,
-	},
-	"axon-lumen-4-code-232k": {
-		...AXON_LUMEN_4_CODE,
-		id: "axon-lumen-4-code",
-		name: "Axon Lumen 4 (232K context)",
+	"gpt-5.6-luna": {
+		...OSS_MODEL_BASE,
+		id: "gpt-5.6-luna",
+		name: "GPT-5.6 Luna",
+		description: "GPT-5.6 Luna is a fast, low cost open model for everyday coding tasks.",
 		context_length: 232000,
+		owned_by: "openai",
+		openrouter: { slug: "gpt-5.6-luna" },
+		// $0.20/M input, $0.02/M cache read, $1.20/M output
+		pricing: {
+			...OSS_MODEL_BASE.pricing,
+			prompt: "0.0000002",
+			completion: "0.0000012",
+			input_cache_reads: "0.00000002",
+		},
 	},
-	"axon-lumen-4-code-400k": {
-		...AXON_LUMEN_4_CODE,
-		id: "axon-lumen-4-code",
-		name: "Axon Lumen 4 (400K context)",
-		context_length: 400000,
+	"gpt-5.6-sol": {
+		...OSS_MODEL_BASE,
+		id: "gpt-5.6-sol",
+		name: "GPT-5.6 Sol",
+		description: "GPT-5.6 Sol is an open reasoning model for complex coding tasks and long running agents.",
+		context_length: 232000,
+		owned_by: "openai",
+		openrouter: { slug: "gpt-5.6-sol" },
+		// $5/M input, $0.50/M cache read, $30/M output
+		pricing: {
+			...OSS_MODEL_BASE.pricing,
+			prompt: "0.000005",
+			completion: "0.00003",
+			input_cache_reads: "0.0000005",
+		},
+	},
+	"gemini-3.7-flash": {
+		...OSS_MODEL_BASE,
+		id: "gemini-3.7-flash",
+		name: "Gemini 3.7 Flash",
+		description: "Gemini 3.7 Flash is a fast, low cost open model for everyday coding tasks.",
+		context_length: 232000,
+		owned_by: "google",
+		openrouter: { slug: "gemini-3.7-flash" },
+		// $0.75/M input, $0.075/M cache read, $3.75/M output
+		pricing: {
+			...OSS_MODEL_BASE.pricing,
+			prompt: "0.00000075",
+			completion: "0.00000375",
+			input_cache_reads: "0.000000075",
+		},
 	},
 }
 
@@ -267,7 +185,7 @@ export function isValidKilocodeModel(modelId: string): boolean {
 
 /**
  * Resolves an extension model option to the model ID understood by the API.
- * Context-window variants are local catalog choices and share an upstream model.
+ * OSS catalog entries map 1:1 to their API model ID; unknown ids pass through.
  */
 export function getKilocodeApiModelId(modelId: string): string {
 	return KILO_CODE_MODELS[modelId]?.id ?? modelId

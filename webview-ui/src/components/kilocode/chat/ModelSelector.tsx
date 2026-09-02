@@ -56,15 +56,6 @@ const MODEL_QUALIFIER_PATTERN = /\s*(\((?:232k context|400k context|free)\))$/i
 const isStandardContextWindow = (cw?: number): boolean => cw === 232000
 const isExtendedContextWindow = (cw?: number): boolean => cw === 400000
 
-// Sort priority for Axon models within a context window group: Auto, Flash, Eido 3.2, Pro, Lumen
-const getModelSortPriority = (modelId: string): number => {
-	if (modelId.startsWith("axon-auto-")) return 0
-	if (modelId.includes("flash")) return 1
-	if (modelId.includes("pro")) return 4
-	if (modelId.includes("lumen")) return 5
-	return 3
-}
-
 const ModelLabel = ({ label }: { label: string }) => {
 	const match = label.match(MODEL_QUALIFIER_PATTERN)
 
@@ -246,7 +237,6 @@ export const ModelSelector = ({
 						!modelId.startsWith("opencode:"))
 				)
 			})
-			.sort((a, b) => getModelSortPriority(a) - getModelSortPriority(b))
 			.map((modelId) => {
 				const baseLabel = providerModels[modelId]?.displayName ?? prettyModelName(modelId)
 				const label = removeContextSuffix(baseLabel)
@@ -344,78 +334,6 @@ export const ModelSelector = ({
 		},
 		[currentTaskItem, provider, currentApiConfigName, apiConfiguration, modelIdKey],
 	)
-
-	const onContextToggle = useCallback(
-		(mode: "232k" | "400k") => {
-			if (mode === contextMode) return
-			setContextMode(mode)
-
-			// If current model is an Axon model, switch the active selection to the matching context variant
-			const isThirdParty =
-				selectedModelId?.startsWith("ollama:") ||
-				selectedModelId?.startsWith("opencode:") ||
-				selectedModelId?.startsWith("matterai3p:")
-
-			if (!isThirdParty && selectedModelId) {
-				const nextModelId =
-					mode === "400k" ? get400kAxonVariant(selectedModelId) : get232kAxonFallback(selectedModelId)
-				if (
-					providerModels[nextModelId] &&
-					(!isPlanRestrictedAxonModel(nextModelId) || canAccessAxonModel(nextModelId, profilePlan))
-				) {
-					selectAxonModel(nextModelId)
-				}
-			}
-		},
-		[contextMode, selectedModelId, providerModels, profilePlan, selectAxonModel],
-	)
-
-	const renderContextToggleHeader = () => {
-		return (
-			<div className="flex items-center justify-between px-3 py-1.5 text-xs">
-				<span className="font-semibold text-vscode-foreground opacity-80 mr-2">Context Window</span>
-				<div className="inline-flex rounded-md gap-1 p-0.5 bg-[var(--vscode-dropdown-background)] border border-[var(--vscode-dropdown-border)]">
-					<button
-						type="button"
-						onClick={(e) => {
-							e.stopPropagation()
-							onContextToggle("232k")
-						}}
-						className={cn(
-							"px-2 py-0.5 text-xs font-medium rounded transition-colors cursor-pointer rounded-md",
-							contextMode === "232k"
-								? "bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] font-semibold shadow-xs"
-								: "text-vscode-descriptionForeground hover:text-[var(--vscode-button-foreground)] hover:bg-[var(--vscode-button-hoverBackground)]",
-						)}>
-						232k
-					</button>
-					<button
-						type="button"
-						onClick={(e) => {
-							e.stopPropagation()
-							if (!has400kAccess) {
-								vscode.postMessage({
-									type: "openExternal",
-									url: "https://app.matterai.so/ai-coding-agent",
-								})
-								return
-							}
-							onContextToggle("400k")
-						}}
-						className={cn(
-							"px-2 py-0.5 text-xs font-medium rounded-md transition-colors cursor-pointer flex items-center gap-1",
-							contextMode === "400k"
-								? "bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] font-semibold shadow-xs"
-								: "text-vscode-descriptionForeground hover:text-[var(--vscode-button-foreground)] hover:bg-[var(--vscode-button-hoverBackground)]",
-							!has400kAccess && "opacity-70",
-						)}>
-						<span>400k</span>
-						{!has400kAccess && <Alert02Icon className="size-3 text-yellow-500" />}
-					</button>
-				</div>
-			</div>
-		)
-	}
 
 	const onChange = (value: string) => {
 		if (isPlanRestrictedAxonModel(value) && !canAccessAxonModel(value, profilePlan)) return
@@ -714,7 +632,6 @@ export const ModelSelector = ({
 				const is400k = providerModels[option.value]?.contextWindow === 400000 || is400kAxonModel(option.value)
 				return <ModelLabel label={formatSelectedModelLabel(option.label, is400k)} />
 			}}
-			headerComponent={renderContextToggleHeader()}
 			onRefresh={handleRefreshModels} // Always show refresh since matterai3p is always enabled
 		/>
 	)
