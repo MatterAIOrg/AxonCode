@@ -7,7 +7,7 @@ import { TelemetryService } from "@roo-code/telemetry"
 import { ApiHandler } from "../../../api"
 import { ApiMessage } from "../../task-persistence/apiMessages"
 import { maybeRemoveImageBlocks } from "../../../api/transform/image-cleaning"
-import { summarizeConversation, getMessagesSinceLastSummary, N_MESSAGES_TO_KEEP } from "../index"
+import { summarizeConversation, getMessagesSinceLastSummary, N_MESSAGES_TO_KEEP, SUMMARY_PREFIX } from "../index"
 
 vi.mock("../../../api/transform/image-cleaning", () => ({
 	maybeRemoveImageBlocks: vi.fn((messages: ApiMessage[], _apiHandler: ApiHandler) => [...messages]),
@@ -197,7 +197,7 @@ describe("summarizeConversation", () => {
 		// Check that the summary message was inserted correctly
 		const summaryMessage = result.messages[1]
 		expect(summaryMessage.role).toBe("assistant")
-		expect(summaryMessage.content).toBe("This is a summary")
+		expect(summaryMessage.content).toBe(`${SUMMARY_PREFIX}\n\nThis is a summary`)
 		expect(summaryMessage.isSummary).toBe(true)
 
 		// Check that the last N_MESSAGES_TO_KEEP messages are preserved
@@ -275,7 +275,7 @@ describe("summarizeConversation", () => {
 
 		// Verify that createMessage was called with the correct prompt
 		expect(mockApiHandler.createMessage).toHaveBeenCalledWith(
-			expect.stringContaining("Your task is to create a detailed summary of the conversation"),
+			expect.stringContaining("Summarize this conversation with maximum information density"),
 			expect.any(Array),
 		)
 
@@ -653,7 +653,7 @@ describe("summarizeConversation with custom settings", () => {
 		// Verify the default prompt was used
 		let createMessageCalls = (mockMainApiHandler.createMessage as Mock).mock.calls
 		expect(createMessageCalls.length).toBe(1)
-		expect(createMessageCalls[0][0]).toContain("Your task is to create a detailed summary")
+		expect(createMessageCalls[0][0]).toContain("Summarize this conversation with maximum information density")
 
 		// Reset mock and test with undefined
 		vi.clearAllMocks()
@@ -670,7 +670,7 @@ describe("summarizeConversation with custom settings", () => {
 		// Verify the default prompt was used again
 		createMessageCalls = (mockMainApiHandler.createMessage as Mock).mock.calls
 		expect(createMessageCalls.length).toBe(1)
-		expect(createMessageCalls[0][0]).toContain("Your task is to create a detailed summary")
+		expect(createMessageCalls[0][0]).toContain("Summarize this conversation with maximum information density")
 	})
 
 	/**

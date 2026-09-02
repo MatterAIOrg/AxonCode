@@ -156,6 +156,7 @@ import { getAppUrl } from "@roo-code/types"
 const MAX_EXPONENTIAL_BACKOFF_SECONDS = 600 // 10 minutes
 const DEFAULT_USAGE_COLLECTION_TIMEOUT_MS = 5000 // 5 seconds
 const FORCED_CONTEXT_REDUCTION_PERCENT = 75 // Keep 75% of context (remove 25%) on context window errors
+const CONTEXT_WARNING_BAND_PERCENT = 10 // Warn the model this many percentage points below the condense threshold
 const MAX_CONTEXT_WINDOW_RETRIES = 3 // Maximum retries for context window errors
 
 // kilocode_change: Idle timeout for stream consumption. If no chunk is received
@@ -509,6 +510,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	assistantMessageParser: AssistantMessageParser
 	private lastUsedInstructions?: string
 	private skipPrevResponseIdOnce: boolean = false
+	// forked_change: set once per context window when the context budget warning
+	// fires; re-arms automatically when usage drops back below the warning band
+	private contextBudgetWarningIssued: boolean = false
 
 	// Token Usage Cache
 	private tokenUsageSnapshot?: TokenUsage
@@ -3946,6 +3950,34 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		// Check if we're at or above the threshold
 		if (contextPercent < effectiveThreshold) {
+			// forked_change start: codex-style context budget warning.
+			// When usage enters the band just below the condense threshold, warn
+			// the model ONCE so it adapts before compaction discards raw tool
+			// outputs: finish in-flight edits, stop broad exploration, keep the
+			// todo list current. Re-arms when usage drops back below the band
+			// (i.e. after a successful condensation), so each context window
+			// gets at most one warning.
+			if (contextWindow > 0) {
+				const warningThreshold = Math.max(
+					MIN_CONDENSE_THRESHOLD,
+					effectiveThreshold - CONTEXT_WARNING_BAND_PERCENT,
+				)
+				if (contextPercent < warningThreshold) {
+					this.contextBudgetWarningIssued = false
+				} else if (!this.contextBudgetWarningIssued) {
+					this.contextBudgetWarningIssued = true
+					const tokensRemaining = Math.max(0, contextWindow - contextTokens)
+					console.log(
+						`[Task#${this.taskId}] Context budget warning: ${contextPercent.toFixed(1)}% used ` +
+							`(~${tokensRemaining} of ${contextWindow} tokens remain), condense threshold ${effectiveThreshold}%.`,
+					)
+					this.userMessageContent.push({
+						type: "text",
+						text: `<context_window_warning>\nContext window nearly full: ${contextPercent.toFixed(0)}% used (~${tokensRemaining.toLocaleString()} of ${contextWindow.toLocaleString()} tokens remain). Auto-compaction triggers at ${effectiveThreshold}% and replaces raw tool outputs with a summary.\nAdapt now:\n- Finish in-flight edits before starting anything new.\n- No broad searches or large file reads; use targeted reads of specific regions only.\n- Do not re-read files whose contents are already in context.\n- Keep the todo list current so pending work survives compaction.\n</context_window_warning>`,
+					})
+				}
+			}
+			// forked_change end
 			return false
 		}
 

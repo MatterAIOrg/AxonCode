@@ -28,6 +28,8 @@ FILES: For each file that was read, modified, or created:
 - Changes made (if any)
 - Key code: function signatures, type definitions, error messages, constants
 
+EXPLORATION ALREADY DONE: Searches, file reads, and investigations already performed and what each concluded — so they are NOT repeated after compaction.
+
 FAILED APPROACHES: What was tried and did not work. Why it failed. What should NOT be attempted again.
 
 KNOWLEDGE STATE:
@@ -41,9 +43,17 @@ NEXT STEPS: Immediate next action — include a VERBATIM quote of the most recen
 
 RULES:
 - Preserve every file path, function name, variable name, error message, and identifier exactly as it appeared. Never paraphrase identifiers.
+- The summary is the only surviving record: anything omitted is lost and must be re-derived by re-reading files. Include enough detail (paths, signatures, line numbers, error text) to continue without re-reading.
 - Prefer listing over prose. Every token counts.
 - Output ONLY the summary. No preamble, no "Here is the summary:", no commentary after.
 `
+
+// Prepended to the summary message inserted into the conversation after
+// compaction. Ports codex's compact/summary_prefix.md: tells the model the
+// history was compacted and that it must build on the recorded work instead
+// of redoing it (re-searching, re-reading files, re-deriving facts).
+export const SUMMARY_PREFIX = `\
+[CONTEXT COMPACTION] An earlier assistant began this task and produced the summary below as a handoff. Treat it as the authoritative record of all work so far: do NOT repeat anything it describes — no re-running searches, no re-reading files it covers, no re-deriving facts it states. Continue from NEXT STEPS.`
 
 export type SummarizeResponse = {
 	messages: ApiMessage[] // The messages after summarization
@@ -181,9 +191,11 @@ export async function summarizeConversation(
 		return { ...response, cost, error }
 	}
 
+	// The prefix tells the model this is a compaction handoff and that it must
+	// not redo the work recorded in the summary.
 	const summaryMessage: ApiMessage = {
 		role: "assistant",
-		content: summary,
+		content: `${SUMMARY_PREFIX}\n\n${summary}`,
 		ts: keepMessages[0].ts,
 		isSummary: true,
 	}
