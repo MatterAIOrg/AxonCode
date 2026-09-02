@@ -1,5 +1,11 @@
 # Changelog
 
+## [v6.8.3] - 2026-09-02
+
+### Changed
+
+- **OSS model catalog replaces Axon models.** The KiloCode model catalog (extension `kilocode-models.ts` and the webview `useOpenRouterModelProviders` copy) now exposes seven OSS models — `meta/muse-spark-1.2-contributor` (Muse Spark 1.2 Contributor), `deepseek/deepseek-v4-flash-0731` (DeepSeek V4 Flash), `zai/glm-5.3` (GLM 5.3), `zai/glm-5.3-flash` (GLM 5.3 Flash), `gpt-5.6-sol` (GPT-5.6 Sol), `gpt-5.6-luna` (GPT-5.6 Luna), and `gemini-3.7-flash` (Gemini 3.7 Flash) — in place of the Axon context-window variants. Each OSS model carries its published per-token pricing (Muse Spark 1.2 Contributor $0.10/M input, $0.002/M cache read, $0.20/M output; DeepSeek V4 Flash $0.14/M input, $0.028/M cache read, $0.28/M output; GLM 5.3 $1.40/M input, $0.14/M cache read, $4.40/M output; GLM 5.3 Flash $0.15/M input, $0.03/M cache read, $0.50/M output; GPT-5.6 Sol $5/M input, $0.50/M cache read, $30/M output; GPT-5.6 Luna $0.20/M input, $0.02/M cache read, $1.20/M output; Gemini 3.7 Flash $0.75/M input, $0.075/M cache read, $3.75/M output). The default model is `deepseek/deepseek-v4-flash-0731` (`openRouterDefaultModelId` in `@roo-code/types`, plus the CLI `kilocodeModel` defaults and web-evals `MODEL_DEFAULT`). Stored Axon model selections are now stale and reset to the default on next launch via the existing `isValidKilocodeModel` stale-model check.
+
 ## [v6.8.2] - 2026-08-28
 
 ### Added
