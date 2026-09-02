@@ -112,6 +112,13 @@ export async function presentAssistantMessage(cline: Task, options: PresentAssis
 			} finally {
 				cline.presentAssistantMessageLocked = false
 			}
+			// The batch stops at the first block that cannot run concurrently (e.g.
+			// execute_command following a run of read-only calls). Continue the
+			// presentation chain so those trailing blocks still execute — the batch
+			// only marks the message ready when it consumed every block.
+			if (!cline.abort && cline.currentStreamingContentIndex < cline.assistantMessageContent.length) {
+				await presentAssistantMessage(cline)
+			}
 			return
 		}
 	}
@@ -967,8 +974,17 @@ export async function presentAssistantMessage(cline: Task, options: PresentAssis
 
 						// Make sure the task loop can move forward even on failure —
 						// otherwise the next iteration may hang waiting for a result.
+						// Only signal readiness when this is the LAST content block: for a
+						// mid-message failure the presentation chain still has blocks to
+						// execute, and flipping the flag here would let the task loop fire
+						// the next request before they are presented (same bug class as the
+						// parallel read-only batch skipping a trailing execute_command).
 						cline.didAlreadyUseTool = true
-						if (cline.didCompleteReadingStream && !isParallelWorker) {
+						if (
+							cline.didCompleteReadingStream &&
+							!isParallelWorker &&
+							blockIndex >= cline.assistantMessageContent.length - 1
+						) {
 							cline.userMessageContentReady = true
 						}
 					} catch (e) {
@@ -1104,7 +1120,15 @@ async function executeParallelReadOnlyBlocks(cline: Task, blockIndexes: number[]
 	}
 
 	cline.currentStreamingContentIndex = blockIndexes[blockIndexes.length - 1] + 1
-	cline.userMessageContentReady = true
+
+	// Only tell the task loop the assistant message is fully presented when the
+	// batch ran through the last content block. getParallelReadOnlyBlockIndexes
+	// stops at the first non-read-only block (e.g. execute_command after a run of
+	// searches), so setting this unconditionally made the task loop fire the next
+	// API request while that trailing tool_use was never presented or executed.
+	if (cline.currentStreamingContentIndex >= cline.assistantMessageContent.length) {
+		cline.userMessageContentReady = true
+	}
 }
 
 /**

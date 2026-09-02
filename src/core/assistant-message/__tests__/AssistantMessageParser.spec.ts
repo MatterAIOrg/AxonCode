@@ -574,6 +574,45 @@ describe("AssistantMessageParser (streaming)", () => {
 			expect(pkgUse?.params.content).toBe(pkgContent)
 			expect(tsUse?.params.content).toBe(tsConfigContent)
 		})
+
+		it("should accumulate a tool call whose deltas carry an index but never an id", () => {
+			// Some OpenAI-compatible providers never send an id per tool call. The
+			// parser used to drop the first delta ("has index but no id") and then
+			// every argument fragment for that index ("arguments for unknown tool
+			// call"), so the whole tool call silently vanished.
+			const yielded1 = [
+				...parser.processNativeToolCalls([
+					{
+						index: 2,
+						type: "function",
+						function: {
+							name: "read_file",
+							arguments: '{"file_path": "src/a.ts"',
+						},
+					},
+				]),
+			]
+			// Name known, JSON incomplete: only the partial block is emitted.
+			expect(yielded1).toHaveLength(1)
+
+			const yielded2 = [
+				...parser.processNativeToolCalls([
+					{
+						index: 2,
+						function: { arguments: "}" },
+					},
+				]),
+			]
+			expect(yielded2).toHaveLength(1)
+			expect(yielded2[0].id).toBe("native-tool-call-2")
+
+			const toolUse = parser
+				.getContentBlocks()
+				.find((b) => b.type === "tool_use" && (b as ToolUse).toolUseId === "native-tool-call-2") as ToolUse
+			expect(toolUse).toBeDefined()
+			expect(toolUse.partial).toBe(false)
+			expect(toolUse.params.file_path).toBe("src/a.ts")
+		})
 	})
 
 	describe("size limit handling", () => {

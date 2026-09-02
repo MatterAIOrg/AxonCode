@@ -6,7 +6,9 @@ export interface NativeToolCall {
 	id?: string // Only present in first delta
 	type?: string
 	function?: {
-		name: string
+		// name is only present in the first delta; subsequent deltas carry
+		// arguments only (standard OpenAI-compatible streaming shape).
+		name?: string
 		arguments: string // JSON string (may be partial during streaming)
 	}
 	// forked_change: Track if this is an MCP tool and which server

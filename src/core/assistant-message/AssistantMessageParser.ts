@@ -195,8 +195,9 @@ export class AssistantMessageParser {
 	 * forked_change: Now yields partial tool calls immediately when tool name is known,
 	 * allowing the UI to show "Editing filename..." during streaming.
 	 *
-	 * @param toolCalls Array of native tool call objects (may be partial during streaming).  We
-	 * currently set parallel_tool_calls to false, so in theory there should only be 1 call.
+	 * @param toolCalls Array of native tool call objects (may be partial during streaming).
+	 * Native tool calling sets parallel_tool_calls = true, so this may contain
+	 * several independent calls that all must be accumulated and executed.
 	 */
 	public *processNativeToolCalls(toolCalls: NativeToolCall[]): Generator<Anthropic.ToolUseBlockParam> {
 		for (const toolCall of toolCalls) {
@@ -215,11 +216,17 @@ export class AssistantMessageParser {
 					toolCallId = toolCall.id
 					this.nativeToolCallIndexToId.set(toolCall.index, toolCallId)
 				} else {
-					console.warn(
-						"[AssistantMessageParser] Skipping tool call: has index but no id in mapping:",
-						toolCall,
-					)
-					continue
+					// Some OpenAI-compatible providers never send an id for a tool call
+					// (or only send it in a later fragment). Dropping the call here used
+					// to silently discard the whole tool call — every later fragment for
+					// this index then hit "arguments for unknown tool call" and was
+					// dropped too. Synthesize a stable id from the index instead; the
+					// assistant message and its tool_results are built from these ids,
+					// so pairing stays consistent. If the real id arrives in a later
+					// delta, the mapping below still wins and accumulation continues
+					// unchanged.
+					toolCallId = `native-tool-call-${toolCall.index}`
+					this.nativeToolCallIndexToId.set(toolCall.index, toolCallId)
 				}
 			} else if (toolCall.id) {
 				toolCallId = toolCall.id
