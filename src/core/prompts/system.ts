@@ -107,8 +107,8 @@ Common tool calls and explanations
 - You know the exact text that should be replaced and its updated form.
 
 **When NOT to use**:
-- If you have **2 or more edits** to make (even to the same file), use \`multi_file_edit\` instead.
-- Never call \`file_edit\` multiple times in sequence. Batch your edits with \`multi_file_edit\`.
+- If you have **2 or more independent edits** that are all confirmed and ready right now, use \`multi_file_edit\` instead.
+- Do not hold an edit back to accumulate a larger batch. If one edit is ready, make it now and gather the next edits afterwards.
 
 **Parameters**:
 1. \`file_path\` — Absolute path to the file you want to modify (e.g., /Users/username/project/src/file.ts).
@@ -118,11 +118,11 @@ Common tool calls and explanations
 
 ## multi_file_edit
 
-**Description**: Make multiple text replacements across one or more files in a single tool call. This is the **preferred** tool for editing when you have 2+ changes to make.
+**Description**: Make multiple text replacements across one or more files in a single tool call. Use it when several edits are already confirmed and ready in the same step.
 
 **When to use**:
-- You have **2 or more edits** to make, whether to the same file or different files.
-- You want to batch edits efficiently instead of making multiple separate tool calls.
+- You have **2 or more edits** that are all confirmed and ready now, whether to the same file or different files.
+- Keep each batch small and cohesive: the edits that belong to the current step of the task, not the whole task.
 
 **Parameters**:
 1. \`edits\` — An array of edit objects. Each edit has:
@@ -148,7 +148,8 @@ Common tool calls and explanations
 
 **Guidance for choosing between file_edit and multi_file_edit**:
 - 1 edit → \`file_edit\`
-- 2+ edits → \`multi_file_edit\` (always)
+- 2+ edits ready now → \`multi_file_edit\`
+- Never accumulate edits across the whole task into one giant batch. Edit granularity follows the steps of the task.
 
 **Editing discipline (CRITICAL)**:
 - ALWAYS copy \`old_string\` verbatim from a read_file result obtained in the same turn. NEVER reconstruct indentation or whitespace from memory — this is especially important in tab-indented files, where a reconstructed \`old_string\` will silently mismatch.
@@ -234,10 +235,18 @@ Use zero context for discovery, then read the relevant file region. If results a
 - After EVERY tool call, verify the output actually matches the parameters you sent (correct file, correct line range, correct directory). A result that does not reflect your parameters means the call was malformed — fix the call, do not reason from the bad output.
 - If two consecutive identical tool calls produce identical results, you are in a loop. Change the call or change the strategy. NEVER repeat the same call a third time.
 
-## Plan before editing
+## Edit early, iterate in small steps
 
-- Investigate first, edit second. Once the root cause is confirmed, write out the full change plan — which files, the exact locations, and the edit order — BEFORE touching anything.
-- Then execute the edits in one pass (batched via \`multi_file_edit\`) and verify with a single typecheck/build at the end, rather than alternating between editing and checking.
+- Make the first edit as soon as the change for one file is confirmed. Do not map the whole codebase before touching anything — gather context per step, on demand, between edits.
+- Alternate editing and checking: make an edit, run the relevant check (typecheck, test, or a targeted read), then continue. This is the intended workflow, not a planning failure.
+- Track remaining work with \`update_todo_list\` (one step in progress at a time, updated after each sub-task) instead of holding a full multi-file plan in context.
+- Keep each batch of edits small and cohesive — the edits that belong to the current step. A change spanning many files is executed as a sequence of small verified steps, not one giant multi-file edit.
+- Do not re-read a file just to confirm an edit succeeded; the tool result already reports success or failure. (Re-reading before a NEW edit in the same area is still required.)
+
+## Multi-repo workspaces
+
+- When several repositories or workspace roots are open, work inside the one that owns the code being changed. Do not read sibling repos to "understand the ecosystem."
+- Cross into another repo only when the task explicitly requires it (e.g., mirroring a change in a consumer). Finish the work in one repo before moving to the next; never interleave reads across repos.
 
 ## Investigation efficiency
 
