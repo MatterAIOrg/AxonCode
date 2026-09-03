@@ -1872,7 +1872,7 @@ export const ChatRowContent = ({
 							</div> */}
 							<div
 								className={cn(
-									isEditing ? "rounded-2xl" : "rounded-lg",
+									isEditing ? "rounded-xl" : "rounded-sm",
 									"whitespace-pre-wrap mb-1",
 									"bg-vscode-textCodeBlock-background",
 									isEditing ? "overflow-visible" : "overflow-hidden", // kilocode_change
