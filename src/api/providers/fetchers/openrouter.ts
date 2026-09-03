@@ -107,6 +107,7 @@ const matterAiOpenRouterModelSchema = z.object({
 	input_modalities: z.array(z.string()).optional(),
 	output_modalities: z.array(z.string()).optional(),
 	supported_sampling_parameters: z.array(z.string()).optional(),
+	iconUrl: z.string().optional(),
 	pricing: z
 		.object({
 			prompt: z.string().optional(),
@@ -133,7 +134,7 @@ export async function getOpenRouterModels(
 	const models: Record<string, ModelInfo> = {}
 
 	// First, add static models from KILO_CODE_MODELS
-	const { KILO_CODE_MODELS } = await import("../kilocode-models")
+	const { KILO_CODE_MODELS, registerDynamicKilocodeModels } = await import("../kilocode-models")
 
 	for (const [id, model] of Object.entries(KILO_CODE_MODELS)) {
 		models[id] = parseOpenRouterModel({
@@ -155,63 +156,73 @@ export async function getOpenRouterModels(
 			outputModality: model.output_modalities,
 			maxTokens: model.max_output_length,
 			supportedParameters: model.supported_sampling_parameters,
+			iconUrl: model.iconUrl,
 		})
 	}
 
 	// Then, fetch dynamic models from MatterAI API
-	// try {
-	// 	const headers: Record<string, string> = {
-	// 		...DEFAULT_HEADERS,
-	// 		...options?.headers,
-	// 	}
+	try {
+		const headers: Record<string, string> = {
+			...DEFAULT_HEADERS,
+			...options?.headers,
+		}
 
-	// 	const response = await axios.get("https://api.matterai.so/v1/models/openrouter", { headers })
+		const base = (options?.openRouterBaseUrl || "https://api.matterai.so/v1/web").replace(/\/+$/, "")
+		let url = base.endsWith("/models") ? base : `${base}/models`
+		if (headers["Cache-Control"] === "no-cache") {
+			url += (url.includes("?") ? "&" : "?") + "forceRefresh=true"
+		}
 
-	// 	const rawModels = response.data?.data || []
+		const response = await axios.get(url, { headers })
 
-	// 	for (const rawModel of rawModels) {
-	// 		// Filter out image generation models (only text output)
-	// 		const outputModalities = rawModel.output_modalities || []
-	// 		if (outputModalities.includes("image") && !outputModalities.includes("text")) {
-	// 			continue
-	// 		}
+		const rawModels = response.data?.data || []
 
-	// 		// Prefix the model ID with "openrouter/"
-	// 		const modelId = `openrouter/${rawModel.id}`
+		if (Array.isArray(rawModels) && rawModels.length > 0) {
+			registerDynamicKilocodeModels(rawModels)
+		}
 
-	// 		// Don't override static models
-	// 		if (models[modelId]) {
-	// 			continue
-	// 		}
+		for (const rawModel of rawModels) {
+			if (!rawModel?.id || rawModel.id.startsWith("axon-")) {
+				continue
+			}
 
-	// 		models[modelId] = parseOpenRouterModel({
-	// 			id: modelId,
-	// 			model: {
-	// 				name: rawModel.name || rawModel.id,
-	// 				description: rawModel.description,
-	// 				context_length: rawModel.context_length || 8192,
-	// 				max_completion_tokens: rawModel.max_output_length,
-	// 				pricing: rawModel.pricing
-	// 					? {
-	// 							prompt: rawModel.pricing.prompt,
-	// 							completion: rawModel.pricing.completion,
-	// 							input_cache_read: rawModel.pricing.input_cache_reads,
-	// 							input_cache_write: rawModel.pricing.input_cache_writes,
-	// 						}
-	// 					: undefined,
-	// 			},
-	// 			displayName: rawModel.name,
-	// 			inputModality: rawModel.input_modalities,
-	// 			outputModality: rawModel.output_modalities,
-	// 			maxTokens: rawModel.max_output_length,
-	// 			supportedParameters: rawModel.supported_sampling_parameters,
-	// 		})
-	// 	}
-	// } catch (error) {
-	// 	console.error(
-	// 		`Error fetching OpenRouter models from MatterAI: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
-	// 	)
-	// }
+			// Filter out image generation models (only text output)
+			const outputModalities = rawModel.output_modalities || []
+			if (outputModalities.includes("image") && !outputModalities.includes("text")) {
+				continue
+			}
+
+			const modelId = rawModel.id
+
+			models[modelId] = parseOpenRouterModel({
+				id: modelId,
+				model: {
+					name: rawModel.name || rawModel.id,
+					description: rawModel.description,
+					context_length: rawModel.context_length || 232000,
+					max_completion_tokens: rawModel.max_output_length,
+					pricing: rawModel.pricing
+						? {
+								prompt: rawModel.pricing.prompt,
+								completion: rawModel.pricing.completion,
+								input_cache_read: rawModel.pricing.input_cache_reads,
+								input_cache_write: rawModel.pricing.input_cache_writes,
+							}
+						: undefined,
+				},
+				displayName: rawModel.name,
+				inputModality: rawModel.input_modalities,
+				outputModality: rawModel.output_modalities,
+				maxTokens: rawModel.max_output_length,
+				supportedParameters: rawModel.supported_sampling_parameters,
+				iconUrl: rawModel.iconUrl,
+			})
+		}
+	} catch (error) {
+		console.error(
+			`Error fetching OpenRouter models from MatterAI: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+		)
+	}
 
 	return models
 }
@@ -227,7 +238,7 @@ export async function getOpenRouterModelEndpoints(
 	const models: Record<string, ModelInfo> = {}
 
 	// First, check static models from KILO_CODE_MODELS
-	const { KILO_CODE_MODELS } = await import("../kilocode-models")
+	const { KILO_CODE_MODELS, registerDynamicKilocodeModels } = await import("../kilocode-models")
 
 	const staticModel = KILO_CODE_MODELS[modelId]
 	if (staticModel) {
@@ -250,65 +261,77 @@ export async function getOpenRouterModelEndpoints(
 			outputModality: staticModel.output_modalities,
 			maxTokens: staticModel.max_output_length,
 			supportedParameters: staticModel.supported_sampling_parameters,
+			iconUrl: staticModel.iconUrl,
 		})
 		return models
 	}
 
 	// If not found in static models, fetch from MatterAI API
-	// try {
-	// 	const headers: Record<string, string> = {
-	// 		...DEFAULT_HEADERS,
-	// 		...options?.headers,
-	// 	}
+	try {
+		const headers: Record<string, string> = {
+			...DEFAULT_HEADERS,
+			...options?.headers,
+		}
 
-	// 	const response = await axios.get("https://api.matterai.so/v1/models/openrouter", { headers })
+		const base = (options?.openRouterBaseUrl || "https://api.matterai.so/v1/web").replace(/\/+$/, "")
+		let url = base.endsWith("/models") ? base : `${base}/models`
+		if (headers["Cache-Control"] === "no-cache") {
+			url += (url.includes("?") ? "&" : "?") + "forceRefresh=true"
+		}
 
-	// 	const rawModels = response.data?.data || []
+		const response = await axios.get(url, { headers })
 
-	// 	// Strip "openrouter/" prefix if present for matching
-	// 	const strippedModelId = modelId.replace(/^openrouter\//, "")
+		const rawModels = response.data?.data || []
 
-	// 	const rawModel = (rawModels as MatterAiOpenRouterModel[]).find((m) => m.id === strippedModelId)
+		if (Array.isArray(rawModels) && rawModels.length > 0) {
+			registerDynamicKilocodeModels(rawModels)
+		}
 
-	// 	if (!rawModel) {
-	// 		return models
-	// 	}
+		// Strip "openrouter/" prefix if present for matching
+		const strippedModelId = modelId.replace(/^openrouter\//, "")
 
-	// 	// Filter out image generation models
-	// 	const outputModalities = rawModel.output_modalities || []
-	// 	if (outputModalities.includes("image") && !outputModalities.includes("text")) {
-	// 		return models
-	// 	}
+		const rawModel = (rawModels as MatterAiOpenRouterModel[]).find(
+			(m) => m.id === strippedModelId || m.id === modelId,
+		)
 
-	// 	const prefixedModelId = `openrouter/${rawModel.id}`
+		if (!rawModel) {
+			return models
+		}
 
-	// 	models["MatterAI"] = parseOpenRouterModel({
-	// 		id: prefixedModelId,
-	// 		model: {
-	// 			name: rawModel.name || rawModel.id,
-	// 			description: rawModel.description,
-	// 			context_length: rawModel.context_length || 8192,
-	// 			max_completion_tokens: rawModel.max_output_length,
-	// 			pricing: rawModel.pricing
-	// 				? {
-	// 						prompt: rawModel.pricing.prompt,
-	// 						completion: rawModel.pricing.completion,
-	// 						input_cache_read: rawModel.pricing.input_cache_reads,
-	// 						input_cache_write: rawModel.pricing.input_cache_writes,
-	// 					}
-	// 				: undefined,
-	// 		},
-	// 		displayName: rawModel.name,
-	// 		inputModality: rawModel.input_modalities,
-	// 		outputModality: rawModel.output_modalities,
-	// 		maxTokens: rawModel.max_output_length,
-	// 		supportedParameters: rawModel.supported_sampling_parameters,
-	// 	})
-	// } catch (error) {
-	// 	console.error(
-	// 		`Error fetching OpenRouter model endpoints from MatterAI: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
-	// 	)
-	// }
+		// Filter out image generation models
+		const outputModalities = rawModel.output_modalities || []
+		if (outputModalities.includes("image") && !outputModalities.includes("text")) {
+			return models
+		}
+
+		models["MatterAI"] = parseOpenRouterModel({
+			id: rawModel.id,
+			model: {
+				name: rawModel.name || rawModel.id,
+				description: rawModel.description,
+				context_length: rawModel.context_length || 232000,
+				max_completion_tokens: rawModel.max_output_length,
+				pricing: rawModel.pricing
+					? {
+							prompt: rawModel.pricing.prompt,
+							completion: rawModel.pricing.completion,
+							input_cache_read: rawModel.pricing.input_cache_reads,
+							input_cache_write: rawModel.pricing.input_cache_writes,
+						}
+					: undefined,
+			},
+			displayName: rawModel.name,
+			inputModality: rawModel.input_modalities,
+			outputModality: rawModel.output_modalities,
+			maxTokens: rawModel.max_output_length,
+			supportedParameters: rawModel.supported_sampling_parameters,
+			iconUrl: rawModel.iconUrl,
+		})
+	} catch (error) {
+		console.error(
+			`Error fetching OpenRouter model endpoints from MatterAI: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+		)
+	}
 
 	return models
 }
@@ -325,6 +348,7 @@ export const parseOpenRouterModel = ({
 	outputModality,
 	maxTokens,
 	supportedParameters,
+	iconUrl, // kilocode_change
 }: {
 	id: string
 	model: OpenRouterBaseModel
@@ -333,6 +357,7 @@ export const parseOpenRouterModel = ({
 	outputModality: string[] | null | undefined
 	maxTokens: number | null | undefined
 	supportedParameters?: string[]
+	iconUrl?: string // kilocode_change
 }): ModelInfo => {
 	const cacheWritesPrice = model.pricing?.input_cache_write
 		? parseApiPrice(model.pricing?.input_cache_write)
@@ -357,6 +382,7 @@ export const parseOpenRouterModel = ({
 		// forked_change start
 		displayName,
 		preferredIndex: model.preferredIndex,
+		iconUrl,
 		// forked_change end
 	}
 

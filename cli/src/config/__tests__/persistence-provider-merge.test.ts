@@ -51,7 +51,7 @@ describe("Provider Merging", () => {
 		expect(result.config.providers[0].id).toBe("default")
 		expect(result.config.providers[0]).toHaveProperty("kilocodeToken")
 		expect(result.config.providers[0]).toHaveProperty("kilocodeModel")
-		expect(result.config.providers[0].kilocodeModel).toBe("axon-auto-232k")
+		expect(result.config.providers[0].kilocodeModel).toBe("deepseek/deepseek-v4-flash-0731")
 		expect(result.validation.valid).toBe(true)
 	})
 

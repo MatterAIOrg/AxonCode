@@ -59,6 +59,7 @@ vi.mock("../../task/Task", () => ({
 }))
 
 import { presentAssistantMessage } from "../presentAssistantMessage"
+import { executeCommandTool } from "../../tools/executeCommandTool"
 import { readFileTool } from "../../tools/readFileTool"
 import { searchFilesTool } from "../../tools/searchFilesTool"
 import { TelemetryService } from "@roo-code/telemetry"
@@ -410,5 +411,198 @@ describe("presentAssistantMessage", () => {
 		expect(cline.currentStreamingContentIndex).toBe(1)
 		expect(cline.userMessageContentReady).toBe(true)
 		expect(cline.presentAssistantMessageLocked).toBe(false)
+	})
+
+	it("runs the trailing non-parallelizable tool after a read-only batch (execute_command not dropped)", async () => {
+		// Regression: a native parallel response of 3x search_files + read_file +
+		// execute_command executed only the 4 read-only calls. The batch scheduler
+		// set userMessageContentReady=true after committing the batch, so the task
+		// loop fired the next request before execute_command was ever presented.
+		const getState = vi.fn().mockResolvedValue({ mode: "code", customModes: [] })
+		vi.mocked(executeCommandTool).mockImplementationOnce(
+			async (_cline: any, block: any, _ask: any, _handleError: any, pushToolResult: any) => {
+				pushToolResult(`command:${block.params.command}`)
+			},
+		)
+		const cline = {
+			abort: false,
+			taskId: "task-1",
+			instanceId: "instance-1",
+			presentAssistantMessageLocked: false,
+			presentAssistantMessageHasPendingUpdates: false,
+			currentStreamingContentIndex: 0,
+			assistantMessageContent: [
+				{
+					type: "tool_use",
+					name: "search_files",
+					params: { path: "src", regex: "tool_calls", file_pattern: "*.ts" },
+					partial: false,
+					toolUseId: "search_files:0",
+				},
+				{
+					type: "tool_use",
+					name: "read_file",
+					params: { file_path: "src/api/providers/openai.ts" },
+					partial: false,
+					toolUseId: "read_file:1",
+				},
+				{
+					type: "tool_use",
+					name: "search_files",
+					params: { path: "src/controller", regex: "processRequest" },
+					partial: false,
+					toolUseId: "search_files:2",
+				},
+				{
+					type: "tool_use",
+					name: "search_files",
+					params: { path: "src", regex: "getAxonModel" },
+					partial: false,
+					toolUseId: "search_files:3",
+				},
+				{
+					type: "tool_use",
+					name: "execute_command",
+					params: { command: "git status --short" },
+					partial: false,
+					toolUseId: "execute_command:4",
+				},
+			],
+			didCompleteReadingStream: true,
+			userMessageContentReady: false,
+			userMessageContent: [],
+			didRejectTool: false,
+			didAlreadyUseTool: false,
+			currentStreamingDidCheckpoint: false,
+			diffEnabled: false,
+			autoApproveAllCommands: false,
+			consecutiveMistakeCount: 0,
+			providerRef: {
+				deref: () => ({
+					getState,
+				}),
+			},
+			browserSession: {
+				closeBrowser: vi.fn().mockResolvedValue(undefined),
+			},
+			say: vi.fn().mockResolvedValue(undefined),
+			ask: vi.fn().mockResolvedValue({ response: "yesButtonClicked" }),
+			processQueuedMessages: vi.fn(),
+			getToolCallSignature: vi.fn((name: string, params: unknown) => JSON.stringify({ name, params })),
+			checkAndRegisterToolCall: vi.fn().mockReturnValue(false),
+			recordToolUsage: vi.fn(),
+			toolRepetitionDetector: {
+				check: vi.fn().mockReturnValue({ allowExecution: true }),
+			},
+			checkpointSave: vi.fn().mockResolvedValue(undefined),
+			removeStalePartialToolAskMessage: vi.fn().mockResolvedValue(undefined),
+			checkAndCondenseContext: vi.fn().mockResolvedValue(undefined),
+		} as any
+
+		await presentAssistantMessage(cline)
+
+		// All four read-only calls ran concurrently, and the trailing
+		// execute_command was still presented and executed afterwards.
+		expect(searchFilesTool).toHaveBeenCalledTimes(3)
+		expect(readFileTool).toHaveBeenCalledTimes(1)
+		expect(executeCommandTool).toHaveBeenCalledTimes(1)
+
+		// Results are committed in model order with one tool_result per tool_use.
+		expect(cline.userMessageContent.map((item: any) => item.tool_use_id)).toEqual([
+			"search_files:0",
+			"read_file:1",
+			"search_files:2",
+			"search_files:3",
+			"execute_command:4",
+		])
+
+		expect(cline.currentStreamingContentIndex).toBe(5)
+		expect(cline.userMessageContentReady).toBe(true)
+	})
+
+	it("does not mark the message ready while a later block is still pending after a tool failure", async () => {
+		// The finally-block fallback pushes a synthetic tool_result when a tool
+		// fails without producing one. It must only flip userMessageContentReady
+		// for the LAST block — a mid-message failure used to signal "message
+		// complete" while later blocks still had to execute.
+		const getState = vi.fn().mockResolvedValue({ mode: "code", customModes: [] })
+		vi.mocked(readFileTool).mockImplementationOnce(async () => {
+			throw new Error("boom")
+		})
+		let readyWhenSecondRan: boolean | undefined
+		vi.mocked(readFileTool).mockImplementationOnce(
+			async (_cline: any, _block: any, _ask: any, _handleError: any, pushToolResult: any) => {
+				readyWhenSecondRan = cline.userMessageContentReady
+				pushToolResult("ok")
+			},
+		)
+		const cline = {
+			abort: false,
+			taskId: "task-1",
+			instanceId: "instance-1",
+			presentAssistantMessageLocked: false,
+			presentAssistantMessageHasPendingUpdates: false,
+			currentStreamingContentIndex: 0,
+			assistantMessageContent: [
+				{
+					type: "tool_use",
+					name: "read_file",
+					params: { file_path: "a.ts" },
+					partial: false,
+					toolUseId: "read_file:0",
+				},
+				{
+					type: "tool_use",
+					name: "read_file",
+					params: { file_path: "b.ts" },
+					partial: false,
+					toolUseId: "read_file:1",
+				},
+			],
+			didCompleteReadingStream: true,
+			userMessageContentReady: false,
+			userMessageContent: [],
+			didRejectTool: false,
+			didAlreadyUseTool: false,
+			currentStreamingDidCheckpoint: false,
+			diffEnabled: false,
+			autoApproveAllCommands: false,
+			consecutiveMistakeCount: 0,
+			providerRef: {
+				deref: () => ({
+					getState,
+				}),
+			},
+			browserSession: {
+				closeBrowser: vi.fn().mockResolvedValue(undefined),
+			},
+			say: vi.fn().mockResolvedValue(undefined),
+			ask: vi.fn().mockResolvedValue({ response: "yesButtonClicked" }),
+			processQueuedMessages: vi.fn(),
+			getToolCallSignature: vi.fn((name: string, params: unknown) => JSON.stringify({ name, params })),
+			checkAndRegisterToolCall: vi.fn().mockReturnValue(false),
+			recordToolUsage: vi.fn(),
+			toolRepetitionDetector: {
+				check: vi.fn().mockReturnValue({ allowExecution: true }),
+			},
+			checkpointSave: vi.fn().mockResolvedValue(undefined),
+			removeStalePartialToolAskMessage: vi.fn().mockResolvedValue(undefined),
+			checkAndCondenseContext: vi.fn().mockResolvedValue(undefined),
+		} as any
+
+		await presentAssistantMessage(cline)
+
+		// The second tool must have observed the message as NOT ready when it ran.
+		expect(readyWhenSecondRan).toBe(false)
+
+		// Both results present: the fallback for the failed call plus the real one.
+		const toolResults = cline.userMessageContent.filter((item: any) => item.type === "tool_result")
+		expect(toolResults).toHaveLength(2)
+		expect(toolResults[0].tool_use_id).toBe("read_file:0")
+		expect(toolResults[0].content[0].text).toContain("did not produce a result")
+		expect(toolResults[1].tool_use_id).toBe("read_file:1")
+
+		expect(cline.currentStreamingContentIndex).toBe(2)
+		expect(cline.userMessageContentReady).toBe(true)
 	})
 })

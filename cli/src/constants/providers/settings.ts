@@ -551,7 +551,7 @@ export const getProviderSettings = (provider: ProviderName, config: ProviderSett
 			return [
 				createFieldConfig("kilocodeToken", config),
 				createFieldConfig("kilocodeOrganizationId", config, "personal"),
-				createFieldConfig("kilocodeModel", config, "axon-auto-232k"),
+				createFieldConfig("kilocodeModel", config, "deepseek/deepseek-v4-flash-0731"),
 			]
 
 		default:
@@ -563,7 +563,7 @@ export const getProviderSettings = (provider: ProviderName, config: ProviderSett
  * Provider-specific default models
  */
 export const PROVIDER_DEFAULT_MODELS: Record<ProviderName, string> = {
-	kilocode: "axon-auto-232k",
+	kilocode: "deepseek/deepseek-v4-flash-0731",
 	anthropic: "claude-3-5-sonnet-20241022",
 	"openai-native": "gpt-4o",
 	openrouter: "anthropic/claude-3-5-sonnet",

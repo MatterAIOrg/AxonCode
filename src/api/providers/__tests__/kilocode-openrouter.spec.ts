@@ -34,23 +34,23 @@ vitest.mock("openai")
 vitest.mock("delay", () => ({ default: vitest.fn(() => Promise.resolve()) }))
 vitest.mock("../fetchers/modelCache", () => ({
 	getModels: vitest.fn().mockResolvedValue({
-		"axon-eido-3.2-code-pro-232k": {
+		"zai/glm-5.3": {
 			maxTokens: 64000,
 			contextWindow: 232000,
 			supportsImages: true,
 			supportsPromptCache: false,
-			inputPrice: 3,
-			outputPrice: 9,
-			description: "Axon Eido 3.2 Pro",
+			inputPrice: 0,
+			outputPrice: 0,
+			description: "GLM 5.3",
 		},
-		"axon-eido-3.2-code-pro-400k": {
+		"zai/glm-5.3-flash": {
 			maxTokens: 64000,
-			contextWindow: 400000,
+			contextWindow: 232000,
 			supportsImages: true,
 			supportsPromptCache: false,
-			inputPrice: 3,
-			outputPrice: 9,
-			description: "Axon Eido 3.2 Pro",
+			inputPrice: 0,
+			outputPrice: 0,
+			description: "GLM 5.3 Flash",
 		},
 		"anthropic/claude-sonnet-4": {
 			maxTokens: 8192,
@@ -69,26 +69,26 @@ vitest.mock("../fetchers/modelEndpointCache", () => ({
 	getModelEndpoints: vitest.fn().mockResolvedValue({}),
 }))
 vitest.mock("../kilocode/getKilocodeDefaultModel", () => ({
-	getKilocodeDefaultModel: vitest.fn().mockResolvedValue("axon-auto-232k"),
+	getKilocodeDefaultModel: vitest.fn().mockResolvedValue("zai/glm-5.3-flash"),
 }))
 
 describe("KilocodeOpenrouterHandler", () => {
 	const mockOptions: ApiHandlerOptions = {
 		kilocodeToken: "test-token",
-		kilocodeModel: "axon-auto-232k",
+		kilocodeModel: "zai/glm-5.3-flash",
 	}
 
 	beforeEach(() => vitest.clearAllMocks())
 
 	describe("customRequestOptions", () => {
-		it("reports the selected 400k context window", async () => {
+		it("reports the selected model context window", async () => {
 			const handler = new KilocodeOpenrouterHandler({
 				kilocodeToken: "test-token",
-				kilocodeModel: "axon-eido-3.2-code-pro-400k",
+				kilocodeModel: "zai/glm-5.3",
 			})
 			await handler.fetchModel()
 
-			expect(handler.customRequestOptions()?.headers[X_MODEL_CONTEXT_WINDOW]).toBe("400000")
+			expect(handler.customRequestOptions()?.headers[X_MODEL_CONTEXT_WINDOW]).toBe("232000")
 		})
 
 		it("includes taskId header when provided in metadata", () => {
@@ -261,10 +261,10 @@ describe("KilocodeOpenrouterHandler", () => {
 	})
 
 	describe("createMessage", () => {
-		it("sends the upstream model ID for a context-window variant", async () => {
+		it("sends the selected OSS model ID to the API", async () => {
 			const handler = new KilocodeOpenrouterHandler({
 				kilocodeToken: "test-token",
-				kilocodeModel: "axon-eido-3.2-code-pro-232k",
+				kilocodeModel: "zai/glm-5.3",
 			})
 
 			const mockStream = {
@@ -285,7 +285,7 @@ describe("KilocodeOpenrouterHandler", () => {
 			])
 			await generator.next()
 
-			expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ model: "axon-eido-3.2-code-pro" }), {
+			expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ model: "zai/glm-5.3" }), {
 				headers: clientMetadataHeaders,
 			})
 		})

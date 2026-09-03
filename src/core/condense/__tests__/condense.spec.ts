@@ -6,7 +6,7 @@ import { TelemetryService } from "@roo-code/telemetry"
 
 import { BaseProvider } from "../../../api/providers/base-provider"
 import { ApiMessage } from "../../task-persistence/apiMessages"
-import { summarizeConversation, getMessagesSinceLastSummary, N_MESSAGES_TO_KEEP } from "../index"
+import { summarizeConversation, getMessagesSinceLastSummary, N_MESSAGES_TO_KEEP, SUMMARY_PREFIX } from "../index"
 
 // Create a mock ApiHandler for testing
 class MockApiHandler extends BaseProvider {
@@ -81,7 +81,7 @@ describe("Condense", () => {
 			// Verify we have a summary message
 			const summaryMessage = result.messages.find((msg) => msg.isSummary)
 			expect(summaryMessage).toBeTruthy()
-			expect(summaryMessage?.content).toBe("Mock summary of the conversation")
+			expect(summaryMessage?.content).toBe(`${SUMMARY_PREFIX}\n\nMock summary of the conversation`)
 
 			// Verify we have the expected number of messages
 			// [first message, summary, last N messages]

@@ -55,7 +55,7 @@ export const DEFAULT_CONFIG = {
 			id: "default",
 			provider: "kilocode",
 			kilocodeToken: "",
-			kilocodeModel: "axon-auto-232k",
+			kilocodeModel: "deepseek/deepseek-v4-flash-0731",
 		},
 	],
 	autoApproval: DEFAULT_AUTO_APPROVAL,

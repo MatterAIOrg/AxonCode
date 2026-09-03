@@ -203,7 +203,7 @@ export async function performBrowserAuth(source: string = "axon-code-cli"): Prom
 					id: "default",
 					provider: "kilocode",
 					kilocodeToken: token,
-					kilocodeModel: "axon-auto-232k",
+					kilocodeModel: "deepseek/deepseek-v4-flash-0731",
 				},
 			],
 		}
