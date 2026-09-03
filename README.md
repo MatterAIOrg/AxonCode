@@ -85,13 +85,17 @@ Orbital provides a comprehensive suite of intelligent tools:
 
 ## 🤖 AI Models
 
-Choose the right model for your workflow — switch seamlessly between efficiency and power:
+Choose the right model for your workflow — switch seamlessly between efficiency and power. The model catalog is served dynamically from the MatterAI backend, so new models appear automatically in the model selector:
 
-| Model             | Credit Usage | Use Case              | Capabilities                                                                |
-| ----------------- | ------------ | --------------------- | --------------------------------------------------------------------------- |
-| **`axon-mini`**   | 0.5x         | Quick tasks           | Lightweight, fast, cost-effective for high-volume usage                     |
-| **`axon-code`**   | 0.8x         | Daily coding tasks    | High intelligence, balanced performance, best for regular coding            |
-| **`axon-code-2`** | 1x           | Complex agentic tasks | Maximum intelligence, complex context harness, best for complex development |
+| Model                          | Provider | Credit Usage | Use Case              | Capabilities                                                    |
+| ------------------------------ | -------- | ------------ | --------------------- | --------------------------------------------------------------- |
+| **Muse Spark 1.3 Contributor** | Meta     | 2x           | Everyday coding       | Open general-purpose model for everyday coding tasks            |
+| **DeepSeek V4 Flash**          | DeepSeek | 5x           | Fast, low-cost coding | Fast, low-cost open model for day-to-day coding tasks           |
+| **GLM 5.3**                    | Z.ai     | 4x           | Complex agentic tasks | Frontier open model for complex coding and long-running agents  |
+| **GLM 5.3 Flash**              | Z.ai     | 4x           | Everyday coding       | Fast, low-cost open model for everyday coding tasks             |
+| **GPT-5.6 Luna**               | OpenAI   | 2x           | Everyday coding       | Fast, low-cost open model for everyday coding tasks             |
+| **GPT-5.6 Sol**                | OpenAI   | 5x           | Complex reasoning     | Open reasoning model for complex coding and long-running agents |
+| **Gemini 3.8 Flash**           | Google   | 3x           | Everyday coding       | Fast, low-cost model for everyday coding tasks                  |
 
 ## 📦 Installation
 
