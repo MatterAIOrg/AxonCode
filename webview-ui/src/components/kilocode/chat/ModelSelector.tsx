@@ -1,4 +1,4 @@
-import { DropdownOption, DropdownOptionType, SelectDropdown, StandardTooltip } from "@/components/ui"
+import { DropdownOption, DropdownOptionType, ProviderLogo, SelectDropdown, StandardTooltip } from "@/components/ui"
 import { usePreferredModels } from "@/components/ui/hooks/kilocode/usePreferredModels"
 import { useThirdPartyModels } from "@/components/ui/hooks/useOllamaModels"
 import { Alert02Icon } from "@/utils/customIcons"
@@ -462,6 +462,7 @@ export const ModelSelector = ({
 							: "hover:bg-[var(--vscode-button-hoverBackground)] hover:text-[var(--vscode-button-foreground)] text-[var(--vscode-foreground)] opacity-70",
 				)}>
 				{isConfigureOption ? <Settings className="opacity-80 mr-1.5 size-4 shrink-0" /> : null}
+				<ProviderLogo src={providerModels[option.value]?.iconUrl} className="size-4" />
 				<div className="flex-1 min-w-0 flex items-baseline gap-2">
 					<div className="font-bold text-sm shrink-0">
 						<ModelLabel label={option.label} />
@@ -651,7 +652,12 @@ export const ModelSelector = ({
 			renderItem={renderItem}
 			renderValue={(option) => {
 				const is400k = providerModels[option.value]?.contextWindow === 400000 || is400kAxonModel(option.value)
-				return <ModelLabel label={formatSelectedModelLabel(option.label, is400k)} />
+				return (
+					<span className="flex min-w-0 items-center gap-1.5">
+						<ProviderLogo src={providerModels[option.value]?.iconUrl} className="size-4" />
+						<ModelLabel label={formatSelectedModelLabel(option.label, is400k)} />
+					</span>
+				)
 			}}
 			onRefresh={handleRefreshModels} // Always show refresh since matterai3p is always enabled
 		/>

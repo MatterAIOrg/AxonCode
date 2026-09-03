@@ -16,6 +16,8 @@ export type KiloCodeModel = {
 	datacenters: Array<{ country_code: string }>
 	created: number
 	owned_by: string
+	// Provider logo URL (SVG) from the backend catalog, rendered by the webview.
+	iconUrl?: string
 	pricing: {
 		type?: "dynamic"
 		display?: string
@@ -218,6 +220,7 @@ export function registerDynamicKilocodeModels(rawModels: Array<Record<string, an
 			supported_features: raw.supported_features || OSS_MODEL_BASE.supported_features,
 			owned_by: raw.owned_by || raw.id.split("/")[0] || "matterai",
 			openrouter: { slug: raw.id },
+			iconUrl: typeof raw.iconUrl === "string" && raw.iconUrl ? raw.iconUrl : undefined,
 			pricing: {
 				...OSS_MODEL_BASE.pricing,
 				prompt: typeof pricingObj.prompt === "string" ? pricingObj.prompt : String(pricingObj.prompt ?? "0"),

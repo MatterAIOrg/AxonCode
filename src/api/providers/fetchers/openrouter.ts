@@ -107,6 +107,7 @@ const matterAiOpenRouterModelSchema = z.object({
 	input_modalities: z.array(z.string()).optional(),
 	output_modalities: z.array(z.string()).optional(),
 	supported_sampling_parameters: z.array(z.string()).optional(),
+	iconUrl: z.string().optional(),
 	pricing: z
 		.object({
 			prompt: z.string().optional(),
@@ -155,6 +156,7 @@ export async function getOpenRouterModels(
 			outputModality: model.output_modalities,
 			maxTokens: model.max_output_length,
 			supportedParameters: model.supported_sampling_parameters,
+			iconUrl: model.iconUrl,
 		})
 	}
 
@@ -213,6 +215,7 @@ export async function getOpenRouterModels(
 				outputModality: rawModel.output_modalities,
 				maxTokens: rawModel.max_output_length,
 				supportedParameters: rawModel.supported_sampling_parameters,
+				iconUrl: rawModel.iconUrl,
 			})
 		}
 	} catch (error) {
@@ -258,6 +261,7 @@ export async function getOpenRouterModelEndpoints(
 			outputModality: staticModel.output_modalities,
 			maxTokens: staticModel.max_output_length,
 			supportedParameters: staticModel.supported_sampling_parameters,
+			iconUrl: staticModel.iconUrl,
 		})
 		return models
 	}
@@ -321,6 +325,7 @@ export async function getOpenRouterModelEndpoints(
 			outputModality: rawModel.output_modalities,
 			maxTokens: rawModel.max_output_length,
 			supportedParameters: rawModel.supported_sampling_parameters,
+			iconUrl: rawModel.iconUrl,
 		})
 	} catch (error) {
 		console.error(
@@ -343,6 +348,7 @@ export const parseOpenRouterModel = ({
 	outputModality,
 	maxTokens,
 	supportedParameters,
+	iconUrl, // kilocode_change
 }: {
 	id: string
 	model: OpenRouterBaseModel
@@ -351,6 +357,7 @@ export const parseOpenRouterModel = ({
 	outputModality: string[] | null | undefined
 	maxTokens: number | null | undefined
 	supportedParameters?: string[]
+	iconUrl?: string // kilocode_change
 }): ModelInfo => {
 	const cacheWritesPrice = model.pricing?.input_cache_write
 		? parseApiPrice(model.pricing?.input_cache_write)
@@ -375,6 +382,7 @@ export const parseOpenRouterModel = ({
 		// forked_change start
 		displayName,
 		preferredIndex: model.preferredIndex,
+		iconUrl,
 		// forked_change end
 	}
 

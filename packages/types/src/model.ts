@@ -79,6 +79,9 @@ export const modelInfoSchema = z.object({
 	// forked_change start
 	displayName: z.string().nullish(),
 	preferredIndex: z.number().nullish(),
+	// Provider logo URL (SVG) from the MatterAI catalog; rendered by the UI
+	// on a white circular background.
+	iconUrl: z.string().nullish(),
 	// forked_change end
 	// Flag to indicate if the model is deprecated and should not be used
 	deprecated: z.boolean().optional(),

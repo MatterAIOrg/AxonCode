@@ -571,6 +571,9 @@ export interface AxonCodeModelUsage {
 	// Share of the shared weekly / monthly plan windows, as percentages.
 	weeklyPercentage: number
 	monthlyPercentage: number
+	// Provider logo URL (SVG) from the agent model catalog, rendered on a
+	// white circular background.
+	iconUrl?: string
 }
 
 export interface ProfileDataResponsePayload {

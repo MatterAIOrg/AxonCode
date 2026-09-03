@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import { ProviderLogo } from "@/components/ui"
 import { vscode } from "@/utils/vscode"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AxonCodeModelUsage, AxonCodeTieredUsage, ProfileData, WebviewMessage } from "@roo/WebviewMessage"
@@ -56,7 +57,10 @@ const ModelUsageRow: React.FC<{ entry: AxonCodeModelUsage }> = ({ entry }) => {
 	return (
 		<div className="flex flex-col gap-1.5 p-2 rounded bg-[var(--vscode-sideBar-background)] border border-[var(--vscode-panel-border)]/50">
 			<div className="flex justify-between items-center gap-2 text-[11px]">
-				<span className="font-medium text-[var(--vscode-foreground)] truncate">{entry.model}</span>
+				<span className="flex min-w-0 items-center gap-1.5 font-medium text-[var(--vscode-foreground)]">
+					<ProviderLogo src={entry.iconUrl} className="size-4" />
+					<span className="truncate">{entry.model}</span>
+				</span>
 				<span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] shrink-0">
 					{entry.multiplier}x limit
 				</span>
