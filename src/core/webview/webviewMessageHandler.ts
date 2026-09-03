@@ -1905,11 +1905,17 @@ ${comment.suggestion}
 			// forked_change start: openrouter auth, kilocode provider
 			const openRouterApiKey = apiConfiguration.openRouterApiKey || message?.values?.openRouterApiKey
 			const openRouterBaseUrl = apiConfiguration.openRouterBaseUrl || message?.values?.openRouterBaseUrl
+			const forceRefresh = Boolean(message?.values?.forceRefresh)
 
 			const modelFetchPromises: Array<{ key: RouterName; options: GetModelsOptions }> = [
 				{
 					key: "openrouter",
-					options: { provider: "openrouter", apiKey: openRouterApiKey, baseUrl: openRouterBaseUrl },
+					options: {
+						provider: "openrouter",
+						apiKey: openRouterApiKey,
+						baseUrl: openRouterBaseUrl,
+						forceRefresh,
+					},
 				},
 				{
 					key: "kilocode-openrouter",
@@ -1917,6 +1923,7 @@ ${comment.suggestion}
 						provider: "kilocode-openrouter",
 						kilocodeToken: apiConfiguration.kilocodeToken,
 						kilocodeOrganizationId: apiConfiguration.kilocodeOrganizationId,
+						forceRefresh,
 					},
 				},
 			]

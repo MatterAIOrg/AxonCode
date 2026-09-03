@@ -514,6 +514,10 @@ export type ProfileData = {
 	// Tiered usage windows (weekly / monthly). Each window is expressed
 	// as a fraction of the user's monthly plan limit.
 	tieredUsage?: AxonCodeTieredUsage
+	// Per-model usage for the tracked OSS models. Each entry attributes the
+	// model's share of the shared plan pool as percentages of the same
+	// weekly/monthly windows (no credit amounts are exposed).
+	modelUsage?: AxonCodeModelUsage[]
 	weeklyReset?: AxonCodeWeeklyResetAvailability
 	// Overage lets the plan keep running on shared org API credits once the
 	// plan windows hit 98%. `enabled` is true only when the org has turned
@@ -556,6 +560,17 @@ export interface AxonCodeTieredUsage {
 	monthlyLimit: number
 	weekly: AxonCodeWindowUsage
 	monthly: AxonCodeWindowUsage
+}
+
+export interface AxonCodeModelUsage {
+	// OSS catalog model id (e.g. "zai/glm-5.3").
+	model: string
+	// Plan-cost multiplier applied to this model's charges (e.g. 5 for
+	// deepseek, 1 for untracked/axon models).
+	multiplier: number
+	// Share of the shared weekly / monthly plan windows, as percentages.
+	weeklyPercentage: number
+	monthlyPercentage: number
 }
 
 export interface ProfileDataResponsePayload {

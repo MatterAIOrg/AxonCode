@@ -3,6 +3,7 @@ import {
 	Blocks,
 	CheckCheck,
 	CircleUserRound,
+	Cpu,
 	Database,
 	// GitPullRequest,
 	// Info, // kilocode_change: hidden for now
@@ -61,6 +62,7 @@ import { AutoApproveSettings } from "./AutoApproveSettings"
 // import { BrowserSettings } from "./BrowserSettings"
 // import { CheckpointSettings } from "./CheckpointSettings"
 import { CodeIndexSettings } from "./CodeIndexSettings"
+import { ModelUsageSettings } from "./ModelUsageSettings"
 // import { CodeReviewSettings as CodeReviewSettingsComponent } from "./CodeReviewSettings"
 // import { ContextManagementSettings } from "./ContextManagementSettings"
 // import { DisplaySettings } from "./DisplaySettings" // kilocode_change
@@ -105,6 +107,7 @@ const sectionNames = [
 	"plugins",
 	"codeIndex", // kilocode_change
 	// "codeReview", // kilocode_change
+	"modelUsage", // kilocode_change
 	"developerTools", // kilocode_change: renamed from about
 ] as const
 
@@ -609,6 +612,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>((props, ref)
 			{ id: "language", icon: Languages },
 			{ id: "mcp", icon: Server },
 			{ id: "codeIndex", icon: Database }, // kilocode_change
+			{ id: "modelUsage", icon: Cpu }, // kilocode_change
 			{ id: "thirdPartyProviders", icon: Plug },
 
 			{ id: "developerTools", icon: Wrench }, // kilocode_change: renamed from about with wrench icon
@@ -743,7 +747,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>((props, ref)
 								</p>
 							</div>
 							<div className="flex items-center gap-2 shrink-0">
-								{!["mcp", "plugins"].includes(activeTab) && (
+								{!["mcp", "plugins", "modelUsage"].includes(activeTab) && (
 									<StandardTooltip
 										content={
 											!isSettingValid
@@ -971,6 +975,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>((props, ref)
 
 						{/* Code Index Section */}
 						{activeTab === "codeIndex" && <CodeIndexSettings />}
+
+						{/* Model Usage Section */}
+						{activeTab === "modelUsage" && <ModelUsageSettings />}
 
 						{/* Code Review Section */}
 						{/* {activeTab === "codeReview" && (

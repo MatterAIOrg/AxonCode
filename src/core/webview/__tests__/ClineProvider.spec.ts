@@ -2035,6 +2035,15 @@ describe("ClineProvider", () => {
 		beforeEach(async () => {
 			await provider.resolveWebviewView(mockWebviewView)
 			logSpy = vi.spyOn(provider, "log").mockImplementation(() => {})
+
+			// Seed the dynamic catalog the way the backend /v1/web/models fetch
+			// does at runtime, so isValidKilocodeModel validates against real
+			// entries instead of hitting the empty-catalog bypass.
+			const { registerDynamicKilocodeModels } = await import("../../../api/providers/kilocode-models")
+			registerDynamicKilocodeModels([
+				{ id: "deepseek/deepseek-v4-flash-0731", name: "DeepSeek V4 Flash" },
+				{ id: "zai/glm-5.3", name: "GLM 5.3" },
+			])
 		})
 
 		afterEach(() => {

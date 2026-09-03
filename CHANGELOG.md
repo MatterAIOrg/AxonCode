@@ -1,10 +1,21 @@
 # Changelog
 
-## [v6.8.3] - 2026-09-02
+## [v6.8.4] - 2026-09-03
+
+### Added
+
+- **Per-model usage visibility.** The usage dialog and a new Settings → Model Usage section now show each tracked OSS model's share of the shared plan pool as weekly/monthly percentages (no credit amounts), alongside the model's plan-cost multiplier badge (e.g. `5x cost`). The new settings section also renders the weekly/monthly plan windows with reset times and a refresh action, and is excluded from the save-button flow since it is read-only. Backend: `/axoncode/profile` now returns a `modelUsage` array (`model`, `multiplier`, `weeklyPercentage`, `monthlyPercentage`); charges for tracked OSS models are multiplied by their plan-cost multiplier before draining the shared pool.
 
 ### Changed
 
+- **Dynamic model catalog synchronization.** Models are now dynamically fetched from the MatterAI backend `/v1/models` (or `/v1/web/models`) and registered into the client model registry (`registerDynamicKilocodeModels`), replacing static hardcoded lists while continuing to exclude deprecated axon models from active selection. Models automatically refresh on window focus, via the refresh button in the model selector, and through a 10-minute background poller. Cache bypass (`forceRefresh`) ensures database updates reflect immediately without restarting the extension.
+
 - **OSS model catalog replaces Axon models.** The KiloCode model catalog (extension `kilocode-models.ts` and the webview `useOpenRouterModelProviders` copy) now exposes seven OSS models — `meta/muse-spark-1.2-contributor` (Muse Spark 1.2 Contributor), `deepseek/deepseek-v4-flash-0731` (DeepSeek V4 Flash), `zai/glm-5.3` (GLM 5.3), `zai/glm-5.3-flash` (GLM 5.3 Flash), `gpt-5.6-sol` (GPT-5.6 Sol), `gpt-5.6-luna` (GPT-5.6 Luna), and `gemini-3.7-flash` (Gemini 3.7 Flash) — in place of the Axon context-window variants. Each OSS model carries its published per-token pricing (Muse Spark 1.2 Contributor $0.10/M input, $0.002/M cache read, $0.20/M output; DeepSeek V4 Flash $0.14/M input, $0.028/M cache read, $0.28/M output; GLM 5.3 $1.40/M input, $0.14/M cache read, $4.40/M output; GLM 5.3 Flash $0.15/M input, $0.03/M cache read, $0.50/M output; GPT-5.6 Sol $5/M input, $0.50/M cache read, $30/M output; GPT-5.6 Luna $0.20/M input, $0.02/M cache read, $1.20/M output; Gemini 3.7 Flash $0.75/M input, $0.075/M cache read, $3.75/M output). The default model is `deepseek/deepseek-v4-flash-0731` (`openRouterDefaultModelId` in `@roo-code/types`, plus the CLI `kilocodeModel` defaults and web-evals `MODEL_DEFAULT`). Stored Axon model selections are now stale and reset to the default on next launch via the existing `isValidKilocodeModel` stale-model check.
+
+### Fixed
+
+- **OpenRouter models no longer wiped on background refresh.** `refreshKilocodeModels` (window-focus refresh, 10-minute poller, startup fetch) previously posted `openrouter: {}` to the webview, blanking the OpenRouter model list until the next manual reload. It now fetches both `openrouter` and `kilocode-openrouter` in parallel (mirroring the `requestRouterModels` handler) and posts the merged payload, logging and skipping only the provider that failed.
+- **Stale model selections reset on launch.** The dynamic catalog is now fetched once at provider startup (after `ContextProxy` initialization) and the webview state re-posted, so the `isValidKilocodeModel` stale-model check runs against a populated catalog instead of the empty-catalog bypass. Previously, a stored axon model survived until the first focus- or webview-triggered fetch completed.
 
 ## [v6.8.2] - 2026-08-28
 

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { vscode } from "@/utils/vscode"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ProfileData, WebviewMessage, AxonCodeTieredUsage } from "@roo/WebviewMessage"
-import { Activity, Gauge, Sparkles, Wallet, ShieldCheck, Layers } from "lucide-react"
+import { Activity, Cpu, Gauge, Sparkles, Wallet, ShieldCheck, Layers } from "lucide-react"
 
 interface UsageDialogProps {
 	open: boolean
@@ -306,6 +306,56 @@ export const UsageDialog: React.FC<UsageDialogProps> = ({
 							</div>
 						)}
 					</div>
+
+					{/* 3. MODEL USAGE */}
+					{profileData?.modelUsage && profileData.modelUsage.length > 0 && (
+						<div className="rounded-lg border border-[var(--vscode-panel-border)] p-3 bg-[var(--vscode-editor-background)] flex flex-col gap-2.5">
+							<div className="flex items-center gap-1.5 font-medium text-[var(--vscode-foreground)]">
+								<Cpu className="size-4 text-cyan-400" />
+								<span>Model Usage</span>
+							</div>
+							<div className="text-[10px] text-[var(--vscode-descriptionForeground)]">
+								Each model&apos;s share of your plan windows (weekly / monthly).
+							</div>
+							<div className="flex flex-col gap-2">
+								{profileData.modelUsage.map((entry) => (
+									<div
+										key={entry.model}
+										className="flex flex-col gap-1.5 p-2 rounded bg-[var(--vscode-sideBar-background)] border border-[var(--vscode-panel-border)]/50">
+										<div className="flex justify-between items-center gap-2 text-[11px]">
+											<span className="font-medium text-[var(--vscode-foreground)] truncate">
+												{entry.model}
+											</span>
+											<span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] shrink-0">
+												{entry.multiplier}x cost
+											</span>
+										</div>
+										{(["weekly", "monthly"] as const).map((window) => {
+											const raw =
+												window === "weekly" ? entry.weeklyPercentage : entry.monthlyPercentage
+											const pct = Math.max(0, Math.min(100, raw || 0))
+											return (
+												<div key={window} className="flex items-center gap-2">
+													<span className="w-12 shrink-0 text-[10px] text-[var(--vscode-descriptionForeground)] capitalize">
+														{window}
+													</span>
+													<div className="flex-1 h-1.5 rounded-full bg-[var(--vscode-panel-border)] overflow-hidden">
+														<div
+															className="h-full bg-[var(--vscode-textLink-foreground)] rounded-full transition-all"
+															style={{ width: `${pct}%` }}
+														/>
+													</div>
+													<span className="w-11 shrink-0 text-right text-[10px] text-[var(--vscode-descriptionForeground)]">
+														{pct.toFixed(1)}%
+													</span>
+												</div>
+											)
+										})}
+									</div>
+								))}
+							</div>
+						</div>
+					)}
 				</div>
 			</DialogContent>
 		</Dialog>

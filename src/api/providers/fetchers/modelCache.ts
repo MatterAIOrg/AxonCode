@@ -57,9 +57,9 @@ export /*kilocode_change*/ async function readModels(router: RouterName): Promis
  * @returns The models from the cache or the fetched models.
  */
 export const getModels = async (options: GetModelsOptions): Promise<ModelRecord> => {
-	const { provider } = options
+	const { provider, forceRefresh } = options
 
-	let models = getModelsFromCache(provider)
+	let models = !forceRefresh ? getModelsFromCache(provider) : undefined
 
 	if (models) {
 		return models
@@ -71,7 +71,10 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 				// forked_change start: base url and bearer token
 				models = await getOpenRouterModels({
 					openRouterBaseUrl: options.baseUrl,
-					headers: options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : undefined,
+					headers: {
+						...(options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : {}),
+						...(forceRefresh ? { "Cache-Control": "no-cache" } : {}),
+					},
 				})
 				// forked_change end
 				break
@@ -96,9 +99,19 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 					? `https://api.matterai.so/organizations/${options.kilocodeOrganizationId}`
 					: "https://api.matterai.so/v1/web"
 				const openRouterBaseUrl = getKiloUrlFromToken(backendUrl, options.kilocodeToken ?? "")
+				const headers: Record<string, string> = {}
+				if (options.kilocodeToken) {
+					headers["Authorization"] = `Bearer ${options.kilocodeToken}`
+				}
+				if (options.kilocodeOrganizationId) {
+					headers["X-KILOCODE-ORGANIZATIONID"] = options.kilocodeOrganizationId
+				}
+				if (forceRefresh) {
+					headers["Cache-Control"] = "no-cache"
+				}
 				models = await getOpenRouterModels({
 					openRouterBaseUrl,
-					headers: options.kilocodeToken ? { Authorization: `Bearer ${options.kilocodeToken}` } : undefined,
+					headers,
 				})
 				break
 			}

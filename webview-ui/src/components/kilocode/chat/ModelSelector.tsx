@@ -53,7 +53,6 @@ const sanitizeModelLabel = (modelId: string, provider: string): string => {
 
 const MODEL_QUALIFIER_PATTERN = /\s*(\((?:232k context|400k context|free)\))$/i
 
-const isStandardContextWindow = (cw?: number): boolean => cw === 232000
 const isExtendedContextWindow = (cw?: number): boolean => cw === 400000
 
 const ModelLabel = ({ label }: { label: string }) => {
@@ -86,8 +85,16 @@ export const ModelSelector = ({
 }: ModelSelectorProps) => {
 	const { t } = useAppTranslation()
 	const { currentTaskItem } = useExtensionState()
-	const { provider, providerModels, providerDefaultModel, isLoading, isError, proModelIds, proModelsEnabled } =
-		useProviderModels(apiConfiguration)
+	const {
+		provider,
+		providerModels,
+		providerDefaultModel,
+		isLoading,
+		isError,
+		proModelIds,
+		proModelsEnabled,
+		refetchRouterModels,
+	} = useProviderModels(apiConfiguration)
 
 	// Check if a third-party model is selected
 	const thirdPartySelectedModel = apiConfiguration?.thirdPartySelectedModel
@@ -131,8 +138,13 @@ export const ModelSelector = ({
 	const { data: ollamaModels, refetch: refetchOllamaModels } = useThirdPartyModels("ollama", ollamaEnabled)
 	const { data: opencodeModels, refetch: refetchOpencodeModels } = useThirdPartyModels("opencode", opencodeEnabled)
 
-	// Refresh all third-party models
+	// Refresh all models (kilocode/openrouter + third-party)
 	const handleRefreshModels = useCallback(() => {
+		vscode.postMessage({ type: "flushRouterModels", text: "kilocode-openrouter" })
+		vscode.postMessage({ type: "requestRouterModels", values: { forceRefresh: true } })
+		if (refetchRouterModels) {
+			refetchRouterModels()
+		}
 		refetchMatterai3pModels()
 		if (ollamaEnabled) {
 			refetchOllamaModels()
@@ -140,7 +152,14 @@ export const ModelSelector = ({
 		if (opencodeEnabled) {
 			refetchOpencodeModels()
 		}
-	}, [ollamaEnabled, opencodeEnabled, refetchMatterai3pModels, refetchOllamaModels, refetchOpencodeModels])
+	}, [
+		ollamaEnabled,
+		opencodeEnabled,
+		refetchMatterai3pModels,
+		refetchOllamaModels,
+		refetchOpencodeModels,
+		refetchRouterModels,
+	])
 
 	// Separate matterai3p models (always shown after Axon models)
 	const matterai3pOptions = useMemo(() => {
@@ -202,10 +221,10 @@ export const ModelSelector = ({
 		// Filter Axon models to only include models corresponding to active context window
 		const filteredAxonModelIds = modelsIds.filter((modelId) => {
 			const cw = providerModels[modelId]?.contextWindow
-			if (isStandardContextWindow(cw) || isExtendedContextWindow(cw)) {
-				return contextMode === "400k" ? isExtendedContextWindow(cw) : isStandardContextWindow(cw)
+			if (contextMode === "400k") {
+				return isExtendedContextWindow(cw)
 			}
-			return true
+			return !isExtendedContextWindow(cw)
 		})
 
 		// Determine the active model ID representation for the selected context
@@ -229,12 +248,14 @@ export const ModelSelector = ({
 			.concat(filteredAxonModelIds)
 			.filter((modelId) => {
 				const cw = providerModels[modelId]?.contextWindow
+				if (contextMode === "400k") {
+					return isExtendedContextWindow(cw)
+				}
 				return (
-					(contextMode === "400k" ? isExtendedContextWindow(cw) : isStandardContextWindow(cw)) ||
-					(!cw &&
-						!modelId.startsWith("matterai3p:") &&
-						!modelId.startsWith("ollama:") &&
-						!modelId.startsWith("opencode:"))
+					!isExtendedContextWindow(cw) &&
+					!modelId.startsWith("matterai3p:") &&
+					!modelId.startsWith("ollama:") &&
+					!modelId.startsWith("opencode:")
 				)
 			})
 			.map((modelId) => {

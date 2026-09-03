@@ -37,6 +37,7 @@
 		"language": "Language",
 		"codeIndex": "Code Indexing",
 		"codeReview": "AI Code Reviews",
+		"modelUsage": "Model Usage",
 		"developerTools": "Developer Tools"
 	},
 	"slashCommands": {

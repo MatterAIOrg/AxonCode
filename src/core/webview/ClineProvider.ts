@@ -107,6 +107,8 @@ import { stringifyError } from "../../shared/kilocode/errorUtils"
 import isWsl from "is-wsl"
 import { getKilocodeDefaultModel } from "../../api/providers/kilocode/getKilocodeDefaultModel"
 import { isValidKilocodeModel } from "../../api/providers/kilocode-models"
+import { getModels, flushModels } from "../../api/providers/fetchers/modelCache"
+import { type RouterName, type ModelRecord, type GetModelsOptions } from "../../shared/api"
 import { getKiloCodeWrapperProperties } from "../../core/kilocode/wrapper"
 import { getKiloUrlFromToken } from "@roo-code/types" // kilocode_change
 import { getKilocodeConfig, getWorkspaceProjectId, KilocodeConfig } from "../../utils/kilo-config-file" // kilocode_change
@@ -167,6 +169,7 @@ export class ClineProvider
 	private usageGitHead?: string
 	private usageGitReportInFlight = false
 	private settingsStateSyncTimer?: NodeJS.Timeout
+	private modelsRefreshInterval?: NodeJS.Timeout
 
 	private recentTasksCache?: string[]
 	private pendingOperations: Map<string, PendingEditOperation> = new Map()
@@ -326,14 +329,45 @@ export class ClineProvider
 		}
 
 		// Multi-window synchronization: refresh secrets and global state when window gains focus
+		let lastModelFocusRefresh = 0
 		const windowStateDisposable = vscode.window.onDidChangeWindowState(async (e) => {
 			if (e.focused && this.contextProxy.isInitialized) {
 				await this.contextProxy.refreshSecrets()
 				await this.contextProxy.refreshGlobalState()
 				await this.postStateToWebview()
+
+				const now = Date.now()
+				if (now - lastModelFocusRefresh > 5000) {
+					lastModelFocusRefresh = now
+					this.refreshKilocodeModels({ forceRefresh: true }).catch((err) =>
+						this.log(`Error refreshing models on focus: ${err}`),
+					)
+				}
 			}
 		})
 		this.disposables.push(windowStateDisposable)
+
+		// Background 10-minute periodic model check
+		this.modelsRefreshInterval = setInterval(
+			() => {
+				this.refreshKilocodeModels({ forceRefresh: true }).catch((err) =>
+					this.log(`Error in 10-min background models refresh: ${err}`),
+				)
+			},
+			10 * 60 * 1000,
+		)
+		this.modelsRefreshInterval.unref?.()
+
+		// kilocode_change: populate the dynamic model catalog once at startup so
+		// stale model selections (e.g. removed axon models) are validated and reset
+		// by getState() as soon as the catalog is available. Without this,
+		// isValidKilocodeModel() treats every model as valid until the first fetch
+		// completes, letting stale selections survive the launch.
+		if (this.contextProxy.isInitialized) {
+			this.refreshKilocodeModels()
+				.then(() => this.postStateToWebview())
+				.catch((err) => this.log(`Error during startup models refresh: ${err}`))
+		}
 
 		// kilocode_change: Setup git HEAD watcher for real-time branch updates
 		this.setupGitHeadWatcher()
@@ -501,6 +535,68 @@ export class ClineProvider
 			this.log(`Failed to report Git usage metrics: ${error}`)
 		} finally {
 			this.usageGitReportInFlight = false
+		}
+	}
+
+	public async refreshKilocodeModels(options: { forceRefresh?: boolean } = {}): Promise<void> {
+		try {
+			const { apiConfiguration } = await this.getState()
+			if (options.forceRefresh) {
+				await flushModels("kilocode-openrouter")
+				await flushModels("openrouter")
+			}
+
+			// forked_change start: fetch both openrouter and kilocode-openrouter
+			// Mirrors the requestRouterModels handler so the webview receives the
+			// full routerModels payload; posting an empty openrouter map would
+			// wipe the OpenRouter model list in the webview on every refresh.
+			const modelFetchPromises: Array<{ key: RouterName; options: GetModelsOptions }> = [
+				{
+					key: "openrouter",
+					options: {
+						provider: "openrouter",
+						apiKey: apiConfiguration?.openRouterApiKey,
+						baseUrl: apiConfiguration?.openRouterBaseUrl,
+						forceRefresh: options.forceRefresh,
+					},
+				},
+				{
+					key: "kilocode-openrouter",
+					options: {
+						provider: "kilocode-openrouter",
+						kilocodeToken: apiConfiguration?.kilocodeToken,
+						kilocodeOrganizationId: apiConfiguration?.kilocodeOrganizationId,
+						forceRefresh: options.forceRefresh,
+					},
+				},
+			]
+
+			const results = await Promise.allSettled(
+				modelFetchPromises.map(async ({ options }) => await getModels(options)),
+			)
+
+			const routerModels: Record<RouterName, ModelRecord> = {
+				openrouter: {},
+				"kilocode-openrouter": {},
+			}
+
+			results.forEach((result, index) => {
+				if (result.status === "fulfilled") {
+					routerModels[modelFetchPromises[index].key] = result.value
+				} else {
+					this.log(
+						`Failed to refresh ${modelFetchPromises[index].key} models: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`,
+					)
+				}
+			})
+
+			this.postMessageToWebview({
+				type: "routerModels",
+				routerModels,
+			})
+			// forked_change end
+		} catch (error) {
+			this.log(`Failed to refresh kilocode models: ${error}`)
 		}
 	}
 
@@ -905,6 +1001,8 @@ export class ClineProvider
 		this.usageGitRefsWatcher = undefined
 		if (this.usageGitPoller) clearInterval(this.usageGitPoller)
 		this.usageGitPoller = undefined
+		if (this.modelsRefreshInterval) clearInterval(this.modelsRefreshInterval)
+		this.modelsRefreshInterval = undefined
 		await this.mcpHub?.unregisterClient()
 		this.mcpHub = undefined
 		this.marketplaceManager?.cleanup()
@@ -2698,6 +2796,19 @@ ${prompt}
 		// Ensure apiProvider is set properly if not already in state
 		if (!providerSettings.apiProvider) {
 			providerSettings.apiProvider = apiProvider
+		}
+
+		// Validate global kilocodeModel against available models.
+		if (providerSettings?.apiProvider === "kilocode" && providerSettings?.kilocodeModel) {
+			if (!isValidKilocodeModel(providerSettings.kilocodeModel)) {
+				const staleModel = providerSettings.kilocodeModel
+				const defaultModel = await getKilocodeDefaultModel()
+				providerSettings.kilocodeModel = defaultModel
+				await this.contextProxy.setProviderSettings(providerSettings)
+				this.log(
+					`[ModelValidation] Reset stale kilocodeModel "${staleModel}" to default "${defaultModel}" — model no longer available`,
+				)
+			}
 		}
 
 		let organizationAllowList = ORGANIZATION_ALLOW_ALL

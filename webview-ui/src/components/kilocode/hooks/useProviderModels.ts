@@ -326,6 +326,7 @@ export const useProviderModels = (apiConfiguration?: ProviderSettings) => {
 		providerDefaultModel: defaultModel,
 		isLoading: routerModels.isLoading,
 		isError: routerModels.isError,
+		refetchRouterModels: routerModels.refetch,
 		// kilocode_change: pro models support
 		proModelIds,
 		proModelsEnabled,

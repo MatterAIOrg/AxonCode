@@ -148,6 +148,7 @@ export const getModelMaxOutputTokens = ({
 type CommonFetchParams = {
 	apiKey?: string
 	baseUrl?: string
+	forceRefresh?: boolean
 }
 
 // Exhaustive, value-level map for all dynamic providers.
