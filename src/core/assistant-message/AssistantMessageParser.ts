@@ -10,6 +10,71 @@ import Anthropic from "@anthropic-ai/sdk" // kilocode_change
  */
 export type McpToolChecker = (toolName: string) => { isMcpTool: boolean; serverName?: string } | undefined
 
+// forked_change start
+/**
+ * Placeholder tags some models leak into tool-call JSON arguments, e.g.
+ * `"limit": <longcat_arg_value>180`. The tag is an artifact of the provider's
+ * internal argument templating and makes the arguments invalid JSON.
+ */
+const PLACEHOLDER_TAG = "<\\/?[a-zA-Z_][a-zA-Z0-9_.\\-]*>"
+
+/**
+ * Matches a placeholder tag in value position — immediately after a
+ * `"key":` — so tags inside legitimate string values are never touched.
+ */
+const VALUE_POSITION_PLACEHOLDER_TAG = new RegExp(`("[^"]*"\\s*:\\s*)${PLACEHOLDER_TAG}`, "g")
+
+/**
+ * A tag that replaced a value entirely leaves a dangling key (`"limit": }`).
+ * These remove the dangling key — and its trailing comma when another member
+ * follows — so the JSON becomes valid and the tool's default applies.
+ */
+const DANGLING_KEY_BEFORE_MEMBER = /"[^"]*"\s*:\s*,\s*/g
+const DANGLING_KEY_BEFORE_CLOSER = /(,\s*)?"[^"]*"\s*:\s*(?=\s*[}\]])/g
+
+/**
+ * Remove placeholder tags that prefix a real value:
+ * `"limit": <tag>180` becomes `"limit": 180`. Repeated until stable in case a
+ * model emits several tags in a row.
+ */
+function stripValuePositionTags(args: string): string {
+	let stripped = args
+	let previous: string
+	do {
+		previous = stripped
+		stripped = stripped.replace(VALUE_POSITION_PLACEHOLDER_TAG, "$1")
+	} while (stripped !== previous)
+	return stripped
+}
+
+/**
+ * Clean placeholder tags (e.g. `<longcat_arg_value>`) out of tool-call
+ * arguments so the call can be repaired instead of dropped:
+ *   1. `"limit": <tag>180` — the tag prefixes a real value: the tag is
+ *      removed and the value is kept.
+ *   2. `"limit": <tag>` — the tag replaces the value: the key is removed
+ *      entirely so the tool falls back to its default for that parameter.
+ *
+ * @returns the cleaned string, or undefined when no placeholder tags were
+ *   present (callers skip this repair entirely).
+ */
+export function stripPlaceholderTags(rawArgs: string): string | undefined {
+	const stripped = stripValuePositionTags(rawArgs)
+	if (stripped === rawArgs) {
+		return undefined
+	}
+	return stripped.replace(DANGLING_KEY_BEFORE_MEMBER, "").replace(DANGLING_KEY_BEFORE_CLOSER, "")
+}
+
+/**
+ * Quote bare scalar values (e.g. `{"file_pattern": *.js}`) so the result is
+ * valid JSON. Only ever applied after a strict parse failure.
+ */
+function quoteBareScalarValues(args: string): string {
+	return args.replace(/("([^"]+)"\s*:\s*)([a-zA-Z0-9_.*\/\\-]+)(?=\s*[,\]}])/g, '$1"$3"')
+}
+// forked_change end
+
 /**
  * Parse a native tool-call `arguments` JSON string robustly.
  *
@@ -26,9 +91,11 @@ export type McpToolChecker = (toolName: string) => { isMcpTool: boolean; serverN
  *   1. Only attempt parsing once the buffer looks like JSON (`{`/`[`).
  *   2. Try strict `JSON.parse` first. This is the ONLY path valid JSON ever
  *      takes, so well-formed arguments are never mutated.
- *   3. Only if strict parsing throws do we attempt a conservative repair for
- *      genuinely-malformed JSON (unquoted scalar values like
- *      `{"file_pattern": *.js}`) and parse once more.
+ *   3. Only if strict parsing throws do we attempt conservative repairs for
+ *      genuinely-malformed JSON and parse again: strip placeholder tags (e.g.
+ *      `"limit": <longcat_arg_value>180` — the value after the tag is kept,
+ *      a tag-only value drops the key so the tool default applies), then quote
+ *      unquoted scalar values (e.g. `{"file_pattern": *.js}`).
  *
  * @returns `{ parsed }` when complete & valid, or `undefined` when the buffer is
  *   not yet valid JSON (caller should keep accumulating streaming deltas).
@@ -46,16 +113,26 @@ export function tryParseToolArguments(rawArgs: string): { parsed: any } | undefi
 		return { parsed: JSON.parse(rawArgs) }
 	} catch {
 		// Strict parse failed. This is either (a) an incomplete buffer that is
-		// still streaming, or (b) genuinely malformed JSON. Attempt a single
-		// conservative repair (quote bare scalar values) and parse again. Because
-		// this only runs after a strict failure, it can never corrupt valid JSON.
-		try {
-			const repaired = rawArgs.replace(/("([^"]+)"\s*:\s*)([a-zA-Z0-9_.*\/\\-]+)(?=\s*[,\]}])/g, '$1"$3"')
-			if (repaired !== rawArgs) {
-				return { parsed: JSON.parse(repaired) }
+		// still streaming, or (b) genuinely malformed JSON. Attempt conservative
+		// repairs in order — each only ever runs after a strict failure, so valid
+		// JSON is never mutated. The tag-stripped candidate is tried first so
+		// numeric values stay numbers (the scalar-quoting repair would turn them
+		// into strings).
+		const tagStripped = stripPlaceholderTags(rawArgs)
+		const hadTags = tagStripped !== undefined
+		const base = tagStripped ?? rawArgs
+		for (const repaired of [base, quoteBareScalarValues(base)]) {
+			if (repaired === rawArgs) {
+				continue
 			}
-		} catch {
-			// Repair did not yield valid JSON either — fall through.
+			try {
+				if (hadTags) {
+					console.warn("[AssistantMessageParser] Repaired tool arguments containing placeholder tags")
+				}
+				return { parsed: JSON.parse(repaired) }
+			} catch {
+				// Repair did not yield valid JSON — try the next candidate.
+			}
 		}
 		return undefined
 	}
@@ -157,6 +234,10 @@ export class AssistantMessageParser {
 			return partialParams
 		}
 
+		// forked_change: strip placeholder tags (e.g. "limit": <longcat_arg_value>180)
+		// so the partial display reflects the real value behind the tag.
+		const cleaned = stripValuePositionTags(argsString)
+
 		// Match patterns like "key": "value" or "key": "partial value (without closing quote)
 		// Also match "key": unquoted_value for simple values
 		// Handle escaped quotes within values: \"
@@ -165,11 +246,11 @@ export class AssistantMessageParser {
 
 		let match
 		// Extract quoted values
-		while ((match = quotedValueRegex.exec(argsString)) !== null) {
+		while ((match = quotedValueRegex.exec(cleaned)) !== null) {
 			partialParams[match[1]] = match[2]
 		}
 		// Extract unquoted values (only if not already captured as quoted)
-		while ((match = unquotedValueRegex.exec(argsString)) !== null) {
+		while ((match = unquotedValueRegex.exec(cleaned)) !== null) {
 			if (!(match[1] in partialParams)) {
 				partialParams[match[1]] = match[2]
 			}
@@ -178,7 +259,7 @@ export class AssistantMessageParser {
 		// Also try to extract partial quoted values (without closing quote)
 		// e.g., "file_path": "src/componen  -> extract "src/componen"
 		const partialQuotedRegex = /"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)$/g
-		while ((match = partialQuotedRegex.exec(argsString)) !== null) {
+		while ((match = partialQuotedRegex.exec(cleaned)) !== null) {
 			partialParams[match[1]] = match[2]
 		}
 

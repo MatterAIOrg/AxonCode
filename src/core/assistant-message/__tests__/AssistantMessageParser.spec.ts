@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 
 // npx vitest src/core/assistant-message/__tests__/AssistantMessageParser.spec.ts
 
-import { AssistantMessageParser } from "../AssistantMessageParser"
+import { AssistantMessageParser, stripPlaceholderTags, tryParseToolArguments } from "../AssistantMessageParser"
 import { AssistantMessageContent } from "../parseAssistantMessage"
 import { TextContent, ToolUse } from "../../../shared/tools"
 
@@ -613,6 +613,185 @@ describe("AssistantMessageParser (streaming)", () => {
 			expect(toolUse.partial).toBe(false)
 			expect(toolUse.params.file_path).toBe("src/a.ts")
 		})
+	})
+
+	describe("placeholder-tag repair (forked_change)", () => {
+		it("keeps the value that follows a placeholder tag", () => {
+			const raw = '{"files": [{"file_path": "/tmp/a.ts", "offset": 70, "limit": <longcat_arg_value>180}]}'
+			const result = tryParseToolArguments(raw)
+			expect(result).toBeDefined()
+			expect(result!.parsed.files[0].limit).toBe(180)
+			expect(result!.parsed.files[0].offset).toBe(70)
+			expect(result!.parsed.files[0].file_path).toBe("/tmp/a.ts")
+		})
+
+		it("drops a tag-only value so the tool default applies", () => {
+			const raw = '{"files": [{"file_path": "/tmp/a.ts", "offset": 70, "limit": <longcat_arg_value>}]}'
+			const result = tryParseToolArguments(raw)
+			expect(result).toBeDefined()
+			expect(result!.parsed.files[0]).toEqual({ file_path: "/tmp/a.ts", offset: 70 })
+		})
+
+		it("removes a tag-only key followed by another member", () => {
+			const result = tryParseToolArguments('{"path": <longcat_arg_value>, "regex": "foo"}')
+			expect(result).toBeDefined()
+			expect(result!.parsed).toEqual({ regex: "foo" })
+		})
+
+		it("removes a tag-only first key", () => {
+			const result = tryParseToolArguments('{"limit": <longcat_arg_value>, "offset": 5}')
+			expect(result).toBeDefined()
+			expect(result!.parsed).toEqual({ offset: 5 })
+		})
+
+		it("keeps a string value that follows a placeholder tag", () => {
+			const result = tryParseToolArguments('{"file_path": <longcat_arg_value>"/tmp/a.ts"}')
+			expect(result).toBeDefined()
+			expect(result!.parsed).toEqual({ file_path: "/tmp/a.ts" })
+		})
+
+		it("composes with the bare-scalar repair", () => {
+			const result = tryParseToolArguments('{"file_pattern": <longcat_arg_value>*.ts}')
+			expect(result).toBeDefined()
+			expect(result!.parsed).toEqual({ file_pattern: "*.ts" })
+		})
+
+		it("still repairs bare scalars when no tags are present (regression)", () => {
+			const result = tryParseToolArguments('{"file_pattern": *.ts}')
+			expect(result).toBeDefined()
+			expect(result!.parsed).toEqual({ file_pattern: "*.ts" })
+		})
+
+		it("never touches tags inside valid JSON string values", () => {
+			const raw = '{"content": "uses <b>bold</b> and <longcat_arg_value> inside a string"}'
+			const result = tryParseToolArguments(raw)
+			expect(result).toBeDefined()
+			expect(result!.parsed.content).toBe("uses <b>bold</b> and <longcat_arg_value> inside a string")
+		})
+
+		it("returns undefined for an incomplete buffer containing a tag (keep accumulating)", () => {
+			const raw = '{"files": [{"file_path": "/tmp/a.ts", "limit": <longcat_arg_value>'
+			expect(tryParseToolArguments(raw)).toBeUndefined()
+		})
+
+		it("stripPlaceholderTags reports when no tags were present", () => {
+			expect(stripPlaceholderTags('{"a": 1}')).toBeUndefined()
+		})
+
+		it("stripPlaceholderTags keeps values and drops tag-only keys", () => {
+			expect(stripPlaceholderTags('{"a": <tag_value>1}')).toBe('{"a": 1}')
+			expect(stripPlaceholderTags('{"a": <tag_value>}')).toBe("{}")
+			expect(stripPlaceholderTags('{"a": 1, "b": <tag_value>}')).toBe('{"a": 1}')
+			expect(stripPlaceholderTags('{"a": <tag_value>, "b": 2}')).toBe('{"b": 2}')
+		})
+	})
+
+	describe("native tool calls with placeholder tags", () => {
+		const tagWithValueArgs =
+			'{"files": [{"file_path": "/tmp/a.ts", "offset": 70, "limit": <longcat_arg_value>180}]}'
+		const tagOnlyArgs = '{"files": [{"file_path": "/tmp/a.ts", "offset": 70, "limit": <longcat_arg_value>}]}'
+
+		it("repairs a read_file call whose limit is prefixed by a placeholder tag", () => {
+			const yielded = [
+				...parser.processNativeToolCalls([
+					{
+						index: 0,
+						id: "read_file:0",
+						type: "function",
+						function: { name: "read_file", arguments: tagWithValueArgs },
+					},
+				]),
+			]
+			// Partial (with tag-stripped display params) + complete.
+			expect(yielded).toHaveLength(2)
+			expect((yielded[0].input as Record<string, string>).limit).toBe("180")
+			const toolUse = parser.getContentBlocks().find((b) => b.type === "tool_use") as ToolUse
+			expect(toolUse.partial).toBe(false)
+			expect((toolUse.params.files as unknown as Array<Record<string, unknown>>)[0]).toEqual({
+				file_path: "/tmp/a.ts",
+				offset: 70,
+				limit: 180,
+			})
+		})
+
+		it("drops a tag-only limit so the read_file default applies", () => {
+			const yielded = [
+				...parser.processNativeToolCalls([
+					{
+						index: 0,
+						id: "read_file:0",
+						type: "function",
+						function: { name: "read_file", arguments: tagOnlyArgs },
+					},
+				]),
+			]
+			expect(yielded).toHaveLength(2)
+			const toolUse = parser.getContentBlocks().find((b) => b.type === "tool_use") as ToolUse
+			expect(toolUse.partial).toBe(false)
+			expect((toolUse.params.files as unknown as Array<Record<string, unknown>>)[0]).toEqual({
+				file_path: "/tmp/a.ts",
+				offset: 70,
+			})
+		})
+
+		it.each([1, 7, 64, tagWithValueArgs.length])(
+			"completes a tag-repaired call streamed in small deltas (chunkSize=%i)",
+			(chunkSize) => {
+				let first = true
+				for (let i = 0; i < tagWithValueArgs.length; i += chunkSize) {
+					const call = first
+						? {
+								index: 0,
+								id: "call_1",
+								type: "function",
+								function: { name: "read_file", arguments: tagWithValueArgs.slice(i, i + chunkSize) },
+							}
+						: { index: 0, function: { arguments: tagWithValueArgs.slice(i, i + chunkSize) } }
+					first = false
+					for (const _ of parser.processNativeToolCalls([call as any])) {
+						/* consume */
+					}
+				}
+				parser.finalizeContentBlocks()
+				const toolUses = parser.getContentBlocks().filter((b) => b.type === "tool_use") as ToolUse[]
+				expect(toolUses).toHaveLength(1)
+				expect(toolUses[0].partial).toBe(false)
+				expect((toolUses[0].params.files as unknown as Array<Record<string, unknown>>)[0]).toEqual({
+					file_path: "/tmp/a.ts",
+					offset: 70,
+					limit: 180,
+				})
+			},
+		)
+
+		it.each([1, 7, 64, tagOnlyArgs.length])(
+			"completes a tag-only streamed call with the key dropped (chunkSize=%i)",
+			(chunkSize) => {
+				let first = true
+				for (let i = 0; i < tagOnlyArgs.length; i += chunkSize) {
+					const call = first
+						? {
+								index: 0,
+								id: "call_1",
+								type: "function",
+								function: { name: "read_file", arguments: tagOnlyArgs.slice(i, i + chunkSize) },
+							}
+						: { index: 0, function: { arguments: tagOnlyArgs.slice(i, i + chunkSize) } }
+					first = false
+					for (const _ of parser.processNativeToolCalls([call as any])) {
+						/* consume */
+					}
+				}
+				parser.finalizeContentBlocks()
+				const toolUses = parser.getContentBlocks().filter((b) => b.type === "tool_use") as ToolUse[]
+				expect(toolUses).toHaveLength(1)
+				expect(toolUses[0].partial).toBe(false)
+				expect((toolUses[0].params.files as unknown as Array<Record<string, unknown>>)[0]).toEqual({
+					file_path: "/tmp/a.ts",
+					offset: 70,
+				})
+			},
+		)
 	})
 
 	describe("size limit handling", () => {

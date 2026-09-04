@@ -6,6 +6,7 @@ import { McpExecutionStatus } from "@roo-code/types"
 import { t } from "../../i18n"
 import { McpToolCallResponse, McpAuthError } from "../../shared/mcp" // kilocode_change
 import { summarizeSuccessfulMcpOutputWhenTooLong } from "./kilocode" // kilocode_change
+import { stripPlaceholderTags } from "../assistant-message/AssistantMessageParser" // forked_change
 
 interface McpToolParams {
 	server_name?: string
@@ -77,9 +78,22 @@ async function validateParams(
 		try {
 			// Handle both string (from XML) and object (from native function calling)
 			if (typeof params.arguments === "string") {
-				const parsed = JSON.parse(params.arguments)
+				let parsed: unknown
+				try {
+					parsed = JSON.parse(params.arguments)
+				} catch {
+					// forked_change: some models leak placeholder tags (e.g.
+					// <longcat_arg_value>) into the arguments JSON. Strip them — keeping
+					// the value after the tag, or dropping tag-only keys so the tool
+					// default applies — before failing the whole tool call.
+					const repaired = stripPlaceholderTags(params.arguments)
+					if (repaired === undefined) {
+						throw new Error("Invalid JSON in tool arguments")
+					}
+					parsed = JSON.parse(repaired)
+				}
 				if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-					parsedArguments = parsed
+					parsedArguments = parsed as Record<string, unknown>
 				}
 			} else if (typeof params.arguments === "object") {
 				// Already parsed (from native function calling)
