@@ -1,5 +1,11 @@
 # Changelog
 
+## [v6.8.5] - 2026-09-04
+
+### Fixed
+
+- **Placeholder-tagged tool arguments are repaired instead of dropped.** When a model emits malformed native tool-call JSON with a placeholder tag in value position (e.g. `"limit": <longcat_arg_value>180` or `"limit": <longcat_arg_value>`), `AssistantMessageParser` now strips the tag and keeps the trailing value, or drops the dangling key entirely when no value follows so the tool's default applies. The repair runs only after strict `JSON.parse` fails, so valid JSON is never altered. `useMcpToolTool` applies the same cleanup when validating MCP tool arguments, and streaming partial previews are tag-cleaned as well.
+
 ## [v6.8.4] - 2026-09-03
 
 ### Added
