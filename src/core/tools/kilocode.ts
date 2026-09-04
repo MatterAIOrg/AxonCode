@@ -55,6 +55,23 @@ type FileEntry = {
 	limit?: number
 }
 
+/**
+ * Parse a positive integer tool parameter. The model may send numbers as
+ * strings, null, or fractional values; anything unparseable falls back to
+ * the caller's default, and out-of-range values clamp to the minimum
+ * instead of failing the tool call.
+ */
+export function parsePositiveInteger(value: unknown): number | undefined {
+	if (value === null || value === undefined) {
+		return undefined
+	}
+	const parsed = typeof value === "number" ? value : parseInt(String(value), 10)
+	if (!Number.isFinite(parsed)) {
+		return undefined
+	}
+	return Math.max(1, Math.floor(parsed))
+}
+
 export function parseNativeFiles(
 	nativeFiles: {
 		file_path?: string
@@ -70,14 +87,13 @@ export function parseNativeFiles(
 		const filePath = file.file_path || file.path
 		if (!filePath) continue
 
-		// Parse offset and limit as integers - LLM may send them as strings
-		const parsedOffset = file.offset !== undefined ? parseInt(String(file.offset), 10) : undefined
-		const parsedLimit = file.limit !== undefined ? parseInt(String(file.limit), 10) : undefined
-
+		// Parse offset and limit as positive integers - the model may send
+		// them as strings, null, or fractional values; unparseable values
+		// fall back to the tool defaults.
 		const fileEntry: FileEntry = {
 			path: filePath,
-			offset: !isNaN(parsedOffset as number) ? parsedOffset : 1,
-			limit: !isNaN(parsedLimit as number) ? parsedLimit : undefined, // undefined means read complete file
+			offset: parsePositiveInteger(file.offset) ?? 1,
+			limit: parsePositiveInteger(file.limit), // undefined means read complete file
 		}
 
 		// Legacy support: convert line_ranges to offset+limit if provided

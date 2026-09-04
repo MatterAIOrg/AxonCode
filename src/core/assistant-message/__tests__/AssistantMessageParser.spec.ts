@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 
 // npx vitest src/core/assistant-message/__tests__/AssistantMessageParser.spec.ts
 
-import { AssistantMessageParser, stripPlaceholderTags, tryParseToolArguments } from "../AssistantMessageParser"
+import { AssistantMessageParser, tryParseToolArguments } from "../AssistantMessageParser"
 import { AssistantMessageContent } from "../parseAssistantMessage"
 import { TextContent, ToolUse } from "../../../shared/tools"
 
@@ -620,28 +620,29 @@ describe("AssistantMessageParser (streaming)", () => {
 			const raw = '{"files": [{"file_path": "/tmp/a.ts", "offset": 70, "limit": <longcat_arg_value>180}]}'
 			const result = tryParseToolArguments(raw)
 			expect(result).toBeDefined()
+			expect(result!.repaired).toBe(true)
 			expect(result!.parsed.files[0].limit).toBe(180)
 			expect(result!.parsed.files[0].offset).toBe(70)
 			expect(result!.parsed.files[0].file_path).toBe("/tmp/a.ts")
 		})
 
-		it("drops a tag-only value so the tool default applies", () => {
+		it("nulls a tag-only value so the tool default applies", () => {
 			const raw = '{"files": [{"file_path": "/tmp/a.ts", "offset": 70, "limit": <longcat_arg_value>}]}'
 			const result = tryParseToolArguments(raw)
 			expect(result).toBeDefined()
-			expect(result!.parsed.files[0]).toEqual({ file_path: "/tmp/a.ts", offset: 70 })
+			expect(result!.parsed.files[0]).toEqual({ file_path: "/tmp/a.ts", offset: 70, limit: null })
 		})
 
-		it("removes a tag-only key followed by another member", () => {
+		it("nulls a tag-only key followed by another member", () => {
 			const result = tryParseToolArguments('{"path": <longcat_arg_value>, "regex": "foo"}')
 			expect(result).toBeDefined()
-			expect(result!.parsed).toEqual({ regex: "foo" })
+			expect(result!.parsed).toEqual({ path: null, regex: "foo" })
 		})
 
-		it("removes a tag-only first key", () => {
+		it("nulls a tag-only first key", () => {
 			const result = tryParseToolArguments('{"limit": <longcat_arg_value>, "offset": 5}')
 			expect(result).toBeDefined()
-			expect(result!.parsed).toEqual({ offset: 5 })
+			expect(result!.parsed).toEqual({ limit: null, offset: 5 })
 		})
 
 		it("keeps a string value that follows a placeholder tag", () => {
@@ -674,15 +675,31 @@ describe("AssistantMessageParser (streaming)", () => {
 			expect(tryParseToolArguments(raw)).toBeUndefined()
 		})
 
-		it("stripPlaceholderTags reports when no tags were present", () => {
-			expect(stripPlaceholderTags('{"a": 1}')).toBeUndefined()
+		it("reports repaired: false for well-formed JSON", () => {
+			const result = tryParseToolArguments('{"path": "src"}')
+			expect(result).toEqual({ parsed: { path: "src" }, repaired: false })
 		})
 
-		it("stripPlaceholderTags keeps values and drops tag-only keys", () => {
-			expect(stripPlaceholderTags('{"a": <tag_value>1}')).toBe('{"a": 1}')
-			expect(stripPlaceholderTags('{"a": <tag_value>}')).toBe("{}")
-			expect(stripPlaceholderTags('{"a": 1, "b": <tag_value>}')).toBe('{"a": 1}')
-			expect(stripPlaceholderTags('{"a": <tag_value>, "b": 2}')).toBe('{"b": 2}')
+		it("reports repaired: true when the repair pass ran", () => {
+			const result = tryParseToolArguments('{"path": <longcat_arg_value>"src"}')
+			expect(result!.repaired).toBe(true)
+		})
+
+		it("recovers a truncated buffer only at finalization", () => {
+			const truncated = '{"path": "src'
+			expect(tryParseToolArguments(truncated)).toBeUndefined()
+			expect(tryParseToolArguments(truncated, { repairTruncated: true })).toEqual({
+				parsed: { path: "src" },
+				repaired: true,
+			})
+		})
+
+		it("recovers a braceless body only at finalization", () => {
+			expect(tryParseToolArguments('path: "src"')).toBeUndefined()
+			expect(tryParseToolArguments('path: "src"', { repairTruncated: true })).toEqual({
+				parsed: { path: "src" },
+				repaired: true,
+			})
 		})
 	})
 
@@ -707,6 +724,7 @@ describe("AssistantMessageParser (streaming)", () => {
 			expect((yielded[0].input as Record<string, string>).limit).toBe("180")
 			const toolUse = parser.getContentBlocks().find((b) => b.type === "tool_use") as ToolUse
 			expect(toolUse.partial).toBe(false)
+			expect(toolUse.repaired).toBe(true)
 			expect((toolUse.params.files as unknown as Array<Record<string, unknown>>)[0]).toEqual({
 				file_path: "/tmp/a.ts",
 				offset: 70,
@@ -714,7 +732,7 @@ describe("AssistantMessageParser (streaming)", () => {
 			})
 		})
 
-		it("drops a tag-only limit so the read_file default applies", () => {
+		it("nulls a tag-only limit so the read_file default applies", () => {
 			const yielded = [
 				...parser.processNativeToolCalls([
 					{
@@ -728,9 +746,11 @@ describe("AssistantMessageParser (streaming)", () => {
 			expect(yielded).toHaveLength(2)
 			const toolUse = parser.getContentBlocks().find((b) => b.type === "tool_use") as ToolUse
 			expect(toolUse.partial).toBe(false)
+			expect(toolUse.repaired).toBe(true)
 			expect((toolUse.params.files as unknown as Array<Record<string, unknown>>)[0]).toEqual({
 				file_path: "/tmp/a.ts",
 				offset: 70,
+				limit: null,
 			})
 		})
 
@@ -765,7 +785,7 @@ describe("AssistantMessageParser (streaming)", () => {
 		)
 
 		it.each([1, 7, 64, tagOnlyArgs.length])(
-			"completes a tag-only streamed call with the key dropped (chunkSize=%i)",
+			"completes a tag-only streamed call with the value nulled (chunkSize=%i)",
 			(chunkSize) => {
 				let first = true
 				for (let i = 0; i < tagOnlyArgs.length; i += chunkSize) {
@@ -789,6 +809,7 @@ describe("AssistantMessageParser (streaming)", () => {
 				expect((toolUses[0].params.files as unknown as Array<Record<string, unknown>>)[0]).toEqual({
 					file_path: "/tmp/a.ts",
 					offset: 70,
+					limit: null,
 				})
 			},
 		)

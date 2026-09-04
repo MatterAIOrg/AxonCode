@@ -3,6 +3,7 @@ import { TextContent, ToolUse, ToolParamName, toolParamNames } from "../../share
 import { AssistantMessageContent } from "./parseAssistantMessage"
 import { NativeToolCall, parseDoubleEncodedParams } from "./kilocode/native-tool-call"
 import Anthropic from "@anthropic-ai/sdk" // kilocode_change
+import { parseToolCallArguments } from "../../utils/jsonRepair" // forked_change
 
 /**
  * Callback function type to check if a tool name is a valid MCP tool.
@@ -25,17 +26,10 @@ const PLACEHOLDER_TAG = "<\\/?[a-zA-Z_][a-zA-Z0-9_.\\-]*>"
 const VALUE_POSITION_PLACEHOLDER_TAG = new RegExp(`("[^"]*"\\s*:\\s*)${PLACEHOLDER_TAG}`, "g")
 
 /**
- * A tag that replaced a value entirely leaves a dangling key (`"limit": }`).
- * These remove the dangling key — and its trailing comma when another member
- * follows — so the JSON becomes valid and the tool's default applies.
- */
-const DANGLING_KEY_BEFORE_MEMBER = /"[^"]*"\s*:\s*,\s*/g
-const DANGLING_KEY_BEFORE_CLOSER = /(,\s*)?"[^"]*"\s*:\s*(?=\s*[}\]])/g
-
-/**
  * Remove placeholder tags that prefix a real value:
  * `"limit": <tag>180` becomes `"limit": 180`. Repeated until stable in case a
- * model emits several tags in a row.
+ * model emits several tags in a row. Used for partial-params display only;
+ * actual argument parsing goes through `parseToolCallArguments`.
  */
 function stripValuePositionTags(args: string): string {
 	let stripped = args
@@ -45,33 +39,6 @@ function stripValuePositionTags(args: string): string {
 		stripped = stripped.replace(VALUE_POSITION_PLACEHOLDER_TAG, "$1")
 	} while (stripped !== previous)
 	return stripped
-}
-
-/**
- * Clean placeholder tags (e.g. `<longcat_arg_value>`) out of tool-call
- * arguments so the call can be repaired instead of dropped:
- *   1. `"limit": <tag>180` — the tag prefixes a real value: the tag is
- *      removed and the value is kept.
- *   2. `"limit": <tag>` — the tag replaces the value: the key is removed
- *      entirely so the tool falls back to its default for that parameter.
- *
- * @returns the cleaned string, or undefined when no placeholder tags were
- *   present (callers skip this repair entirely).
- */
-export function stripPlaceholderTags(rawArgs: string): string | undefined {
-	const stripped = stripValuePositionTags(rawArgs)
-	if (stripped === rawArgs) {
-		return undefined
-	}
-	return stripped.replace(DANGLING_KEY_BEFORE_MEMBER, "").replace(DANGLING_KEY_BEFORE_CLOSER, "")
-}
-
-/**
- * Quote bare scalar values (e.g. `{"file_pattern": *.js}`) so the result is
- * valid JSON. Only ever applied after a strict parse failure.
- */
-function quoteBareScalarValues(args: string): string {
-	return args.replace(/("([^"]+)"\s*:\s*)([a-zA-Z0-9_.*\/\\-]+)(?=\s*[,\]}])/g, '$1"$3"')
 }
 // forked_change end
 
@@ -89,53 +56,33 @@ function quoteBareScalarValues(args: string): string {
  *
  * Strategy:
  *   1. Only attempt parsing once the buffer looks like JSON (`{`/`[`).
- *   2. Try strict `JSON.parse` first. This is the ONLY path valid JSON ever
- *      takes, so well-formed arguments are never mutated.
- *   3. Only if strict parsing throws do we attempt conservative repairs for
- *      genuinely-malformed JSON and parse again: strip placeholder tags (e.g.
- *      `"limit": <longcat_arg_value>180` — the value after the tag is kept,
- *      a tag-only value drops the key so the tool default applies), then quote
- *      unquoted scalar values (e.g. `{"file_pattern": *.js}`).
+ *      At finalization (`repairTruncated`) a braceless body such as
+ *      `path: "src"` is still worth a repair attempt — the scanner rejects
+ *      prose because a bare key must be followed by a colon.
+ *   2. `parseToolCallArguments` strict-parses first, so well-formed arguments
+ *      are never mutated. Only on failure does it apply the best-effort repair
+ *      pass (placeholder tags, unquoted keys/values, single quotes, Python
+ *      literals, comments, trailing commas, dropped key quotes). With
+ *      `repairTruncated` it additionally closes dangling strings/containers
+ *      and appends `null` after a dangling colon.
  *
- * @returns `{ parsed }` when complete & valid, or `undefined` when the buffer is
- *   not yet valid JSON (caller should keep accumulating streaming deltas).
+ * @returns `{ parsed, repaired }` when complete & valid (or repaired), or
+ *   `undefined` when the buffer is not yet valid JSON (caller should keep
+ *   accumulating streaming deltas).
  */
-export function tryParseToolArguments(rawArgs: string): { parsed: any } | undefined {
+export function tryParseToolArguments(
+	rawArgs: string,
+	options?: { repairTruncated?: boolean },
+): { parsed: any; repaired?: boolean } | undefined {
+	const repairTruncated = options?.repairTruncated ?? false
 	const trimmed = rawArgs.trim()
 	// During streaming, arguments may begin as natural-language text; wait until
 	// the buffer actually looks like a JSON object/array before parsing.
-	if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+	if (!trimmed.startsWith("{") && !trimmed.startsWith("[") && !repairTruncated) {
 		return undefined
 	}
-
-	try {
-		// Strict, verbatim parse — the happy path for all well-formed JSON.
-		return { parsed: JSON.parse(rawArgs) }
-	} catch {
-		// Strict parse failed. This is either (a) an incomplete buffer that is
-		// still streaming, or (b) genuinely malformed JSON. Attempt conservative
-		// repairs in order — each only ever runs after a strict failure, so valid
-		// JSON is never mutated. The tag-stripped candidate is tried first so
-		// numeric values stay numbers (the scalar-quoting repair would turn them
-		// into strings).
-		const tagStripped = stripPlaceholderTags(rawArgs)
-		const hadTags = tagStripped !== undefined
-		const base = tagStripped ?? rawArgs
-		for (const repaired of [base, quoteBareScalarValues(base)]) {
-			if (repaired === rawArgs) {
-				continue
-			}
-			try {
-				if (hadTags) {
-					console.warn("[AssistantMessageParser] Repaired tool arguments containing placeholder tags")
-				}
-				return { parsed: JSON.parse(repaired) }
-			} catch {
-				// Repair did not yield valid JSON — try the next candidate.
-			}
-		}
-		return undefined
-	}
+	const result = parseToolCallArguments(rawArgs, { repairTruncated })
+	return result ? { parsed: result.args, repaired: result.repaired } : undefined
 }
 
 /**
@@ -419,6 +366,7 @@ export class AssistantMessageParser {
 			// throws — it returns undefined while the buffer is still incomplete.
 			let isComplete = false
 			let parsedArgs: Record<string, any> = {}
+			let argumentsRepaired = false
 
 			const parseResult = accumulatedCall.function!.arguments.trim()
 				? tryParseToolArguments(accumulatedCall.function!.arguments)
@@ -428,6 +376,10 @@ export class AssistantMessageParser {
 				// Fix any double-encoded parameters
 				parsedArgs = parseDoubleEncodedParams(parseResult.parsed)
 				isComplete = true
+				argumentsRepaired = parseResult.repaired ?? false
+				if (argumentsRepaired) {
+					console.warn("[AssistantMessageParser] Repaired malformed tool arguments")
+				}
 			} else {
 				// Arguments are not yet complete valid JSON, continue accumulating.
 				// forked_change: Update the partial tool use block with new partial params
@@ -472,6 +424,7 @@ export class AssistantMessageParser {
 						},
 						partial: false,
 						toolUseId: accumulatedCall.id,
+						repaired: argumentsRepaired,
 					}
 					console.log("[MCP Debug] Converted to use_mcp_tool:", toolUse.params)
 				} else {
@@ -482,6 +435,7 @@ export class AssistantMessageParser {
 						params: parsedArgs,
 						partial: false, // Now complete after accumulation
 						toolUseId: accumulatedCall.id,
+						repaired: argumentsRepaired,
 					}
 				}
 
@@ -502,6 +456,7 @@ export class AssistantMessageParser {
 						existingBlock.params = toolUse.params
 						existingBlock.partial = false
 						existingBlock.toolUseId = toolUse.toolUseId
+						existingBlock.repaired = toolUse.repaired
 					} else {
 						// Partial block not found, add as new (shouldn't happen normally)
 						this.contentBlocks.push(toolUse)
@@ -785,9 +740,12 @@ export class AssistantMessageParser {
 
 			// Try to parse the arguments one final time. Use the same raw-first
 			// helper as the streaming path so valid JSON is decoded verbatim and
-			// never mutated by the lenient repair regex.
+			// never mutated by the repair pass. The stream has now ended, so
+			// repairTruncated closes dangling strings/containers and appends null
+			// after a dangling colon — recovering calls whose JSON was cut off
+			// mid-argument instead of dropping them.
 			const finalParse = accumulatedCall.function?.arguments?.trim()
-				? tryParseToolArguments(accumulatedCall.function.arguments)
+				? tryParseToolArguments(accumulatedCall.function.arguments, { repairTruncated: true })
 				: { parsed: {} }
 
 			if (!finalParse) {
@@ -808,6 +766,10 @@ export class AssistantMessageParser {
 			}
 
 			const parsedArgs: Record<string, any> = parseDoubleEncodedParams(finalParse.parsed)
+			const argumentsRepaired = finalParse.repaired ?? false
+			if (argumentsRepaired) {
+				console.warn("[AssistantMessageParser] Repaired malformed tool arguments at finalization")
+			}
 
 			// Finalize any current text content before adding tool use
 			if (this.currentTextContent) {
@@ -830,6 +792,7 @@ export class AssistantMessageParser {
 					},
 					partial: false,
 					toolUseId: accumulatedCall.id,
+					repaired: argumentsRepaired,
 				}
 			} else {
 				// Create a ToolUse block from the native tool call
@@ -839,6 +802,7 @@ export class AssistantMessageParser {
 					params: parsedArgs,
 					partial: false,
 					toolUseId: accumulatedCall.id,
+					repaired: argumentsRepaired,
 				}
 			}
 

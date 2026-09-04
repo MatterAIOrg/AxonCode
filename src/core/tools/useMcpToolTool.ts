@@ -6,7 +6,7 @@ import { McpExecutionStatus } from "@roo-code/types"
 import { t } from "../../i18n"
 import { McpToolCallResponse, McpAuthError } from "../../shared/mcp" // kilocode_change
 import { summarizeSuccessfulMcpOutputWhenTooLong } from "./kilocode" // kilocode_change
-import { stripPlaceholderTags } from "../assistant-message/AssistantMessageParser" // forked_change
+import { formatArgumentRepairNote, parseToolCallArguments } from "../../utils/jsonRepair" // forked_change
 
 interface McpToolParams {
 	server_name?: string
@@ -21,6 +21,7 @@ type ValidationResult =
 			serverName: string
 			toolName: string
 			parsedArguments?: Record<string, unknown>
+			argumentsRepaired?: boolean
 	  }
 
 async function handlePartialRequest(
@@ -73,27 +74,23 @@ async function validateParams(
 	}
 
 	let parsedArguments: Record<string, unknown> = {}
+	let argumentsRepaired = false
 
 	if (params.arguments) {
 		try {
 			// Handle both string (from XML) and object (from native function calling)
 			if (typeof params.arguments === "string") {
-				let parsed: unknown
-				try {
-					parsed = JSON.parse(params.arguments)
-				} catch {
-					// forked_change: some models leak placeholder tags (e.g.
-					// <longcat_arg_value>) into the arguments JSON. Strip them — keeping
-					// the value after the tag, or dropping tag-only keys so the tool
-					// default applies — before failing the whole tool call.
-					const repaired = stripPlaceholderTags(params.arguments)
-					if (repaired === undefined) {
-						throw new Error("Invalid JSON in tool arguments")
-					}
-					parsed = JSON.parse(repaired)
+				// forked_change: repair malformed JSON arguments (placeholder tags,
+				// unquoted values, single quotes, truncation) instead of failing the
+				// whole tool call. XML-mode arguments arrive complete, so truncated
+				// input is closed here too.
+				const parsed = parseToolCallArguments(params.arguments, { repairTruncated: true })
+				if (!parsed) {
+					throw new Error("Invalid JSON in tool arguments")
 				}
-				if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-					parsedArguments = parsed as Record<string, unknown>
+				if (parsed.args && typeof parsed.args === "object" && !Array.isArray(parsed.args)) {
+					parsedArguments = parsed.args as Record<string, unknown>
+					argumentsRepaired = parsed.repaired
 				}
 			} else if (typeof params.arguments === "object") {
 				// Already parsed (from native function calling)
@@ -119,6 +116,7 @@ async function validateParams(
 		serverName: params.server_name,
 		toolName: params.tool_name,
 		parsedArguments,
+		argumentsRepaired,
 	}
 }
 
@@ -267,6 +265,7 @@ async function executeToolAndProcessResult(
 	parsedArguments: Record<string, unknown> | undefined,
 	executionId: string,
 	pushToolResult: PushToolResult,
+	argumentsRepaired?: boolean,
 ): Promise<void> {
 	await cline.say("mcp_server_request_started")
 
@@ -320,6 +319,11 @@ async function executeToolAndProcessResult(
 		}
 
 		await cline.say("mcp_server_response", toolResultPretty)
+		if (argumentsRepaired) {
+			// forked_change: transparency — tell the model what actually executed
+			// so it does not repeat the malformed form.
+			toolResultPretty += `\n\n${formatArgumentRepairNote(JSON.stringify(parsedArguments ?? {}))}`
+		}
 		pushToolResult(formatResponse.toolResult(toolResultPretty))
 	} catch (error) {
 		// Handle authentication errors specially
@@ -378,7 +382,7 @@ export async function useMcpToolTool(
 			return
 		}
 
-		const { serverName, toolName, parsedArguments } = validation
+		const { serverName, toolName, parsedArguments, argumentsRepaired } = validation
 
 		// Validate that the tool exists on the server
 		const toolValidation = await validateToolExists(cline, serverName, toolName, pushToolResult)
@@ -418,7 +422,15 @@ export async function useMcpToolTool(
 		}
 
 		// Execute the tool and process results
-		await executeToolAndProcessResult(cline, serverName!, toolName!, parsedArguments, executionId, pushToolResult)
+		await executeToolAndProcessResult(
+			cline,
+			serverName!,
+			toolName!,
+			parsedArguments,
+			executionId,
+			pushToolResult,
+			argumentsRepaired,
+		)
 	} catch (error) {
 		await handleError("executing MCP tool", error)
 	}

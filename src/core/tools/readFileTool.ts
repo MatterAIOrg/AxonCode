@@ -15,7 +15,12 @@ import { readLines } from "../../integrations/misc/read-lines"
 import { extractTextFromFile, addLineNumbers, getSupportedBinaryFormats } from "../../integrations/misc/extract-text"
 import { parseSourceCodeDefinitionsForFile } from "../../services/tree-sitter"
 import { parseXml } from "../../utils/xml"
-import { blockFileReadWhenTooLarge, getNativeReadFileToolDescription, parseNativeFiles } from "./kilocode"
+import {
+	blockFileReadWhenTooLarge,
+	getNativeReadFileToolDescription,
+	parseNativeFiles,
+	parsePositiveInteger,
+} from "./kilocode"
 import {
 	DEFAULT_MAX_IMAGE_FILE_SIZE_MB,
 	DEFAULT_MAX_TOTAL_IMAGE_SIZE_MB,
@@ -143,11 +148,13 @@ export async function readFileTool(
 	const newFilePath: string | undefined = (block.params as any).file_path // New: support file_path directly
 	const legacyStartLineStr: string | undefined = block.params.start_line
 	const legacyEndLineStr: string | undefined = block.params.end_line
-	// Parse offset and limit as integers - LLM may send them as strings causing string concatenation bugs
+	// Parse offset and limit as positive integers - the model may send them as
+	// strings, null, or fractional values; unparseable values fall back to the
+	// tool defaults instead of failing the read.
 	const rawOffset = (block.params as any).offset
 	const rawLimit = (block.params as any).limit
-	const offsetParam: number | undefined = rawOffset !== undefined ? parseInt(String(rawOffset), 10) : undefined
-	const limitParam: number | undefined = rawLimit !== undefined ? parseInt(String(rawLimit), 10) : undefined
+	const offsetParam: number | undefined = parsePositiveInteger(rawOffset)
+	const limitParam: number | undefined = parsePositiveInteger(rawLimit)
 
 	const nativeFiles: any[] | undefined = (block.params as any).files // kilocode_change: Native JSON format from OpenAI-style tool calls
 
@@ -218,14 +225,12 @@ export async function readFileTool(
 				const filePath = file.file_path || file.path
 				if (!filePath) continue // Skip if no path in a file entry
 
-				// Parse offset and limit as integers - XML parsing may produce strings
-				const parsedOffset = file.offset !== undefined ? parseInt(String(file.offset), 10) : undefined
-				const parsedLimit = file.limit !== undefined ? parseInt(String(file.limit), 10) : undefined
-
+				// Parse offset and limit as positive integers - XML parsing may
+				// produce strings, and repaired arguments may carry nulls.
 				const fileEntry: FileEntry = {
 					path: filePath,
-					offset: !isNaN(parsedOffset as number) ? parsedOffset : 1,
-					limit: !isNaN(parsedLimit as number) ? parsedLimit : undefined, // undefined means read complete file
+					offset: parsePositiveInteger(file.offset) ?? 1,
+					limit: parsePositiveInteger(file.limit), // undefined means read complete file
 				}
 
 				// Legacy support: convert line_range to offset+limit

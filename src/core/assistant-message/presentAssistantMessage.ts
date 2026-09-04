@@ -46,6 +46,7 @@ import { webSearchTool } from "../tools/webSearchTool"
 import { figmaFetchTool } from "../tools/figmaFetchTool"
 import { askFollowupQuestionTool } from "../tools/askFollowupQuestionTool"
 import { MAX_PARALLEL_READ_ONLY_TOOLS, MAX_TOOL_REPETITION_AUTO_RETRIES } from "../tools/toolExecutionPolicy"
+import { formatArgumentRepairNote } from "../../utils/jsonRepair" // forked_change
 
 type PresentAssistantMessageOptions = {
 	/** Explicit content-block index used by the read-only batch scheduler. */
@@ -952,6 +953,25 @@ export async function presentAssistantMessage(cline: Task, options: PresentAssis
 			} finally {
 				if (!block.partial && block.name === "file_write") {
 					await removeStaleToolPreview()
+				}
+
+				// forked_change: transparency for auto-repaired arguments. The parser
+				// repaired the malformed JSON before execution; appending what actually
+				// ran to the tool result stops the model from repeating the same
+				// malformed form on the next turn.
+				if (block.repaired && !block.partial && toolResultPushed && !cline.didRejectTool) {
+					try {
+						const executedArguments =
+							block.name === "use_mcp_tool"
+								? String(block.params.arguments ?? "{}")
+								: JSON.stringify(block.params)
+						pushToolResult_withToolUseId_kilocode({
+							type: "text",
+							text: formatArgumentRepairNote(executedArguments),
+						})
+					} catch (error) {
+						console.error("[presentAssistantMessage] Failed to append argument repair note:", error)
+					}
 				}
 
 				// CRITICAL: every non-partial tool_use with a toolUseId MUST have a

@@ -101,6 +101,7 @@ export interface ToolUse {
 	params: Partial<Record<ToolParamName, string>>
 	partial: boolean
 	toolUseId?: string // kilocode_change
+	repaired?: boolean // forked_change: arguments were malformed JSON and were auto-repaired before execution
 }
 
 export interface ExecuteCommandToolUse extends ToolUse {
