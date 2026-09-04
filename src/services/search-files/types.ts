@@ -46,8 +46,10 @@ export function clampSearchOptions(options: SearchFilesOptions): Required<Omit<S
 } {
 	return {
 		cursor: options.cursor ?? null,
-		maxResults: Math.min(Math.max(options.maxResults ?? DEFAULT_SEARCH_RESULTS, 1), MAX_SEARCH_RESULTS),
-		contextLines: Math.min(Math.max(options.contextLines ?? 0, 0), MAX_SEARCH_CONTEXT_LINES),
+		// Floor fractional values so repaired arguments (e.g. "50.5") execute
+		// with a sane page size instead of failing the search.
+		maxResults: Math.floor(Math.min(Math.max(options.maxResults ?? DEFAULT_SEARCH_RESULTS, 1), MAX_SEARCH_RESULTS)),
+		contextLines: Math.floor(Math.min(Math.max(options.contextLines ?? 0, 0), MAX_SEARCH_CONTEXT_LINES)),
 	}
 }
 
